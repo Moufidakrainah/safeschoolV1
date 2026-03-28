@@ -6,4 +6,4 @@
 
 ## Database
 
-## Rationale for choices
+## Choices

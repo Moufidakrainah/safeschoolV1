@@ -8,7 +8,7 @@ The goal is to move fast, keep visibility, and avoid heavy process too early.
 - Everyone can contribute to documentation freely
 - We do not enforce strict "sensitive vs non-sensitive" document categories
 - We will refine rules after observing real contribution patterns in a couple of weeks
-- CODEOWNERS and strict branch governance are intentionally postponed in Phase 1
+- CODEOWNERS and strict branch governance are intentionally postponed
 
 ## Minimal Rules
 
@@ -27,11 +27,23 @@ The goal is to move fast, keep visibility, and avoid heavy process too early.
 
 A pull request is a merge request from your branch to `main`.
 
-## PR Ownership (Who Reviews and Merges)
+## PR Ownership (Who Reviews and Who Merges)
 
-- Documentation PRs (changes under `docs/`): Documentation Lead is requested for review.
-- Code PRs (non-documentation changes): reviewed by designated Code Merge Owners (tech leads).
-- Mixed PRs (code + docs): request both documentation and code review before merge.
+- Documentation PRs (changes under `docs/`): Documentation Lead reviews.
+- Code PRs (non-documentation changes): Code Merge Owners (tech leads) review.
+- Mixed PRs (code + docs): both documentation and code reviews are required.
+
+## Review and Merge Matrix
+
+- PR touches `docs/` only:
+	- Reviewer: Documentation Lead
+	- Merger: Documentation Lead
+- PR touches code only:
+	- Reviewer: Code Merge Owner (tech lead)
+	- Merger: Code Merge Owner (tech lead)
+- PR touches both code and `docs/`:
+	- Reviewers: Documentation Lead + Code Merge Owner
+	- Merger: Code Merge Owner (after both approvals)
 
 ## Main Branch Usage
 
@@ -40,20 +52,33 @@ A pull request is a merge request from your branch to `main`.
 - Always branch from `main`, then open a PR back to `main`.
 - Keep `main` stable and deployable at all times.
 
-## Workflow
+## Contributor Workflow (Step by Step)
 
 1. Create your branch from `main`.
 2. Commit your updates.
 3. Push the branch.
-4. Open a pull request to `main`.
-5. Address comments if needed.
-6. The designated Code Merge Owner (tech lead) performs the merge after required approvals.
+4. Open a PR to `main` with a clear title (example: `docs: update team roles`).
+5. Add the right reviewer(s):
+	 - `docs/` changes -> Documentation Lead
+	 - code changes -> Code Merge Owner
+	 - mixed changes -> both
+6. Address review comments on the same branch.
+7. Merge is done by the role defined in the matrix above.
+
+## GitHub UI Quick Steps
+
+1. Click `New branch` from `main`.
+2. Commit and push changes.
+3. Click `Compare & pull request`.
+4. Confirm `base: main` and `compare: your-branch`.
+5. Add reviewer(s) in the `Reviewers` panel.
+6. Merge when approved.
 
 ## Practical Merge Rule for Phase 1
 
-- If a PR touches `docs/`, request documentation review.
-- If a PR touches code, request code owner review.
-- If a PR touches both, request both reviews.
+- Keep PRs small and focused.
+- One topic per PR when possible.
+- If unsure who should review, tag both Documentation Lead and a Code Merge Owner.
 
 ## After Phase 1
 

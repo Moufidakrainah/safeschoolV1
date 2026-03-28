@@ -1,5 +1,11 @@
 # Used Tools
 
-| Tool | Usage | Link |
-|-------|-------|------|
-|       |       |      |
+| Tool | Usage |
+|-------|-------|
+|   Github    |    Versioning, Project Management   |
+| Slack | General Team Commmunication |
+| | |
+| | |
+
+
+
