@@ -12,6 +12,10 @@
 
 [Harcelement chez les jeunes](https://e-enfance.org/le-harcelement-chez-les-jeunes-un-fleau-qui-touche-toutes-les-classes-dage-non-sans-consequence-sur-leur-sante-mentale/)
 
+[Ampleur du harcelement](https://www.oecd.org/content/dam/oecd/fr/publications/reports/2017/07/how-much-of-a-problem-is-bullying-at-school_627d9225/3b318e4f-fr.pdf)
+
+[Etude Caisse d'Epargne](https://newsroom.groupebpce.fr/assets/presentation-etude-caisse-d-epargne-e-enfance-3018-harcelement-et-cyberharcelement-2025-pdf-6ee84-7b707.html)
+
 ## Prevention
 
 [La répartition des tâches ménagères peut réduire le harcèlement scolaire](https://www.radiofrance.fr/franceinter/podcasts/un-monde-nouveau/un-monde-nouveau-du-jeudi-26-mars-2026-7269110)
