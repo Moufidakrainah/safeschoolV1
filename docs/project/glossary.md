@@ -12,13 +12,19 @@
 - Grave
 - Critique
 
-## Achievements (actions à accomplir)
+## Achievements
 ### Participation
 - Participer à ton premier atelier
 - Participer à 2 ateliers
+
+### Curieux
 - Participer à 5 ateliers
 - Participer à 10 ateliers
+
+### Habitue
 - Participer à 20 ateliers
+
+### Fidele
 - Participer à 2 ateliers dans le même mois
 - Participer à 3 ateliers dans le même mois
 - Participer à 4 ateliers dans le même mois
@@ -26,110 +32,56 @@
 ### Engagement
 - S’inscrire à un atelier
 - S’inscrire à 3 ateliers
-Participer à un atelier chaque mois pendant 3 mois
-🤝 ACHIEVEMENTS — SOCIAL
-Participer à un atelier avec des inconnus
-Parler à au moins une nouvelle personne
-Participer à un atelier en groupe (3+)
-Participer à un atelier en petit groupe
-Revenir avec une personne rencontrée
-Participer à un atelier avec des profils différents
-Inviter quelqu’un à rejoindre un atelier
-Aider un autre participant
-Être présent à un atelier collaboratif
-Créer un moment d’échange (discussion)
-🌍 ACHIEVEMENTS — DÉCOUVERTE
-Tester une nouvelle activité
-Tester 3 activités différentes
-Tester 5 catégories différentes
-Participer à un atelier hors de ta zone habituelle
-Participer à un atelier en extérieur
-Participer à un atelier en intérieur
-Découvrir une activité inconnue
-Sortir de ta zone de confort
-Participer à un atelier créatif
-Participer à un atelier manuel
-🌿 ACHIEVEMENTS — NATURE
-Participer à une cueillette
-Participer à une randonnée
-Observer la nature activement
-Participer à une activité écologique
-Participer à un nettoyage nature
-Identifier une plante ou un champignon
-Passer du temps en forêt
-Participer à un atelier jardinage
-Participer à une activité en plein air
-Participer à une activité sans écran
-🎨 ACHIEVEMENTS — CRÉATIF
-Participer à un atelier artistique
-Créer quelque chose (dessin, objet…)
-Essayer un nouvel art
-Participer à un atelier collectif créatif
-Partager une création
-Participer à un atelier musique
-Participer à un atelier photo
-Participer à un atelier écriture
-Participer à un atelier improvisation
-🔧 ACHIEVEMENTS — PRATIQUE
-Participer à un atelier bricolage
-Réparer un objet
-Fabriquer quelque chose
-Apprendre une compétence manuelle
-Participer à un atelier DIY
-Découvrir un outil
-Participer à un atelier pratique
-🧠 ACHIEVEMENTS — PERSONNEL
-Sortir de chez soi pour un atelier
-Essayer quelque chose de nouveau seul
-Participer malgré une hésitation
-Faire un premier pas social
-Revenir après une expérience difficile
-Participer régulièrement
-Gagner en confiance
-S’exprimer en groupe
-Écouter les autres
-📅 ACHIEVEMENTS — TEMPORELS
-Participer à un atelier cette semaine
-Participer à 2 ateliers en une semaine
-Participer à un atelier le week-end
-Participer à un atelier en semaine
-Participer à un atelier le matin
-Participer à un atelier le soir
-Participer pendant une période spéciale (vacances…)
-🧑‍🤝‍🧑 ACHIEVEMENTS — COMMUNAUTÉ
-Participer à un atelier avec 5 personnes
-Participer à un atelier populaire
-Participer à un petit atelier intime
-Être régulier dans une communauté
-Rejoindre un groupe d’habitués
-Participer à un atelier organisé par un autre joueur
-Encourager d’autres participants
-🚀 ACHIEVEMENTS — DÉMARRAGE
-Créer un compte
-Compléter son profil
-Ajouter ses centres d’intérêt
-S’inscrire à un premier atelier
-Participer rapidement après inscription
-Explorer plusieurs ateliers disponibles
-💡 BONUS (originaux / puissants pour ton projet)
-Participer à un atelier sans téléphone 📵
-Participer à un atelier “rencontre”
-Faire une activité intergénérationnelle
-Participer à une micro-aventure
-Aider quelqu’un à s’intégrer
-Participer à un atelier solidaire
-Créer un lien durable (revenir avec quelqu’un)
-Faire une activité spontanée
-Participer malgré la météo 🌧️
-Revenir avec un sourire 😄
+- Participer à un atelier chaque mois pendant 3 mois
 
+### Social
+- Aider un autre participant
+- Créer un moment d’échange
 
+### Decouverte
+- Participer à un atelier en extérieur
+- Participer à un atelier en intérieur
+- Participer à un atelier créatif
+- Participer à un atelier manuel
 
+### Nature
+- Participer à une cueillette
+- Participer à une randonnée
+- Observer la nature activement
+- Participer à une activité écologique
+- Participer à un nettoyage nature
+- Identifier une plante
+- Identifier un champignon
+- Passer du temps en forêt
+- Participer à un atelier jardinage
+- Participer à une activité en plein air
+- Participer à une activité sans écran
 
+### Creatif
+- Participer à un atelier artistique
+- Créer quelque chose
+- Participer a un atelier de poterie
+- Partager une création collective
+- Participer à un atelier musique
+- Participer à un atelier photo
+- Participer à un atelier écriture
+- Participer à un atelier improvisation
 
+### Manuel
+- Participer à un atelier bricolage
+- Réparer un objet
+- Fabriquer quelque chose
+- Apprendre une compétence manuelle
+- Participer à un atelier DIY
+- Découvrir un outil
 
+### Developpement personnel
+- Écouter les autres
+- Faire une activité intergénérationnelle
+- Aider quelqu’un à s’intégrer
+- Participer à un atelier solidaire
 
-## Badges (récompenses visibles)
+## Badges
 - Premier pas (premier atelier)
 - Explorateur nature (atelier extérieur)
 - Apprenti cuisinier (atelier cuisine)
@@ -164,7 +116,7 @@ Revenir avec un sourire 😄
 - Agent de liaison
 
 ## Ateliers
-Nature :
+### Nature :
 - Randonnée
 - Cueillette de champignons
 - Observation des animaux
@@ -181,7 +133,7 @@ Nature :
 - Écologie
 - Nettoyage de la nature
 
-Cuisine :
+### Cuisine :
 - Cuisine
 - Pâtisserie
 - Cuisine du monde
@@ -192,7 +144,7 @@ Cuisine :
 - Cuisine en extérieur
 - Fermentation (kombucha)
 
-Art : 
+### Art : 
 - Dessin
 - Peinture
 - Aquarelle
@@ -208,7 +160,7 @@ Art :
 - Sculpture
 - Calligraphie
 
-Bricolage : 
+### Bricolage : 
 - Travail du bois
 - Réparation d’objets
 - Couture
@@ -220,7 +172,7 @@ Bricolage :
 - Électronique simple
 - DIY écologique
 
-Développement personnel :
+### Développement personnel :
 - Rencontres / discussions
 - Jeux de société
 - Débats
@@ -233,7 +185,7 @@ Développement personnel :
 - Yoga
 - Bien-être
 
-Sport :
+### Sport :
 - Course à pied
 - Marche
 - Yoga
@@ -245,7 +197,7 @@ Sport :
 - Natation
 - Sports en plein air
 
-Loisirs :
+### Loisirs :
 - Lan de jeux video
 - Jeux de société
 - Escape game réel
@@ -254,18 +206,18 @@ Loisirs :
 - Karaoké
 - Improvisation ludique
 
-Decouverte : 
+### Decouverte : 
 - Voyage
 - Découverte de cultures
 - Langues étrangères
 - Échanges linguistiques
 - Visite de lieux
 
-Culture : 
+### Culture : 
 - Histoire
 - Géographie
 
-Engagement : 
+### Engagement : 
 - Bénévolat
 - Aide aux autres
 - Actions solidaires
@@ -273,10 +225,112 @@ Engagement :
 - Organisation d’événements
 - Travail associatif
 
-Vie quotidienne : 
+### Vie quotidienne : 
 - Organisation personnelle
 - Gestion du temps
 - Budget / finance simple
 - Minimalisme
 - Vie écologique
 - Zéro déchet
+
+## Quiz
+### Definition
+- Qu’est-ce que le harcèlement scolaire
+- Différence entre conflit et harcèlement
+- Les critères (répétition, intention, déséquilibre de pouvoir)
+- Les formes de harcèlement
+
+### Les types de harcèlement
+- Harcèlement physique
+- Harcèlement verbal
+- Harcèlement psychologique
+- Harcèlement social (exclusion)
+- Cyberharcèlement
+- Harcèlement sexuel
+
+### Cyberharcèlement
+- Réseaux sociaux concernés (ex : WhatsApp, Instagram, Snapchat)
+- Différences avec harcèlement classique
+- Effet amplifié (24h/24)
+- Anonymat
+- Partage viral
+
+### Les rôles dans le harcèlement
+- La victime
+- Le harceleur
+- Les témoins
+- Les complices
+- Les défenseurs
+
+### Signes et détection
+- Signes chez la victime
+- Changements de comportement
+- Isolement
+- Baisse des résultats scolaires
+- Symptômes physiques ou psychologiques
+
+### Conséquences
+- Perte de confiance
+- Stress / anxiété
+- Dépression
+- Isolement social
+- Pensées suicidaires
+- Impact scolaire
+
+### Prévention
+- Sensibilisation
+- Respect des autres
+- Éducation au numérique
+- Règles de vie en groupe
+- Rôle de l’école
+
+### Réagir en tant que victime
+- Parler à un adulte
+- Ne pas rester seul
+- Conserver des preuves (captures d’écran)
+- Bloquer / signaler
+- Demander de l’aide
+
+### Réagir en tant que témoin
+- Ne pas encourager
+- Soutenir la victime
+- Alerter un adulte
+- Signaler les contenus
+- Intervenir de manière sûre
+
+### Rôle des adultes
+- Parents
+- Enseignants
+- Établissement scolaire
+- Associations
+
+### Lois et sanctions
+- Le harcèlement est interdit
+- Sanctions scolaires
+- Sanctions pénales
+- Responsabilité des mineurs
+
+### Aide et ressources
+- Numéros d’aide (ex : 3018)
+- Associations
+- Plateformes de signalement
+- Soutien psychologique
+
+### Statistiques et chiffres
+- Nombre de victimes
+- Âge concerné
+- Différences filles/garçons
+- Lieux du harcèlement
+
+### Idées reçues
+- “C’est juste pour rire”
+- “Ça arrive à tout le monde”
+- “Il faut se défendre seul”
+- “Ignorer suffit toujours”
+
+### Empathie et valeurs
+- Respect
+- Tolérance
+- Inclusion
+- Bienveillance
+- Différences
