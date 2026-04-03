@@ -1,5 +1,5 @@
 # Architecture
-## 📁 Structure du projet
+## Structure du projet
 
 - **safeschool/**
   - **frontend/** : React + Vite + TypeScript  
