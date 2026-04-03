@@ -1,16 +1,21 @@
-# ft_transcendance
 
-SafeSchool
-Application de gestion des signalement de harcelement scolaire
+## 📌 SafeSchool
 
-Presentation du projet
-SafeSchool est une application web permettant la gestion des signalements de harcelement scolaire dans les
-etablissements collegiens. Elle permet aux eleves de signaler des situations de harcelement, analysees par une
-IA, classees par niveau de gravite, et traitees par l'equipe administrative.
+### 🧠 Présentation du projet
+SafeSchool est une application web permettant la gestion des signalements de harcèlement scolaire dans les établissements collégiens. Elle permet aux élèves de signaler des situations de harcèlement, analysées par une IA, classées par niveau de gravité et traitées par l'équipe administrative.
 
-installation et demarage
-Installer Docker et Docker compose
-Aucune installation de Node.js, npm, NestJS ou PosgreSQL n'est necessaire
-1. cloner le projet 
-2. creer le fichier .env : cp .env.example .env
-3. Lancer tous les services : docker-compose up --build
+---
+
+## 🚀 Installation et démarrage
+
+### 📦 Prérequis
+- Installer **Docker** et **Docker Compose**
+- Aucune installation de Node.js, npm, NestJS ou PostgreSQL n'est nécessaire
+
+### ⚙️ Étapes
+
+- Cloner le projet  
+- Créer le fichier `.env` :
+  ```bash
+  cp .env.example .env
+- Lancer tous les services : docker-compose up --build
