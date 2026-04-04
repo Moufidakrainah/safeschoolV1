@@ -204,8 +204,6 @@ Statut : En attente de traitement
 ```bash
 # 1. Cloner le projet
 git clone git@github.com:hydnumrepandum68/ft_transcendence.git safeschool
-cd safeschool
-git checkout Moufida
 
 # 2. Créer le fichier .env
 cp .env.example .env
