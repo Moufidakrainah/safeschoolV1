@@ -5,3 +5,4 @@ build/
 pgdata/
 .DS_Store
 *.log
+backups/
