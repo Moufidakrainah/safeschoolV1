@@ -3,7 +3,7 @@ TRUNCATE TABLE users RESTART IDENTITY CASCADE;
 
 INSERT INTO users (email, password, role, "firstName", "lastName", "createdAt") VALUES
   ('admin@safeschool.com', '$2b$10$zJVzXEfxFfFacayoXR2BqeqjrDnmj1U3mlO3rqU.wrqjD8AtjI.OW', 'admin', 'Admin', 'School', NOW()),
-  ('eleve@safeschool.com', '$2b$10$jgplORnuXkVf426kqwOriuzxKcMbqMGXei8IYfiHvX.z/sEuj/SJK', 'student', 'Jean', 'Dupont', NOW()),
+  ('eleve@safeschool.com', '$2b$10$jgplORnuXkVf426kqwOriuzxKcMbqMGXei8IYfiHvX.z/sEuj/SJK', 'student', 'Lotfi', 'Bougrine', NOW()),
   ('directeur@safeschool.com', '$2b$10$F61t5GfDkq1VIzvvNtdvC.QEs9EF0wgz0BB5UNNGKqBTthjelHRpa', 'director', 'Directeur', 'School', NOW());
 
 INSERT INTO reports (title, description, grade, "gradeModified", "gradeModificationReason", status, "adminNote", "isAnonymous", "studentId", "createdAt") VALUES
