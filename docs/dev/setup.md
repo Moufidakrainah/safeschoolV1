@@ -6,7 +6,7 @@
 
 ```bash
 git clone 
-cd ft_transcendance
+cd ft_transcendence
 
 ```
 etc...

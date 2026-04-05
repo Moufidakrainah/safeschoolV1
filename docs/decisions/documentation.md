@@ -3,7 +3,7 @@
 ## Context
 
 We need a shared, searchable, and versioned knowledge base.
-Transcendance requires clear traceability and easy collaboration.
+Transcendence requires clear traceability and easy collaboration.
 
 ## Decision
 
