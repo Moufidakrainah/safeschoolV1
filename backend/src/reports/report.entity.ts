@@ -20,7 +20,7 @@ export enum ReportStatus {
 export class Report {
   @PrimaryGeneratedColumn()
   id: number;
-
+\''
   @Column()
   title: string;
 
