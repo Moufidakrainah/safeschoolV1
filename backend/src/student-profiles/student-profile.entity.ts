@@ -12,8 +12,8 @@ export class StudentProfile {
     @Column({ nullable: true })
     parentPhone: string;
 
-    @Column({ nullable: true })
-    class: string;
+    @Column({ name: 'class', nullable: true })
+    schoolClass: string;
 
     @Column({ nullable: true })
     dateOfBirth: string;
