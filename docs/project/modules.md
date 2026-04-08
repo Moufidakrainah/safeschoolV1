@@ -76,7 +76,7 @@
 | 10. Modules of choice (0 point)				   | Type  | Points | Responsible | Done |	   		   
 | ------------------------------------------------ | ----- | ------ | ----------- | ---- |
 | **_Options (3 points)_**: 
-| _coming soon_ 		 	   					   | Major | 2      |             | [ ]  |
+| _???_ 		 	   							   | Major | 2      |             | [ ]  |
 | _Scan a QR code to add a friend_				   | Minor | 1      |             | [ ]  |
 
 

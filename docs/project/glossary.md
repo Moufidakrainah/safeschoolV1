@@ -7,10 +7,23 @@
 - Cyber
 
 ## Gravite
+- Aucune
 - Faible
 - Moyen
 - Grave
 - Critique
+
+## Metiers au college et lycee
+- Enseignant
+- Conseiller principal d'éducation
+- Assistant d'éducation
+- Psychologue
+- Chef d'établissement
+- Gestionnaire materiel
+- Agent comptable 
+- Infirmier
+- Medecin
+- Assistant de service social
 
 ## Achievements
 ### Participation

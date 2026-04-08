@@ -26,6 +26,12 @@
 
 [Luttons contre ce fleau](https://www.reseau-canope.fr/bien-etre-a-lecole/actualites/article/harcelement-scolaire-ensemble-luttons-contre-ce-fleau)
 
+[Protocole de prise en charge d'une situation de harcelement scolaire](https://www.education.gouv.fr/non-au-harcelement/phare-un-dispositif-de-lutte-contre-le-harcelement-l-ecole-323435)
+
+[Phare Grenoble](https://education-vie-scolaire.web.ac-grenoble.fr/phare-prevention-du-harcelement-lecole/protocole-de-prise-en-charge)
+
+[Pikas](https://harcelement-entre-eleves.com/pages/pikas.htm)
+
 ## Action 
 
 [Que faire en cas de harcelement scolaire](https://www.service-public.gouv.fr/particuliers/vosdroits/F31985)

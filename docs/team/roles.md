@@ -22,7 +22,7 @@ Keeps the project on track. Manages the timeline, organizes regular syncs, remov
 
 ---
 
-### 3. Technical Leadership — quclaque & mobougri - TO BE REFINED
+### 3. Technical Leadership — quclaque & mobougri
 
 - **tech lead 1**: Frontend expertise — architecture decisions, framework choices, UI/UX patterns, state management
 - **tech lead 1**: Backend expertise — API design, database schema, real-time layer (WebSocket), deployment
@@ -33,12 +33,10 @@ Responsible for:
 - Arbitrating conflicting implementation approaches.
 - Ensuring consistency across the codebase.
 
-
 ---
 
 No exclusive technical or management ownership.
 All team members contribute to coding and to providing and facilitating teamwork and organisation.
-
 
 ---
 
@@ -50,6 +48,5 @@ All team members contribute to coding and to providing and facilitating teamwork
 | mdoan | Product Owner | Code (area TBD) |
 | quclaque | Tech Lead | Frontend expertise |
 | mobougri | Tech Lead | Backend expertise |
-
 
 ---
