@@ -32,6 +32,11 @@ export const getReports = async () => {
   return response.data;
 };
 
+export const getAllReports = async () => {
+  const response = await api.get('/reports');
+  return response.data;
+};
+
 export const createReport = async (
   title: string,
   description: string,
