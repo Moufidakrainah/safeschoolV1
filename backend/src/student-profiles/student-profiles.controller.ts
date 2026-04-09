@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Patch, Param, Body, UseGuards, Request, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { StudentProfilesService } from './student-profiles.service';
+import { validateUUID } from '../utils/validate-uuid';
 
 class CreateProfileDto {
   parentEmail: string;
@@ -49,7 +50,7 @@ export class StudentProfilesController {
   // GET /student-profiles/:userId — voir le profil d'un élève
   @Get(':userId')
   async findOne(@Param('userId') userId: string, @Request() req) {
-
+    validateUUID(userId);
     if(req.user.role === 'student' && req.user.id !== userId) {
       throw new ForbiddenException('Acces denied ');
     }
@@ -63,6 +64,7 @@ export class StudentProfilesController {
     @Body() dto: UpdateProfileDto,
     @Request() req, 
   ) {
+    validateUUID(userId);
     if (req.user.role === 'student' && req.user.id !== userId) {
       throw new ForbiddenException('You can not update the profile of someone else');
     }

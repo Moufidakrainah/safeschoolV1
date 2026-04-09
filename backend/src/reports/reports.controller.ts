@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards, ForbiddenException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportsService } from './reports.service';
 import { ReportGrade, ReportStatus } from './report.entity';
+import { validateUUID } from '../utils/validate-uuid';
 
 class CreateReportDto {
   title: string;
@@ -44,6 +45,7 @@ export class ReportsController {
   // GET /reports/:id — Voir un signalement
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
+    validateUUID(id);
     const report = await this.reportsService.findOne(id);
     
     // Un élève ne peut voir QUE ses propres signalements
@@ -57,6 +59,7 @@ export class ReportsController {
   
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateReportDto, @Request() req) {
+    validateUUID(id);
     // Seuls admin et director peuvent modifier
     if (req.user.role === 'student') {
       throw new ForbiddenException('Access denied');
