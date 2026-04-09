@@ -16,6 +16,7 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new UnauthorizedException('Email ou mot de passe incorrect');
     const payload = { sub: user.id, email: user.email, role: user.role };
+    // sub -> id de l utilisateur (sub = subject, convention JWT)
     return {
       access_token: this.jwtService.sign(payload),
       user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },

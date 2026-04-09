@@ -46,14 +46,14 @@ export class ReportsService {
   }
 
   // Eleve voit ses propres signalements
-  async findByStudent(studentId: number): Promise<Report[]> {
+  async findByStudent(studentId: string): Promise<Report[]> {
     return this.reportsRepository.find({
       where: { student: { id: studentId } },
     });
   }
 
   // Trouver un signalement par ID
-  async findOne(id: number): Promise<Report> {
+  async findOne(id: string): Promise<Report> {
     const report = await this.reportsRepository.findOne({
       where: { id },
       relations: ['student'],
@@ -63,7 +63,7 @@ export class ReportsService {
   }
 
   // Admin modifie le statut ou le grade
-  async update(id: number, updates: {
+  async update(id: string, updates: {
     status?: ReportStatus;
     grade?: ReportGrade;
     adminNote?: string;
@@ -92,7 +92,7 @@ export class ReportsService {
   }
 
   // Escalader vers le directeur
-  async escalate(id: number): Promise<Report> {
+  async escalate(id: string): Promise<Report> {
     const report = await this.findOne(id);
     report.status = ReportStatus.ESCALATED;
     return this.reportsRepository.save(report);

@@ -16,7 +16,7 @@ export class StudentProfilesService {
     parentPhone: string,
     schoolClass: string,
     dateOfBirth: string,
-    userId: number,
+    userId: string,
   ): Promise<StudentProfile> {
     const profile = this.studentProfilesRepository.create({
       parentEmail,
@@ -36,7 +36,7 @@ export class StudentProfilesService {
   }
 
   // Récupérer un profil par userId
-  async findByUserId(userId: number): Promise<StudentProfile> {
+  async findByUserId(userId: string): Promise<StudentProfile> {
     const profile = await this.studentProfilesRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -46,7 +46,7 @@ export class StudentProfilesService {
   }
 
   // Modifier un profil
-  async update(userId: number, updates: {
+  async update(userId: string, updates: {
     parentEmail?: string;
     parentPhone?: string;
     schoolClass?: string;

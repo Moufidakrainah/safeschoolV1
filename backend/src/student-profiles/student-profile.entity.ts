@@ -3,8 +3,8 @@ import { User } from '../users/user.entity';
 
 @Entity('student_profiles')
 export class StudentProfile {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column({ nullable: true })
     parentEmail: string;

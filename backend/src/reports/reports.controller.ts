@@ -44,18 +44,18 @@ export class ReportsController {
   // GET /reports/:id — Voir un signalement
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.reportsService.findOne(+id);
+    return this.reportsService.findOne(id);
   }
 
   // PATCH /reports/:id — Admin modifie un signalement
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateReportDto) {
-    return this.reportsService.update(+id, dto);
+    return this.reportsService.update(id, dto);
   }
 
   // PATCH /reports/:id/escalate — Escalader vers le directeur
   @Patch(':id/escalate')
   async escalate(@Param('id') id: string) {
-    return this.reportsService.escalate(+id);
+    return this.reportsService.escalate(id);
   }
 }
