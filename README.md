@@ -25,7 +25,7 @@ docker-compose up --build
 | http://localhost:5000 | Backend NestJS |
 | http://localhost:8080 | pgAdmin (base de données) |
 
-## 👥 Comptes de test
+## Comptes de test
 
 ```bash
 # Appliquer les données de test
@@ -38,7 +38,7 @@ docker-compose exec -T database psql -U postgres safeschool < database/seed.sql
 | `admin@safeschool.com` | `admin123` | admin |
 | `directeur@safeschool.com` | `directeur123` | director |
 
-## 💾 Backup
+## Backup
 
 ```bash
 # Créer un backup
@@ -50,4 +50,4 @@ docker-compose exec -T database psql -U postgres safeschool < database/seed.sql
 
 ---
 
-*SafeSchool — Ensemble contre le harcèlement scolaire* 🛡️
+*SafeSchool — Ensemble contre le harcèlement scolaire* 
