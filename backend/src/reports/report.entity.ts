@@ -18,9 +18,9 @@ export enum ReportStatus {
 
 @Entity('reports')
 export class Report {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+  
   @Column()
   title: string;
 

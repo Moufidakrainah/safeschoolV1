@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, OneToOne } from 'typeorm';
 import { Report } from '../reports/report.entity';
+import { StudentProfile } from '../student-profiles/student-profile.entity';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -9,13 +10,13 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({select: false})
   password: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT })
@@ -32,4 +33,7 @@ export class User {
 
   @OneToMany(() => Report, (report) => report.student)
   reports: Report[];
+
+  @OneToOne(() => StudentProfile, profile => profile.user)
+  studentProfile: StudentProfile;
 }

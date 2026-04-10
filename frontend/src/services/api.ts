@@ -32,6 +32,11 @@ export const getReports = async () => {
   return response.data;
 };
 
+export const getAllReports = async () => {
+  const response = await api.get('/reports');
+  return response.data;
+};
+
 export const createReport = async (
   title: string,
   description: string,
@@ -41,12 +46,12 @@ export const createReport = async (
   return response.data;
 };
 
-export const updateReport = async (id: number, updates: object) => {
+export const updateReport = async (id: string, updates: object) => {
   const response = await api.patch(`/reports/${id}`, updates);
   return response.data;
 };
 
-export const escalateReport = async (id: number) => {
+export const escalateReport = async (id: string) => {
   const response = await api.patch(`/reports/${id}/escalate`);
   return response.data;
 };
