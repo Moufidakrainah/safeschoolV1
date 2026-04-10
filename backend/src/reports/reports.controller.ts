@@ -25,6 +25,9 @@ export class ReportsController {
   // POST /reports — Eleve cree un signalement
   @Post()
   async create(@Body() dto: CreateReportDto, @Request() req) {
+    if (req.user.role !== 'student') {
+      throw new ForbiddenException('Only student can create a report');
+    }
     return this.reportsService.create(
       dto.title,
       dto.description,

@@ -225,7 +225,7 @@ export default function AdminDashboard() {
             style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
             <option value="all">Tous les élèves</option>
             {[...new Map(reports
-              .filter((r: any) => r.student && !r.isAnonymous)
+              .filter((r: any) => r.student && !r.isAnonymous  && r.student.role === 'student')
               .map((r: any) => [r.student.id, r.student])
             ).values()].map((student: any) => (
               <option key={student.id} value={student.id}>
