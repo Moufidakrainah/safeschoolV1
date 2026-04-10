@@ -17,5 +17,5 @@ INSERT INTO student_profiles (id, "parentEmail", "parentPhone", class, "dateOfBi
 INSERT INTO reports (id, title, description, grade, "gradeModified", "gradeModificationReason", status, "adminNote", "isAnonymous", "studentId", "createdAt") VALUES
   ('c1b2c3d4-0001-0001-0001-000000000001', 'Harcelement dans la cour', 'Un eleve me frappe et me menace tous les jours', 'critical', false, NULL, 'pending', NULL, false, 'a1b2c3d4-0002-0002-0002-000000000002', NOW()),
   ('c1b2c3d4-0002-0002-0002-000000000002', 'Insultes repetees', 'Je me fais insulter et harceler depuis plusieurs semaines', 'urgent', false, NULL, 'in_progress', 'Dossier en cours de traitement', false, 'a1b2c3d4-0002-0002-0002-000000000002', NOW()),
-  ('c1b2c3d4-0003-0003-0003-000000000003', 'Moqueries en classe', 'Des eleves se moquent de moi devant tout le monde', 'serious', false, NULL, 'pending', NULL, true, 'a1b2c3d4-0004-0004-0004-000000000004', NOW()),
+  ('c1b2c3d4-0003-0003-0003-000000000003', 'Moqueries en classe', 'Des eleves se moquent de moi devant tout le monde', 'serious', false, NULL, 'pending', NULL, false, 'a1b2c3d4-0004-0004-0004-000000000004', NOW()),
   ('c1b2c3d4-0004-0004-0004-000000000004', 'Atmosphere tendue', 'Je me sens mal a laise en cours sans raison precise', 'watch', false, NULL, 'pending', NULL, false, 'a1b2c3d4-0005-0005-0005-000000000005', NOW());
