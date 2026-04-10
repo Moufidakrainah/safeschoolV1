@@ -42,7 +42,7 @@ export class ReportsService {
 
   // Admin/Directeur voit tous les signalements
   async findAll(): Promise<Report[]> {
-    return this.reportsRepository.find({ relations: ['student'] });
+    return this.reportsRepository.find({ relations: ['student', 'student.studentProfile'] });
   }
 
   // Eleve voit ses propres signalements
