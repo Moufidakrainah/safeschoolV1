@@ -15,7 +15,10 @@ git clone git@github.com:hydnumrepandum68/ft_transcendence.git safeschool
 # 2. Créer le fichier .env
 cp .env.example .env
 
-# 3. Lancer tous les services
+# 3. Appliquer les données de test
+docker-compose exec -T database psql -U postgres safeschool < database/seed.sql
+
+# 4. Lancer tous les services
 docker-compose up --build
 ```
 
@@ -27,9 +30,6 @@ docker-compose up --build
 
 ## Comptes de test
 
-```bash
-# Appliquer les données de test
-docker-compose exec -T database psql -U postgres safeschool < database/seed.sql
 ```
 
 | Email | Mot de passe | Rôle |
