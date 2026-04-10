@@ -30,7 +30,6 @@ docker-compose up --build
 
 ## Comptes de test
 
-```
 
 | Email | Mot de passe | Rôle |
 |-------|-------------|------|
