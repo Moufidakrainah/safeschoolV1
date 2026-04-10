@@ -1,10 +1,10 @@
 # Architecture
 
-# 🛡️ SafeSchool
+# SafeSchool
 
 > Application de gestion des signalements de harcèlement scolaire
 
-## 🔄 Comment ça marche — Scénario complet
+## Comment ça marche — Scénario complet
 
 > **Lotfi Bougrine (élève) envoie un signalement**
 
@@ -116,7 +116,7 @@ FIREFOX
 
 ---
 
-### ✅ Résultat final dans le navigateur
+### Résultat final dans le navigateur
 
 ```
 ✅ Signalement envoyé avec succès !
@@ -126,7 +126,7 @@ Statut : En attente de traitement
 
 ---
 
-### 🗄️ Ce qui est maintenant en base de données
+### Ce qui est maintenant en base de données
 
 **Table `users`**
 
