@@ -6,33 +6,48 @@ SafeSchool est une application web permettant la gestion des signalements de har
 
 ---
 
-## Installation et démarrage
+## Démarrage rapide
 
-### Prérequis
-- Installer **Docker** et **Docker Compose**
-- Aucune installation de Node.js, npm, NestJS ou PostgreSQL n'est nécessaire
+```bash
+# 1. Cloner le projet
+git clone git@github.com:hydnumrepandum68/ft_transcendence.git safeschool
 
-### Étapes
+# 2. Créer le fichier .env
+cp .env.example .env
 
-- Cloner le projet  
-- Créer le fichier `.env` :
-  ```bash
-  cp .env.example .env
-- Lancer le projet :
-  ```bash
-  docker-compose up --build
+# 3. Lancer tous les services
+docker-compose up --build
+```
 
+| URL | Service |
+|-----|---------|
+| http://localhost:5173 | Frontend React |
+| http://localhost:5000 | Backend NestJS |
+| http://localhost:8080 | pgAdmin (base de données) |
 
+## 👥 Comptes de test
 
-backend:
+```bash
+# Appliquer les données de test
+docker-compose exec -T database psql -U postgres safeschool < database/seed.sql
+```
 
-1. users.entity.ts (c'est quoi un utilisateur)
-2. users.service.ts (comment on cree/chercher un utilisateur)
-3. report.entity.ts (c'est quoi un signalement)
-4. report.service.ts (comment on gere les signalement)
-5. report.controller.ts (quelles sont les routes des signalements)
-6. auth.service.ts (comment on se connecte)
-7. auth.controller.ts (quelles sont les routes de onnexion)
+| Email | Mot de passe | Rôle |
+|-------|-------------|------|
+| `eleve@safeschool.com` | `eleve123` | student |
+| `admin@safeschool.com` | `admin123` | admin |
+| `directeur@safeschool.com` | `directeur123` | director |
 
-TypeORM c est une librairie qu on install avec npm install typeorm
-TypeORM est telecharger et mis dans backend/node_modules/typeorm/
+## 💾 Backup
+
+```bash
+# Créer un backup
+./backup.sh
+
+# Restaurer un backup
+./restore.sh ./backups/safeschool_YYYYMMDD_HHMMSS.sql
+```
+
+---
+
+*SafeSchool — Ensemble contre le harcèlement scolaire* 🛡️
