@@ -20,6 +20,8 @@ export default function Login() {
       loginUser(data.access_token, data.user);
       if (data.user.role === 'student') {
         navigate('/student');
+      } else if (data.user.role === 'teacher' || data.user.role === 'staff') {
+        navigate('/reporter');
       } else {
         navigate('/dashboard');
       }

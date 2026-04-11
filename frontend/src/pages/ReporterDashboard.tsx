@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createReport, searchUsers } from '../services/api';
 
-export default function StudentDashboard() {
+export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
-  const [step, setStep] = useState(0); // 0 = accueil, 1-6 = étapes formulaire
+  const [step, setStep] = useState(0);
 
-  // Données du formulaire
   const [whoSignals, setWhoSignals] = useState('');
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
@@ -39,43 +38,19 @@ export default function StudentDashboard() {
     setLoading(false);
   }
 };
-const handleSuspectSearch = async (value: string) => {
-  setSuspectInput(value);
-  if (value.length < 2) { setSuspectSuggestions([]); return; }
-  setSearchingUsers(true);
-  try {
-    const results = await searchUsers(value);
-    setSuspectSuggestions(results);
-  } catch {
-    setSuspectSuggestions([]);
-  } finally {
-    setSearchingUsers(false);
-  }
-};
 
-const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
-  if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
-    setSuspects([...suspects, suspect]);
-  }
-  setSuspectInput('');
-  setSuspectSuggestions([]);
-};
-
-const removeSuspect = (index: number) => {
-  setSuspects(suspects.filter((_, i) => i !== index));
-};
-  
+  const roleLabel = user?.role === 'teacher' ? 'Professeur' : 'Personnel du collège';
 
   // PAGE ACCUEIL
   if (step === 0) return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#1a1a2e' }}>Collège</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <span style={{ fontSize: '12px', background: '#f0f4ff', color: '#0f3460', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>{roleLabel}</span>
           <span style={{ fontSize: '14px', color: '#666' }}>{user?.firstName} {user?.lastName}</span>
           <button onClick={logoutUser} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Déconnexion
@@ -83,38 +58,27 @@ const removeSuspect = (index: number) => {
         </div>
       </div>
 
-      {/* Hero */}
       <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
             Collège Jean Moulin — Dispositif anti-harcèlement
           </p>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px', lineHeight: 1.3 }}>
-            Tu vis ou tu témoines une situation de harcèlement ?
+            Vous êtes témoin d'une situation de harcèlement ?
           </h1>
           <p style={{ color: '#0f3460', fontSize: '15px', marginBottom: '32px' }}>
-            Signale-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.
+            Signalez-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.
           </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => setStep(1)} style={{
-              padding: '14px 32px', background: '#0f3460', color: 'white',
-              border: 'none', borderRadius: '8px', fontSize: '15px',
-              fontWeight: 600, cursor: 'pointer',
-            }}>
-              Faire un signalement
-            </button>
-            <button onClick={() => setStep(8)} style={{
-              padding: '14px 32px', background: 'white', color: '#0f3460',
-              border: '2px solid #0f3460', borderRadius: '8px', fontSize: '15px',
-              fontWeight: 600, cursor: 'pointer',
-            }}>
-              Suivre mon dossier
-            </button>
-          </div>
+          <button onClick={() => setStep(1)} style={{
+            padding: '14px 32px', background: '#0f3460', color: 'white',
+            border: 'none', borderRadius: '8px', fontSize: '15px',
+            fontWeight: 600, cursor: 'pointer',
+          }}>
+            Faire un signalement
+          </button>
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         {[
           { value: '24h', label: 'Délai de prise en charge', color: '#0f3460' },
@@ -127,18 +91,6 @@ const removeSuspect = (index: number) => {
           </div>
         ))}
       </div>
-
-      {/* Qui peut signaler */}
-      <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
-        <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px', fontWeight: 700 }}>Qui peut signaler ?</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px', color: '#444' }}>
-            <span>• Un élève (victime ou témoin)</span>
-            <span>• Un professeur</span>
-            <span>• personnel du collège</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -147,25 +99,14 @@ const removeSuspect = (index: number) => {
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ background: 'white', borderRadius: '16px', padding: '40px', maxWidth: '500px', width: '100%', margin: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Signalement envoyé</h2>
+        <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Signalement transmis</h2>
         <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
-          Votre signalement a bien été reçu et sera traité dans les meilleurs délais.
+          Votre signalement a bien été reçu. L'équipe de direction en sera informée dans les plus brefs délais.
         </p>
-        {result && (
-          <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px' }}>Numéro de dossier</p>
-            <p style={{ fontSize: '20px', fontWeight: 700, color: '#0f3460', margin: 0 }}>{result.caseNumber}</p>
-            <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0' }}>Conservez ce numéro pour suivre l'avancement</p>
-          </div>
-        )}
-        <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-          <p style={{ fontWeight: 600, fontSize: '14px', margin: '0 0 12px' }}>Prochaines étapes</p>
-          {['Un référent vous est assigné sous 24h', 'Un entretien sera organisé', 'Vous serez informé(e) des mesures prises'].map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '8px', fontSize: '13px', color: '#555' }}>
-              <span style={{ background: '#0f3460', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', flexShrink: 0 }}>{i + 1}</span>
-              {s}
-            </div>
-          ))}
+        <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
+          <p style={{ fontSize: '13px', color: '#444', margin: 0 }}>
+            ✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.
+          </p>
         </div>
         <button onClick={() => { setStep(0); setResult(null); setType(''); setDescription(''); setFrequency(''); setWhoSignals(''); }}
           style={{ padding: '12px 24px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
@@ -175,12 +116,11 @@ const removeSuspect = (index: number) => {
     </div>
   );
 
-  // FORMULAIRE — barre de progression
+  // FORMULAIRE
   const steps = ['Qui signale', 'Type', 'Faits', 'Personnes', 'Preuves', 'Validation'];
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -191,7 +131,6 @@ const removeSuspect = (index: number) => {
         </button>
       </div>
 
-      {/* Barre de progression */}
       <div style={{ background: 'white', padding: '16px 32px', borderBottom: '1px solid #eee' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', gap: '8px' }}>
           {steps.map((s, i) => (
@@ -205,17 +144,16 @@ const removeSuspect = (index: number) => {
         </div>
       </div>
 
-      {/* Contenu */}
       <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
 
-          {/* ÉTAPE 1 — Qui signale */}
+          {/* ÉTAPE 1 */}
           {step === 1 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
               <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {['Je suis victime', 'Je suis témoin', 'Je suis professeur', 'Je suis personnel du collège'].map(option => (
+                {['Je signale en tant que professeur', 'Je signale en tant que personnel du collège'].map(option => (
                   <div key={option} onClick={() => setWhoSignals(option)} style={{
                     padding: '16px', borderRadius: '8px', cursor: 'pointer',
                     border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
@@ -229,7 +167,7 @@ const removeSuspect = (index: number) => {
             </div>
           )}
 
-          {/* ÉTAPE 2 — Type */}
+          {/* ÉTAPE 2 */}
           {step === 2 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Quel type de harcèlement ?</h2>
@@ -257,11 +195,11 @@ const removeSuspect = (index: number) => {
             </div>
           )}
 
-          {/* ÉTAPE 3 — Faits */}
+          {/* ÉTAPE 3 */}
           {step === 3 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Explique ce qui s'est passé</p>
+              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Explique ce que vous avez observé</p>
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
@@ -283,89 +221,18 @@ const removeSuspect = (index: number) => {
             </div>
           )}
 
-          {/* ÉTAPE 4 — Personnes */}
-        {step === 4 && (
-          <div>
-            <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
-            <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
-              Indique les personnes soupçonnées — cette information est confidentielle
-            </p>
-
-            {/* Champ de recherche */}
-            <div style={{ position: 'relative', marginBottom: '16px' }}>
-              <input
-                type="text"
-                value={suspectInput}
-                onChange={e => handleSuspectSearch(e.target.value)}
-                placeholder="Rechercher par nom ou prénom..."
-                style={{
-                  width: '100%', padding: '12px 16px',
-                  border: '2px solid #e0e0e0', borderRadius: '8px',
-                  fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-                }}
-                onFocus={e => e.target.style.borderColor = '#0f3460'}
-                onBlur={e => e.target.style.borderColor = '#e0e0e0'}
-              />
-
-              {/* Suggestions */}
-              {suspectSuggestions.length > 0 && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, right: 0,
-                  background: 'white', borderRadius: '8px', zIndex: 10,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0',
-                }}>
-                  {suspectSuggestions.map(s => (
-                    <div key={s.id} onClick={() => addSuspect(s)}
-                      style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                      <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
-                      <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Ajouter nom libre */}
-            {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
-              <button onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
-                style={{ padding: '8px 16px', background: '#f0f4ff', border: '1px solid #0f3460', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#0f3460', marginBottom: '16px' }}>
-                + Ajouter "{suspectInput}" comme soupçonné
-              </button>
-            )}
-
-            {/* Liste des soupçonnés ajoutés */}
-            {suspects.length > 0 && (
-              <div style={{ marginTop: '16px' }}>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: '#333', marginBottom: '8px' }}>
-                  Soupçonnés ajoutés :
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {suspects.map((s, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      background: '#f0f4ff', padding: '6px 12px', borderRadius: '20px',
-                      fontSize: '13px', color: '#0f3460',
-                    }}>
-                      <span>{s.firstName} {s.lastName}</span>
-                      <span onClick={() => removeSuspect(i)}
-                        style={{ cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</span>
-                    </div>
-                  ))}
-                </div>
+          {/* ÉTAPE 4 */}
+          {step === 4 && (
+            <div>
+              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
+              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Cette information est confidentielle</p>
+              <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', fontSize: '14px', color: '#666', textAlign: 'center' }}>
+                🚧 Cette fonctionnalité sera disponible prochainement
               </div>
-            )}
+            </div>
+          )}
 
-            {suspects.length === 0 && (
-              <p style={{ fontSize: '13px', color: '#aaa', textAlign: 'center', marginTop: '16px' }}>
-                Aucun soupçonné ajouté — tu peux passer cette étape
-              </p>
-            )}
-          </div>
-        )}
-
-          {/* ÉTAPE 5 — Preuves */}
+          {/* ÉTAPE 5 */}
           {step === 5 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Preuves</h2>
@@ -376,11 +243,11 @@ const removeSuspect = (index: number) => {
             </div>
           )}
 
-          {/* ÉTAPE 6 — Validation */}
+          {/* ÉTAPE 6 */}
           {step === 6 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Validation</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Vérifie et envoie ton signalement</p>
+              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Vérifiez et envoyez votre signalement</p>
               <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', marginBottom: '20px', fontSize: '14px' }}>
                 <p><strong>Qui signale :</strong> {whoSignals}</p>
                 <p><strong>Type :</strong> {type}</p>

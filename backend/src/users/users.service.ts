@@ -31,4 +31,14 @@ export class UsersService {
   async findAll(): Promise<User[]> {
     return this.usersRepository.find();
   }
+
+  async search(query: string): Promise<User[]> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('LOWER(user.firstName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .orWhere('LOWER(user.lastName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .andWhere('user.role NOT IN (:...roles)', { roles: ['admin', 'director'] })
+      .limit(5)
+      .getMany();
+  }
 }
