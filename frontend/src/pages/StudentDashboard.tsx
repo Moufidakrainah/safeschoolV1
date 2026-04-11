@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers } from '../services/api';
+import { createReport, searchUsers, getReports } from '../services/api';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -18,6 +18,8 @@ export default function StudentDashboard() {
   const [suspectInput, setSuspectInput] = useState('');
   const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const [myReports, setMyReports] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
 
   const handleSubmit = async () => {
   setLoading(true);
@@ -46,6 +48,19 @@ export default function StudentDashboard() {
     setLoading(false);
   }
 };
+
+const fetchMyReports = async () => {
+  setLoadingReports(true);
+  try {
+    const data = await getReports();
+    setMyReports(data);
+  } catch (err) {
+    console.error('Erreur chargement dossiers');
+  } finally {
+    setLoadingReports(false);
+  }
+};
+
 const handleSuspectSearch = async (value: string) => {
   setSuspectInput(value);
   if (value.length < 2) { setSuspectSuggestions([]); return; }
@@ -110,7 +125,7 @@ const removeSuspect = (index: number) => {
             }}>
               Faire un signalement
             </button>
-            <button onClick={() => setStep(8)} style={{
+            <button onClick={() => { fetchMyReports(); setStep(8); }} style={{
               padding: '14px 32px', background: 'white', color: '#0f3460',
               border: '2px solid #0f3460', borderRadius: '8px', fontSize: '15px',
               fontWeight: 600, cursor: 'pointer',
@@ -181,6 +196,98 @@ const removeSuspect = (index: number) => {
       </div>
     </div>
   );
+
+  // PAGE SUIVI DOSSIER
+if (step === 8) return (
+  <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
+    {/* Header */}
+    <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
+        <span style={{ fontWeight: 800, fontSize: '20px', color: '#1a1a2e' }}>Collège</span>
+      </div>
+      <button onClick={() => setStep(0)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#666' }}>
+        ← Retour
+      </button>
+    </div>
+
+    <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
+      <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Mes dossiers</h2>
+      <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
+        Suivi de vos signalements en cours
+      </p>
+
+      {loadingReports ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Chargement...</div>
+      ) : myReports.length === 0 ? (
+        <div style={{ background: 'white', borderRadius: '12px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+          <p style={{ color: '#666', fontSize: '14px' }}>Aucun signalement trouvé</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {myReports.map((report: any) => (
+            <div key={report.id} style={{
+              background: 'white', borderRadius: '12px',
+              padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
+              borderLeft: `4px solid ${
+                report.grade === 'critical' ? '#dc2626' :
+                report.grade === 'urgent' ? '#f97316' :
+                report.grade === 'serious' ? '#eab308' : '#22c55e'
+              }`,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                    <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f3460' }}>
+                      {report.caseNumber}
+                    </span>
+                    <span style={{
+                      background: report.grade === 'critical' ? '#dc2626' :
+                                  report.grade === 'urgent' ? '#f97316' :
+                                  report.grade === 'serious' ? '#eab308' : '#22c55e',
+                      color: 'white', padding: '2px 10px',
+                      borderRadius: '12px', fontSize: '12px',
+                    }}>
+                      {report.grade === 'critical' ? '🔴 Critical' :
+                       report.grade === 'urgent' ? '🟠 Urgent' :
+                       report.grade === 'serious' ? '🟡 Serious' : '🟢 Watch'}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '14px', color: '#333', marginBottom: '6px', fontWeight: 600 }}>
+                    {report.title}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#666' }}>
+                    📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                  </div>
+                </div>
+                <span style={{
+                  background: '#f3f4f6', color: '#555',
+                  padding: '4px 12px', borderRadius: '12px', fontSize: '12px',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {report.status === 'pending' ? '⏳ En attente' :
+                   report.status === 'in_progress' ? '🔄 En cours' :
+                   report.status === 'escalated' ? '🚨 Escaladé' :
+                   report.status === 'closed' ? '✅ Clôturé' : '❌ Rejeté'}
+                </span>
+              </div>
+
+              {report.adminNote && (
+                <div style={{
+                  marginTop: '12px', background: '#f0f4ff',
+                  borderRadius: '8px', padding: '10px 14px',
+                  fontSize: '13px', color: '#444',
+                }}>
+                  💬 <strong>Note de l'administration :</strong> {report.adminNote}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+);
 
   // FORMULAIRE — barre de progression
   const steps = ['Qui signale', 'Type', 'Faits', 'Personnes', 'Preuves', 'Validation'];
