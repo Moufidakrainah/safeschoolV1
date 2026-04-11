@@ -40,9 +40,10 @@ export const getAllReports = async () => {
 export const createReport = async (
   title: string,
   description: string,
-  isAnonymous: boolean
+  isAnonymous: boolean,
+  suspects?: any[] 
 ) => {
-  const response = await api.post('/reports', { title, description, isAnonymous });
+  const response = await api.post('/reports', { title, description, isAnonymous, suspects });
   return response.data;
 };
 
@@ -53,6 +54,11 @@ export const updateReport = async (id: string, updates: object) => {
 
 export const escalateReport = async (id: string) => {
   const response = await api.patch(`/reports/${id}/escalate`);
+  return response.data;
+};
+
+export const searchUsers = async (query: string) => {
+  const response = await api.get(`/users/search?q=${query}`);
   return response.data;
 };
 
