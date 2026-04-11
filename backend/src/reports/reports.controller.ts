@@ -9,6 +9,8 @@ class CreateReportDto {
   description: string;
   isAnonymous: boolean;
   suspects?: { userId?: string; freeText?: string }[];
+  frequency?: string;
+  schoolClass?: string;
 }
 
 class UpdateReportDto {
@@ -36,6 +38,8 @@ export class ReportsController {
       dto.isAnonymous,
       req.user,  // req.user = utilisateur injecte par JwtStrategy
       dto.suspects || [],
+      dto.frequency || '',
+      dto.schoolClass || '',
     );
   }
 

@@ -18,6 +18,14 @@ export class UsersService {
      });
   }
 
+  async findByEmailWithProfile(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+      relations: ['studentProfile'],
+    });
+  }
+
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }

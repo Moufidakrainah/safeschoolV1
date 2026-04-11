@@ -41,12 +41,15 @@ export const createReport = async (
   title: string,
   description: string,
   isAnonymous: boolean,
-  suspects?: any[] 
+  suspects: any[],
+  frequency: string,
+  schoolClass: string
 ) => {
-  const response = await api.post('/reports', { title, description, isAnonymous, suspects });
+  const response = await api.post('/reports', {
+    title, description, isAnonymous, suspects, frequency, schoolClass
+  });
   return response.data;
 };
-
 export const updateReport = async (id: string, updates: object) => {
   const response = await api.patch(`/reports/${id}`, updates);
   return response.data;

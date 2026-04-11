@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Report, ReportGrade, ReportStatus } from './report.entity';
 import { User } from '../users/user.entity';
 import { ReportSuspect } from './report-suspect.entity';
+import { ScoringService } from './scoring.service';
 
 @Injectable()
 export class ReportsService {
@@ -12,6 +13,7 @@ export class ReportsService {
     private reportsRepository: Repository<Report>,
     @InjectRepository(ReportSuspect)
     private suspectsRepository: Repository<ReportSuspect>,
+    private scoringService: ScoringService,
   ) {}
 
   async create(
@@ -20,8 +22,17 @@ export class ReportsService {
     isAnonymous: boolean,
     student: User,
     suspects: { userId?: string; freeText?: string }[] = [],
+    frequency: string = '',
+    schoolClass: string = '',
   ): Promise<Report> {
-    const { grade, aiScore, aiReason } = this.classifyByIA(description);
+
+    const { finalScore, grade, aiScore, aiReason } = await this.scoringService.calculateScore(
+      title,
+      description,
+      frequency,
+      schoolClass,
+      student.id,
+    );
 
     const year = new Date().getFullYear();
     const count = await this.reportsRepository.count();
@@ -31,7 +42,7 @@ export class ReportsService {
       title,
       description,
       grade,
-      aiScore,
+      aiScore: finalScore,
       aiReason,
       caseNumber,
       isAnonymous,
@@ -41,7 +52,6 @@ export class ReportsService {
 
     const savedReport = await this.reportsRepository.save(report);
 
-    // Sauvegarder les soupçonnés
     for (const suspect of suspects) {
       const reportSuspect = this.suspectsRepository.create({
         report: savedReport,
@@ -55,20 +65,6 @@ export class ReportsService {
       where: { id: savedReport.id },
       relations: ['suspects', 'suspects.user'],
     }) as Promise<Report>;
-  }
-
-  private classifyByIA(description: string): { grade: ReportGrade; aiScore: number; aiReason: string } {
-    const text = description.toLowerCase();
-    if (text.includes('violence') || text.includes('frapper') || text.includes('menace') || text.includes('tuer') || text.includes('suicid')) {
-      return { grade: ReportGrade.CRITICAL, aiScore: 9, aiReason: 'Danger immédiat détecté' };
-    }
-    if (text.includes('harcelement') || text.includes('insulte') || text.includes('cyber') || text.includes('repete')) {
-      return { grade: ReportGrade.URGENT, aiScore: 6, aiReason: 'Harcèlement répété détecté' };
-    }
-    if (text.includes('moquerie') || text.includes('exclusion') || text.includes('humiliation')) {
-      return { grade: ReportGrade.SERIOUS, aiScore: 4, aiReason: 'Situation sérieuse détectée' };
-    }
-    return { grade: ReportGrade.WATCH, aiScore: 2, aiReason: 'Situation à surveiller' };
   }
 
   async findAll(): Promise<Report[]> {
