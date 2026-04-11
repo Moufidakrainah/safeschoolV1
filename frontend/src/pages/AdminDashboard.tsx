@@ -40,6 +40,7 @@ export default function AdminDashboard() {
   const [filterDateTo, setFilterDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [resetKey, setResetKey] = useState(0);
+  const [filterSuspect, setFilterSuspect] = useState('');
   const itemsPerPage = 5;
 
   useEffect(() => {
@@ -77,6 +78,15 @@ export default function AdminDashboard() {
     .filter((r: any) => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
     .filter((r: any) => filterStudent === 'all' || r.student?.id === filterStudent)
     .filter((r: any) => {
+      if (!filterSuspect) return true;
+      const suspectText = filterSuspect.toLowerCase();
+      return r.suspects?.some((s: any) => {
+        const userName = `${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
+        const freeText = s.freeText?.toLowerCase() || '';
+        return userName.includes(suspectText) || freeText.includes(suspectText);
+      });
+    })
+    .filter((r: any) => {
       if (!filterDateFrom) return true;
       return new Date(r.createdAt) >= new Date(filterDateFrom);
     })
@@ -109,6 +119,7 @@ export default function AdminDashboard() {
     setFilterStudent('all');
     setFilterDateFrom('');
     setFilterDateTo('');
+    setFilterSuspect('');
     setSearch('');
     setCurrentPage(1);
     setResetKey(k => k + 1);
@@ -223,16 +234,24 @@ export default function AdminDashboard() {
 
           <select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
             style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
-            <option value="all">Tous les élèves</option>
+            <option value="all">Tous les signalants</option>
             {[...new Map(reports
-              .filter((r: any) => r.student && !r.isAnonymous  && r.student.role === 'student')
+              .filter((r: any) => r.student && !r.isAnonymous)
               .map((r: any) => [r.student.id, r.student])
             ).values()].map((student: any) => (
               <option key={student.id} value={student.id}>
-                {student.firstName} {student.lastName}
+                {student.firstName} {student.lastName} ({student.role})
               </option>
             ))}
           </select>
+
+          <input
+            type="text"
+            value={filterSuspect}
+            onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
+            placeholder="Filtrer par soupçonné..."
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white' }}
+          />
 
           <input
             key={`from-${resetKey}`}
