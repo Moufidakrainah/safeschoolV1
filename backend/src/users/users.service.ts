@@ -12,10 +12,21 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } });
+    return this.usersRepository.findOne({ 
+      where: { email },
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+     });
   }
 
-  async findById(id: number): Promise<User | null> {
+  async findByEmailWithProfile(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+      relations: ['studentProfile'],
+    });
+  }
+
+  async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
   }
 
@@ -27,5 +38,15 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.usersRepository.find();
+  }
+
+  async search(query: string): Promise<User[]> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where('LOWER(user.firstName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .orWhere('LOWER(user.lastName) LIKE LOWER(:query)', { query: `%${query}%` })
+      .andWhere('user.role NOT IN (:...roles)', { roles: ['admin', 'director'] })
+      .limit(5)
+      .getMany();
   }
 }

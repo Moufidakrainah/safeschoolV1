@@ -1,11 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../users/user.entity';
+import { ReportSuspect } from './report-suspect.entity';
 
 export enum ReportGrade {
-  CRITICAL = 'critical',
-  URGENT = 'urgent',
-  SERIOUS = 'serious',
-  WATCH = 'watch',
+  CRITIQUE = 'critique',
+  GRAVE    = 'grave',
+  MOYEN    = 'moyen',
+  FAIBLE   = 'faible',
 }
 
 export enum ReportStatus {
@@ -18,9 +19,18 @@ export enum ReportStatus {
 
 @Entity('reports')
 export class Report {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
+  @Column({ unique: true, nullable: true})
+  caseNumber: string;
+
+  @Column({ nullable: true })
+  aiScore: number;
+
+  @Column({ nullable: true, type: 'text' })
+  aiReason: string;
+  
   @Column()
   title: string;
 
@@ -50,4 +60,7 @@ export class Report {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => ReportSuspect, suspect => suspect.report, { cascade: true })
+  suspects: ReportSuspect[];
 }

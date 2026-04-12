@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'admin' | 'director';
+  role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+  studentProfile?: {
+    id: string;
+    schoolClass: string;
+    parentEmail: string;
+    parentPhone: string;
+    dateOfBirth: string;
+  } | null;
 }
 
 interface AuthContextType {
