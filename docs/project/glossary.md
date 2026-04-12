@@ -13,6 +13,14 @@
 - Grave
 - Critique
 
+## Role
+- Eleve (fait des signalements)
+- Professeur (cree des ateliers)
+- Personnel
+- Direction (lit uniquement)
+- Moderateur (gere les signalements)
+- Admin (CRUD users, classes)
+
 ## Metiers au college et lycee
 - Enseignant
 - Conseiller principal d'éducation
