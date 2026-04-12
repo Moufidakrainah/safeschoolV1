@@ -230,9 +230,9 @@ if (step === 8) return (
               background: 'white', borderRadius: '12px',
               padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
               borderLeft: `4px solid ${
-                report.grade === 'critical' ? '#dc2626' :
-                report.grade === 'urgent' ? '#f97316' :
-                report.grade === 'serious' ? '#eab308' : '#22c55e'
+                report.grade === 'critique' ? '#dc2626' :
+                report.grade === 'grave' ? '#f97316' :
+                report.grade === 'moyen' ? '#eab308' : '#22c55e'
               }`,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -242,15 +242,15 @@ if (step === 8) return (
                       {report.caseNumber}
                     </span>
                     <span style={{
-                      background: report.grade === 'critical' ? '#dc2626' :
-                                  report.grade === 'urgent' ? '#f97316' :
-                                  report.grade === 'serious' ? '#eab308' : '#22c55e',
+                      background: report.grade === 'critique' ? '#dc2626' :
+                                  report.grade === 'grave' ? '#f97316' :
+                                  report.grade === 'moyen' ? '#eab308' : '#22c55e',
                       color: 'white', padding: '2px 10px',
                       borderRadius: '12px', fontSize: '12px',
                     }}>
-                      {report.grade === 'critical' ? '🔴 Critical' :
-                       report.grade === 'urgent' ? '🟠 Urgent' :
-                       report.grade === 'serious' ? '🟡 Serious' : '🟢 Watch'}
+                      {report.grade === 'critique' ? '🔴 Critique' :
+                       report.grade === 'grave' ? '🟠 Grave' :
+                       report.grade === 'moyen' ? '🟡 Moyen' : '🟢 Faible'}
                     </span>
                   </div>
                   <div style={{ fontSize: '14px', color: '#333', marginBottom: '6px', fontWeight: 600 }}>
@@ -512,7 +512,7 @@ if (step === 8) return (
           {/* Boutons navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
             <button onClick={() => setStep(s => s - 1)}
-              style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333', }}>
               Précédent
             </button>
             {step < 6 ? (
@@ -526,7 +526,7 @@ if (step === 8) return (
                   padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
                   border: 'none', cursor: 'pointer',
                   background: (step === 1 && !whoSignals) || (step === 2 && !type) || (step === 3 && (!description || !frequency)) ? '#ccc' : '#0f3460',
-                  color: 'white',
+                  color: 'white', 
                 }}>
                 Suivant →
               </button>

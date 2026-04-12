@@ -3,10 +3,10 @@ import { User } from '../users/user.entity';
 import { ReportSuspect } from './report-suspect.entity';
 
 export enum ReportGrade {
-  CRITICAL = 'critical',
-  URGENT = 'urgent',
-  SERIOUS = 'serious',
-  WATCH = 'watch',
+  CRITIQUE = 'critique',
+  GRAVE    = 'grave',
+  MOYEN    = 'moyen',
+  FAIBLE   = 'faible',
 }
 
 export enum ReportStatus {

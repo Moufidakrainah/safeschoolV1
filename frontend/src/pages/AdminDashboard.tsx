@@ -3,17 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { getAllReports, updateReport } from '../services/api';
 
 const GRADE_COLORS: Record<string, string> = {
-  critical: '#dc2626',
-  urgent:   '#f97316',
-  serious:  '#eab308',
-  watch:    '#22c55e',
+  critique: '#dc2626',
+  grave:   '#f97316',
+  moyen:  '#eab308',
+  faible:    '#22c55e',
 };
 
 const GRADE_LABELS: Record<string, string> = {
-  critical: '🔴 Critical',
-  urgent:   '🟠 Urgent',
-  serious:  '🟡 Serious',
-  watch:    '🟢 Watch',
+  critique: '🔴 Critique',
+  grave:   '🟠 Grave',
+  moyen:  '🟡 Moyen',
+  faibe:    '🟢 Faible',
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -106,8 +106,8 @@ export default function AdminDashboard() {
 
   const stats = {
     total:     reports.length,
-    critical:  reports.filter((r: any) => r.grade === 'critical').length,
-    urgent:    reports.filter((r: any) => r.grade === 'urgent').length,
+    critique:  reports.filter((r: any) => r.grade === 'critique').length,
+    grave:    reports.filter((r: any) => r.grade === 'grave').length,
     pending:   reports.filter((r: any) => r.status === 'pending').length,
     escalated: reports.filter((r: any) => r.status === 'escalated').length,
   };
@@ -164,8 +164,8 @@ export default function AdminDashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
           {[
             { label: 'Total',      value: stats.total,     color: '#1a1a2e' },
-            { label: 'Critical',   value: stats.critical,  color: '#dc2626' },
-            { label: 'Urgent',     value: stats.urgent,    color: '#f97316' },
+            { label: 'Critique',   value: stats.critique,  color: '#dc2626' },
+            { label: 'Grave',     value: stats.grave,    color: '#f97316' },
             { label: 'En attente', value: stats.pending,   color: '#eab308' },
             { label: 'Escaladés',  value: stats.escalated, color: '#7c3aed' },
           ].map((stat) => (
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
         <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
 
           <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
             <option value="all">Tous les statuts</option>
             <option value="pending">⏳ En attente</option>
             <option value="in_progress">🔄 En cours</option>
@@ -216,16 +216,16 @@ export default function AdminDashboard() {
           </select>
 
           <select value={filterGrade} onChange={e => { setFilterGrade(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
             <option value="all">Tous les grades</option>
-            <option value="critical">🔴 Critical</option>
-            <option value="urgent">🟠 Urgent</option>
-            <option value="serious">🟡 Serious</option>
-            <option value="watch">🟢 Watch</option>
+            <option value="critique">🔴 Critique</option>
+            <option value="grave">🟠 Grave</option>
+            <option value="moyen">🟡 Moyen</option>
+            <option value="faible">🟢 Faible</option>
           </select>
 
           <select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
             <option value="all">Toutes les classes</option>
             {[...new Set(reports.map((r: any) => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
               <option key={cls} value={cls}>{cls}</option>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
           </select>
 
           <select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white' }}>
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
             <option value="all">Tous les signalants</option>
             {[...new Map(reports
               .filter((r: any) => r.student && !r.isAnonymous)
@@ -250,7 +250,7 @@ export default function AdminDashboard() {
             value={filterSuspect}
             onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
             placeholder="Filtrer par soupçonné..."
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white' }}
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }}
           />
 
           <input
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
             type="date"
             value={filterDateFrom}
             onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white' }}
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }}
           />
           <span style={{ color: '#666' }}>→</span>
           <input
@@ -266,7 +266,7 @@ export default function AdminDashboard() {
             type="date"
             value={filterDateTo}
             onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
-            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white' }}
+            style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }}
           />
 
           <button onClick={handleReset} style={{

@@ -31,12 +31,22 @@ export class ReportsService {
       description,
       frequency,
       schoolClass,
-      student.id,
+      suspects,
     );
 
     const year = new Date().getFullYear();
-    const count = await this.reportsRepository.count();
-    const caseNumber = `#${year}-${String(count + 1).padStart(3, '0')}`;
+    const lastReport = await this.reportsRepository
+      .createQueryBuilder('report')
+      .where('report.caseNumber LIKE :pattern', { pattern: `#${year}-%` })
+      .orderBy('report.caseNumber', 'DESC')
+      .getOne();
+
+    let nextNumber = 1;
+    if (lastReport?.caseNumber) {
+      const lastNum = parseInt(lastReport.caseNumber.split('-')[1]);
+      nextNumber = lastNum + 1;
+    }
+    const caseNumber = `#${year}-${String(nextNumber).padStart(3, '0')}`;
 
     const report = this.reportsRepository.create({
       title,
@@ -97,7 +107,7 @@ export class ReportsService {
   }): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade && updates.grade !== report.grade) {
-      const grades = [ReportGrade.WATCH, ReportGrade.SERIOUS, ReportGrade.URGENT, ReportGrade.CRITICAL];
+      const grades = [ReportGrade.FAIBLE, ReportGrade.MOYEN, ReportGrade.GRAVE, ReportGrade.CRITIQUE];
       const oldIndex = grades.indexOf(report.grade);
       const newIndex = grades.indexOf(updates.grade);
       if (newIndex < oldIndex && !updates.gradeModificationReason) {

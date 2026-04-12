@@ -2,60 +2,80 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report, ReportGrade } from './report.entity';
+import { ReportSuspect } from './report-suspect.entity';
 
 @Injectable()
 export class ScoringService {
   constructor(
     @InjectRepository(Report)
     private reportsRepository: Repository<Report>,
+    @InjectRepository(ReportSuspect)
+    private suspectsRepository: Repository<ReportSuspect>,
   ) {}
 
   // Score basé sur le type de harcèlement
   private scoreType(type: string): number {
     const t = type.toLowerCase();
-    if (t.includes('physique') || t.includes('sexuel')) return 30;
-    if (t.includes('cyber')) return 20;
-    if (t.includes('verbal')) return 15;
-    if (t.includes('exclusion')) return 10;
-    return 10;
+    if (t.includes('physique') || t.includes('sexuel')) return 25;
+    if (t.includes('cyber')) return 15;
+    if (t.includes('verbal')) return 10;
+    if (t.includes('exclusion')) return 5;
+    return 5;
   }
 
   // Score basé sur la fréquence
   private scoreFrequency(frequency: string): number {
-    if (frequency.includes('tous les jours')) return 20;
-    if (frequency.includes('trois fois ou plus')) return 15;
-    if (frequency.includes('deux fois')) return 10;
-    if (frequency.includes('une fois')) return 5;
-    return 5;
+    const f = frequency.toLowerCase();
+    if (f.includes('tous les jours')) return 20;
+    if (f.includes('trois fois ou plus')) return 12;
+    if (f.includes('deux fois')) return 6;
+    if (f.includes('une fois')) return 2;
+    return 2;
   }
 
   // Score basé sur la classe de la victime
   private scoreClass(schoolClass: string): number {
-    if (!schoolClass) return 10;
+    if (!schoolClass) return 5;
     const c = schoolClass.toLowerCase();
-    if (c.includes('6')) return 15;
-    if (c.includes('5')) return 12;
-    if (c.includes('4')) return 10;
-    if (c.includes('3')) return 8;
-    return 10;
+    if (c.includes('6')) return 8;
+    if (c.includes('5')) return 7;
+    if (c.includes('4')) return 6;
+    if (c.includes('3')) return 5;
+    return 5;
   }
 
-  // Score basé sur la récidive
-  private async scoreRecidive(studentId: string): Promise<number> {
-    if (!studentId) return 0;
-    const count = await this.reportsRepository.count({
-      where: { student: { id: studentId } },
-    });
-    if (count >= 3) return 25;
-    if (count === 2) return 18;
-    if (count === 1) return 12;
+  // Score basé sur la récidive — par soupçonné
+  private async scoreRecidive(suspects: { userId?: string; freeText?: string }[]): Promise<number> {
+    if (!suspects || suspects.length === 0) return 0;
+
+    let maxCount = 0;
+
+    for (const suspect of suspects) {
+      let count = 0;
+
+      if (suspect.userId) {
+        count = await this.suspectsRepository.count({
+          where: { user: { id: suspect.userId } },
+        });
+      } else if (suspect.freeText) {
+        count = await this.suspectsRepository.count({
+          where: { freeText: suspect.freeText },
+        });
+      }
+
+      if (count > maxCount) maxCount = count;
+    }
+
+    if (maxCount >= 3) return 20;
+    if (maxCount === 2) return 12;
+    if (maxCount === 1) return 6;
     return 0;
   }
 
   // Score IA par mots-clés (fallback si Groq indisponible)
   private scoreAIFallback(description: string): { score: number; urgency: boolean; reason: string } {
     const text = description.toLowerCase();
-    
+
     if (
       text.includes('suicid') || text.includes('me tuer') ||
       text.includes('mourir') || text.includes('menace') ||
@@ -79,28 +99,28 @@ export class ScoringService {
     return { score: 0, urgency: false, reason: 'Situation banale' };
   }
 
- // Score IA via Groq
-private async scoreAIGroq(description: string): Promise<{ score: number; urgency: boolean; reason: string }> {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey || process.env.AI_ENABLED !== 'true') {
-    console.log('Groq désactivé — fallback mots-clés');
-    return this.scoreAIFallback(description);
-  }
+  // Score IA via Groq
+  private async scoreAIGroq(description: string): Promise<{ score: number; urgency: boolean; reason: string }> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey || process.env.AI_ENABLED !== 'true') {
+      console.log('Groq désactivé — fallback mots-clés');
+      return this.scoreAIFallback(description);
+    }
 
-  try {
-    console.log('Appel Groq en cours...');
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        max_tokens: 100,
-        messages: [{
-          role: 'user',
-          content: `Analyse ce signalement de harcèlement scolaire et réponds UNIQUEMENT avec un JSON :
+    try {
+      console.log('Appel Groq en cours...');
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          max_tokens: 100,
+          messages: [{
+            role: 'user',
+            content: `Analyse ce signalement de harcèlement scolaire et réponds UNIQUEMENT avec un JSON :
 {"score": 0|5|10|20, "urgency": true|false, "reason": "courte explication"}
 
 Règles :
@@ -110,26 +130,26 @@ Règles :
 - score 0 = situation banale
 
 Signalement : "${description}"`,
-        }],
-      }),
-    });
+          }],
+        }),
+      });
 
-    console.log('Groq status:', response.status);
-    const data = await response.json();
-    console.log('Groq response:', JSON.stringify(data));
+      console.log('Groq status:', response.status);
+      const data = await response.json();
+      console.log('Groq response:', JSON.stringify(data));
 
-    const text = data.choices[0].message.content.trim();
-    const parsed = JSON.parse(text);
-    return {
-      score: parsed.score ?? 0,
-      urgency: parsed.urgency ?? false,
-      reason: parsed.reason ?? '',
-    };
-  } catch (error) {
-    console.error('Erreur Groq:', error);
-    return this.scoreAIFallback(description);
+      const text = data.choices[0].message.content.trim();
+      const parsed = JSON.parse(text);
+      return {
+        score: parsed.score ?? 0,
+        urgency: parsed.urgency ?? false,
+        reason: parsed.reason ?? '',
+      };
+    } catch (error) {
+      console.error('Erreur Groq:', error);
+      return this.scoreAIFallback(description);
+    }
   }
-}
 
   // Calcul du score final
   async calculateScore(
@@ -137,33 +157,28 @@ Signalement : "${description}"`,
     description: string,
     frequency: string,
     schoolClass: string,
-    studentId: string,
+    suspects: { userId?: string; freeText?: string }[],
   ): Promise<{ finalScore: number; grade: ReportGrade; aiScore: number; aiReason: string }> {
 
-    // Score de base
     const typeScore      = this.scoreType(title);
     const frequencyScore = this.scoreFrequency(frequency);
     const classScore     = this.scoreClass(schoolClass);
-    const recidiveScore  = await this.scoreRecidive(studentId);
-    const preuveScore    = 0; // pas encore implémenté
+    const recidiveScore  = await this.scoreRecidive(suspects);
+    const preuveScore    = 0;
 
     const baseScore = typeScore + frequencyScore + classScore + recidiveScore + preuveScore;
 
-    // Score IA
     const { score: aiScore, urgency, reason: aiReason } = await this.scoreAIGroq(description);
 
-    // Score final plafonné à 100
     let finalScore = Math.min(baseScore + aiScore, 100);
 
-    // Si urgence détectée → score minimum 60
     if (urgency) finalScore = Math.max(finalScore, 60);
 
-    // Déterminer le grade
     let grade: ReportGrade;
-    if (finalScore >= 60) grade = ReportGrade.CRITICAL;
-    else if (finalScore >= 40) grade = ReportGrade.URGENT;
-    else if (finalScore >= 20) grade = ReportGrade.SERIOUS;
-    else grade = ReportGrade.WATCH;
+    if (finalScore >= 60) grade = ReportGrade.CRITIQUE;
+    else if (finalScore >= 40) grade = ReportGrade.GRAVE;
+    else if (finalScore >= 20) grade = ReportGrade.MOYEN;
+    else grade = ReportGrade.FAIBLE;
 
     return { finalScore, grade, aiScore, aiReason };
   }
