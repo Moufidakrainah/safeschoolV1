@@ -90,4 +90,24 @@ export const markNotificationRead = async (id: string) => {
   return response.data;
 };
 
+export const getAllUsers = async () => {
+  const response = await api.get('/users');
+  return response.data;
+};
+
+export const createUser = async (dto: any) => {
+  const response = await api.post('/users', dto);
+  return response.data;
+};
+
+export const updateUser = async (id: string, dto: any) => {
+  const response = await api.patch(`/users/${id}`, dto);
+  return response.data;
+};
+
+export const deleteUser = async (id: string) => {
+  const response = await api.delete(`/users/${id}`);
+  return response.data;
+};
+
 export default api;
