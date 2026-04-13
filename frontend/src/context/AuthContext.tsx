@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+  studentProfile?: {
+    id: string;
+    schoolClass: string;
+    parentEmail: string;
+    parentPhone: string;
+    dateOfBirth: string;
+  } | null;
 }
 
 interface AuthContextType {
@@ -29,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const loginUser = (token: string, user: User) => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setToken(token);

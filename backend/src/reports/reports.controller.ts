@@ -9,6 +9,8 @@ class CreateReportDto {
   description: string;
   isAnonymous: boolean;
   suspects?: { userId?: string; freeText?: string }[];
+  frequency?: string;
+  schoolClass?: string;
 }
 
 class UpdateReportDto {
@@ -36,6 +38,8 @@ export class ReportsController {
       dto.isAnonymous,
       req.user,  // req.user = utilisateur injecte par JwtStrategy
       dto.suspects || [],
+      dto.frequency || '',
+      dto.schoolClass || '',
     );
   }
 
@@ -80,5 +84,20 @@ export class ReportsController {
       throw new ForbiddenException('Access denied');
     }
     return this.reportsService.escalate(id);
+  }
+  // GET /reports/:id/notes
+  @Get(':id/notes')
+  async getNotes(@Param('id') id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.getNotes(id);
+  }
+
+  // POST /reports/:id/notes
+  @Post(':id/notes')
+  async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string }, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.addNote(id, dto.content, dto.type || 'note', req.user);
   }
 }

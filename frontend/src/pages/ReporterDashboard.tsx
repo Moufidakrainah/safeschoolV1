@@ -18,7 +18,7 @@ export default function ReporterDashboard() {
   const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
   setLoading(true);
   try {
     const title = `${type} - ${whoSignals}`;
@@ -29,7 +29,14 @@ export default function ReporterDashboard() {
       freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
     }));
 
-    const report = await createReport(title, fullDescription, isAnonymous, suspectsData);
+    const report = await createReport(
+      title,
+      fullDescription,
+      isAnonymous,
+      suspectsData,
+      frequency,
+      user?.studentProfile?.schoolClass || '',
+    );
     setResult(report);
     setStep(7);
   } catch (err) {
