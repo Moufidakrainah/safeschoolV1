@@ -5,6 +5,9 @@ import { Report, ReportGrade, ReportStatus } from './report.entity';
 import { User } from '../users/user.entity';
 import { ReportSuspect } from './report-suspect.entity';
 import { ScoringService } from './scoring.service';
+import { ReportNote } from './report-note.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+
 
 @Injectable()
 export class ReportsService {
@@ -14,6 +17,9 @@ export class ReportsService {
     @InjectRepository(ReportSuspect)
     private suspectsRepository: Repository<ReportSuspect>,
     private scoringService: ScoringService,
+    @InjectRepository(ReportNote)
+    private notesRepository: Repository<ReportNote>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -126,5 +132,46 @@ export class ReportsService {
     const report = await this.findOne(id);
     report.status = ReportStatus.ESCALATED;
     return this.reportsRepository.save(report);
+  }
+  // Ajouter une note
+  async addNote(reportId: string, content: string, type: string, author: any): Promise<ReportNote> {
+    const report = await this.findOne(reportId);
+    const note = this.notesRepository.create({ report, content, type, author });
+    const saved = await this.notesRepository.save(note);
+
+    if (type === 'convocation') {
+      // Envoyer à la victime
+      if (report.student?.id) {
+        await this.notificationsService.create(
+          report.student.id,
+          reportId,
+          `📅 Convocation : ${content}`,
+        );
+      }
+
+      // Envoyer aux soupçonnés qui ont un compte
+      if (report.suspects && report.suspects.length > 0) {
+        for (const suspect of report.suspects) {
+          if (suspect.user?.id) {
+            await this.notificationsService.create(
+              suspect.user.id,
+              reportId,
+              `📅 Convocation : ${content}`,
+            );
+          }
+        }
+      }
+    }
+
+    return saved;
+  }
+
+  // Récupérer les notes d'un signalement
+  async getNotes(reportId: string): Promise<ReportNote[]> {
+    return this.notesRepository.find({
+      where: { report: { id: reportId } },
+      relations: ['author'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }

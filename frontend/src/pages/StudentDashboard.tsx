@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers, getReports } from '../services/api';
+import { createReport, searchUsers, getReports, getNotifications, markNotificationRead } from '../services/api';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -20,77 +20,101 @@ export default function StudentDashboard() {
   const [searchingUsers, setSearchingUsers] = useState(false);
   const [myReports, setMyReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
+  const [victimName, setVictimName] = useState('');
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleSubmit = async () => {
-  setLoading(true);
-  try {
-    const title = `${type} - ${whoSignals}`;
-    const fullDescription = `${description} (Fréquence: ${frequency})`;
+    setLoading(true);
+    try {
+      const title = `${type} - ${whoSignals}`;
+      const victimInfo = whoSignals === 'Je suis témoin' && victimName
+      ? ` | Victime : ${victimName}`
+      : '';
+      const fullDescription = `${description} (Fréquence: ${frequency})${victimInfo}`;
 
-    const suspectsData = suspects.map(s => ({
-      userId: s.id || undefined,
-      freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
-    }));
+      const suspectsData = suspects.map(s => ({
+        userId: s.id || undefined,
+        freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
+      }));
 
-    const report = await createReport(
-      title,
-      fullDescription,
-      isAnonymous,
-      suspectsData,
-      frequency,
-      user?.studentProfile?.schoolClass || '',
-    );
-    setResult(report);
-    setStep(7);
-  } catch (err) {
-    console.error('Erreur envoi signalement');
-  } finally {
-    setLoading(false);
-  }
-};
+      const report = await createReport(
+        title,
+        fullDescription,
+        isAnonymous,
+        suspectsData,
+        frequency,
+        user?.studentProfile?.schoolClass || '',
+      );
+      setResult(report);
+      setStep(7);
+    } catch (err) {
+      console.error('Erreur envoi signalement');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const fetchMyReports = async () => {
-  setLoadingReports(true);
-  try {
-    const data = await getReports();
-    setMyReports(data);
-  } catch (err) {
-    console.error('Erreur chargement dossiers');
-  } finally {
-    setLoadingReports(false);
-  }
-};
+  const fetchMyReports = async () => {
+    setLoadingReports(true);
+    try {
+      const data = await getReports();
+      setMyReports(data);
+    } catch (err) {
+      console.error('Erreur chargement dossiers');
+    } finally {
+      setLoadingReports(false);
+    }
+  };
 
-const handleSuspectSearch = async (value: string) => {
-  setSuspectInput(value);
-  if (value.length < 2) { setSuspectSuggestions([]); return; }
-  setSearchingUsers(true);
-  try {
-    const results = await searchUsers(value);
-    setSuspectSuggestions(results);
-  } catch {
+  const handleSuspectSearch = async (value: string) => {
+    setSuspectInput(value);
+    if (value.length < 2) { setSuspectSuggestions([]); return; }
+    setSearchingUsers(true);
+    try {
+      const results = await searchUsers(value);
+      setSuspectSuggestions(results);
+    } catch {
+      setSuspectSuggestions([]);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
+      setSuspects([...suspects, suspect]);
+    }
+    setSuspectInput('');
     setSuspectSuggestions([]);
-  } finally {
-    setSearchingUsers(false);
-  }
-};
+  };
 
-const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
-  if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
-    setSuspects([...suspects, suspect]);
-  }
-  setSuspectInput('');
-  setSuspectSuggestions([]);
-};
+  const removeSuspect = (index: number) => {
+    setSuspects(suspects.filter((_, i) => i !== index));
+  };
 
-const removeSuspect = (index: number) => {
-  setSuspects(suspects.filter((_, i) => i !== index));
-};
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+      const unread = data.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Erreur notifications');
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchNotifications();
+    }
+}, [user?.id]);
   
 
   // PAGE ACCUEIL
   if (step === 0) return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
+  <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
       {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -99,6 +123,42 @@ const removeSuspect = (index: number) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', color: '#666' }}>{user?.firstName} {user?.lastName}</span>
+          
+          {/* Bouton notification */}
+          <div style={{ position: 'relative' }}>
+            <button onClick={() => setShowNotifications(!showNotifications)}
+              style={{ padding: '8px 12px', background: '#f0f4ff', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', position: 'relative' }}>
+              🔔
+              {unreadCount > 0 && (
+                <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#dc2626', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown notifications */}
+            {showNotifications && (
+              <div style={{ position: 'absolute', right: 0, top: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', width: '320px', zIndex: 100, maxHeight: '400px', overflowY: 'auto' }}>
+                <div style={{ padding: '16px', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: '14px' }}>
+                  Notifications {unreadCount > 0 && <span style={{ color: '#dc2626' }}>({unreadCount} non lues)</span>}
+                </div>
+                {notifications.length === 0 ? (
+                  <p style={{ padding: '20px', color: '#aaa', textAlign: 'center', fontSize: '14px' }}>Aucune notification</p>
+                ) : (
+                  notifications.map((n: any) => (
+                    <div key={n.id} onClick={async () => { await markNotificationRead(n.id); fetchNotifications(); }}
+                      style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: n.isRead ? 'white' : '#f0f4ff' }}>
+                      <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#333' }}>{n.message}</p>
+                      <p style={{ margin: 0, fontSize: '11px', color: '#aaa' }}>
+                        {new Date(n.createdAt).toLocaleDateString('fr-FR')} à {new Date(n.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
           <button onClick={logoutUser} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
             Déconnexion
           </button>
@@ -109,7 +169,7 @@ const removeSuspect = (index: number) => {
       <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
-            Collège Jean Moulin — Dispositif anti-harcèlement
+            Collège Jeanne d'Arc — Dispositif anti-harcèlement
           </p>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px', lineHeight: 1.3 }}>
             Tu vis ou tu témoines une situation de harcèlement ?
@@ -151,10 +211,10 @@ const removeSuspect = (index: number) => {
       </div>
 
       {/* Qui peut signaler */}
-      <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
+        <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
           <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px', fontWeight: 700 }}>Qui peut signaler ?</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '14px', color: '#444' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#444', alignItems: 'flex-start' }}>
             <span>• Un élève (victime ou témoin)</span>
             <span>• Un professeur</span>
             <span>• personnel du collège</span>
@@ -173,11 +233,19 @@ const removeSuspect = (index: number) => {
         <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
           Votre signalement a bien été reçu et sera traité dans les meilleurs délais.
         </p>
-        {result && (
+        {result && whoSignals === 'Je suis victime' && (
           <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
             <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px' }}>Numéro de dossier</p>
             <p style={{ fontSize: '20px', fontWeight: 700, color: '#0f3460', margin: 0 }}>{result.caseNumber}</p>
             <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0' }}>Conservez ce numéro pour suivre l'avancement</p>
+          </div>
+        )}
+
+        {result && whoSignals !== 'Je suis victime' && (
+          <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
+            <p style={{ fontSize: '13px', color: '#444', margin: 0 }}>
+              ✉️ Votre signalement a bien été transmis à l'administration. Merci pour votre vigilance.
+            </p>
           </div>
         )}
         <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
@@ -329,7 +397,7 @@ if (step === 8) return (
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
               <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {['Je suis victime', 'Je suis témoin', 'Je suis professeur', 'Je suis personnel du collège'].map(option => (
+                {['Je suis victime', 'Je suis témoin',].map(option => (
                   <div key={option} onClick={() => setWhoSignals(option)} style={{
                     padding: '16px', borderRadius: '8px', cursor: 'pointer',
                     border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
@@ -376,6 +444,24 @@ if (step === 8) return (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
               <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Explique ce qui s'est passé</p>
+              {whoSignals === 'Je suis témoin' && (
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
+                    Nom de la victime
+                  </label>
+                  <input
+                    type="text"
+                    value={victimName}
+                    onChange={e => setVictimName(e.target.value)}
+                    placeholder="Prénom et nom de la victime..."
+                    style={{
+                      width: '100%', padding: '12px 16px',
+                      border: '2px solid #e0e0e0', borderRadius: '8px',
+                      fontSize: '14px', outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              )} 
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
