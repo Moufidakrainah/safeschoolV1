@@ -17,34 +17,65 @@ export default function ReporterDashboard() {
   const [suspectInput, setSuspectInput] = useState('');
   const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  const [victimName, setVictimName] = useState('');
+  const [victimInput, setVictimInput] = useState('');
+  const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
+  const [selectedVictim, setSelectedVictim] = useState<any>(null);
 
-const handleSubmit = async () => {
-  setLoading(true);
-  try {
-    const title = `${type} - ${whoSignals}`;
-    const fullDescription = `${description} (Fréquence: ${frequency})`;
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const title = `${type} - ${whoSignals}`;
+      const victimInfo = victimName ? ` | Victime : ${victimName}` : '';
+      const fullDescription = `${description} (Fréquence: ${frequency})${victimInfo}`;
 
-    const suspectsData = suspects.map(s => ({
-      userId: s.id || undefined,
-      freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
-    }));
+      const suspectsData = suspects.map(s => ({
+        userId: s.id || undefined,
+        freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
+      }));
 
-    const report = await createReport(
-      title,
-      fullDescription,
-      isAnonymous,
-      suspectsData,
-      frequency,
-      user?.studentProfile?.schoolClass || '',
-    );
-    setResult(report);
-    setStep(7);
-  } catch (err) {
-    console.error('Erreur envoi signalement');
-  } finally {
-    setLoading(false);
-  }
-};
+      const report = await createReport(
+        title,
+        fullDescription,
+        isAnonymous,
+        suspectsData,
+        frequency,
+        '',
+      );
+      setResult(report);
+      setStep(7);
+    } catch (err) {
+      console.error('Erreur envoi signalement');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSuspectSearch = async (value: string) => {
+    setSuspectInput(value);
+    if (value.length < 2) { setSuspectSuggestions([]); return; }
+    setSearchingUsers(true);
+    try {
+      const results = await searchUsers(value);
+      setSuspectSuggestions(results);
+    } catch {
+      setSuspectSuggestions([]);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
+
+  const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
+      setSuspects([...suspects, suspect]);
+    }
+    setSuspectInput('');
+    setSuspectSuggestions([]);
+  };
+
+  const removeSuspect = (index: number) => {
+    setSuspects(suspects.filter((_, i) => i !== index));
+  };
 
   const roleLabel = user?.role === 'teacher' ? 'Professeur' : 'Personnel du collège';
 
@@ -68,7 +99,7 @@ const handleSubmit = async () => {
       <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
-            Collège Jean Moulin — Dispositif anti-harcèlement
+            Collège Jeanne d'Arc — Dispositif anti-harcèlement
           </p>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px', lineHeight: 1.3 }}>
             Vous êtes témoin d'une situation de harcèlement ?
@@ -115,7 +146,7 @@ const handleSubmit = async () => {
             ✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.
           </p>
         </div>
-        <button onClick={() => { setStep(0); setResult(null); setType(''); setDescription(''); setFrequency(''); setWhoSignals(''); }}
+        <button onClick={() => { setStep(0); setResult(null); setType(''); setDescription(''); setFrequency(''); setWhoSignals(''); setVictimName(''); setSuspects([]); }}
           style={{ padding: '12px 24px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
           Retour à l'accueil
         </button>
@@ -160,16 +191,25 @@ const handleSubmit = async () => {
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
               <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {['Je signale en tant que professeur', 'Je signale en tant que personnel du collège'].map(option => (
-                  <div key={option} onClick={() => setWhoSignals(option)} style={{
+                {user?.role === 'teacher' ? (
+                  <div onClick={() => setWhoSignals('Je signale en tant que professeur')} style={{
                     padding: '16px', borderRadius: '8px', cursor: 'pointer',
-                    border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
-                    background: whoSignals === option ? '#f0f4ff' : 'white',
-                    fontSize: '14px', fontWeight: whoSignals === option ? 600 : 400,
+                    border: `2px solid ${whoSignals === 'Je signale en tant que professeur' ? '#0f3460' : '#e0e0e0'}`,
+                    background: whoSignals === 'Je signale en tant que professeur' ? '#f0f4ff' : 'white',
+                    fontSize: '14px', fontWeight: whoSignals === 'Je signale en tant que professeur' ? 600 : 400,
                   }}>
-                    {option}
+                    Je signale en tant que professeur
                   </div>
-                ))}
+                ) : (
+                  <div onClick={() => setWhoSignals('Je signale en tant que personnel du collège')} style={{
+                    padding: '16px', borderRadius: '8px', cursor: 'pointer',
+                    border: `2px solid ${whoSignals === 'Je signale en tant que personnel du collège' ? '#0f3460' : '#e0e0e0'}`,
+                    background: whoSignals === 'Je signale en tant que personnel du collège' ? '#f0f4ff' : 'white',
+                    fontSize: '14px', fontWeight: whoSignals === 'Je signale en tant que personnel du collège' ? 600 : 400,
+                  }}>
+                    Je signale en tant que personnel du collège
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -218,7 +258,7 @@ const handleSubmit = async () => {
                 Fréquence des actes
               </label>
               <select value={frequency} onChange={e => setFrequency(e.target.value)}
-                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white' }}>
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white', color: '#333' }}>
                 <option value="">Sélectionner...</option>
                 <option value="Une fois">Une fois</option>
                 <option value="Deux fois">Deux fois</option>
@@ -228,14 +268,116 @@ const handleSubmit = async () => {
             </div>
           )}
 
-          {/* ÉTAPE 4 */}
+          {/* ÉTAPE 4 — Personnes impliquées */}
           {step === 4 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Cette information est confidentielle</p>
-              <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', fontSize: '14px', color: '#666', textAlign: 'center' }}>
-                🚧 Cette fonctionnalité sera disponible prochainement
+              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
+                Indique la victime et les personnes soupçonnées — cette information est confidentielle
+              </p>
+
+              {/* Nom de la victime */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
+                  Nom de la victime
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={victimInput}
+                    onChange={async (e) => {
+                      setVictimInput(e.target.value);
+                      setSelectedVictim(null);
+                      setVictimName(e.target.value);
+                      if (e.target.value.length >= 2) {
+                        const results = await searchUsers(e.target.value);
+                        setVictimSuggestions(results);
+                      } else {
+                        setVictimSuggestions([]);
+                      }
+                    }}
+                    placeholder="Rechercher par nom ou prénom..."
+                    style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                  />
+                  {victimSuggestions.length > 0 && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0' }}>
+                      {victimSuggestions.map(s => (
+                        <div key={s.id} onClick={() => {
+                          setSelectedVictim(s);
+                          setVictimName(`${s.firstName} ${s.lastName}`);
+                          setVictimInput(`${s.firstName} ${s.lastName}`);
+                          setVictimSuggestions([]);
+                        }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
+                          onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
+                          onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                          <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
+                          <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {selectedVictim && (
+                  <div style={{ marginTop: '8px', background: '#f0fff4', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', color: '#22c55e', display: 'inline-block' }}>
+                    ✅ {selectedVictim.firstName} {selectedVictim.lastName} sélectionné(e)
+                  </div>
+                )}
               </div>
+
+              {/* Soupçonnés */}
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
+                Soupçonné(s)
+              </label>
+              <div style={{ position: 'relative', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  value={suspectInput}
+                  onChange={e => handleSuspectSearch(e.target.value)}
+                  placeholder="Rechercher par nom ou prénom..."
+                  style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+                {suspectSuggestions.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0' }}>
+                    {suspectSuggestions.map(s => (
+                      <div key={s.id} onClick={() => addSuspect(s)}
+                        style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                        <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
+                        <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
+                <button onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
+                  style={{ padding: '8px 16px', background: '#f0f4ff', border: '1px solid #0f3460', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#0f3460', marginBottom: '16px' }}>
+                  + Ajouter "{suspectInput}" comme soupçonné
+                </button>
+              )}
+
+              {suspects.length > 0 && (
+                <div style={{ marginTop: '8px' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#333', marginBottom: '8px' }}>Soupçonnés ajoutés :</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {suspects.map((s, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0f4ff', padding: '6px 12px', borderRadius: '20px', fontSize: '13px', color: '#0f3460' }}>
+                        <span>{s.firstName} {s.lastName}</span>
+                        <span onClick={() => removeSuspect(i)} style={{ cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {suspects.length === 0 && (
+                <p style={{ fontSize: '13px', color: '#aaa', textAlign: 'center', marginTop: '16px' }}>
+                  Aucun soupçonné ajouté — tu peux passer cette étape
+                </p>
+              )}
             </div>
           )}
 
@@ -260,6 +402,8 @@ const handleSubmit = async () => {
                 <p><strong>Type :</strong> {type}</p>
                 <p><strong>Description :</strong> {description}</p>
                 <p><strong>Fréquence :</strong> {frequency}</p>
+                {victimName && <p><strong>Victime :</strong> {victimName}</p>}
+                {suspects.length > 0 && <p><strong>Soupçonnés :</strong> {suspects.map(s => `${s.firstName} ${s.lastName}`).join(', ')}</p>}
               </div>
               <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', marginBottom: '20px' }}>
                 <input type="checkbox" checked={isAnonymous} onChange={e => setIsAnonymous(e.target.checked)}
@@ -272,7 +416,7 @@ const handleSubmit = async () => {
           {/* Boutons navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
             <button onClick={() => setStep(s => s - 1)}
-              style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333' }}>
               Précédent
             </button>
             {step < 6 ? (

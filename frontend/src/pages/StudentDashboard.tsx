@@ -24,6 +24,9 @@ export default function StudentDashboard() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [victimInput, setVictimInput] = useState('');
+  const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
+  const [selectedVictim, setSelectedVictim] = useState<any>(null);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -293,7 +296,9 @@ if (step === 8) return (
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {myReports.map((report: any) => (
+          {myReports
+            .filter((report: any) => !report.title.includes('Je suis témoin'))
+            .map((report: any) => (
             <div key={report.id} style={{
               background: 'white', borderRadius: '12px',
               padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
@@ -449,17 +454,48 @@ if (step === 8) return (
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
                     Nom de la victime
                   </label>
-                  <input
-                    type="text"
-                    value={victimName}
-                    onChange={e => setVictimName(e.target.value)}
-                    placeholder="Prénom et nom de la victime..."
-                    style={{
-                      width: '100%', padding: '12px 16px',
-                      border: '2px solid #e0e0e0', borderRadius: '8px',
-                      fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={victimInput}
+                  onChange={async (e) => {
+                    setVictimInput(e.target.value);
+                    setSelectedVictim(null);
+                    setVictimName(e.target.value);
+                    if (e.target.value.length >= 2) {
+                      const results = await searchUsers(e.target.value);
+                      setVictimSuggestions(results);
+                    } else {
+                      setVictimSuggestions([]);
+                    }
+                  }}
+                  placeholder="Rechercher par nom ou prénom..."
+                  style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+                {victimSuggestions.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0' }}>
+                    {victimSuggestions.map(s => (
+                      <div key={s.id} onClick={() => {
+                        setSelectedVictim(s);
+                        setVictimName(`${s.firstName} ${s.lastName}`);
+                        setVictimInput(`${s.firstName} ${s.lastName}`);
+                        setVictimSuggestions([]);
+                      }}
+                        style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
+                        <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
+                        <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedVictim && (
+                <div style={{ marginTop: '8px', background: '#f0fff4', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', color: '#22c55e', display: 'inline-block' }}>
+                  ✅ {selectedVictim.firstName} {selectedVictim.lastName} sélectionné(e)
+                </div>
+              )}
                 </div>
               )} 
               <textarea
