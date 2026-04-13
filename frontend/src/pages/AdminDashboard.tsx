@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAllReports, updateReport, getNotes, addNote, getAllUsers, createUser, updateUser, deleteUser } from '../services/api';
+import StatsDashboard from './StatsDashboard';
 
 const GRADE_COLORS: Record<string, string> = {
   critique: '#dc2626',
@@ -26,6 +27,9 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
+  const isDirector = user?.role === 'director';
+  const isAdmin = user?.role === 'admin';
+
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<any>(null);
@@ -46,7 +50,7 @@ export default function AdminDashboard() {
   const [newNote, setNewNote] = useState('');
   const [convocationDate, setConvocationDate] = useState('');
   const [convocationMessage, setConvocationMessage] = useState('');
-  const [viewSection, setViewSection] = useState<'reports' | 'users'>('reports');
+  const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>('reports');
   const [users, setUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
@@ -198,14 +202,13 @@ export default function AdminDashboard() {
     }
   };
 
-  // ── HEADER commun ────────────────────────────────────────
   const Header = () => (
     <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #0f3460)', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <span style={{ fontSize: '24px' }}>🛡️</span>
         <span style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>SafeSchool</span>
         <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '12px' }}>
-          {user?.role === 'director' ? 'Directeur' : 'Admin'}
+          {isDirector ? 'Directeur' : 'Admin'}
         </span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -217,13 +220,11 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // ── PAGE DÉTAIL ──────────────────────────────────────────
   if (view === 'detail' && selected) return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
       <Header />
       <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 20px' }}>
 
-        {/* Breadcrumb */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '14px' }}>
           <button onClick={() => { setView('list'); setSelected(null); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0f3460', fontWeight: 600, padding: 0 }}>
@@ -235,7 +236,6 @@ export default function AdminDashboard() {
           </span>
         </div>
 
-        {/* Titre + grade + statut + boutons */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <h1 style={{ margin: 0, fontSize: '22px', color: '#1a1a2e' }}>{selected.caseNumber}</h1>
@@ -246,24 +246,24 @@ export default function AdminDashboard() {
               {STATUS_LABELS[selected.status]}
             </span>
           </div>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {[
-              { status: 'in_progress', label: '🔄 En cours',  bg: '#0f3460' },
-              { status: 'escalated',   label: '🚨 Escalader', bg: '#7c3aed' },
-              { status: 'closed',      label: '✅ Clôturer',  bg: '#22c55e' },
-              { status: 'rejected',    label: '❌ Rejeter',   bg: '#dc2626' },
-            ].map(btn => (
-              <button key={btn.status} onClick={() => handleUpdateStatus(selected.id, btn.status)} disabled={saving}
-                style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', background: btn.bg, color: 'white', fontWeight: 600 }}>
-                {btn.label}
-              </button>
-            ))}
-          </div>
+          {isAdmin && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[
+                { status: 'in_progress', label: '🔄 En cours',  bg: '#0f3460' },
+                { status: 'escalated',   label: '🚨 Escalader', bg: '#7c3aed' },
+                { status: 'closed',      label: '✅ Clôturer',  bg: '#22c55e' },
+                { status: 'rejected',    label: '❌ Rejeter',   bg: '#dc2626' },
+              ].map(btn => (
+                <button key={btn.status} onClick={() => handleUpdateStatus(selected.id, btn.status)} disabled={saving}
+                  style={{ padding: '10px 16px', borderRadius: '8px', fontSize: '13px', border: 'none', cursor: saving ? 'not-allowed' : 'pointer', background: btn.bg, color: 'white', fontWeight: 600 }}>
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 2 colonnes */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          {/* Informations */}
           <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>Informations du signalement</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
@@ -285,7 +285,6 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          {/* Personnes impliquées */}
           <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>Personnes impliquées</h3>
             <p style={{ fontSize: '12px', color: '#888', fontWeight: 600, margin: '0 0 4px' }}>Signalé par</p>
@@ -316,7 +315,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Description */}
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
           <h3 style={{ margin: '0 0 12px', color: '#1a1a2e', fontSize: '15px' }}>Description des faits</h3>
           <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.7', margin: 0 }}>
@@ -324,7 +322,6 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* Notes */}
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
           <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📝 Notes administratives</h3>
           {notes.length > 0 ? (
@@ -345,60 +342,66 @@ export default function AdminDashboard() {
               ))}
             </div>
           ) : (
-            <p style={{ color: '#aaa', fontSize: '14px', marginBottom: '20px' }}>Aucune note pour ce dossier</p>
+            <p style={{ color: '#aaa', fontSize: '14px', marginBottom: isAdmin ? '20px' : '0' }}>Aucune note pour ce dossier</p>
           )}
-          <textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder="Ajouter une note..."
-            style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
-          <button onClick={() => handleAddNote('note')}
-            style={{ padding: '10px 20px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-            💾 Enregistrer la note
-          </button>
+          {isAdmin && (
+            <>
+              <textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder="Ajouter une note..."
+                style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
+              <button onClick={() => handleAddNote('note')}
+                style={{ padding: '10px 20px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+                💾 Enregistrer la note
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Convocation */}
-        <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📅 Convoquer les personnes impliquées</h3>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>Date et heure</label>
-            <input type="datetime-local" value={convocationDate} onChange={e => setConvocationDate(e.target.value)}
-              style={{ padding: '10px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '13px', outline: 'none', color: '#333' }} />
+        {isAdmin && (
+          <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📅 Convoquer les personnes impliquées</h3>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>Date et heure</label>
+              <input type="datetime-local" value={convocationDate} onChange={e => setConvocationDate(e.target.value)}
+                style={{ padding: '10px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '13px', outline: 'none', color: '#333' }} />
+            </div>
+            <textarea value={convocationMessage} onChange={e => setConvocationMessage(e.target.value)} rows={3}
+              placeholder="Message de convocation..."
+              style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
+            <button onClick={() => handleAddNote('convocation')}
+              style={{ padding: '10px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
+              📨 Envoyer la convocation
+            </button>
           </div>
-          <textarea value={convocationMessage} onChange={e => setConvocationMessage(e.target.value)} rows={3}
-            placeholder="Message de convocation..."
-            style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
-          <button onClick={() => handleAddNote('convocation')}
-            style={{ padding: '10px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-            📨 Envoyer la convocation
-          </button>
-        </div>
+        )}
 
       </div>
     </div>
   );
 
-  // ── PAGE LISTE ───────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
       <Header />
-
       <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 20px' }}>
 
-        {/* Navigation sections */}
         <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
           <button onClick={() => setViewSection('reports')}
             style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'reports' ? '#0f3460' : '#f3f4f6', color: viewSection === 'reports' ? 'white' : '#333' }}>
             📋 Signalements
           </button>
-          <button onClick={() => { setViewSection('users'); fetchUsers(); }}
-            style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'users' ? '#0f3460' : '#f3f4f6', color: viewSection === 'users' ? 'white' : '#333' }}>
-            👥 Utilisateurs
+          {isAdmin && (
+            <button onClick={() => { setViewSection('users'); fetchUsers(); }}
+              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'users' ? '#0f3460' : '#f3f4f6', color: viewSection === 'users' ? 'white' : '#333' }}>
+              👥 Utilisateurs
+            </button>
+          )}
+          <button onClick={() => setViewSection('stats')}
+            style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'stats' ? '#0f3460' : '#f3f4f6', color: viewSection === 'stats' ? 'white' : '#333' }}>
+            📊 Statistiques
           </button>
         </div>
 
-        {/* SECTION SIGNALEMENTS */}
         {viewSection === 'reports' && (
           <>
-            {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
               {[
                 { label: 'Total',      value: stats.total,     color: '#1a1a2e' },
@@ -414,7 +417,6 @@ export default function AdminDashboard() {
               ))}
             </div>
 
-            {/* Barre de recherche */}
             <div style={{ marginBottom: '20px' }}>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, titre..."
                 style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
@@ -422,7 +424,6 @@ export default function AdminDashboard() {
                 onBlur={e => e.target.style.borderColor = '#e0e0e0'} />
             </div>
 
-            {/* Filtres */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
@@ -467,7 +468,6 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Liste signalements */}
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#666' }}>Chargement...</div>
             ) : filtered.length === 0 ? (
@@ -508,7 +508,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', fontSize: '13px', color: '#666' }}>
                 <span>{filtered.length} résultats · Page {currentPage} sur {totalPages}</span>
@@ -529,8 +528,7 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* SECTION UTILISATEURS */}
-        {viewSection === 'users' && (
+        {viewSection === 'users' && isAdmin && (
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h2 style={{ margin: 0, color: '#1a1a2e' }}>👥 Gestion des utilisateurs</h2>
@@ -540,7 +538,6 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            {/* Formulaire */}
             {showUserForm && (
               <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '20px' }}>
                 <h3 style={{ margin: '0 0 16px', color: '#1a1a2e' }}>{editingUser ? 'Modifier' : 'Ajouter'} un utilisateur</h3>
@@ -585,7 +582,6 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* Liste utilisateurs */}
             {loadingUsers ? (
               <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Chargement...</div>
             ) : (
@@ -615,6 +611,10 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {viewSection === 'stats' && (
+          <StatsDashboard reports={reports} />
         )}
 
       </div>
