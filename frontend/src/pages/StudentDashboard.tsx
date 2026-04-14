@@ -1,6 +1,6 @@
 import { useState, useEffect} from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers, getReports, getNotifications, markNotificationRead } from '../services/api';
+import { createReport, searchUsers, getReports, getNotifications, markNotificationRead, getNotes } from '../services/api';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -27,6 +27,7 @@ export default function StudentDashboard() {
   const [victimInput, setVictimInput] = useState('');
   const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<any>(null);
+  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -59,11 +60,33 @@ export default function StudentDashboard() {
     }
   };
 
+  const fetchReportNotes = async (reportId: string) => {
+    try {
+      const data = await getNotes(reportId);
+      data.forEach((n: any) => console.log('NOTE:', n.type, '|', n.content));
+      setReportNotes(prev => ({ ...prev, [reportId]: data }));
+    } catch (err) {
+      console.error('Erreur chargement notes', err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+      const unread = data.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Erreur notifications', err);
+    }
+  };
+
   const fetchMyReports = async () => {
     setLoadingReports(true);
     try {
       const data = await getReports();
       setMyReports(data);
+      data.forEach((r: any) => fetchReportNotes(r.id));
     } catch (err) {
       console.error('Erreur chargement dossiers');
     } finally {
@@ -97,23 +120,13 @@ export default function StudentDashboard() {
     setSuspects(suspects.filter((_, i) => i !== index));
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const data = await getNotifications();
-      setNotifications(data);
-      const unread = data.filter((n: any) => !n.isRead).length;
-      setUnreadCount(unread);
-    } catch (err) {
-      console.error('Erreur notifications');
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchNotifications();
     }
 }, [user?.id]);
-  
+
+
 
   // PAGE ACCUEIL
   if (step === 0) return (
@@ -354,6 +367,57 @@ if (step === 8) return (
                   💬 <strong>Note de l'administration :</strong> {report.adminNote}
                 </div>
               )}
+              {/* Convocations */}
+              {reportNotes[report.id]?.filter((n: any) => n.type === 'convocation').map((note: any) => {
+                const MONTHS_FR: Record<string, number> = {
+                  'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
+                  'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12
+                };
+
+                const match = note.content.match(/Rendez-vous le (\d{2}) (\w+) (\d{4}) à (\d{2})h(\d{2})/);
+                let isPast = true;
+                let displayDate = '';
+                let message = note.content;
+
+                if (match) {
+                  const [, day, monthStr, year, hours, minutes] = match;
+                  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+                  const yearNum = Number(year);
+
+                  // Ignorer les dates corrompues (année aberrante)
+                  if (monthNum && yearNum >= 2020 && yearNum <= 2100) {
+                    const rdvDate = new Date(yearNum, monthNum - 1, Number(day), Number(hours), Number(minutes));
+                    isPast = rdvDate < new Date();
+                    displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
+                    const msgMatch = note.content.match(/Rendez-vous le .+?\. (.+)/s);
+                    message = msgMatch ? msgMatch[1] : '';
+                  }
+                }
+
+                return (
+                  <div key={note.id} style={{
+                    marginTop: '10px',
+                    background: isPast ? '#f9f9f9' : '#f0f4ff',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '13px',
+                    borderLeft: `3px solid ${isPast ? '#ccc' : '#7c3aed'}`,
+                  }}>
+                    {!displayDate ? (
+                      // Pas de date parseable → afficher le contenu brut
+                      <span style={{ color: '#0f3460' }}>📅 Convocation : {note.content}</span>
+                    ) : isPast ? (
+                      <span style={{ color: '#888' }}>
+                        📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                      </span>
+                    ) : (
+                      <span style={{ color: '#0f3460' }}>
+                        📅 Convocation : Vous êtes convoqué(e) le <strong>{displayDate}</strong>{message ? ` — ${message}` : ''}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>

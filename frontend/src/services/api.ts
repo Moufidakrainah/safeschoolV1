@@ -70,8 +70,8 @@ export const getNotes = async (reportId: string) => {
   return response.data;
 };
 
-export const addNote = async (reportId: string, content: string, type: string = 'note') => {
-  const response = await api.post(`/reports/${reportId}/notes`, { content, type });
+export const addNote = async (reportId: string, content: string, type: string = 'note', targetRole?: string) => {
+  const response = await api.post(`/reports/${reportId}/notes`, { content, type, targetRole });
   return response.data;
 };
 

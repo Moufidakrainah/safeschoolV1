@@ -134,30 +134,41 @@ export class ReportsService {
     return this.reportsRepository.save(report);
   }
   // Ajouter une note
-  async addNote(reportId: string, content: string, type: string, author: any): Promise<ReportNote> {
+  async addNote(reportId: string, content: string, type: string, author: any, targetRole?: string): Promise<ReportNote> {
     const report = await this.findOne(reportId);
     const note = this.notesRepository.create({ report, content, type, author });
     const saved = await this.notesRepository.save(note);
 
     if (type === 'convocation') {
-      // Envoyer à la victime
-      if (report.student?.id) {
-        await this.notificationsService.create(
-          report.student.id,
-          reportId,
-          `📅 Convocation : ${content}`,
-        );
-      }
-
-      // Envoyer aux soupçonnés qui ont un compte
-      if (report.suspects && report.suspects.length > 0) {
-        for (const suspect of report.suspects) {
-          if (suspect.user?.id) {
-            await this.notificationsService.create(
-              suspect.user.id,
-              reportId,
-              `📅 Convocation : ${content}`,
-            );
+      // Envoyer uniquement selon le targetRole
+      if (targetRole === 'victime' || targetRole === 'temoin') {
+        if (report.student?.id) {
+          await this.notificationsService.create(
+            report.student.id,
+            reportId,
+            `📅 Convocation : ${content}`,
+          );
+        }
+      } else if (targetRole?.startsWith('suspect_')) {
+        const suspectIndex = parseInt(targetRole.split('_')[1]);
+        const suspect = report.suspects?.[suspectIndex];
+        if (suspect?.user?.id) {
+          await this.notificationsService.create(
+            suspect.user.id,
+            reportId,
+            `📅 Convocation : ${content}`,
+          );
+        }
+      } else {
+        // Fallback : ancien comportement (envoyer à tous)
+        if (report.student?.id) {
+          await this.notificationsService.create(report.student.id, reportId, `📅 Convocation : ${content}`);
+        }
+        if (report.suspects) {
+          for (const suspect of report.suspects) {
+            if (suspect.user?.id) {
+              await this.notificationsService.create(suspect.user.id, reportId, `📅 Convocation : ${content}`);
+            }
           }
         }
       }

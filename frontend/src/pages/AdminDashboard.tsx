@@ -25,6 +25,238 @@ const STATUS_LABELS: Record<string, string> = {
   rejected:    '❌ Rejeté',
 };
 
+const MONTHS_FR = [
+  'janvier','février','mars','avril','mai','juin',
+  'juillet','août','septembre','octobre','novembre','décembre'
+];
+
+function formatDate(dateStr: string): string {
+  const [datePart, timePart] = dateStr.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timePart.split(':').map(Number);
+  return `${String(day).padStart(2,'0')} ${MONTHS_FR[month-1]} ${year} à ${String(hours).padStart(2,'0')}h${String(minutes).padStart(2,'0')}`;
+}
+
+function ConvocationSelector({ selected, onSend }: {
+  selected: any;
+  onSend: (date: string, message: string, targetRole: string) => Promise<void>;
+}) {
+  const people: { id: string; label: string }[] = [];
+
+  if (selected.title?.includes('Je suis témoin')) {
+    people.push({
+      id: 'temoin',
+      label: `👁️ Témoin — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
+    });
+    const victimMatch = selected.description?.match(/\| Victime : (.+?)(\||$)/);
+    const victimName = victimMatch ? victimMatch[1].trim() : 'Victime inconnue';
+    people.push({
+      id: 'victime',
+      label: `🧑‍🎓 Victime — ${victimName}`,
+    });
+  } else {
+    people.push({
+      id: 'victime',
+      label: `🧑‍🎓 Victime — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
+    });
+  }
+
+  selected.suspects?.forEach((s: any, i: number) => {
+    const name = s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText;
+    people.push({
+      id: `suspect_${i}`,
+      label: `⚠️ Soupçonné${selected.suspects.length > 1 ? ` ${i + 1}` : ''} — ${name}`,
+    });
+  });
+
+  const [selectedPerson, setSelectedPerson] = useState(people[0]?.id || '');
+  const [dateInput, setDateInput] = useState(''); // dd/mm/yyyy saisi par l'utilisateur
+  const [timeInput, setTimeInput] = useState(''); // hh:mm
+  const [isoDate, setIsoDate] = useState('');     // yyyy-mm-ddThh:mm pour formatDate()
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [dateError, setDateError] = useState('');
+
+  // Quand l'utilisateur tape la date dd/mm/yyyy
+  const handleDateInput = (val: string) => {
+    // Autoriser uniquement chiffres et /
+    let clean = val.replace(/[^0-9/]/g, '');
+
+    // Auto-insertion des slashes
+    if (clean.length === 2 && dateInput.length === 1) clean = clean + '/';
+    if (clean.length === 5 && dateInput.length === 4) clean = clean + '/';
+
+    setDateInput(clean);
+    setDateError('');
+    setIsoDate('');
+
+    if (clean.length === 10) {
+      const parts = clean.split('/');
+      if (parts.length === 3) {
+        const [dd, mm, yyyy] = parts;
+        const time = timeInput || '00:00';
+        const iso = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T${time}`;
+        const parsed = new Date(iso);
+        if (isNaN(parsed.getTime())) {
+          setDateError('Date invalide.');
+        } else if (parsed <= new Date()) {
+          setDateError('La date doit être dans le futur.');
+        } else {
+          setIsoDate(iso);
+        }
+      }
+    }
+  };
+
+  // Quand l'utilisateur change l'heure
+  const handleTimeInput = (val: string) => {
+    setTimeInput(val);
+    setDateError('');
+    setIsoDate('');
+
+    if (dateInput.length === 10) {
+      const parts = dateInput.split('/');
+      if (parts.length === 3) {
+        const [dd, mm, yyyy] = parts;
+        const iso = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}T${val}`;
+        const parsed = new Date(iso);
+        if (isNaN(parsed.getTime())) {
+          setDateError('Date invalide.');
+        } else if (parsed <= new Date()) {
+          setDateError('La date et l\'heure doivent être dans le futur.');
+        } else {
+          setIsoDate(iso);
+        }
+      }
+    }
+  };
+
+  const resetFields = () => {
+    setDateInput('');
+    setTimeInput('');
+    setIsoDate('');
+    setMessage('');
+    setDateError('');
+    setSent(false);
+  };
+
+  const handleSend = async () => {
+    if (!isoDate || !message.trim()) return;
+
+    const parsed = new Date(isoDate);
+    if (parsed <= new Date()) {
+      setDateError('La date et l\'heure doivent être dans le futur.');
+      return;
+    }
+
+    setSending(true);
+    try {
+      await onSend(isoDate, message, selectedPerson);
+      setSent(true);
+      resetFields();
+      setTimeout(() => setSent(false), 3000);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const isValid = isoDate !== '' && message.trim() !== '' && dateError === '';
+
+  return (
+    <div>
+      {/* Liste déroulante personnes */}
+      <div style={{ marginBottom: '16px' }}>
+        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>
+          Personne à convoquer
+        </label>
+        <select
+          value={selectedPerson}
+          onChange={e => { setSelectedPerson(e.target.value); resetFields(); }}
+          style={{ width: '100%', padding: '10px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white', color: '#333' }}
+        >
+          {people.map(p => (
+            <option key={p.id} value={p.id}>{p.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '6px' }}>
+        {/* Date dd/mm/yyyy */}
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
+            Date (jj/mm/aaaa)
+          </label>
+          <input
+            type="text"
+            value={dateInput}
+            onChange={e => handleDateInput(e.target.value)}
+            placeholder="jj/mm/aaaa"
+            maxLength={10}
+            style={{
+              width: '100%', padding: '10px 12px',
+              border: `2px solid ${dateError ? '#dc2626' : '#e0e0e0'}`,
+              borderRadius: '8px', fontSize: '13px',
+              outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        {/* Heure */}
+        <div>
+          <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
+            Heure
+          </label>
+          <input
+            type="time"
+            value={timeInput}
+            onChange={e => handleTimeInput(e.target.value)}
+            style={{
+              width: '100%', padding: '10px 12px',
+              border: `2px solid ${dateError ? '#dc2626' : '#e0e0e0'}`,
+              borderRadius: '8px', fontSize: '13px',
+              outline: 'none', boxSizing: 'border-box',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Message d'erreur date */}
+      {dateError && (
+        <p style={{ color: '#dc2626', fontSize: '12px', margin: '0 0 10px' }}>⚠️ {dateError}</p>
+      )}
+
+      {/* Message */}
+      <div style={{ marginBottom: '14px' }}>
+        <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
+          Message
+        </label>
+        <input
+          type="text"
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="Message personnalisé..."
+          style={{ width: '100%', padding: '10px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' }}
+        />
+      </div>
+
+      <button
+        onClick={handleSend}
+        disabled={sending || !isValid}
+        style={{
+          padding: '10px 20px',
+          background: !isValid ? '#ccc' : '#7c3aed',
+          color: 'white', border: 'none', borderRadius: '8px',
+          cursor: !isValid ? 'not-allowed' : 'pointer',
+          fontSize: '14px', fontWeight: 600,
+        }}
+      >
+        {sent ? '✅ Envoyé !' : sending ? 'Envoi...' : '📨 Envoyer la convocation'}
+      </button>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const isDirector = user?.role === 'director';
@@ -48,8 +280,6 @@ export default function AdminDashboard() {
   const [view, setView] = useState<'list' | 'detail'>('list');
   const [notes, setNotes] = useState<any[]>([]);
   const [newNote, setNewNote] = useState('');
-  const [convocationDate, setConvocationDate] = useState('');
-  const [convocationMessage, setConvocationMessage] = useState('');
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>('reports');
   const [users, setUsers] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -152,13 +382,12 @@ export default function AdminDashboard() {
   };
 
   const handleAddNote = async (type: string = 'note') => {
-    const content = type === 'convocation' ? convocationMessage : newNote;
+    const content = newNote;
     if (!content.trim()) return;
     try {
       await addNote(selected.id, content, type);
       await loadNotes(selected.id);
-      if (type === 'convocation') setConvocationMessage('');
-      else setNewNote('');
+      setNewNote('');
     } catch (err) {
       console.error('Erreur ajout note');
     }
@@ -336,6 +565,20 @@ export default function AdminDashboard() {
                       {new Date(note.createdAt).toLocaleDateString('fr-FR')} à {new Date(note.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       {note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
                     </span>
+
+                    {/* { {!displayDate ? (
+                      // Pas de date parseable → afficher le contenu brut
+                      <span style={{ color: '#0f3460' }}>📅 Convocation : {note.content}</span>
+                    ) : isPast ? (
+                      <span style={{ color: '#888' }}>
+                        📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                      </span>
+                    ) : (
+                      <span style={{ color: '#0f3460' }}>
+                        📅 Convocation : Vous êtes convoqué(e) le <strong>{displayDate}</strong>{message ? ` — ${message}` : ''}
+                      </span>
+                    )} } */}
+
                   </div>
                   <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{note.content}</p>
                 </div>
@@ -358,19 +601,16 @@ export default function AdminDashboard() {
 
         {isAdmin && (
           <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-            <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📅 Convoquer les personnes impliquées</h3>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>Date et heure</label>
-              <input type="datetime-local" value={convocationDate} onChange={e => setConvocationDate(e.target.value)}
-                style={{ padding: '10px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '13px', outline: 'none', color: '#333' }} />
-            </div>
-            <textarea value={convocationMessage} onChange={e => setConvocationMessage(e.target.value)} rows={3}
-              placeholder="Message de convocation..."
-              style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
-            <button onClick={() => handleAddNote('convocation')}
-              style={{ padding: '10px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-              📨 Envoyer la convocation
-            </button>
+            <h3 style={{ margin: '0 0 20px', color: '#1a1a2e', fontSize: '15px' }}>📅 Convoquer les personnes impliquées</h3>
+            <ConvocationSelector
+              selected={selected}
+              onSend={async (date, message, targetRole) => {
+                const dateFormatted = formatDate(date);
+
+                await addNote(selected.id, `Rendez-vous le ${dateFormatted}. ${message}`, 'convocation', targetRole);
+                await loadNotes(selected.id);
+              }}
+              />
           </div>
         )}
 
