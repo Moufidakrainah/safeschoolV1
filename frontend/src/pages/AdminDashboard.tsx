@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAllReports, updateReport, getNotes, addNote, getAllUsers, createUser, updateUser, deleteUser } from '../services/api';
 import StatsDashboard from './StatsDashboard';
+import homeIcon from "../img/home.png";
+
+function Logo() {
+  return <img src="/home/mdoan/Documents/transcendence/frontend/src/img/home.png" alt="Logo" />;
+}
 
 const GRADE_COLORS: Record<string, string> = {
   critique: '#dc2626',
@@ -203,21 +208,24 @@ export default function AdminDashboard() {
   };
 
   const Header = () => (
-    <div style={{ background: 'linear-gradient(135deg, #1a1a2e, #0f3460)', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ fontSize: '24px' }}>🛡️</span>
-        <span style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>SafeSchool</span>
-        <span style={{ background: 'rgba(255,255,255,0.15)', color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '12px' }}>
-          {isDirector ? 'Directeur' : 'Admin'}
-        </span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <span style={{ color: '#aaa', fontSize: '14px' }}>{user?.firstName} {user?.lastName}</span>
-        <button onClick={logoutUser} style={{ padding: '8px 16px', background: 'transparent', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-          Déconnexion
-        </button>
-      </div>
-    </div>
+	<div>
+		<div style={{ padding: '8px 32px', background: '#ebfcff', display: 'flex', alignItems: 'center', position:'relative' }}>
+			<span style={{ margin:'0 auto', color: '#000', fontWeight:'bold', fontSize: '14px' }}>Espace {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} - {user?.firstName} {user?.lastName?.toUpperCase()}</span>
+			<button onClick={logoutUser} style={{ position:'absolute', right:'32px', padding: '8px 16px', background: 'transparent', color: '#000', border: '1px solid #0097b2', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
+			Déconnexion
+			</button>
+		</div>
+		<div style={{ background: '#0097b2',  padding: '8px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+				<span style={{  fontSize: '20px' }}> <img src={homeIcon} alt="home" style={{ width: '15px', height: '15px' }} /></span>
+				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Signalements</span>
+				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Mon profil</span>
+				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Messagerie</span>
+				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Ateliers</span>
+				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Jeux</span>
+			</div>
+		</div>
+	</div>
   );
 
   if (view === 'detail' && selected) return (
