@@ -89,15 +89,26 @@ export class ReportsController {
   @Get(':id/notes')
   async getNotes(@Param('id') id: string, @Request() req) {
     validateUUID(id);
-    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+
+    if (req.user.role === 'student') {
+      // Vérifier que le signalement appartient bien à cet élève
+      const report = await this.reportsService.findOne(id);
+      if (report.student.id !== req.user.id) {
+        throw new ForbiddenException('Access denied');
+      }
+      // Retourner uniquement les convocations, pas les notes internes
+      const notes = await this.reportsService.getNotes(id);
+      return notes.filter((n: any) => n.type === 'convocation');
+    }
+
     return this.reportsService.getNotes(id);
   }
 
   // POST /reports/:id/notes
   @Post(':id/notes')
-  async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string }, @Request() req) {
+  async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string; targetRole?: string }, @Request() req) {
     validateUUID(id);
     if (req.user.role === 'student') throw new ForbiddenException('Access denied');
-    return this.reportsService.addNote(id, dto.content, dto.type || 'note', req.user);
+    return this.reportsService.addNote(id, dto.content, dto.type || 'note', req.user, dto.targetRole);
   }
 }
