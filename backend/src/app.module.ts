@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
 import { GradesModule } from './grades/grades.module';
 import { StudentProfilesModule } from './student-profiles/student-profiles.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { StudentProfilesModule } from './student-profiles/student-profiles.modul
     UsersModule,
     ReportsModule,
     GradesModule,
+    NotificationsModule,
     StudentProfilesModule,
   ],
 })

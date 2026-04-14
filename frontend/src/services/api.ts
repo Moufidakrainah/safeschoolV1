@@ -65,4 +65,49 @@ export const searchUsers = async (query: string) => {
   return response.data;
 };
 
+export const getNotes = async (reportId: string) => {
+  const response = await api.get(`/reports/${reportId}/notes`);
+  return response.data;
+};
+
+export const addNote = async (reportId: string, content: string, type: string = 'note') => {
+  const response = await api.post(`/reports/${reportId}/notes`, { content, type });
+  return response.data;
+};
+
+export const getNotifications = async () => {
+  const response = await api.get('/notifications');
+  return response.data;
+};
+
+export const getUnreadCount = async () => {
+  const response = await api.get('/notifications/unread-count');
+  return response.data;
+};
+
+export const markNotificationRead = async (id: string) => {
+  const response = await api.patch(`/notifications/${id}/read`);
+  return response.data;
+};
+
+export const getAllUsers = async () => {
+  const response = await api.get('/users');
+  return response.data;
+};
+
+export const createUser = async (dto: any) => {
+  const response = await api.post('/users', dto);
+  return response.data;
+};
+
+export const updateUser = async (id: string, dto: any) => {
+  const response = await api.patch(`/users/${id}`, dto);
+  return response.data;
+};
+
+export const deleteUser = async (id: string) => {
+  const response = await api.delete(`/users/${id}`);
+  return response.data;
+};
+
 export default api;

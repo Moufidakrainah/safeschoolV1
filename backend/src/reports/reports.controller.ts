@@ -85,4 +85,19 @@ export class ReportsController {
     }
     return this.reportsService.escalate(id);
   }
+  // GET /reports/:id/notes
+  @Get(':id/notes')
+  async getNotes(@Param('id') id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.getNotes(id);
+  }
+
+  // POST /reports/:id/notes
+  @Post(':id/notes')
+  async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string }, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.addNote(id, dto.content, dto.type || 'note', req.user);
+  }
 }
