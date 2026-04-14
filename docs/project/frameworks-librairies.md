@@ -9,6 +9,8 @@
 
 - [Site en React, responsive, sur le theme de React](https://kentcdodds.com/blog)
 
+- [Apprehendez la logique de React](https://openclassrooms.com/fr/courses/8710331-debutez-avec-react/8744901-apprehendez-la-logique-de-react)
+
 ## Webpack
 
 - [Un outil de gestion des fichiers Javascript et CSS](https://www.studio-hb.com/definitions/webpack-206)
