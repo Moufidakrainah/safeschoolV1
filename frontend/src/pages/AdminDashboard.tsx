@@ -2,11 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getAllReports, updateReport, getNotes, addNote, getAllUsers, createUser, updateUser, deleteUser } from '../services/api';
 import StatsDashboard from './StatsDashboard';
-import homeIcon from "../img/home.png";
-
-function Logo() {
-  return <img src="/home/mdoan/Documents/transcendence/frontend/src/img/home.png" alt="Logo" />;
-}
 
 const GRADE_COLORS: Record<string, string> = {
   critique: '#dc2626',
@@ -94,34 +89,104 @@ export default function AdminDashboard() {
     }
   };
 
-  const filtered = reports
-    .filter((r: any) => filterGrade === 'all' || r.grade === filterGrade)
-    .filter((r: any) => filterStatus === 'all' || r.status === filterStatus)
-    .filter((r: any) => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
-    .filter((r: any) => filterStudent === 'all' || r.student?.id === filterStudent)
-    .filter((r: any) => {
-      if (!filterSuspect) return true;
-      const suspectText = filterSuspect.toLowerCase();
-      return r.suspects?.some((s: any) => {
-        const userName = `${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
-        const freeText = s.freeText?.toLowerCase() || '';
-        return userName.includes(suspectText) || freeText.includes(suspectText);
-      });
-    })
-    .filter((r: any) => {
-      if (!filterDateFrom) return true;
-      return new Date(r.createdAt) >= new Date(filterDateFrom);
-    })
-    .filter((r: any) => {
-      if (!filterDateTo) return true;
-      return new Date(r.createdAt) <= new Date(filterDateTo + 'T23:59:59');
-    })
-    .filter((r: any) => {
-      if (!search) return true;
-      const fullName = `${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
-      const title = r.title.toLowerCase();
-      return fullName.includes(search.toLowerCase()) || title.includes(search.toLowerCase());
-    });
+//   const filtered = reports
+//     .filter((r: any) => filterGrade === 'all' || r.grade === filterGrade)
+//     .filter((r: any) => filterStatus === 'all' || r.status === filterStatus)
+//     .filter((r: any) => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
+//     .filter((r: any) => filterStudent === 'all' || r.student?.id === filterStudent)
+//     .filter((r: any) => {
+//       if (!filterSuspect) return true;
+//       const suspectText = filterSuspect.toLowerCase();
+//       return r.suspects?.some((s: any) => {
+//         const userName = `${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
+//         const freeText = s.freeText?.toLowerCase() || '';
+//         return userName.includes(suspectText) || freeText.includes(suspectText);
+//       });
+//     })
+//     .filter((r: any) => {
+//       if (!filterDateFrom) return true;
+//       return new Date(r.createdAt) >= new Date(filterDateFrom);
+//     })
+//     .filter((r: any) => {
+//       if (!filterDateTo) return true;
+//       return new Date(r.createdAt) <= new Date(filterDateTo + 'T23:59:59');
+//     })
+//     .filter((r: any) => {
+//       if (!search) return true;
+//       const fullName = `${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
+//       const title = r.title.toLowerCase();
+// 	  const description = r.description;
+//       return fullName.includes(search.toLowerCase()) || title.includes(search.toLowerCase()) || description.includes(search.toLowerCase());
+//     });
+
+	const filtered = reports.filter((r: any) => {
+	// 1. Grade
+	if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
+
+	// 2. Status
+	if (filterStatus !== 'all' && r.status !== filterStatus) return false;
+
+	// 3. Class
+	if (
+		filterClass !== 'all' &&
+		r.student?.studentProfile?.schoolClass !== filterClass
+	)
+		return false;
+
+	// 4. Student
+	if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+
+	// 5. Suspects
+	if (filterSuspect) {
+		const suspectText = filterSuspect.toLowerCase();
+
+		const hasMatch = r.suspects?.some((s: any) => {
+		const userName =
+			`${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
+		const freeText = s.freeText?.toLowerCase() || '';
+
+		return (
+			userName.includes(suspectText) ||
+			freeText.includes(suspectText)
+		);
+		});
+
+		if (!hasMatch) return false;
+	}
+
+	// 6. Date FROM
+	if (filterDateFrom) {
+		if (new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+	}
+
+	// 7. Date TO
+	if (filterDateTo) {
+		const to = new Date(filterDateTo);
+		to.setHours(23, 59, 59, 999);
+		if (new Date(r.createdAt) > to) return false;
+	}
+
+	// 8. Search global
+	if (search) {
+		const q = search.toLowerCase();
+
+		const fullName =
+		`${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
+
+		const title = r.title?.toLowerCase() || '';
+		const description = r.description?.toLowerCase() || '';
+
+		if (
+		!fullName.includes(q) &&
+		!title.includes(q) &&
+		!description.includes(q)
+		) {
+		return false;
+		}
+	}
+
+	return true;
+	});
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -214,16 +279,6 @@ export default function AdminDashboard() {
 			<button onClick={logoutUser} style={{ position:'absolute', right:'32px', padding: '8px 16px', background: 'transparent', color: '#000', border: '1px solid #0097b2', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
 			Déconnexion
 			</button>
-		</div>
-		<div style={{ background: '#0097b2',  padding: '8px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-			<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-				<span style={{  fontSize: '20px' }}> <img src={homeIcon} alt="home" style={{ width: '15px', height: '15px' }} /></span>
-				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Signalements</span>
-				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Mon profil</span>
-				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Messagerie</span>
-				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Ateliers</span>
-				<span style={{ color: 'white', fontWeight: 700, fontSize: '14px' }}>Jeux</span>
-			</div>
 		</div>
 	</div>
   );
@@ -387,27 +442,20 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#efefef', fontFamily: 'Segoe UI, sans-serif' }}>
       <Header />
+		<div style={{ background: '#0097b2',  padding: '8px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+				<span style={{  fontSize: '30px' }}> 🏡 </span>
+				<span onClick={() => setViewSection('reports')} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }} >Signalements</span>
+				<span onClick={() => { setViewSection('users'); fetchUsers(); }} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Utilisateurs</span>
+				<span onClick={() => setViewSection('stats')}style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Statistiques</span>
+				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Ateliers</span>
+				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Jeux</span>
+			</div>
+		</div> 
       <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 20px' }}>
-
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-          <button onClick={() => setViewSection('reports')}
-            style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'reports' ? '#0f3460' : '#f3f4f6', color: viewSection === 'reports' ? 'white' : '#333' }}>
-            📋 Signalements
-          </button>
-          {isAdmin && (
-            <button onClick={() => { setViewSection('users'); fetchUsers(); }}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'users' ? '#0f3460' : '#f3f4f6', color: viewSection === 'users' ? 'white' : '#333' }}>
-              👥 Utilisateurs
-            </button>
-          )}
-          <button onClick={() => setViewSection('stats')}
-            style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: viewSection === 'stats' ? '#0f3460' : '#f3f4f6', color: viewSection === 'stats' ? 'white' : '#333' }}>
-            📊 Statistiques
-          </button>
-        </div>
-
+		
         {viewSection === 'reports' && (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
@@ -418,29 +466,27 @@ export default function AdminDashboard() {
                 { label: 'En attente', value: stats.pending,   color: '#eab308' },
                 { label: 'Escaladés',  value: stats.escalated, color: '#7c3aed' },
               ].map((stat) => (
-                <div key={stat.label} style={{ background: 'white', borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderTop: `3px solid ${stat.color}` }}>
+                <div key={stat.label} style={{ background: 'white', padding: '10px', textAlign: 'center', borderBottom: `5px solid ${stat.color}` }}>
                   <div style={{ fontSize: '28px', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-                  <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>{stat.label}</div>
+                  <div style={{ fontSize: '14px', color: `${stat.color}`, marginTop: '4px' }}>{stat.label}</div>
                 </div>
               ))}
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, titre..."
-                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => e.target.style.borderColor = '#0f3460'}
-                onBlur={e => e.target.style.borderColor = '#e0e0e0'} />
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, titre, description"
+                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}/>
             </div>
 
             <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
                 <option value="all">Tous les statuts</option>
-                <option value="pending">⏳ En attente</option>
-                <option value="in_progress">🔄 En cours</option>
-                <option value="escalated">🚨 Escaladé</option>
-                <option value="closed">✅ Clôturé</option>
-                <option value="rejected">❌ Rejeté</option>
+                <option value="pending">En attente</option>
+                <option value="in_progress">En cours</option>
+                <option value="escalated">Escaladé</option>
+                <option value="closed">Clôturé</option>
+                <option value="rejected">Rejeté</option>
               </select>
               <select value={filterGrade} onChange={e => { setFilterGrade(e.target.value); setCurrentPage(1); }}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
@@ -468,7 +514,7 @@ export default function AdminDashboard() {
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
               <input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
-              <span style={{ color: '#666' }}>→</span>
+				<span style={{ color: '#666' }}>→</span>
               <input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                 style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
               <button onClick={handleReset} style={{ padding: '10px 16px', background: '#f3f4f6', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: '#666' }}>
@@ -484,15 +530,15 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {paginated.map(report => (
                   <div key={report.id}
-                    style={{ background: 'white', borderRadius: '12px', padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderLeft: `4px solid ${GRADE_COLORS[report.grade]}`, cursor: 'pointer' }}
+                    style={{ background: 'white',  padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderLeft: `4px solid ${GRADE_COLORS[report.grade]}`, cursor: 'pointer' }}
                     onClick={() => { setSelected(report); setAdminNote(report.adminNote || ''); setView('detail'); loadNotes(report.id); }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                          <span style={{ fontWeight: 700, fontSize: '15px', color: '#1a1a2e' }}>{report.title}</span>
                           <span style={{ background: GRADE_COLORS[report.grade], color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '12px' }}>
                             {GRADE_LABELS[report.grade]}
                           </span>
+                          <span style={{ fontWeight: 700, fontSize: '15px', color: '#1a1a2e' }}>{report.title}</span>
                           {report.gradeModified && (
                             <span style={{ background: '#f3f4f6', color: '#666', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>✏️ Grade modifié</span>
                           )}
