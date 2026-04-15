@@ -1,0 +1,10 @@
+# =============================================================
+# logstash.yml — Configuration générale de Logstash
+# =============================================================
+
+# Adresse HTTP de l'API de monitoring Logstash
+http.host: "0.0.0.0"
+http.port: 9600
+
+# Désactive le monitoring X-Pack (pas de licence nécessaire)
+xpack.monitoring.enabled: false
