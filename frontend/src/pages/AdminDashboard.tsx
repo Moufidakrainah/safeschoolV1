@@ -89,103 +89,51 @@ export default function AdminDashboard() {
     }
   };
 
-//   const filtered = reports
-//     .filter((r: any) => filterGrade === 'all' || r.grade === filterGrade)
-//     .filter((r: any) => filterStatus === 'all' || r.status === filterStatus)
-//     .filter((r: any) => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
-//     .filter((r: any) => filterStudent === 'all' || r.student?.id === filterStudent)
-//     .filter((r: any) => {
-//       if (!filterSuspect) return true;
-//       const suspectText = filterSuspect.toLowerCase();
-//       return r.suspects?.some((s: any) => {
-//         const userName = `${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
-//         const freeText = s.freeText?.toLowerCase() || '';
-//         return userName.includes(suspectText) || freeText.includes(suspectText);
-//       });
-//     })
-//     .filter((r: any) => {
-//       if (!filterDateFrom) return true;
-//       return new Date(r.createdAt) >= new Date(filterDateFrom);
-//     })
-//     .filter((r: any) => {
-//       if (!filterDateTo) return true;
-//       return new Date(r.createdAt) <= new Date(filterDateTo + 'T23:59:59');
-//     })
-//     .filter((r: any) => {
-//       if (!search) return true;
-//       const fullName = `${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
-//       const title = r.title.toLowerCase();
-// 	  const description = r.description;
-//       return fullName.includes(search.toLowerCase()) || title.includes(search.toLowerCase()) || description.includes(search.toLowerCase());
-//     });
-
 	const filtered = reports.filter((r: any) => {
-	// 1. Grade
-	if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
-
-	// 2. Status
-	if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-
-	// 3. Class
-	if (
-		filterClass !== 'all' &&
-		r.student?.studentProfile?.schoolClass !== filterClass
-	)
-		return false;
-
-	// 4. Student
-	if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
-
-	// 5. Suspects
-	if (filterSuspect) {
-		const suspectText = filterSuspect.toLowerCase();
-
-		const hasMatch = r.suspects?.some((s: any) => {
-		const userName =
-			`${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
-		const freeText = s.freeText?.toLowerCase() || '';
-
-		return (
-			userName.includes(suspectText) ||
-			freeText.includes(suspectText)
-		);
-		});
-
-		if (!hasMatch) return false;
-	}
-
-	// 6. Date FROM
-	if (filterDateFrom) {
-		if (new Date(r.createdAt) < new Date(filterDateFrom)) return false;
-	}
-
-	// 7. Date TO
-	if (filterDateTo) {
-		const to = new Date(filterDateTo);
-		to.setHours(23, 59, 59, 999);
-		if (new Date(r.createdAt) > to) return false;
-	}
-
-	// 8. Search global
-	if (search) {
-		const q = search.toLowerCase();
-
-		const fullName =
-		`${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
-
-		const title = r.title?.toLowerCase() || '';
-		const description = r.description?.toLowerCase() || '';
-
+		if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
+		if (filterStatus !== 'all' && r.status !== filterStatus) return false;
 		if (
-		!fullName.includes(q) &&
-		!title.includes(q) &&
-		!description.includes(q)
-		) {
-		return false;
+			filterClass !== 'all' &&
+			r.student?.studentProfile?.schoolClass !== filterClass
+		)
+			return false;
+		if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+		if (filterSuspect) {
+			const suspectText = filterSuspect.toLowerCase();
+			const hasMatch = r.suspects?.some((s: any) => {
+				const userName =
+					`${s.user?.firstName} ${s.user?.lastName}`.toLowerCase();
+				const freeText = s.freeText?.toLowerCase() || '';
+				return (
+					userName.includes(suspectText) ||
+					freeText.includes(suspectText)
+				);
+				});
+			if (!hasMatch) return false;
 		}
-	}
-
-	return true;
+		if (filterDateFrom) {
+			if (new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+		}
+		if (filterDateTo) {
+			const to = new Date(filterDateTo);
+			to.setHours(23, 59, 59, 999);
+			if (new Date(r.createdAt) > to) return false;
+		}
+		if (search) {
+			const q = search.toLowerCase();
+			const fullName =
+			`${r.student?.firstName} ${r.student?.lastName}`.toLowerCase();
+			const title = r.title?.toLowerCase() || '';
+			const description = r.description?.toLowerCase() || '';
+			if (
+				!fullName.includes(q) &&
+				!title.includes(q) &&
+				!description.includes(q)
+			) {
+				return false;
+			}
+		}
+		return true;
 	});
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -280,6 +228,16 @@ export default function AdminDashboard() {
 			Déconnexion
 			</button>
 		</div>
+			<div style={{ background: '#0097b2',  padding: '8px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+				<span style={{  fontSize: '30px' }}> 🏡 </span>
+				<span onClick={() => {setSelected(null);setViewSection('reports')}} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }} >Signalements</span>
+				<span onClick={() => { setSelected(null);setViewSection('users'); fetchUsers(); }} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Utilisateurs</span>
+				<span onClick={() => {setSelected(null);setViewSection('stats')}} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Statistiques</span>
+				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Ateliers</span>
+				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Jeux</span>
+			</div>
+		</div> 
 	</div>
   );
 
@@ -288,20 +246,42 @@ export default function AdminDashboard() {
       <Header />
       <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 20px' }}>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '14px' }}>
-          <button onClick={() => { setView('list'); setSelected(null); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0f3460', fontWeight: 600, padding: 0 }}>
-            ← Mes dossiers
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '14px', justifyContent:'space-between' }}>
+          
+        <button
+			onClick={() => {
+				const currentIndex = filtered.findIndex((r: any) => r.id === selected.id);
+				if (currentIndex > 0) setSelected(filtered[currentIndex - 1]);
+			}}
+			disabled={filtered.findIndex((r: any) => r.id === selected.id) === 0}
+			style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0097b2', fontWeight: 600, padding: 0, opacity: filtered.findIndex((r: any) => r.id === selected.id) === 0 ? 0.3 : 1 }}>
+			🠔 Precedent
           </button>
-          <span style={{ color: '#aaa' }}>/</span>
-          <span style={{ color: '#666' }}>
-            {selected.caseNumber} — {selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}
+
+
+
+          <span style={{ fontWeight:'bold', color: '#0097b2' }}>
+            Signalement {selected.caseNumber}
           </span>
+
+		    <button
+			onClick={() => {
+				const currentIndex = filtered.findIndex((r: any) => r.id === selected.id);
+				if (currentIndex < filtered.length - 1) setSelected(filtered[currentIndex + 1]);
+			}}
+			disabled={filtered.findIndex((r: any) => r.id === selected.id) === filtered.length - 1}
+			style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0097b2', fontWeight: 600, padding: 0, opacity: filtered.findIndex((r: any) => r.id === selected.id) === filtered.length - 1 ? 0.3 : 1 }}>
+			Suivant ➞
+          </button>
+
+
+
+
+
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 style={{ margin: 0, fontSize: '22px', color: '#1a1a2e' }}>{selected.caseNumber}</h1>
             <span style={{ background: GRADE_COLORS[selected.grade], color: 'white', padding: '4px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: 600 }}>
               {GRADE_LABELS[selected.grade]}
             </span>
@@ -442,45 +422,51 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#efefef', fontFamily: 'Segoe UI, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#fff', fontFamily: 'Segoe UI, sans-serif' }}>
       <Header />
-		<div style={{ background: '#0097b2',  padding: '8px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-			<div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-				<span style={{  fontSize: '30px' }}> 🏡 </span>
-				<span onClick={() => setViewSection('reports')} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }} >Signalements</span>
-				<span onClick={() => { setViewSection('users'); fetchUsers(); }} style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Utilisateurs</span>
-				<span onClick={() => setViewSection('stats')}style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Statistiques</span>
-				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Ateliers</span>
-				<span style={{ cursor:'pointer', color: 'white', fontWeight: 700, fontSize: '14px' }}>Jeux</span>
-			</div>
-		</div> 
+
       <div style={{ maxWidth: '1100px', margin: '32px auto', padding: '0 20px' }}>
 		
         {viewSection === 'reports' && (
           <>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
-              {[
-                { label: 'Total',      value: stats.total,     color: '#1a1a2e' },
-                { label: 'Critique',   value: stats.critique,  color: '#dc2626' },
-                { label: 'Grave',      value: stats.grave,     color: '#f97316' },
-                { label: 'En attente', value: stats.pending,   color: '#eab308' },
-                { label: 'Escaladés',  value: stats.escalated, color: '#7c3aed' },
-              ].map((stat) => (
-                <div key={stat.label} style={{ background: 'white', padding: '10px', textAlign: 'center', borderBottom: `5px solid ${stat.color}` }}>
-                  <div style={{ fontSize: '28px', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-                  <div style={{ fontSize: '14px', color: `${stat.color}`, marginTop: '4px' }}>{stat.label}</div>
-                </div>
-              ))}
-            </div>
+					
+
+			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
+			{[
+				{ label: 'Total',      value: stats.total,     color: '#1a1a2e', filter: 'all' },
+				{ label: 'Critique',   value: stats.critique,  color: '#dc2626', filter: 'critique' },
+				{ label: 'Grave',      value: stats.grave,     color: '#f97316', filter: 'grave' },
+				{ label: 'En attente', value: stats.pending,   color: '#eab308', filter: 'pending' },
+				{ label: 'Escaladés',  value: stats.escalated, color: '#7c3aed', filter: 'escalated' },
+			].map((stat) => (
+				<div
+				key={stat.label}
+				onClick={() => { setFilterGrade(stat.filter); setCurrentPage(1); }}
+				style={{
+					padding: '10px',
+					textAlign: 'center',
+					background: '#eee',
+					borderBottom: filterGrade === stat.filter ? `5px solid ${stat.color}` : `5px solid white`,
+					cursor: 'pointer',
+					transform: filterGrade === stat.filter ? 'scale(1.1)' : 'scale(1)',
+					transition: 'all 0.2s',
+				}}>
+				<div style={{ fontSize: '28px', fontWeight: 700, color: stat.color }}>{stat.value}</div>
+				<div style={{ fontSize: '14px', color: stat.color, marginTop: '4px' }}>{stat.label}</div>
+				</div>
+			))}
+			</div>
+
+
 
             <div style={{ marginBottom: '20px' }}>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, titre, description"
                 style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}/>
             </div>
 
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
                 <option value="all">Tous les statuts</option>
                 <option value="pending">En attente</option>
                 <option value="in_progress">En cours</option>
@@ -488,36 +474,29 @@ export default function AdminDashboard() {
                 <option value="closed">Clôturé</option>
                 <option value="rejected">Rejeté</option>
               </select>
-              <select value={filterGrade} onChange={e => { setFilterGrade(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
-                <option value="all">Tous les grades</option>
-                <option value="critique">🔴 Critique</option>
-                <option value="grave">🟠 Grave</option>
-                <option value="moyen">🟡 Moyen</option>
-                <option value="faible">🟢 Faible</option>
-              </select>
+
               <select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
                 <option value="all">Toutes les classes</option>
                 {[...new Set(reports.map((r: any) => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </select>
               <select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', cursor: 'pointer', background: 'white', color: '#333' }}>
                 <option value="all">Tous les signalants</option>
                 {[...new Map(reports.filter((r: any) => r.student && !r.isAnonymous).map((r: any) => [r.student.id, r.student])).values()].map((student: any) => (
                   <option key={student.id} value={student.id}>{student.firstName} {student.lastName} ({student.role})</option>
                 ))}
               </select>
               <input type="text" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder="Filtrer par soupçonné..."
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
               <input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
-				<span style={{ color: '#666' }}>→</span>
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
+				<span style={{ color: '#666' }}>➞</span>
               <input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
-              <button onClick={handleReset} style={{ padding: '10px 16px', background: '#f3f4f6', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: '#666' }}>
+                style={{ padding: '10px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }} />
+              <button onClick={handleReset} style={{ background: '#f3f4f6', border: 'none', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: '#666' }}>
                 Réinitialiser
               </button>
             </div>
@@ -530,27 +509,26 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {paginated.map(report => (
                   <div key={report.id}
-                    style={{ background: 'white',  padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderLeft: `4px solid ${GRADE_COLORS[report.grade]}`, cursor: 'pointer' }}
+                    style={{ background: '#ebfcff',  padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', borderLeft: `5px solid ${GRADE_COLORS[report.grade]}`, cursor: 'pointer' }}
                     onClick={() => { setSelected(report); setAdminNote(report.adminNote || ''); setView('detail'); loadNotes(report.id); }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                          <span style={{ background: GRADE_COLORS[report.grade], color: 'white', padding: '2px 10px', borderRadius: '12px', fontSize: '12px' }}>
-                            {GRADE_LABELS[report.grade]}
-                          </span>
-                          <span style={{ fontWeight: 700, fontSize: '15px', color: '#1a1a2e' }}>{report.title}</span>
+                          <span style={{ fontWeight: 700, fontSize: '15px', color: '#006678' }}>{report.title}</span>
                           {report.gradeModified && (
                             <span style={{ background: '#f3f4f6', color: '#666', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>✏️ Grade modifié</span>
                           )}
                         </div>
-                        <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+                        <div style={{ textAlign:'left', fontSize: '13px', color: '#006678', marginBottom: '8px' }}>
                           {report.description.length > 120 ? report.description.substring(0, 120) + '...' : report.description}
                         </div>
-                        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#999' }}>
+                        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#006678' }}>
                           <span>👤 {report.isAnonymous ? 'Anonyme' : `${report.student?.firstName} ${report.student?.lastName}`}</span>
-                          <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
                           <span>🏫 {report.student?.studentProfile?.schoolClass ?? '-'}</span>
-                          {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} soupçonné(s)</span>}
+                          <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+                          {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} coupable(s)</span>}
+                          <span>{report.caseNumber}</span>
+
                         </div>
                       </div>
                       <span style={{ background: '#f3f4f6', color: '#555', padding: '4px 12px', borderRadius: '12px', fontSize: '12px', whiteSpace: 'nowrap', marginLeft: '16px' }}>
