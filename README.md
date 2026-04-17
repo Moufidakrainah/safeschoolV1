@@ -44,16 +44,6 @@ docker compose exec -T database psql -U postgres safeschool < database/seed.sql
 
 ## Module ELK — Gestion des logs
 
-La stack ELK (Elasticsearch, Logstash, Kibana) est intégrée dans le projet pour la gestion centralisée des logs.
-
-**Ce qui est loggé :**
-- Toutes les requêtes HTTP (méthode, URL, statut, temps de réponse, utilisateur)
-- Événements d'authentification (connexion réussie/échouée, inscription)
-- Création et mise à jour des signalements
-- Détail du calcul de score IA (tous les critères)
-
-**Politique de rétention :** les logs sont automatiquement supprimés après 30 jours.
-
 **Accéder à Kibana :**
 1. Ouvrir http://localhost:5601
 2. Discover → Create data view
