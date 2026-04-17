@@ -165,7 +165,6 @@ function ConvocationSelector({ selected, onSend }: {
 
   return (
     <div>
-      {/* Liste déroulante personnes */}
       <div style={{ marginBottom: '16px' }}>
         <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>
           Personne à convoquer
@@ -182,7 +181,6 @@ function ConvocationSelector({ selected, onSend }: {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '6px' }}>
-        {/* Date dd/mm/yyyy */}
         <div>
           <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
             Date (jj/mm/aaaa)
@@ -202,7 +200,6 @@ function ConvocationSelector({ selected, onSend }: {
           />
         </div>
 
-        {/* Heure */}
         <div>
           <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
             Heure
@@ -221,12 +218,10 @@ function ConvocationSelector({ selected, onSend }: {
         </div>
       </div>
 
-      {/* Message d'erreur date */}
       {dateError && (
         <p style={{ color: '#dc2626', fontSize: '12px', margin: '0 0 10px' }}>⚠️ {dateError}</p>
       )}
 
-      {/* Message */}
       <div style={{ marginBottom: '14px' }}>
         <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: '#555' }}>
           Message
@@ -555,34 +550,48 @@ export default function AdminDashboard() {
           <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📝 Notes administratives</h3>
           {notes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-              {notes.map((note: any) => (
-                <div key={note.id} style={{ background: note.type === 'convocation' ? '#f0f4ff' : '#f9f9f9', borderRadius: '8px', padding: '12px 16px', borderLeft: `3px solid ${note.type === 'convocation' ? '#7c3aed' : '#0f3460'}` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                    <span style={{ fontSize: '12px', fontWeight: 600, color: note.type === 'convocation' ? '#7c3aed' : '#0f3460' }}>
-                      {note.type === 'convocation' ? '📅 Convocation' : '📝 Note'}
-                    </span>
-                    <span style={{ fontSize: '12px', color: '#888' }}>
-                      {new Date(note.createdAt).toLocaleDateString('fr-FR')} à {new Date(note.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      {note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
-                    </span>
+              {notes.map((note: any) => {
+            let isPast = true;
+            if (note.type === 'convocation') {
+              const MONTHS_FR: Record<string, number> = {
+                'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
+                'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12
+              };
+              const match = note.content.match(/Rendez-vous le (\d{2}) (\w+) (\d{4}) à (\d{2})h(\d{2})/);
+              if (match) {
+                const [, day, monthStr, year, hours, minutes] = match;
+                const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+                const yearNum = Number(year);
+                if (monthNum && yearNum >= 2020 && yearNum <= 2100) {
+                  const rdvDate = new Date(yearNum, monthNum - 1, Number(day), Number(hours), Number(minutes));
+                  isPast = rdvDate < new Date();
+                }
+              }
+            }
 
-                    {/* { {!displayDate ? (
-                      // Pas de date parseable → afficher le contenu brut
-                      <span style={{ color: '#0f3460' }}>📅 Convocation : {note.content}</span>
-                    ) : isPast ? (
-                      <span style={{ color: '#888' }}>
-                        📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
-                      </span>
-                    ) : (
-                      <span style={{ color: '#0f3460' }}>
-                        📅 Convocation : Vous êtes convoqué(e) le <strong>{displayDate}</strong>{message ? ` — ${message}` : ''}
-                      </span>
-                    )} } */}
-
-                  </div>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{note.content}</p>
+            return (
+              <div key={note.id} style={{
+                background: note.type === 'convocation' ? (isPast ? '#f9f9f9' : '#f0f4ff') : '#f9f9f9',
+                borderRadius: '8px', padding: '12px 16px',
+                borderLeft: `3px solid ${note.type === 'convocation' ? (isPast ? '#aaa' : '#7c3aed') : '#0f3460'}`,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: note.type === 'convocation' ? (isPast ? '#aaa' : '#7c3aed') : '#0f3460' }}>
+                    {note.type === 'convocation'
+                      ? (isPast ? '📋 Convocation passée' : '📅 Convocation à venir')
+                      : '📝 Note'}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#888' }}>
+                    {new Date(note.createdAt).toLocaleDateString('fr-FR')} à {new Date(note.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    {note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
+                  </span>
                 </div>
-              ))}
+                <p style={{ margin: 0, fontSize: '14px', color: note.type === 'convocation' && isPast ? '#aaa' : '#333' }}>
+                  {note.content}
+                </p>
+              </div>
+            );
+          })}
             </div>
           ) : (
             <p style={{ color: '#aaa', fontSize: '14px', marginBottom: isAdmin ? '20px' : '0' }}>Aucune note pour ce dossier</p>

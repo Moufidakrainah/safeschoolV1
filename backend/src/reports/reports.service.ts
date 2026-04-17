@@ -8,17 +8,13 @@ import { ScoringService } from './scoring.service';
 import { ReportNote } from './report-note.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 
-
 @Injectable()
 export class ReportsService {
   constructor(
-    @InjectRepository(Report)
-    private reportsRepository: Repository<Report>,
-    @InjectRepository(ReportSuspect)
-    private suspectsRepository: Repository<ReportSuspect>,
+    @InjectRepository(Report) private reportsRepository: Repository<Report>,
+    @InjectRepository(ReportSuspect) private suspectsRepository: Repository<ReportSuspect>,
     private scoringService: ScoringService,
-    @InjectRepository(ReportNote)
-    private notesRepository: Repository<ReportNote>,
+    @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
     private notificationsService: NotificationsService,
   ) {}
 
@@ -28,16 +24,11 @@ export class ReportsService {
     isAnonymous: boolean,
     student: User,
     suspects: { userId?: string; freeText?: string }[] = [],
-    frequency: string = '',
-    schoolClass: string = '',
+    frequency = '',
+    schoolClass = '',
   ): Promise<Report> {
-
     const { finalScore, grade, aiScore, aiReason } = await this.scoringService.calculateScore(
-      title,
-      description,
-      frequency,
-      schoolClass,
-      suspects,
+      title, description, frequency, schoolClass, suspects,
     );
 
     const year = new Date().getFullYear();
@@ -49,23 +40,14 @@ export class ReportsService {
 
     let nextNumber = 1;
     if (lastReport?.caseNumber) {
-      const lastNum = parseInt(lastReport.caseNumber.split('-')[1]);
-      nextNumber = lastNum + 1;
+      nextNumber = parseInt(lastReport.caseNumber.split('-')[1]) + 1;
     }
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, '0')}`;
 
     const report = this.reportsRepository.create({
-      title,
-      description,
-      grade,
-      aiScore: finalScore,
-      aiReason,
-      caseNumber,
-      isAnonymous,
-      student,
-      status: ReportStatus.PENDING,
+      title, description, grade, aiScore: finalScore, aiReason,
+      caseNumber, isAnonymous, student, status: ReportStatus.PENDING,
     });
-
     const savedReport = await this.reportsRepository.save(report);
 
     for (const suspect of suspects) {
@@ -133,34 +115,24 @@ export class ReportsService {
     report.status = ReportStatus.ESCALATED;
     return this.reportsRepository.save(report);
   }
-  // Ajouter une note
+
   async addNote(reportId: string, content: string, type: string, author: any, targetRole?: string): Promise<ReportNote> {
     const report = await this.findOne(reportId);
     const note = this.notesRepository.create({ report, content, type, author });
     const saved = await this.notesRepository.save(note);
 
     if (type === 'convocation') {
-      // Envoyer uniquement selon le targetRole
       if (targetRole === 'victime' || targetRole === 'temoin') {
         if (report.student?.id) {
-          await this.notificationsService.create(
-            report.student.id,
-            reportId,
-            `📅 Convocation : ${content}`,
-          );
+          await this.notificationsService.create(report.student.id, reportId, `📅 Convocation : ${content}`);
         }
       } else if (targetRole?.startsWith('suspect_')) {
         const suspectIndex = parseInt(targetRole.split('_')[1]);
         const suspect = report.suspects?.[suspectIndex];
         if (suspect?.user?.id) {
-          await this.notificationsService.create(
-            suspect.user.id,
-            reportId,
-            `📅 Convocation : ${content}`,
-          );
+          await this.notificationsService.create(suspect.user.id, reportId, `📅 Convocation : ${content}`);
         }
       } else {
-        // Fallback : ancien comportement (envoyer à tous)
         if (report.student?.id) {
           await this.notificationsService.create(report.student.id, reportId, `📅 Convocation : ${content}`);
         }
@@ -177,7 +149,6 @@ export class ReportsService {
     return saved;
   }
 
-  // Récupérer les notes d'un signalement
   async getNotes(reportId: string): Promise<ReportNote[]> {
     return this.notesRepository.find({
       where: { report: { id: reportId } },

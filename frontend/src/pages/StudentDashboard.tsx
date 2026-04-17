@@ -63,7 +63,6 @@ export default function StudentDashboard() {
   const fetchReportNotes = async (reportId: string) => {
     try {
       const data = await getNotes(reportId);
-      data.forEach((n: any) => console.log('NOTE:', n.type, '|', n.content));
       setReportNotes(prev => ({ ...prev, [reportId]: data }));
     } catch (err) {
       console.error('Erreur chargement notes', err);
@@ -131,7 +130,6 @@ export default function StudentDashboard() {
   // PAGE ACCUEIL
   if (step === 0) return (
   <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -140,7 +138,6 @@ export default function StudentDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', color: '#666' }}>{user?.firstName} {user?.lastName}</span>
           
-          {/* Bouton notification */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowNotifications(!showNotifications)}
               style={{ padding: '8px 12px', background: '#f0f4ff', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', position: 'relative' }}>
@@ -152,7 +149,6 @@ export default function StudentDashboard() {
               )}
             </button>
 
-            {/* Dropdown notifications */}
             {showNotifications && (
               <div style={{ position: 'absolute', right: 0, top: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', width: '320px', zIndex: 100, maxHeight: '400px', overflowY: 'auto' }}>
                 <div style={{ padding: '16px', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: '14px' }}>
@@ -181,7 +177,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Hero */}
       <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
@@ -212,7 +207,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         {[
           { value: '24h', label: 'Délai de prise en charge', color: '#0f3460' },
@@ -226,7 +220,6 @@ export default function StudentDashboard() {
         ))}
       </div>
 
-      {/* Qui peut signaler */}
         <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
           <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px', fontWeight: 700 }}>Qui peut signaler ?</h3>
@@ -284,7 +277,6 @@ export default function StudentDashboard() {
   // PAGE SUIVI DOSSIER
 if (step === 8) return (
   <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-    {/* Header */}
     <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -367,7 +359,6 @@ if (step === 8) return (
                   💬 <strong>Note de l'administration :</strong> {report.adminNote}
                 </div>
               )}
-              {/* Convocations */}
               {reportNotes[report.id]?.filter((n: any) => n.type === 'convocation').map((note: any) => {
                 const MONTHS_FR: Record<string, number> = {
                   'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
@@ -431,7 +422,6 @@ if (step === 8) return (
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -442,7 +432,6 @@ if (step === 8) return (
         </button>
       </div>
 
-      {/* Barre de progression */}
       <div style={{ background: 'white', padding: '16px 32px', borderBottom: '1px solid #eee' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', gap: '8px' }}>
           {steps.map((s, i) => (
@@ -456,11 +445,9 @@ if (step === 8) return (
         </div>
       </div>
 
-      {/* Contenu */}
       <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
 
-          {/* ÉTAPE 1 — Qui signale */}
           {step === 1 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
@@ -480,7 +467,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 2 — Type */}
           {step === 2 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Quel type de harcèlement ?</h2>
@@ -508,7 +494,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 3 — Faits */}
           {step === 3 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
@@ -583,7 +568,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 4 — Personnes */}
         {step === 4 && (
           <div>
             <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
@@ -591,7 +575,6 @@ if (step === 8) return (
               Indique les personnes soupçonnées — cette information est confidentielle
             </p>
 
-            {/* Champ de recherche */}
             <div style={{ position: 'relative', marginBottom: '16px' }}>
               <input
                 type="text"
@@ -607,7 +590,6 @@ if (step === 8) return (
                 onBlur={e => e.target.style.borderColor = '#e0e0e0'}
               />
 
-              {/* Suggestions */}
               {suspectSuggestions.length > 0 && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0,
@@ -627,7 +609,6 @@ if (step === 8) return (
               )}
             </div>
 
-            {/* Ajouter nom libre */}
             {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
               <button onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
                 style={{ padding: '8px 16px', background: '#f0f4ff', border: '1px solid #0f3460', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#0f3460', marginBottom: '16px' }}>
@@ -635,7 +616,6 @@ if (step === 8) return (
               </button>
             )}
 
-            {/* Liste des soupçonnés ajoutés */}
             {suspects.length > 0 && (
               <div style={{ marginTop: '16px' }}>
                 <p style={{ fontSize: '13px', fontWeight: 600, color: '#333', marginBottom: '8px' }}>
@@ -665,7 +645,6 @@ if (step === 8) return (
           </div>
         )}
 
-          {/* ÉTAPE 5 — Preuves */}
           {step === 5 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Preuves</h2>
@@ -676,7 +655,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 6 — Validation */}
           {step === 6 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Validation</h2>
@@ -695,7 +673,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* Boutons navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
             <button onClick={() => setStep(s => s - 1)}
               style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333', }}>
