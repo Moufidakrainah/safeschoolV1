@@ -271,9 +271,6 @@ export default function AdminDashboard() {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* <span style={{ background: GRADE_COLORS[selected.grade], color: 'white', padding: '4px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: 600 }}>
-              {GRADE_LABELS[selected.grade]}
-            </span> */}
             <span style={{ background: '#f3f4f6', color: '#555', padding: '4px 12px', borderRadius: '12px', fontSize: '12px' }}>
               {STATUS_LABELS[selected.status]}
             </span>
@@ -296,8 +293,8 @@ export default function AdminDashboard() {
         </div>
 
         <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <div style={{ background: 'white', padding: '24px',borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-            <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>Informations du signalement</h3>
+          <div style={{ background: 'white', padding: '24px', borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#0097b2', fontSize: '15px' }}>Informations du signalement</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <tbody>
                 {[
@@ -317,8 +314,8 @@ export default function AdminDashboard() {
             </table>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-            <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>Personnes impliquées</h3>
+          <div style={{ background: 'white', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+            <h3 style={{ margin: '0 0 16px', color: '#0097b2', fontSize: '15px' }}>Personnes impliquées</h3>
             <p style={{ fontSize: '12px', color: '#888', fontWeight: 600, margin: '0 0 4px' }}>Signalé par</p>
             <p style={{ fontSize: '14px', color: '#333', margin: '0 0 16px' }}>
               {selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}
@@ -336,7 +333,7 @@ export default function AdminDashboard() {
             {selected.suspects && selected.suspects.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {selected.suspects.map((s: any, i: number) => (
-                  <div key={i} style={{ background: '#fff4f4', padding: '6px 12px', borderRadius: '8px', fontSize: '14px', color: '#dc2626' }}>
+                  <div key={i} style={{ background: '#ebfcff', padding: '6px 12px', fontSize: '14px', color: '#dc2626' }}>
                     {s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
                   </div>
                 ))}
@@ -347,19 +344,19 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ margin: '0 0 12px', color: '#1a1a2e', fontSize: '15px' }}>Description des faits</h3>
+        <div style={{ background: 'white', borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
+          <h3 style={{ margin: '0 0 12px', color: '#0097b2', fontSize: '15px' }}>{selected.aiReason}</h3>
           <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.7', margin: 0 }}>
             {selected.description?.split('|')[0]?.trim()}
           </p>
         </div>
 
-        <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📝 Notes administratives</h3>
+        <div style={{ background: 'white', borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
+          <h3 style={{ margin: '0 0 16px', color: '#0097b2', fontSize: '15px' }}>📝 Notes administratives</h3>
           {notes.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
               {notes.map((note: any) => (
-                <div key={note.id} style={{ background: note.type === 'convocation' ? '#f0f4ff' : '#f9f9f9', borderRadius: '8px', padding: '12px 16px', borderLeft: `3px solid ${note.type === 'convocation' ? '#7c3aed' : '#0f3460'}` }}>
+                <div key={note.id} style={{ background: note.type === 'convocation' ? '#f0f4ff' : '#f9f9f9', padding: '12px 16px', borderLeft: `3px solid ${note.type === 'convocation' ? '#7c3aed' : '#0f3460'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                     <span style={{ fontSize: '12px', fontWeight: 600, color: note.type === 'convocation' ? '#7c3aed' : '#0f3460' }}>
                       {note.type === 'convocation' ? '📅 Convocation' : '📝 Note'}
@@ -381,15 +378,15 @@ export default function AdminDashboard() {
               <textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder="Ajouter une note..."
                 style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
               <button onClick={() => handleAddNote('note')}
-                style={{ padding: '10px 20px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-                💾 Enregistrer la note
+                style={{ padding: '10px 20px', background: '#0097b2', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '14px' }}>
+                Enregistrer la note
               </button>
             </>
           )}
         </div>
 
         {isAdmin && (
-          <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+          <div style={{ background: 'white', borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📅 Convoquer les personnes impliquées</h3>
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#555' }}>Date et heure</label>
@@ -400,8 +397,8 @@ export default function AdminDashboard() {
               placeholder="Message de convocation..."
               style={{ width: '100%', padding: '12px 14px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', fontFamily: 'inherit', resize: 'vertical', marginBottom: '10px' }} />
             <button onClick={() => handleAddNote('convocation')}
-              style={{ padding: '10px 20px', background: '#7c3aed', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-              📨 Envoyer la convocation
+              style={{ padding: '10px 20px', background: '#0097b2', color: 'white', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '14px'}}>
+            Envoyer la convocation
             </button>
           </div>
         )}
