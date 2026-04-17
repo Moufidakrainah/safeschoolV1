@@ -33,9 +33,7 @@ Get-Content database\seed.sql | docker-compose exec -T database psql -U postgres
 |-----|---------|
 | http://localhost:5173 | Frontend React |
 | http://localhost:5000 | Backend NestJS (API) |
-| http://localhost:8080 | pgAdmin (base de données) |
 | http://localhost:5601 | Kibana (logs et monitoring) |
-| http://localhost:9200 | Elasticsearch (API logs) |
 
 ---
 
@@ -48,20 +46,6 @@ Get-Content database\seed.sql | docker-compose exec -T database psql -U postgres
 | `directeur@safeschool.com` | `directeur123` | director | /dashboard |
 | `prof@safeschool.com` | `prof123` | teacher | /reporter |
 | `agent@safeschool.com` | `staff123` | staff | /reporter |
-
----
-
-## Stack technique
-
-| Couche | Technologie |
-|--------|-------------|
-| Frontend | React 19 + TypeScript + Vite |
-| Backend | NestJS + TypeScript + TypeORM |
-| Base de données | PostgreSQL 15 |
-| Authentification | JWT + Passport |
-| IA scoring | Groq API (llama-3.3-70b) + fallback mots-clés |
-| Logs | Winston + Logstash + Elasticsearch + Kibana |
-| Infrastructure | Docker + Docker Compose |
 
 ---
 
@@ -99,38 +83,6 @@ Chaque signalement reçoit automatiquement un score de gravité (0-100) :
 | Analyse IA Groq | 20 |
 
 **Grades :** ≥60 → 🔴 Critique | ≥40 → 🟠 Grave | ≥20 → 🟡 Moyen | <20 → 🟢 Faible
-
----
-
-## Variables d'environnement
-
-Copier `.env.example` en `.env` et remplir les valeurs :
-
-```env
-DB_HOST=database
-DB_PORT=5432
-DB_NAME=safeschool
-DB_USER=postgres
-DB_PASSWORD=changeme
-JWT_SECRET=your_jwt_secret_here
-GROQ_API_KEY=your_groq_api_key    # Obtenir sur console.groq.com
-AI_ENABLED=true
-LOGSTASH_HOST=logstash
-LOGSTASH_PORT=5044
-LOG_LEVEL=info
-```
-
----
-
-## Backup
-
-```bash
-# Créer un backup
-./backup.sh
-
-# Restaurer un backup
-./restore.sh ./backups/safeschool_YYYYMMDD_HHMMSS.sql
-```
 
 ---
 
