@@ -257,13 +257,7 @@ export default function AdminDashboard() {
 			style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0097b2', fontWeight: 600, padding: 0, opacity: filtered.findIndex((r: any) => r.id === selected.id) === 0 ? 0.3 : 1 }}>
 			🠔 Precedent
           </button>
-
-
-
-          <span style={{ fontWeight:'bold', color: '#0097b2' }}>
-            Signalement {selected.caseNumber}
-          </span>
-
+          <span style={{ fontWeight:'bold', color: '#0097b2' }}>Signalement {selected.caseNumber}</span>
 		    <button
 			onClick={() => {
 				const currentIndex = filtered.findIndex((r: any) => r.id === selected.id);
@@ -273,18 +267,13 @@ export default function AdminDashboard() {
 			style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0097b2', fontWeight: 600, padding: 0, opacity: filtered.findIndex((r: any) => r.id === selected.id) === filtered.length - 1 ? 0.3 : 1 }}>
 			Suivant ➞
           </button>
-
-
-
-
-
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ background: GRADE_COLORS[selected.grade], color: 'white', padding: '4px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: 600 }}>
+            {/* <span style={{ background: GRADE_COLORS[selected.grade], color: 'white', padding: '4px 14px', borderRadius: '12px', fontSize: '13px', fontWeight: 600 }}>
               {GRADE_LABELS[selected.grade]}
-            </span>
+            </span> */}
             <span style={{ background: '#f3f4f6', color: '#555', padding: '4px 12px', borderRadius: '12px', fontSize: '12px' }}>
               {STATUS_LABELS[selected.status]}
             </span>
@@ -306,8 +295,8 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-          <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+          <div style={{ background: 'white', padding: '24px',borderLeft: `5px solid ${GRADE_COLORS[selected.grade]}`, boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
             <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>Informations du signalement</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <tbody>
@@ -430,7 +419,6 @@ export default function AdminDashboard() {
         {viewSection === 'reports' && (
           <>
 					
-
 			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
 			{[
 				{ label: 'Total',      value: stats.total,     color: '#1a1a2e', filter: 'all' },
@@ -456,8 +444,6 @@ export default function AdminDashboard() {
 				</div>
 			))}
 			</div>
-
-
 
             <div style={{ marginBottom: '20px' }}>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom, titre, description"
