@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
-import { GradesModule } from './grades/grades.module';
 import { StudentProfilesModule } from './student-profiles/student-profiles.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { LoggerModule } from './logger/logger.module';
+import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
 
 @Module({
   imports: [
@@ -21,12 +22,16 @@ import { NotificationsModule } from './notifications/notifications.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),
+    LoggerModule,
     AuthModule,
     UsersModule,
     ReportsModule,
-    GradesModule,
     NotificationsModule,
     StudentProfilesModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HttpLoggerMiddleware).forRoutes('*');
+  }
+}

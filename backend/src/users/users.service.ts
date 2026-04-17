@@ -8,10 +8,8 @@ import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>,
-    @InjectRepository(StudentProfile)
-    private profilesRepository: Repository<StudentProfile>,
+    @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(StudentProfile) private profilesRepository: Repository<StudentProfile>,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -40,9 +38,7 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find({
-      relations: ['studentProfile'],
-    });
+    return this.usersRepository.find({ relations: ['studentProfile'] });
   }
 
   async search(query: string): Promise<User[]> {
@@ -55,55 +51,29 @@ export class UsersService {
       .getMany();
   }
 
-  async createByAdmin(dto: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    schoolClass?: string;
-  }): Promise<User> {
+  async createByAdmin(dto: { email: string; password: string; firstName: string; lastName: string; role: string; schoolClass?: string }): Promise<User> {
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.usersRepository.create({
-      email: dto.email,
-      password: hashed,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
+      email: dto.email, password: hashed,
+      firstName: dto.firstName, lastName: dto.lastName,
       role: dto.role as UserRole,
     });
     const saved = await this.usersRepository.save(user);
-
     if (dto.role === 'student' && dto.schoolClass) {
-      const profile = this.profilesRepository.create({
-        user: saved,
-        schoolClass: dto.schoolClass,
-      });
+      const profile = this.profilesRepository.create({ user: saved, schoolClass: dto.schoolClass });
       await this.profilesRepository.save(profile);
     }
-
     return saved;
   }
 
-  async updateByAdmin(id: string, dto: {
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-    schoolClass?: string;
-  }): Promise<User> {
-    const user = await this.usersRepository.findOne({
-      where: { id },
-      relations: ['studentProfile'],
-    });
+  async updateByAdmin(id: string, dto: { email?: string; firstName?: string; lastName?: string; role?: string; schoolClass?: string }): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id }, relations: ['studentProfile'] });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-
     if (dto.email) user.email = dto.email;
     if (dto.firstName) user.firstName = dto.firstName;
     if (dto.lastName) user.lastName = dto.lastName;
     if (dto.role) user.role = dto.role as UserRole;
-
     const saved = await this.usersRepository.save(user);
-
     if (dto.schoolClass) {
       if (user.studentProfile) {
         await this.profilesRepository.update(user.studentProfile.id, { schoolClass: dto.schoolClass });
@@ -112,15 +82,12 @@ export class UsersService {
         await this.profilesRepository.save(profile);
       }
     }
-
     return saved;
   }
 
   async deleteByAdmin(id: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur introuvable');
-
-    // Supprimer dans l'ordre pour éviter les contraintes
     await this.usersRepository.query(`DELETE FROM notifications WHERE "userId" = $1`, [id]);
     await this.usersRepository.query(`DELETE FROM report_suspects WHERE "userId" = $1`, [id]);
     await this.usersRepository.query(`DELETE FROM report_notes WHERE "authorId" = $1`, [id]);

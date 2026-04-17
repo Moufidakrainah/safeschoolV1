@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportsService } from './reports.service';
 import { ReportGrade, ReportStatus } from './report.entity';
@@ -21,11 +21,10 @@ class UpdateReportDto {
 }
 
 @Controller('reports')
-@UseGuards(AuthGuard('jwt'))  // Toutes les routes necessitent un token JWT valide
+@UseGuards(AuthGuard('jwt'))
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  // POST /reports — Eleve cree un signalement
   @Post()
   async create(@Body() dto: CreateReportDto, @Request() req) {
     const allowedRoles = ['student', 'teacher', 'staff'];
@@ -36,14 +35,13 @@ export class ReportsController {
       dto.title,
       dto.description,
       dto.isAnonymous,
-      req.user,  // req.user = utilisateur injecte par JwtStrategy
+      req.user,
       dto.suspects || [],
       dto.frequency || '',
       dto.schoolClass || '',
     );
   }
 
-  // GET /reports — Admin/Directeur voit tous les signalements
   @Get()
   async findAll(@Request() req) {
     if (req.user.role === 'student') {
@@ -52,59 +50,41 @@ export class ReportsController {
     return this.reportsService.findAll();
   }
 
-  // GET /reports/:id — Voir un signalement
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
     validateUUID(id);
     const report = await this.reportsService.findOne(id);
-    
-    // Un élève ne peut voir QUE ses propres signalements
     if (req.user.role === 'student' && report.student.id !== req.user.id) {
       throw new ForbiddenException('Access denied');
     }
-    
     return report;
   }
 
-  
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateReportDto, @Request() req) {
     validateUUID(id);
-    // Seuls admin et director peuvent modifier
-    if (req.user.role === 'student') {
-      throw new ForbiddenException('Access denied');
-    }
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
     return this.reportsService.update(id, dto);
   }
 
   @Patch(':id/escalate')
   async escalate(@Param('id') id: string, @Request() req) {
-    // Seul admin peut escalader — pas le directeur !
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Access denied');
-    }
+    if (req.user.role !== 'admin') throw new ForbiddenException('Access denied');
     return this.reportsService.escalate(id);
   }
-  // GET /reports/:id/notes
+
   @Get(':id/notes')
   async getNotes(@Param('id') id: string, @Request() req) {
     validateUUID(id);
-
     if (req.user.role === 'student') {
-      // Vérifier que le signalement appartient bien à cet élève
       const report = await this.reportsService.findOne(id);
-      if (report.student.id !== req.user.id) {
-        throw new ForbiddenException('Access denied');
-      }
-      // Retourner uniquement les convocations, pas les notes internes
+      if (report.student.id !== req.user.id) throw new ForbiddenException('Access denied');
       const notes = await this.reportsService.getNotes(id);
       return notes.filter((n: any) => n.type === 'convocation');
     }
-
     return this.reportsService.getNotes(id);
   }
 
-  // POST /reports/:id/notes
   @Post(':id/notes')
   async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string; targetRole?: string }, @Request() req) {
     validateUUID(id);

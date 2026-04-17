@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   frontend:
     build:
@@ -33,6 +32,8 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      logstash:
+        condition: service_started
     networks:
       - safeschool_network
 
@@ -55,20 +56,71 @@ services:
       retries: 5
     networks:
       - safeschool_network
+
   pgadmin:
-      image: dpage/pgadmin4
-      container_name: safeschool_pgadmin
-      ports:
-        - "8080:80"
-      environment:
-        PGADMIN_DEFAULT_EMAIL: admin@safeschool.com
-        PGADMIN_DEFAULT_PASSWORD: admin123
-      depends_on:
-        - database
-      networks:
-        - safeschool_network
+    image: dpage/pgadmin4
+    container_name: safeschool_pgadmin
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@safeschool.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    depends_on:
+      - database
+    networks:
+      - safeschool_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: safeschool_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - safeschool_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: safeschool_logstash
+    ports:
+      - "5044:5044"
+    volumes:
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - safeschool_network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: safeschool_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - kibanadata:/usr/share/kibana/data
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - safeschool_network
+
 volumes:
   pgdata:
+  esdata:
+  kibanadata:
 
 networks:
   safeschool_network:

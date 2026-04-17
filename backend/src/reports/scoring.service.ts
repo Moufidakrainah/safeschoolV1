@@ -7,13 +7,10 @@ import { ReportSuspect } from './report-suspect.entity';
 @Injectable()
 export class ScoringService {
   constructor(
-    @InjectRepository(Report)
-    private reportsRepository: Repository<Report>,
-    @InjectRepository(ReportSuspect)
-    private suspectsRepository: Repository<ReportSuspect>,
+    @InjectRepository(Report) private reportsRepository: Repository<Report>,
+    @InjectRepository(ReportSuspect) private suspectsRepository: Repository<ReportSuspect>,
   ) {}
 
-  // Score basé sur le type de harcèlement
   private scoreType(type: string): number {
     const t = type.toLowerCase();
     if (t.includes('physique') || t.includes('sexuel')) return 25;
@@ -23,7 +20,6 @@ export class ScoringService {
     return 5;
   }
 
-  // Score basé sur la fréquence
   private scoreFrequency(frequency: string): number {
     const f = frequency.toLowerCase();
     if (f.includes('tous les jours')) return 20;
@@ -33,7 +29,6 @@ export class ScoringService {
     return 2;
   }
 
-  // Score basé sur la classe de la victime
   private scoreClass(schoolClass: string): number {
     if (!schoolClass) return 5;
     const c = schoolClass.toLowerCase();
@@ -44,71 +39,47 @@ export class ScoringService {
     return 5;
   }
 
-  // Score basé sur la récidive — par soupçonné
   private async scoreRecidive(suspects: { userId?: string; freeText?: string }[]): Promise<number> {
     if (!suspects || suspects.length === 0) return 0;
-
     let maxCount = 0;
-
     for (const suspect of suspects) {
       let count = 0;
-
       if (suspect.userId) {
-        count = await this.suspectsRepository.count({
-          where: { user: { id: suspect.userId } },
-        });
+        count = await this.suspectsRepository.count({ where: { user: { id: suspect.userId } } });
       } else if (suspect.freeText) {
-        count = await this.suspectsRepository.count({
-          where: { freeText: suspect.freeText },
-        });
+        count = await this.suspectsRepository.count({ where: { freeText: suspect.freeText } });
       }
-
       if (count > maxCount) maxCount = count;
     }
-
     if (maxCount >= 3) return 20;
     if (maxCount === 2) return 12;
     if (maxCount === 1) return 6;
     return 0;
   }
 
-  // Score IA par mots-clés (fallback si Groq indisponible)
   private scoreAIFallback(description: string): { score: number; urgency: boolean; reason: string } {
     const text = description.toLowerCase();
-
-    if (
-      text.includes('suicid') || text.includes('me tuer') ||
-      text.includes('mourir') || text.includes('menace') ||
-      text.includes('frapper') || text.includes('tuer')
-    ) {
+    if (text.includes('suicid') || text.includes('me tuer') || text.includes('mourir') ||
+        text.includes('menace') || text.includes('frapper') || text.includes('tuer')) {
       return { score: 20, urgency: true, reason: 'Menace physique ou idées suicidaires détectées' };
     }
-    if (
-      text.includes('peur') || text.includes('aide') ||
-      text.includes('souffre') || text.includes('pleure') ||
-      text.includes('seul') || text.includes('malheureux')
-    ) {
+    if (text.includes('peur') || text.includes('aide') || text.includes('souffre') ||
+        text.includes('pleure') || text.includes('seul') || text.includes('malheureux')) {
       return { score: 10, urgency: false, reason: 'Détresse émotionnelle détectée' };
     }
-    if (
-      text.includes('insulte') || text.includes('menace verbale') ||
-      text.includes('crier') || text.includes('humili')
-    ) {
+    if (text.includes('insulte') || text.includes('menace verbale') ||
+        text.includes('crier') || text.includes('humili')) {
       return { score: 5, urgency: false, reason: 'Menace verbale détectée' };
     }
     return { score: 0, urgency: false, reason: 'Situation banale' };
   }
 
-  // Score IA via Groq
   private async scoreAIGroq(description: string): Promise<{ score: number; urgency: boolean; reason: string }> {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey || process.env.AI_ENABLED !== 'true') {
-      console.log('Groq désactivé — fallback mots-clés');
       return this.scoreAIFallback(description);
     }
-
     try {
-      console.log('Appel Groq en cours...');
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -133,11 +104,7 @@ Signalement : "${description}"`,
           }],
         }),
       });
-
-      console.log('Groq status:', response.status);
       const data = await response.json();
-      console.log('Groq response:', JSON.stringify(data));
-
       const text = data.choices[0].message.content.trim();
       const parsed = JSON.parse(text);
       return {
@@ -145,13 +112,11 @@ Signalement : "${description}"`,
         urgency: parsed.urgency ?? false,
         reason: parsed.reason ?? '',
       };
-    } catch (error) {
-      console.error('Erreur Groq:', error);
+    } catch {
       return this.scoreAIFallback(description);
     }
   }
 
-  // Calcul du score final
   async calculateScore(
     title: string,
     description: string,
@@ -159,19 +124,14 @@ Signalement : "${description}"`,
     schoolClass: string,
     suspects: { userId?: string; freeText?: string }[],
   ): Promise<{ finalScore: number; grade: ReportGrade; aiScore: number; aiReason: string }> {
-
     const typeScore      = this.scoreType(title);
     const frequencyScore = this.scoreFrequency(frequency);
     const classScore     = this.scoreClass(schoolClass);
     const recidiveScore  = await this.scoreRecidive(suspects);
-    const preuveScore    = 0;
-
-    const baseScore = typeScore + frequencyScore + classScore + recidiveScore + preuveScore;
+    const baseScore      = typeScore + frequencyScore + classScore + recidiveScore;
 
     const { score: aiScore, urgency, reason: aiReason } = await this.scoreAIGroq(description);
-
     let finalScore = Math.min(baseScore + aiScore, 100);
-
     if (urgency) finalScore = Math.max(finalScore, 60);
 
     let grade: ReportGrade;

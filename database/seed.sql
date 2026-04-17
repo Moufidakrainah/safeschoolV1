@@ -8,18 +8,18 @@ TRUNCATE TABLE users CASCADE;
 
 -- UTILISATEURS
 INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdAt") VALUES
-  ('a0b1c2d3-0000-0000-0000-000000000001', 'admin@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Sophie',  'Martin',   'admin',    NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000002', 'directeur@safeschool.com', '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Bernard', 'Dupont',   'director', NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000003', 'prof@safeschool.com',      '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Marie',   'Leroy',    'teacher',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000004', 'prof2@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Pierre',  'Durand',   'teacher',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000005', 'agent@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Fatima',  'Benali',   'staff',    NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000006', 'lotfi@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Lotfi',   'Bougrine', 'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000007', 'danya@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Danya',   'Bougrine', 'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000008', 'lina@safeschool.com',      '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Lina',    'Bougrine', 'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000009', 'lucas@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Lucas',   'Bernard',  'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000010', 'emma@safeschool.com',      '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Emma',    'Petit',    'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000011', 'kevin@safeschool.com',     '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Kevin',   'Thomas',   'student',  NOW()),
-  ('a0b1c2d3-0000-0000-0000-000000000012', 'sara@safeschool.com',      '$2b$10$4Uk131IEozKI6CcJDl7mvu8iK2.fDs6r5dM0pAsVjyUOEM5OJH4Dy', 'Sara',    'Moulin',   'student',  NOW());
+  ('a0b1c2d3-0000-0000-0000-000000000001', 'admin@safeschool.com',     '$2b$10$u3fyxA/ML3ynLXtT66ki9OhcgC40j2GqIIWhhRjWyApGWis3MqTy2', 'Sophie',  'Martin',   'admin',    NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000002', 'directeur@safeschool.com', '$2b$10$ZZLAuASLxIMnzrR9IedJn.zG2gYVBQjhWrkhjbe8tiZEiKL2SrhPO', 'Bernard', 'Dupont',   'director', NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000003', 'prof@safeschool.com',      '$2b$10$yxilnwmyhRgzZHor0M6PteoJ1KpITZIPMyovv0SZ/2uNie9Y15oY6', 'Marie',   'Leroy',    'teacher',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000004', 'prof2@safeschool.com',     '$2b$10$FLywd4Mimct8vYT5Ty/mXOvxbqPyibsbgasHENrQh7EIu5gr4mhzC', 'Pierre',  'Durand',   'teacher',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000005', 'agent@safeschool.com',     '$2b$10$3.8eHmoj7KEU9nRBZ1VHZOu6CI8ZoaLXoLifQALcvoR75/suSOu5q', 'Fatima',  'Benali',   'staff',    NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000006', 'lotfi@safeschool.com',     '$2b$10$rbXyyCR80klupr.HJz2xSOJXze6ij9Qh25LZ4nPxuXVyneHexoUb6', 'Lotfi',   'Bougrine', 'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000007', 'danya@safeschool.com',     '$2b$10$viOl4rJ733np43se1FrPb.UMkZjUpwoQNgTOQS8ip0lLQ1Pyn.LMK', 'Danya',   'Bougrine', 'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000008', 'lina@safeschool.com',      '$2b$10$Mnoabi/rcMzGhiqbJWn0mendOhWoIc.e.xLXB4Vl8OZACGt.2Xoiq', 'Lina',    'Bougrine', 'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000009', 'lucas@safeschool.com',     '$2b$10$ndPa1eFOwa4VH2IVA/7l4ugRKg9Sg341d3Yx7E3iM1xWs3MBce2tu', 'Lucas',   'Bernard',  'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000010', 'emma@safeschool.com',      '$2b$10$f7PDA.v.BM3aIacSc00Djeu7/.YgvA2wQDcGCg.uJN5xcbvETLvq6', 'Emma',    'Petit',    'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000011', 'kevin@safeschool.com',     '$2b$10$feBa0AcicF34gPncKMVJFu8F0kUAM2RpFTxlnxJa2Bmq8Kn9jCbXW', 'Kevin',   'Thomas',   'student',  NOW()),
+  ('a0b1c2d3-0000-0000-0000-000000000012', 'sara@safeschool.com',      '$2b$10$8Ajlev4sZJzadv1FU7SAFujVsTl9ht0GKoS7TFu.qSpOBPv3KLGv6', 'Sara',    'Moulin',   'student',  NOW());
 
 -- PROFILS ÉLÈVES
 INSERT INTO student_profiles (id, class, "parentEmail", "parentPhone", "dateOfBirth", "userId") VALUES

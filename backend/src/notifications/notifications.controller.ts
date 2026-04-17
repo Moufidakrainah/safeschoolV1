@@ -9,7 +9,6 @@ export class NotificationsController {
 
   @Get()
   async getMyNotifications(@Request() req) {
-    console.log('USER JWT:', req.user);
     return this.notificationsService.getForUser(req.user.id);
   }
 
