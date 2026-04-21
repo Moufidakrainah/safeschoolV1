@@ -5,12 +5,36 @@
 - Physique
 - Psychologique
 - Cyber
+- Exclusion sociale
+- Sexuelle
+- Autre
 
 ## Gravite
-- Faible
-- Moyen
-- Grave
-- Critique
+- Aucune (blanc)
+- Faible (jaune)
+- Moyen (orange)
+- Grave (rouge)
+- Critique (rouge tres fonce)
+
+## Role
+- Eleve (fait des signalements, s'inscrit aux ateliers, joue au quiz)
+- Professeur (cree des ateliers)
+- Personnel (fait des signalements)
+- Direction (lit uniquement)
+- Moderateur (gere les signalements)
+- Admin (CRUD users, classes)
+
+## Metiers au college et lycee
+- Enseignant
+- Conseiller principal d'éducation
+- Assistant d'éducation
+- Psychologue
+- Chef d'établissement
+- Gestionnaire materiel
+- Agent comptable 
+- Infirmier
+- Medecin
+- Assistant de service social
 
 ## Achievements
 ### Participation
