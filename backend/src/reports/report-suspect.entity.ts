@@ -1,0 +1,11 @@
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Report } from './report.entity';
+import { User } from '../users/user.entity';
+
+@Entity('report_suspects')
+export class ReportSuspect {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @ManyToOne(() => Report, report => report.suspects, { onDelete: 'CASCADE' }) report: Report;
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' }) user: User;
+  @Column({ nullable: true }) freeText: string;
+}

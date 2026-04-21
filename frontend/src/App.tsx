@@ -4,7 +4,7 @@ import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 
-function ProtectedRoute({ children, roles }: { children: JSX.Element, roles?: string[] }) {
+function ProtectedRoute({ children, roles }: { children: JSX.Element; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (roles && user && !roles.includes(user.role)) return <Navigate to="/login" />;

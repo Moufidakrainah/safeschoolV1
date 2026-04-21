@@ -1,12 +1,16 @@
-import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Request, UseGuards, ForbiddenException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportsService } from './reports.service';
 import { ReportGrade, ReportStatus } from './report.entity';
+import { validateUUID } from '../utils/validate-uuid';
 
 class CreateReportDto {
   title: string;
   description: string;
   isAnonymous: boolean;
+  suspects?: { userId?: string; freeText?: string }[];
+  frequency?: string;
+  schoolClass?: string;
 }
 
 class UpdateReportDto {
@@ -17,22 +21,27 @@ class UpdateReportDto {
 }
 
 @Controller('reports')
-@UseGuards(AuthGuard('jwt'))  // Toutes les routes necessitent un token JWT valide
+@UseGuards(AuthGuard('jwt'))
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  // POST /reports — Eleve cree un signalement
   @Post()
   async create(@Body() dto: CreateReportDto, @Request() req) {
+    const allowedRoles = ['student', 'teacher', 'staff'];
+    if (!allowedRoles.includes(req.user.role)) {
+      throw new ForbiddenException('Only student, teacher and staff can create a report');
+    }
     return this.reportsService.create(
       dto.title,
       dto.description,
       dto.isAnonymous,
-      req.user,  // req.user = utilisateur injecte par JwtStrategy
+      req.user,
+      dto.suspects || [],
+      dto.frequency || '',
+      dto.schoolClass || '',
     );
   }
 
-  // GET /reports — Admin/Directeur voit tous les signalements
   @Get()
   async findAll(@Request() req) {
     if (req.user.role === 'student') {
@@ -41,21 +50,45 @@ export class ReportsController {
     return this.reportsService.findAll();
   }
 
-  // GET /reports/:id — Voir un signalement
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.reportsService.findOne(+id);
+  async findOne(@Param('id') id: string, @Request() req) {
+    validateUUID(id);
+    const report = await this.reportsService.findOne(id);
+    if (req.user.role === 'student' && report.student.id !== req.user.id) {
+      throw new ForbiddenException('Access denied');
+    }
+    return report;
   }
 
-  // PATCH /reports/:id — Admin modifie un signalement
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateReportDto) {
-    return this.reportsService.update(+id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateReportDto, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.update(id, dto);
   }
 
-  // PATCH /reports/:id/escalate — Escalader vers le directeur
   @Patch(':id/escalate')
-  async escalate(@Param('id') id: string) {
-    return this.reportsService.escalate(+id);
+  async escalate(@Param('id') id: string, @Request() req) {
+    if (req.user.role !== 'admin') throw new ForbiddenException('Access denied');
+    return this.reportsService.escalate(id);
+  }
+
+  @Get(':id/notes')
+  async getNotes(@Param('id') id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') {
+      const report = await this.reportsService.findOne(id);
+      if (report.student.id !== req.user.id) throw new ForbiddenException('Access denied');
+      const notes = await this.reportsService.getNotes(id);
+      return notes.filter((n: any) => n.type === 'convocation');
+    }
+    return this.reportsService.getNotes(id);
+  }
+
+  @Post(':id/notes')
+  async addNote(@Param('id') id: string, @Body() dto: { content: string; type: string; targetRole?: string }, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === 'student') throw new ForbiddenException('Access denied');
+    return this.reportsService.addNote(id, dto.content, dto.type || 'note', req.user, dto.targetRole);
   }
 }

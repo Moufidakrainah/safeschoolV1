@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'admin' | 'director';
+  role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+  studentProfile?: {
+    id: string;
+    schoolClass: string;
+    parentEmail: string;
+    parentPhone: string;
+    dateOfBirth: string;
+  } | null;
 }
 
 interface AuthContextType {
@@ -24,9 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [token, setToken] = useState<string | null>(() => {
-    return localStorage.getItem('token');
-  });
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
 
   const loginUser = (token: string, user: User) => {
     localStorage.setItem('token', token);
@@ -43,13 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      token,
-      loginUser,
-      logoutUser,
-      isAuthenticated: !!token,
-    }}>
+    <AuthContext.Provider value={{ user, token, loginUser, logoutUser, isAuthenticated: !!token }}>
       {children}
     </AuthContext.Provider>
   );
