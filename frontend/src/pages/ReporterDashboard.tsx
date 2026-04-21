@@ -185,7 +185,6 @@ export default function ReporterDashboard() {
       <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
 
-          {/* ÉTAPE 1 */}
           {step === 1 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
@@ -214,7 +213,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ÉTAPE 2 */}
           {step === 2 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Quel type de harcèlement ?</h2>
@@ -242,7 +240,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ÉTAPE 3 */}
           {step === 3 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
@@ -268,7 +265,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ÉTAPE 4 — Personnes impliquées */}
           {step === 4 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
@@ -276,7 +272,6 @@ export default function ReporterDashboard() {
                 Indique la victime et les personnes soupçonnées — cette information est confidentielle
               </p>
 
-              {/* Nom de la victime */}
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
                   Nom de la victime
@@ -325,7 +320,6 @@ export default function ReporterDashboard() {
                 )}
               </div>
 
-              {/* Soupçonnés */}
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
                 Soupçonné(s)
               </label>
@@ -381,7 +375,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ÉTAPE 5 */}
           {step === 5 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Preuves</h2>
@@ -392,7 +385,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ÉTAPE 6 */}
           {step === 6 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Validation</h2>
@@ -413,7 +405,6 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* Boutons navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
             <button onClick={() => setStep(s => s - 1)}
               style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333' }}>

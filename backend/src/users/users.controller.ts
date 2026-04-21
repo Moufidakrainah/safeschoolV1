@@ -15,46 +15,25 @@ export class UsersController {
 
   @Get()
   async findAll(@Request() req) {
-    if (req.user.role !== 'admin' && req.user.role !== 'director') {
-      throw new ForbiddenException('Accès refusé');
-    }
+    if (req.user.role !== 'admin' && req.user.role !== 'director') throw new ForbiddenException('Accès refusé');
     return this.usersService.findAll();
   }
 
   @Post()
-  async createUser(@Request() req, @Body() dto: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    schoolClass?: string;
-  }) {
-    if (req.user.role !== 'admin' && req.user.role !== 'director') {
-      throw new ForbiddenException('Accès refusé');
-    }
+  async createUser(@Request() req, @Body() dto: { email: string; password: string; firstName: string; lastName: string; role: string; schoolClass?: string }) {
+    if (req.user.role !== 'admin' && req.user.role !== 'director') throw new ForbiddenException('Accès refusé');
     return this.usersService.createByAdmin(dto);
   }
 
   @Patch(':id')
-  async updateUser(@Request() req, @Param('id') id: string, @Body() dto: {
-    email?: string;
-    firstName?: string;
-    lastName?: string;
-    role?: string;
-    schoolClass?: string;
-  }) {
-    if (req.user.role !== 'admin' && req.user.role !== 'director') {
-      throw new ForbiddenException('Accès refusé');
-    }
+  async updateUser(@Request() req, @Param('id') id: string, @Body() dto: { email?: string; firstName?: string; lastName?: string; role?: string; schoolClass?: string }) {
+    if (req.user.role !== 'admin' && req.user.role !== 'director') throw new ForbiddenException('Accès refusé');
     return this.usersService.updateByAdmin(id, dto);
   }
 
   @Delete(':id')
   async deleteUser(@Request() req, @Param('id') id: string) {
-    if (req.user.role !== 'admin' && req.user.role !== 'director') {
-      throw new ForbiddenException('Accès refusé');
-    }
+    if (req.user.role !== 'admin' && req.user.role !== 'director') throw new ForbiddenException('Accès refusé');
     return this.usersService.deleteByAdmin(id);
   }
 }

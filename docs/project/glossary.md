@@ -18,14 +18,13 @@
 
 ## Role
 - Eleve (fait des signalements, s'inscrit aux ateliers, joue au quiz)
-- Professeur (fait des signalements en tant qu'alerteur, cree des ateliers)
+- Professeur (cree des ateliers)
 - Personnel (fait des signalements)
 - Direction (lit uniquement)
 - Moderateur (gere les signalements)
 - Admin (CRUD users, classes)
 
 ## Metiers au college et lycee
-- Vie scolaire
 - Enseignant
 - Conseiller principal d'éducation
 - Assistant d'éducation

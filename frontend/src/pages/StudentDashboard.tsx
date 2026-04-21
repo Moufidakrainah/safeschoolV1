@@ -1,6 +1,6 @@
 import { useState, useEffect} from 'react';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers, getReports, getNotifications, markNotificationRead } from '../services/api';
+import { createReport, searchUsers, getReports, getNotifications, markNotificationRead, getNotes } from '../services/api';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -27,6 +27,7 @@ export default function StudentDashboard() {
   const [victimInput, setVictimInput] = useState('');
   const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<any>(null);
+  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -59,11 +60,32 @@ export default function StudentDashboard() {
     }
   };
 
+  const fetchReportNotes = async (reportId: string) => {
+    try {
+      const data = await getNotes(reportId);
+      setReportNotes(prev => ({ ...prev, [reportId]: data }));
+    } catch (err) {
+      console.error('Erreur chargement notes', err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+      const unread = data.filter((n: any) => !n.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Erreur notifications', err);
+    }
+  };
+
   const fetchMyReports = async () => {
     setLoadingReports(true);
     try {
       const data = await getReports();
       setMyReports(data);
+      data.forEach((r: any) => fetchReportNotes(r.id));
     } catch (err) {
       console.error('Erreur chargement dossiers');
     } finally {
@@ -97,28 +119,17 @@ export default function StudentDashboard() {
     setSuspects(suspects.filter((_, i) => i !== index));
   };
 
-  const fetchNotifications = async () => {
-    try {
-      const data = await getNotifications();
-      setNotifications(data);
-      const unread = data.filter((n: any) => !n.isRead).length;
-      setUnreadCount(unread);
-    } catch (err) {
-      console.error('Erreur notifications');
-    }
-  };
-
   useEffect(() => {
     if (user) {
       fetchNotifications();
     }
 }, [user?.id]);
-  
+
+
 
   // PAGE ACCUEIL
   if (step === 0) return (
   <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -127,7 +138,6 @@ export default function StudentDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <span style={{ fontSize: '14px', color: '#666' }}>{user?.firstName} {user?.lastName}</span>
           
-          {/* Bouton notification */}
           <div style={{ position: 'relative' }}>
             <button onClick={() => setShowNotifications(!showNotifications)}
               style={{ padding: '8px 12px', background: '#f0f4ff', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', position: 'relative' }}>
@@ -139,7 +149,6 @@ export default function StudentDashboard() {
               )}
             </button>
 
-            {/* Dropdown notifications */}
             {showNotifications && (
               <div style={{ position: 'absolute', right: 0, top: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', width: '320px', zIndex: 100, maxHeight: '400px', overflowY: 'auto' }}>
                 <div style={{ padding: '16px', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: '14px' }}>
@@ -168,7 +177,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Hero */}
       <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
           <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
@@ -199,7 +207,6 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         {[
           { value: '24h', label: 'Délai de prise en charge', color: '#0f3460' },
@@ -213,7 +220,6 @@ export default function StudentDashboard() {
         ))}
       </div>
 
-      {/* Qui peut signaler */}
         <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
           <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px', fontWeight: 700 }}>Qui peut signaler ?</h3>
@@ -271,7 +277,6 @@ export default function StudentDashboard() {
   // PAGE SUIVI DOSSIER
 if (step === 8) return (
   <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-    {/* Header */}
     <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
         <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -354,6 +359,56 @@ if (step === 8) return (
                   💬 <strong>Note de l'administration :</strong> {report.adminNote}
                 </div>
               )}
+              {reportNotes[report.id]?.filter((n: any) => n.type === 'convocation').map((note: any) => {
+                const MONTHS_FR: Record<string, number> = {
+                  'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
+                  'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12
+                };
+
+                const match = note.content.match(/Rendez-vous le (\d{2}) (\w+) (\d{4}) à (\d{2})h(\d{2})/);
+                let isPast = true;
+                let displayDate = '';
+                let message = note.content;
+
+                if (match) {
+                  const [, day, monthStr, year, hours, minutes] = match;
+                  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+                  const yearNum = Number(year);
+
+                  // Ignorer les dates corrompues (année aberrante)
+                  if (monthNum && yearNum >= 2020 && yearNum <= 2100) {
+                    const rdvDate = new Date(yearNum, monthNum - 1, Number(day), Number(hours), Number(minutes));
+                    isPast = rdvDate < new Date();
+                    displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
+                    const msgMatch = note.content.match(/Rendez-vous le .+?\. (.+)/s);
+                    message = msgMatch ? msgMatch[1] : '';
+                  }
+                }
+
+                return (
+                  <div key={note.id} style={{
+                    marginTop: '10px',
+                    background: isPast ? '#f9f9f9' : '#f0f4ff',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '13px',
+                    borderLeft: `3px solid ${isPast ? '#ccc' : '#7c3aed'}`,
+                  }}>
+                    {!displayDate ? (
+                      // Pas de date parseable → afficher le contenu brut
+                      <span style={{ color: '#0f3460' }}>📅 Convocation : {note.content}</span>
+                    ) : isPast ? (
+                      <span style={{ color: '#888' }}>
+                        📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                      </span>
+                    ) : (
+                      <span style={{ color: '#0f3460' }}>
+                        📅 Convocation : Vous êtes convoqué(e) le <strong>{displayDate}</strong>{message ? ` — ${message}` : ''}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
@@ -367,7 +422,6 @@ if (step === 8) return (
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      {/* Header */}
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -378,7 +432,6 @@ if (step === 8) return (
         </button>
       </div>
 
-      {/* Barre de progression */}
       <div style={{ background: 'white', padding: '16px 32px', borderBottom: '1px solid #eee' }}>
         <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', gap: '8px' }}>
           {steps.map((s, i) => (
@@ -392,11 +445,9 @@ if (step === 8) return (
         </div>
       </div>
 
-      {/* Contenu */}
       <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
         <div style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
 
-          {/* ÉTAPE 1 — Qui signale */}
           {step === 1 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
@@ -416,7 +467,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 2 — Type */}
           {step === 2 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Quel type de harcèlement ?</h2>
@@ -444,7 +494,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 3 — Faits */}
           {step === 3 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
@@ -519,7 +568,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 4 — Personnes */}
         {step === 4 && (
           <div>
             <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
@@ -527,7 +575,6 @@ if (step === 8) return (
               Indique les personnes soupçonnées — cette information est confidentielle
             </p>
 
-            {/* Champ de recherche */}
             <div style={{ position: 'relative', marginBottom: '16px' }}>
               <input
                 type="text"
@@ -543,7 +590,6 @@ if (step === 8) return (
                 onBlur={e => e.target.style.borderColor = '#e0e0e0'}
               />
 
-              {/* Suggestions */}
               {suspectSuggestions.length > 0 && (
                 <div style={{
                   position: 'absolute', top: '100%', left: 0, right: 0,
@@ -563,7 +609,6 @@ if (step === 8) return (
               )}
             </div>
 
-            {/* Ajouter nom libre */}
             {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
               <button onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
                 style={{ padding: '8px 16px', background: '#f0f4ff', border: '1px solid #0f3460', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#0f3460', marginBottom: '16px' }}>
@@ -571,7 +616,6 @@ if (step === 8) return (
               </button>
             )}
 
-            {/* Liste des soupçonnés ajoutés */}
             {suspects.length > 0 && (
               <div style={{ marginTop: '16px' }}>
                 <p style={{ fontSize: '13px', fontWeight: 600, color: '#333', marginBottom: '8px' }}>
@@ -601,7 +645,6 @@ if (step === 8) return (
           </div>
         )}
 
-          {/* ÉTAPE 5 — Preuves */}
           {step === 5 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Preuves</h2>
@@ -612,7 +655,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* ÉTAPE 6 — Validation */}
           {step === 6 && (
             <div>
               <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Validation</h2>
@@ -631,7 +673,6 @@ if (step === 8) return (
             </div>
           )}
 
-          {/* Boutons navigation */}
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
             <button onClick={() => setStep(s => s - 1)}
               style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333', }}>

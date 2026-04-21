@@ -1,113 +1,54 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:5000',
-});
+const api = axios.create({ baseURL: 'http://localhost:5000' });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-export const login = async (email: string, password: string) => {
-  const response = await api.post('/auth/login', { email, password });
-  return response.data;
-};
+export const login = async (email: string, password: string) =>
+  (await api.post('/auth/login', { email, password })).data;
 
-export const register = async (
-  email: string,
-  password: string,
-  firstName: string,
-  lastName: string
-) => {
-  const response = await api.post('/auth/register', { email, password, firstName, lastName });
-  return response.data;
-};
+export const register = async (email: string, password: string, firstName: string, lastName: string) =>
+  (await api.post('/auth/register', { email, password, firstName, lastName })).data;
 
-export const getReports = async () => {
-  const response = await api.get('/reports');
-  return response.data;
-};
+export const getReports = async () => (await api.get('/reports')).data;
 
-export const getAllReports = async () => {
-  const response = await api.get('/reports');
-  return response.data;
-};
+export const getAllReports = async () => (await api.get('/reports')).data;
 
-export const createReport = async (
-  title: string,
-  description: string,
-  isAnonymous: boolean,
-  suspects: any[],
-  frequency: string,
-  schoolClass: string
-) => {
-  const response = await api.post('/reports', {
-    title, description, isAnonymous, suspects, frequency, schoolClass
-  });
-  return response.data;
-};
-export const updateReport = async (id: string, updates: object) => {
-  const response = await api.patch(`/reports/${id}`, updates);
-  return response.data;
-};
+export const createReport = async (title: string, description: string, isAnonymous: boolean, suspects: any[], frequency: string, schoolClass: string) =>
+  (await api.post('/reports', { title, description, isAnonymous, suspects, frequency, schoolClass })).data;
 
-export const escalateReport = async (id: string) => {
-  const response = await api.patch(`/reports/${id}/escalate`);
-  return response.data;
-};
+export const updateReport = async (id: string, updates: object) =>
+  (await api.patch(`/reports/${id}`, updates)).data;
 
-export const searchUsers = async (query: string) => {
-  const response = await api.get(`/users/search?q=${query}`);
-  return response.data;
-};
+export const escalateReport = async (id: string) =>
+  (await api.patch(`/reports/${id}/escalate`)).data;
 
-export const getNotes = async (reportId: string) => {
-  const response = await api.get(`/reports/${reportId}/notes`);
-  return response.data;
-};
+export const searchUsers = async (query: string) =>
+  (await api.get(`/users/search?q=${query}`)).data;
 
-export const addNote = async (reportId: string, content: string, type: string = 'note') => {
-  const response = await api.post(`/reports/${reportId}/notes`, { content, type });
-  return response.data;
-};
+export const getNotes = async (reportId: string) =>
+  (await api.get(`/reports/${reportId}/notes`)).data;
 
-export const getNotifications = async () => {
-  const response = await api.get('/notifications');
-  return response.data;
-};
+export const addNote = async (reportId: string, content: string, type = 'note', targetRole?: string) =>
+  (await api.post(`/reports/${reportId}/notes`, { content, type, targetRole })).data;
 
-export const getUnreadCount = async () => {
-  const response = await api.get('/notifications/unread-count');
-  return response.data;
-};
+export const getNotifications = async () => (await api.get('/notifications')).data;
 
-export const markNotificationRead = async (id: string) => {
-  const response = await api.patch(`/notifications/${id}/read`);
-  return response.data;
-};
+export const getUnreadCount = async () => (await api.get('/notifications/unread-count')).data;
 
-export const getAllUsers = async () => {
-  const response = await api.get('/users');
-  return response.data;
-};
+export const markNotificationRead = async (id: string) =>
+  (await api.patch(`/notifications/${id}/read`)).data;
 
-export const createUser = async (dto: any) => {
-  const response = await api.post('/users', dto);
-  return response.data;
-};
+export const getAllUsers = async () => (await api.get('/users')).data;
 
-export const updateUser = async (id: string, dto: any) => {
-  const response = await api.patch(`/users/${id}`, dto);
-  return response.data;
-};
+export const createUser = async (dto: any) => (await api.post('/users', dto)).data;
 
-export const deleteUser = async (id: string) => {
-  const response = await api.delete(`/users/${id}`);
-  return response.data;
-};
+export const updateUser = async (id: string, dto: any) => (await api.patch(`/users/${id}`, dto)).data;
+
+export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`)).data;
 
 export default api;
