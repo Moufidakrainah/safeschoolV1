@@ -11,6 +11,4 @@
 
 ## Git
 
-- Use pull requests only for integration to main.
-- Follow the team process in docs/dev/collaboration-guidelines.md.
-- Keep pull requests small and focused.
+- For all Git-related conventions, please refer to the [Git Workflow Guide](git_guide.md).
