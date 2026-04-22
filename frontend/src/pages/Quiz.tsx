@@ -10,8 +10,8 @@ interface Question {
 const questions: Question[] = [
   {
     id: 1,
-    text: 'Sample question?',
-    options: ['Option A', 'Option B', 'Option C', 'Option D'],
+    text: 'what is 1+1?',
+    options: ['2', '3', '1', '-42'],
     correctIndex: 0,
   },
 ];
@@ -37,6 +37,7 @@ export default function Quiz() {
       <div>
         <h1>Quiz finished</h1>
         <p>Score: {score} / {questions.length}</p>
+        <button onClick={() => {setFinished(false); setScore(0); setCurrent(0)}} style={{padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px'}}>restart</button>
       </div>
     );
   }
