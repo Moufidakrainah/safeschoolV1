@@ -74,3 +74,60 @@ git revert <id_du_commit>      # Crée un commit qui annule le fautif
 ```
 
 > **Règle simple :** Si vous avez déjà fait un `push`, utilisez toujours `revert`.
+
+---
+
+## 5. Aide-mémoire : les commandes essentielles
+
+### Se repérer
+
+```bash
+git status                  # État des fichiers modifiés / non commités
+git branch -vv              # Liste des branches locales + lien avec le distant + retard/avance
+git branch -r               # Liste des branches sur le serveur distant
+git log --oneline           # Historique des commits (compact)
+```
+
+### Travailler avec les branches
+
+```bash
+git switch main                        # Aller sur une branche existante
+git switch -c feat/ma-branche          # Créer une nouvelle branche et se placer dessus
+git branch -m ancien-nom nouveau-nom   # Renommer une branche locale
+git branch -d feat/ma-branche          # Supprimer une branche locale (déjà mergée)
+```
+
+### Se synchroniser avec le serveur
+
+```bash
+git fetch origin                        # Mettre à jour la connaissance des branches distantes (sans modifier le code)
+git pull origin main                    # Récupérer les derniers commits de main dans la branche actuelle
+git push -u origin feat/ma-branche      # Pousser une branche pour la première fois (-u crée le lien)
+git push                                # Pousser les commits suivants (une fois le lien établi)
+git push origin --delete feat/ma-branche  # Supprimer une branche sur le serveur distant
+```
+
+### Sauvegarder et commiter
+
+```bash
+git add <fichier>           # Préparer un fichier pour le commit
+git add .                   # Préparer tous les fichiers modifiés
+git commit -m "type: msg"   # Créer un commit
+git commit --amend --no-edit  # Modifier le dernier commit (ajouter des fichiers oubliés, sans changer le message)
+```
+
+### Mettre du travail de côté sans commiter
+
+```bash
+git stash                   # Mettre les modifications non commitées de côté
+git stash pop               # Récupérer les modifications mises de côté
+git stash drop              # Supprimer le stash sans le récupérer
+```
+
+> `git stash` est utile quand vous réalisez que vous travaillez sur la mauvaise branche : stash → switch → stash pop.
+
+### Vérifier les branches déjà mergées
+
+```bash
+git branch -r --merged main   # Lister les branches distantes déjà fusionnées dans main (candidates à la suppression)
+```
