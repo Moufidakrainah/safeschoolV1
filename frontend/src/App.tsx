@@ -10,6 +10,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import UiKit from './pages/UiKit';
+import Quiz from './pages/Quiz';
 
 // FIX: utiliser element react car config TS actuelle expose pas JSX.Element pendant le build.
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] })
@@ -87,6 +88,11 @@ export default function App()
             <AdminDashboard />
           </ProtectedRoute>
         } />
+        <Route path="/quiz" element={
+		      <ProtectedRoute>
+		        <Quiz />
+		      </ProtectedRoute>
+	      } />
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
