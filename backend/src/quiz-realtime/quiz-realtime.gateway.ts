@@ -26,7 +26,8 @@ interface StartGamePayload {
 
 interface SubmitAnswerPayload {
 	roomId: string;
-	isCorrect: boolean;
+	questionId: number;
+	selectedIndex: number;
 }
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -195,17 +196,39 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: SubmitAnswerPayload,
 		@ConnectedSocket() client: Socket,
 	) {
-		const snapshot = this.quizRealtimeService.submitAnswer({
+		const result = this.quizRealtimeService.submitAnswer({
 			roomId: payload.roomId,
 			clientId: client.id,
-			isCorrect: payload.isCorrect,
+			questionId: payload.questionId,
+			selectedIndex: payload.selectedIndex,
 		});
 
-		this.server.to(payload.roomId).emit('quiz:score:update', snapshot);
+		if (result.status !== 'accepted') {
+			return {
+				event: 'quiz:answer:ignored',
+				data: {
+					roomId: payload.roomId,
+					playerId: client.id,
+					questionId: payload.questionId,
+					reason: result.status,
+					snapshot: result.roomSnapshot,
+				},
+			};
+		}
+
+		client.emit('quiz:answer:result', result.answerResult);
+
+		if (result.roomSnapshot) {
+			this.server.to(payload.roomId).emit('quiz:score:update', result.roomSnapshot);
+		}
 
 		return {
 			event: 'quiz:answer:accepted',
-			data: { roomId: payload.roomId, playerId: client.id },
+			data: {
+				roomId: payload.roomId,
+				playerId: client.id,
+				questionId: payload.questionId,
+			},
 		};
 	}
 }

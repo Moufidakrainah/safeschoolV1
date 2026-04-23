@@ -18,6 +18,13 @@ type QuestionPayload = {
   totalQuestions: number;
 };
 
+type AnswerResultPayload = {
+  roomId: string;
+  playerId: string;
+  questionId: number;
+  isCorrect: boolean;
+};
+
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
 
 export default function Quiz() {
@@ -35,6 +42,7 @@ export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload["question"] | null>(null);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [answerResultMessage, setAnswerResultMessage] = useState('');
 
   useEffect(() => {
     const socket = io(SOCKET_URL, {
@@ -65,6 +73,7 @@ export default function Quiz() {
       console.log("left quiz", snapshot);
       setRoomCode('');
       setJoinedRoom(null);
+      setAnswerResultMessage('');
     });
 
     socket.on('quiz:joined', (data: { roomId: string, hostId: string}) => {
@@ -81,6 +90,19 @@ export default function Quiz() {
       setCurrentQuestion(data.question);
       setQuestionNumber(data.questionNumber);
       setTotalQuestions(data.totalQuestions);
+      setAnswerResultMessage('');
+    });
+
+    socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
+      if (data.isCorrect) {
+        setAnswerResultMessage('Correct answer!');
+        return;
+      }
+      setAnswerResultMessage('Wrong answer.');
+    });
+
+    socket.on('quiz:score:update', (data) => {
+        //scoreboard update here <--
     });
 
     return () => {
@@ -188,6 +210,7 @@ export default function Quiz() {
           <>
             <p>{questionNumber} / {totalQuestions}</p>
             <h2>{currentQuestion.text}</h2>
+            {answerResultMessage ? <p>{answerResultMessage}</p> : null}
             <ul>
               {currentQuestion.options.map((opt, i) => (
                 <li key={i}>

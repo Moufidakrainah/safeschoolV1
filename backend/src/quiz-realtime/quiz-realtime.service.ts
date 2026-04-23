@@ -13,7 +13,7 @@ interface QuestionPublic {
   options: string[];
 }
 
-const Questions: QuestionInternal[] = [
+const QUESTIONS: QuestionInternal[] = [
 	{
 		id: 1,
 		text: 'what is 1+1?',
@@ -50,8 +50,31 @@ interface JoinRoomInput {
 interface SubmitAnswerInput {
 	roomId: string;
 	clientId: string;
-	isCorrect: boolean;
+	questionId: number;
+	selectedIndex: number;
 }
+
+type SubmitAnswerResult =
+	| {
+		status: 'accepted';
+		roomSnapshot: RoomSnapshot;
+		answerResult: {
+			roomId: string;
+			playerId: string;
+			questionId: number;
+			isCorrect: boolean;
+		};
+	  }
+	| {
+		status:
+			| 'room-not-found'
+			| 'player-not-in-room'
+			| 'no-active-question'
+			| 'question-mismatch'
+			| 'already-answered';
+		roomSnapshot: RoomSnapshot | null;
+		answerResult: null;
+	  };
 
 type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
 
@@ -162,35 +185,81 @@ export class QuizRealtimeService {
 	}
 
 	startGame(roomId: string, clientId: string) {
-		const room = this.rooms.get(roomId);
-		if (!room) {
+    	const room = this.rooms.get(roomId);
+    	if (!room) 
 			throw new Error('Room not found');
-		}
-
-		if (room.hostId !== clientId) {
+    	if (room.hostId !== clientId) 
 			throw new Error('Only host can start the game');
-		}
 
-		room.status = 'in-progress';
-		return this.getRoomSnapshot(roomId);
+    	room.status = 'in-progress';
+    	room.currentQuestionIndex = 0;
+    	room.answeredPlayerIds.clear();
+    	room.startedAt = Date.now();
+
+    	return this.getRoomSnapshot(roomId);
 	}
 
-	submitAnswer({ roomId, clientId, isCorrect }: SubmitAnswerInput) {
-		const room = this.rooms.get(roomId);
-		if (!room) {
-			throw new Error('Room not found');
-		}
+	submitAnswer({ roomId, clientId, questionId, selectedIndex }: SubmitAnswerInput): SubmitAnswerResult {
+	    const room = this.rooms.get(roomId);
+	    if (!room) {
+	        return {
+	        	status: 'room-not-found',
+	        	roomSnapshot: null,
+	        	answerResult: null,
+	        };
+	    }
 
-		const player = room.players.get(clientId);
-		if (!player) {
-			throw new Error('Player is not in this room');
-		}
+	    const player = room.players.get(clientId);
+	    if (!player) {
+	        return {
+	        	status: 'player-not-in-room',
+	        	roomSnapshot: this.getRoomSnapshot(roomId),
+	        	answerResult: null,
+	        };
+	    }
 
-		if (isCorrect) {
-			player.score += 1;
-		}
+	    const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+	    if (!currentQuestion) {
+	        return {
+	        	status: 'no-active-question',
+	        	roomSnapshot: this.getRoomSnapshot(roomId),
+	        	answerResult: null,
+	        };
+	    }
 
-		return this.getRoomSnapshot(roomId);
+	    if (currentQuestion.id !== questionId) {
+	        return {
+	        	status: 'question-mismatch',
+	        	roomSnapshot: this.getRoomSnapshot(roomId),
+	        	answerResult: null,
+	        };
+	    }
+
+	    if (room.answeredPlayerIds.get(clientId)) {
+	        return {
+	        	status: 'already-answered',
+	        	roomSnapshot: this.getRoomSnapshot(roomId),
+	        	answerResult: null,
+	        };
+	    }
+
+	    const isCorrect = selectedIndex === currentQuestion.correctIndex;
+	    if (isCorrect) {
+	        player.score += 1;
+	    }
+
+	    room.answeredPlayerIds.set(clientId, true);
+
+	    return {
+	    	status: 'accepted',
+	        roomSnapshot: this.getRoomSnapshot(roomId),
+	        answerResult: {
+	            roomId,
+	            playerId: clientId,
+	            questionId,
+	            isCorrect,
+	        },
+	    };
 	}
 
 	getQuestionForRoom(roomId: string) { 
@@ -241,7 +310,7 @@ export class QuizRealtimeService {
     	    return null;
     	}
 
-    	const question = Questions[room.currentQuestionIndex];
+    	const question = QUESTIONS[room.currentQuestionIndex];
     	if (!question) {
     	    return null;
     	}
@@ -250,7 +319,7 @@ export class QuizRealtimeService {
     	    roomId: room.roomId,
     	    question: this.toPublicQuestion(question),
     	    questionNumber: room.currentQuestionIndex + 1,
-    	    totalQuestions: Questions.length,
+    	    totalQuestions: QUESTIONS.length,
     	};
 	}
 }
