@@ -1,11 +1,200 @@
 import { Injectable } from '@nestjs/common';
 
+type GameStatus = 'waiting' | 'in-progress' | 'finished';
+
+interface QuizPlayer {
+	clientId: string;
+	name: string;
+	score: number;
+}
+
+interface QuizRoom {
+	roomId: string;
+	hostId: string;
+	status: GameStatus;
+	players: Map<string, QuizPlayer>;
+}
+
+interface JoinRoomInput {
+	roomId: string;
+	clientId: string;
+	playerName?: string;
+}
+
+interface SubmitAnswerInput {
+	roomId: string;
+	clientId: string;
+	isCorrect: boolean;
+}
+
+type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
+
+type JoinRoomResult = {
+	status: 'joined' | 'already-joined';
+	snapshot: RoomSnapshot;
+};
+
+type LeaveRoomResult =
+	| {
+		status: 'left';
+		snapshot: RoomSnapshot;
+	  }
+	| {
+		status: 'room-closed';
+		snapshot: null;
+	  }
+	| {
+		status: 'room-not-found' | 'not-in-room';
+		snapshot: RoomSnapshot | null;
+	  };
+
 @Injectable()
 export class QuizRealtimeService {
+	private readonly rooms = new Map<string, QuizRoom>();
+
 	createPongMessage(payload: string | undefined, clientId: string) {
 		return {
 			message: payload || 'pong',
 			clientId,
+		};
+	}
+
+	joinRoom({ roomId, clientId, playerName }: JoinRoomInput): JoinRoomResult {
+		let room = this.rooms.get(roomId);
+
+		if (!room) {
+			room = {
+				roomId,
+				hostId: clientId,
+				status: 'waiting',
+				players: new Map<string, QuizPlayer>(),
+			};
+			this.rooms.set(roomId, room);
+		}
+
+		if (room.players.has(clientId)) {
+			return {
+				status: 'already-joined',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+		room.players.set(clientId, {
+			clientId,
+			name: playerName?.trim() || `Player-${clientId.slice(0, 5)}`,
+			score: 0,
+		});
+
+		return {
+			status: 'joined',
+			snapshot: this.getRoomSnapshot(roomId),
+		};
+	}
+
+	leaveRoom(roomId: string, clientId: string): LeaveRoomResult {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			return {
+				status: 'room-not-found',
+				snapshot: null,
+			};
+		}
+
+		if (!room.players.has(clientId)) {
+			return {
+				status: 'not-in-room',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+		room.players.delete(clientId);
+
+		if (room.players.size === 0) {
+			this.rooms.delete(roomId);
+			return {
+				status: 'room-closed',
+				snapshot: null,
+			};
+		}
+
+		if (room.hostId === clientId) {
+			const nextHost = room.players.values().next().value as
+				| QuizPlayer
+				| undefined;
+			if (nextHost) {
+				room.hostId = nextHost.clientId;
+			}
+		}
+
+		return {
+			status: 'left',
+			snapshot: this.getRoomSnapshot(roomId),
+		};
+	}
+
+	startGame(roomId: string, clientId: string) {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			throw new Error('Room not found');
+		}
+
+		if (room.hostId !== clientId) {
+			throw new Error('Only host can start the game');
+		}
+
+		room.status = 'in-progress';
+		return this.getRoomSnapshot(roomId);
+	}
+
+	submitAnswer({ roomId, clientId, isCorrect }: SubmitAnswerInput) {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			throw new Error('Room not found');
+		}
+
+		const player = room.players.get(clientId);
+		if (!player) {
+			throw new Error('Player is not in this room');
+		}
+
+		if (isCorrect) {
+			player.score += 1;
+		}
+
+		return this.getRoomSnapshot(roomId);
+	}
+
+	removeClientFromAllRooms(clientId: string) {
+		const updates: Array<{ roomId: string; result: LeaveRoomResult }> = [];
+
+		for (const roomId of this.rooms.keys()) {
+			const room = this.rooms.get(roomId);
+			if (!room || !room.players.has(clientId)) {
+				continue;
+			}
+
+			const result = this.leaveRoom(roomId, clientId);
+			updates.push({ roomId, result });
+		}
+
+		return updates;
+	}
+
+	private getRoomSnapshot(roomId: string) {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			return null;
+		}
+
+		return {
+			roomId: room.roomId,
+			hostId: room.hostId,
+			status: room.status,
+			players: Array.from(room.players.values()).map((player) => ({
+				clientId: player.clientId,
+				name: player.name,
+				score: player.score,
+			})),
 		};
 	}
 }
