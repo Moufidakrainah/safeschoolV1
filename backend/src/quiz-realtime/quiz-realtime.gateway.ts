@@ -179,6 +179,11 @@ export class QuizRealtimeGateway
 
 		this.server.to(payload.roomId).emit('quiz:game:started', snapshot);
 
+		const questionSnapshot = this.quizRealtimeService.getQuestionForRoom(payload.roomId);
+
+		if (questionSnapshot)
+			this.server.to(payload.roomId).emit('quiz:question', questionSnapshot);
+
 		return {
 			event: 'quiz:started',
 			data: snapshot,

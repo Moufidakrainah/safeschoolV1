@@ -5,17 +5,18 @@ interface Question {
   id: number;
   text: string;
   options: string[];
-  correctIndex: number;
 }
 
-const questions: Question[] = [
-  {
-    id: 1,
-    text: 'what is 1+1?',
-    options: ['2', '3', '1', '-42'],
-    correctIndex: 0,
-  },
-];
+type QuestionPayload = {
+  roomId: string;
+  question: {
+    id: number;
+    text: string;
+    options: string[];
+  };
+  questionNumber: number;
+  totalQuestions: number;
+};
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
 
@@ -30,6 +31,10 @@ export default function Quiz() {
   const [connected, setConnected] = useState(false);
   const [lastPong, setLastPong] = useState<string>('');
   const [socketError, setSocketError] = useState<string>('');
+  const [gameStarted, setGameStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload["question"] | null>(null);
+  const [questionNumber, setQuestionNumber] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
 
   useEffect(() => {
     const socket = io(SOCKET_URL, {
@@ -66,6 +71,16 @@ export default function Quiz() {
       setJoinedRoom(data.roomId);
       setSocketError('');
       setIsHost(data.hostId === socket.id);
+    });
+
+    socket.on('quiz:game:started', (data) => {
+        setGameStarted(true);
+    });
+
+    socket.on('quiz:question', (data: QuestionPayload) => {
+      setCurrentQuestion(data.question);
+      setQuestionNumber(data.questionNumber);
+      setTotalQuestions(data.totalQuestions);
     });
 
     return () => {
@@ -110,19 +125,25 @@ export default function Quiz() {
     socketRef.current?.emit('quiz:leave', { roomId: trimmed });
   }
 
-  function  handleSubmitAnswer() {
+  function  handleStartGame() {
+    const trimmed = roomCode.trim();
 
+    if (!connected) {
+      setSocketError('Socket is not connected.');
+    return;
+    }
+
+    socketRef.current?.emit('quiz:start', { roomId: trimmed });
   }
 
-  function handleAnswer(index: number) {
-    if (index === questions[current].correctIndex) {
-      setScore((s) => s + 1);
-    }
-    if (current + 1 < questions.length) {
-      setCurrent((c) => c + 1);
-    } else {
-      setFinished(true);
-    }
+  function handleAnswer(selectedIndex: number) {
+    if (!joinedRoom || !currentQuestion) return;
+
+    socketRef.current?.emit('quiz:answer', {
+      roomId: joinedRoom,
+      questionId: currentQuestion.id,
+      selectedIndex,
+    });
   }
 
   if (!joinedRoom) {
@@ -149,42 +170,39 @@ export default function Quiz() {
     );
   }
 
-/*   if (finished) {
+  if (gameStarted) {
     return (
       <div>
-        <h1>Quiz finished</h1>
+        <h1>Quiz</h1>
         <p>Room: {joinedRoom}</p>
-        <p>Score: {score} / {questions.length}</p>
-        <button onClick={() => {setFinished(false); setScore(0); setCurrent(0)}} style={{padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px'}}>restart</button>
+        <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
+        {socketError ? <p>Socket error: {socketError}</p> : null}
+        <button onClick={handlePing} disabled={!connected}>
+          Send ping
+        </button>
+        {lastPong ? <p>{lastPong}</p> : null}
+        <button onClick={disconnect} disabled={!connected}>
+          Disconnect socket
+        </button>
+        {currentQuestion ? (
+          <>
+            <p>{questionNumber} / {totalQuestions}</p>
+            <h2>{currentQuestion.text}</h2>
+            <ul>
+              {currentQuestion.options.map((opt, i) => (
+                <li key={i}>
+                  <button onClick={() => handleAnswer(i)}>{opt}</button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <p>Waiting for question...</p>
+        )}
       </div>
+      
     );
-  } */
-
-/*   const q = questions[current];
-  return (
-    <div>
-      <h1>Quiz</h1>
-      <p>Room: {joinedRoom}</p>
-      <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-      {socketError ? <p>Socket error: {socketError}</p> : null}
-      <button onClick={handlePing} disabled={!connected}>
-        Send ping
-      </button>
-      {lastPong ? <p>{lastPong}</p> : null}
-      <button onClick={disconnect} disabled={!connected}>
-        Disconnect socket
-      </button>
-      <p>{current + 1} / {questions.length}</p>
-      <h2>{q.text}</h2>
-      <ul>
-        {q.options.map((opt, i) => (
-          <li key={i}>
-            <button onClick={() => handleAnswer(i)}>{opt}</button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  ); */
+  }
 
   return (
     <div>
@@ -201,7 +219,7 @@ export default function Quiz() {
       <button onClick={handleLeaveRoom}>
         Leave room
       </button>
-      <button onClick={handleSubmitAnswer} disabled={!isHost}>
+      <button onClick={handleStartGame} disabled={!isHost}>
         Start the quiz?
       </button>
     </div>

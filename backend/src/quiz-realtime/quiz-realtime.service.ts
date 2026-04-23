@@ -1,5 +1,28 @@
 import { Injectable } from '@nestjs/common';
 
+interface QuestionInternal {
+  id: number;
+  text: string;
+  options: string[];
+  correctIndex: number;
+}
+
+interface QuestionPublic {
+  id: number;
+  text: string;
+  options: string[];
+}
+
+const Questions: QuestionInternal[] = [
+	{
+		id: 1,
+		text: 'what is 1+1?',
+		options: ['2','3','1','-42'],
+		correctIndex: 0,
+	},
+]
+
+
 type GameStatus = 'waiting' | 'in-progress' | 'finished';
 
 interface QuizPlayer {
@@ -13,6 +36,9 @@ interface QuizRoom {
 	hostId: string;
 	status: GameStatus;
 	players: Map<string, QuizPlayer>;
+	currentQuestionIndex: number;
+	answeredPlayerIds: Map<string, boolean>;
+	startedAt: number | null;
 }
 
 interface JoinRoomInput {
@@ -68,6 +94,9 @@ export class QuizRealtimeService {
 				hostId: clientId,
 				status: 'waiting',
 				players: new Map<string, QuizPlayer>(),
+				currentQuestionIndex: 0,
+				answeredPlayerIds: new Map<string, boolean>(),
+				startedAt: null,
 			};
 			this.rooms.set(roomId, room);
 		}
@@ -164,6 +193,10 @@ export class QuizRealtimeService {
 		return this.getRoomSnapshot(roomId);
 	}
 
+	getQuestionForRoom(roomId: string) { 
+		return this.getQuestionSnapshot(roomId);
+	}
+
 	removeClientFromAllRooms(clientId: string) {
 		const updates: Array<{ roomId: string; result: LeaveRoomResult }> = [];
 
@@ -196,5 +229,28 @@ export class QuizRealtimeService {
 				score: player.score,
 			})),
 		};
+	}
+
+	private toPublicQuestion(q: QuestionInternal): QuestionPublic {
+    	return { id: q.id, text: q.text, options: q.options };
+	}
+
+	private getQuestionSnapshot(roomId: string) {
+    	const room = this.rooms.get(roomId);
+    	if (!room) {
+    	    return null;
+    	}
+
+    	const question = Questions[room.currentQuestionIndex];
+    	if (!question) {
+    	    return null;
+    	}
+
+    	return {
+    	    roomId: room.roomId,
+    	    question: this.toPublicQuestion(question),
+    	    questionNumber: room.currentQuestionIndex + 1,
+    	    totalQuestions: Questions.length,
+    	};
 	}
 }
