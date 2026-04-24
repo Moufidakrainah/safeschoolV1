@@ -39,7 +39,20 @@ export class QuizRealtimeGateway
 	@WebSocketServer()
 	server: Server;
 
-	afterInit() {}
+	afterInit() {
+		this.quizRealtimeService.setOnQuestionTimedOut(
+			({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
+				this.server.to(roomId).emit('quiz:score:update', roomSnapshot);
+
+				if (nextQuestionSnapshot) {
+					this.server.to(roomId).emit('quiz:question', nextQuestionSnapshot);
+					return;
+				}
+
+				this.server.to(roomId).emit('quiz:game:over', roomSnapshot);
+			},
+		);
+	}
 
 	handleConnection(client: Socket) {
 		console.log(`quiz client connected: ${client.id}`);
@@ -82,6 +95,13 @@ export class QuizRealtimeGateway
 			clientId: client.id,
 			playerName: payload.playerName,
 		});
+
+		if (result.status === 'quiz-already-started') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'quiz-already-started', snapshot: result.snapshot },
+			};
+		}
 
 		if (result.status === 'joined') {
 			client.join(payload.roomId);

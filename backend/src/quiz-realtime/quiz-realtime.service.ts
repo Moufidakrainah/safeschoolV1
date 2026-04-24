@@ -20,7 +20,15 @@ const QUESTIONS: QuestionInternal[] = [
 		options: ['2', '3', '1', '-42'],
 		correctIndex: 0,
 	},
+	{
+		id: 2,
+		text: 'what is 2+2?',
+		options: ['0', '1', '2.5', '4'],
+		correctIndex: 3,
+	},
 ];
+
+const QUESTION_TIME_LIMIT_MS = 30_000;
 
 type GameStatus = 'waiting' | 'in-progress' | 'finished';
 
@@ -38,6 +46,14 @@ interface QuizRoom {
 	currentQuestionIndex: number;
 	answeredPlayerIds: Set<string>;
 	startedAt: number | null;
+	questionEndsAt: number | null;
+	questionTimer: NodeJS.Timeout | null;
+}
+
+interface TimeoutAdvancePayload {
+	roomId: string;
+	roomSnapshot: RoomSnapshot;
+	nextQuestionSnapshot: ReturnType<QuizRealtimeService['getQuestionSnapshot']>;
 }
 
 interface JoinRoomInput {
@@ -83,7 +99,7 @@ type SubmitAnswerResult =
 	  };
 
 type JoinRoomResult = {
-	status: 'joined' | 'already-joined';
+	status: 'joined' | 'already-joined' | 'quiz-already-started';
 	snapshot: RoomSnapshot;
 };
 
@@ -95,6 +111,7 @@ type LeaveRoomResult =
 @Injectable()
 export class QuizRealtimeService {
 	private readonly rooms = new Map<string, QuizRoom>();
+	private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
 
 	createPongMessage(payload: string | undefined, clientId: string) {
 		return {
@@ -115,8 +132,15 @@ export class QuizRealtimeService {
 				currentQuestionIndex: 0,
 				answeredPlayerIds: new Set<string>(),
 				startedAt: null,
+				questionEndsAt: null,
+				questionTimer: null,
 			};
 			this.rooms.set(roomId, room);
+		} else if (room.status === 'in-progress') {
+			return {
+				status: 'quiz-already-started',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
 		}
 
 		if (room.players.has(clientId)) {
@@ -154,6 +178,7 @@ export class QuizRealtimeService {
 		room.players.delete(clientId);
 
 		if (room.players.size === 0) {
+			this.clearQuestionTimer(room);
 			this.rooms.delete(roomId);
 			return { status: 'room-closed', snapshot: null };
 		}
@@ -176,10 +201,12 @@ export class QuizRealtimeService {
 		if (!room) return { status: 'room-not-found', snapshot: null };
 		if (room.hostId !== clientId) return { status: 'not-host', snapshot: null };
 
+		this.clearQuestionTimer(room);
 		room.status = 'in-progress';
 		room.currentQuestionIndex = 0;
 		room.answeredPlayerIds.clear();
 		room.startedAt = Date.now();
+		this.scheduleQuestionTimer(room);
 
 		return { status: 'started', snapshot: this.getRoomSnapshot(roomId) };
 	}
@@ -193,6 +220,10 @@ export class QuizRealtimeService {
 		const player = room.players.get(clientId);
 		if (!player) {
 			return { status: 'player-not-in-room', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
+		}
+
+		if (room.status !== 'in-progress') {
+			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
 		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
@@ -218,8 +249,7 @@ export class QuizRealtimeService {
 		const allAnswered = [...room.players.keys()].every((id) => room.answeredPlayerIds.has(id));
 		let questionAdvanced = false;
 		if (allAnswered) {
-			room.currentQuestionIndex += 1;
-			room.answeredPlayerIds.clear();
+			this.advanceToNextQuestion(room);
 			questionAdvanced = true;
 		}
 
@@ -229,6 +259,10 @@ export class QuizRealtimeService {
 			answerResult: { roomId, playerId: clientId, questionId, isCorrect },
 			questionAdvanced,
 		};
+	}
+
+	setOnQuestionTimedOut(handler: ((payload: TimeoutAdvancePayload) => void) | undefined) {
+		this.onQuestionTimedOut = handler;
 	}
 
 	removeClientFromAllRooms(clientId: string) {
@@ -273,6 +307,78 @@ export class QuizRealtimeService {
 			question: this.toPublicQuestion(question),
 			questionNumber: room.currentQuestionIndex + 1,
 			totalQuestions: QUESTIONS.length,
+			timeLimitMs: QUESTION_TIME_LIMIT_MS,
+			endsAt: room.questionEndsAt,
+		};
+	}
+
+	private clearQuestionTimer(room: QuizRoom) {
+		if (room.questionTimer) {
+			clearTimeout(room.questionTimer);
+			room.questionTimer = null;
+		}
+		room.questionEndsAt = null;
+	}
+
+	private scheduleQuestionTimer(room: QuizRoom) {
+		this.clearQuestionTimer(room);
+
+		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+		if (!currentQuestion || room.status !== 'in-progress') {
+			return;
+		}
+
+		room.questionEndsAt = Date.now() + QUESTION_TIME_LIMIT_MS;
+		room.questionTimer = setTimeout(() => {
+			const timeoutResult = this.advanceQuestionFromTimeout(room.roomId);
+			if (!timeoutResult || !this.onQuestionTimedOut) {
+				return;
+			}
+
+			this.onQuestionTimedOut({
+				roomId: room.roomId,
+				roomSnapshot: timeoutResult.roomSnapshot,
+				nextQuestionSnapshot: timeoutResult.nextQuestionSnapshot,
+			});
+		}, QUESTION_TIME_LIMIT_MS);
+	}
+
+	private advanceQuestionFromTimeout(roomId: string) {
+		const room = this.rooms.get(roomId);
+		if (!room || room.status !== 'in-progress') {
+			return null;
+		}
+
+		return this.advanceToNextQuestion(room);
+	}
+
+	private removeAllPlayersFromARoomId(room: QuizRoom) {
+		if (!room || room.players.size <= 0) return;
+
+		room.players.forEach((client) => {
+			room.players.delete(client.clientId);
+		})
+	}
+
+	private advanceToNextQuestion(room: QuizRoom) {
+		this.clearQuestionTimer(room);
+		room.currentQuestionIndex += 1;
+		room.answeredPlayerIds.clear();
+
+		const hasMoreQuestions = room.currentQuestionIndex < QUESTIONS.length;
+		if (!hasMoreQuestions) {
+			this.removeAllPlayersFromARoomId(room);
+			room.status = 'finished';
+			return {
+				roomSnapshot: this.getRoomSnapshot(room.roomId),
+				nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
+			};
+		}
+
+		this.scheduleQuestionTimer(room);
+		return {
+			roomSnapshot: this.getRoomSnapshot(room.roomId),
+			nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
 		};
 	}
 
