@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-interface Question {
-  id: number;
-  text: string;
-  options: string[];
-}
-
 type QuestionPayload = {
   roomId: string;
   question: {
@@ -30,16 +24,12 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL ?? 'http://localhost:5000';
 export default function Quiz() {
   const socketRef = useRef<Socket | null>(null);
   const [isHost, setIsHost] = useState(false);
-  const [current, setCurrent] = useState(0);
-  const [score, setScore] = useState(0);
-  const [finished, setFinished] = useState(false);
   const [roomCode, setRoomCode] = useState('');
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
-  const [lastPong, setLastPong] = useState<string>('');
   const [socketError, setSocketError] = useState<string>('');
   const [gameStarted, setGameStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload["question"] | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload['question'] | null>(null);
   const [questionNumber, setQuestionNumber] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [answerResultMessage, setAnswerResultMessage] = useState('');
@@ -65,25 +55,20 @@ export default function Quiz() {
       setSocketError(error.message);
     });
 
-    socket.on('quiz:pong', (data: { message: string; clientId: string }) => {
-      setLastPong(`${data.message} from ${data.clientId}`);
-    });
-
-    socket.on('quiz:left', (snapshot) => {
-      console.log("left quiz", snapshot);
+    socket.on('quiz:left', () => {
       setRoomCode('');
       setJoinedRoom(null);
       setAnswerResultMessage('');
     });
 
-    socket.on('quiz:joined', (data: { roomId: string, hostId: string}) => {
+    socket.on('quiz:joined', (data: { roomId: string; hostId: string }) => {
       setJoinedRoom(data.roomId);
       setSocketError('');
       setIsHost(data.hostId === socket.id);
     });
 
-    socket.on('quiz:game:started', (data) => {
-        setGameStarted(true);
+    socket.on('quiz:game:started', () => {
+      setGameStarted(true);
     });
 
     socket.on('quiz:question', (data: QuestionPayload) => {
@@ -94,15 +79,7 @@ export default function Quiz() {
     });
 
     socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
-      if (data.isCorrect) {
-        setAnswerResultMessage('Correct answer!');
-        return;
-      }
-      setAnswerResultMessage('Wrong answer.');
-    });
-
-    socket.on('quiz:score:update', (data) => {
-        //scoreboard update here <--
+      setAnswerResultMessage(data.isCorrect ? 'Correct answer!' : 'Wrong answer.');
     });
 
     return () => {
@@ -110,14 +87,6 @@ export default function Quiz() {
       socketRef.current = null;
     };
   }, []);
-
-  function handlePing() {
-    socketRef.current?.emit('quiz:ping', 'hello from Quiz.tsx');
-  }
-
-  function disconnect() {
-    socketRef.current.disconnect();
-  }
 
   function handleJoinRoom(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -137,25 +106,25 @@ export default function Quiz() {
   }
 
   function handleLeaveRoom() {
-    const trimmed = roomCode.trim();
+    if (!joinedRoom) return;
 
     if (!connected) {
       setSocketError('Socket is not connected.');
       return;
     }
 
-    socketRef.current?.emit('quiz:leave', { roomId: trimmed });
+    socketRef.current?.emit('quiz:leave', { roomId: joinedRoom });
   }
 
-  function  handleStartGame() {
-    const trimmed = roomCode.trim();
+  function handleStartGame() {
+    if (!joinedRoom) return;
 
     if (!connected) {
       setSocketError('Socket is not connected.');
-    return;
+      return;
     }
 
-    socketRef.current?.emit('quiz:start', { roomId: trimmed });
+    socketRef.current?.emit('quiz:start', { roomId: joinedRoom });
   }
 
   function handleAnswer(selectedIndex: number) {
@@ -174,7 +143,6 @@ export default function Quiz() {
         <h1>Quiz</h1>
         <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
         {socketError ? <p>Socket error: {socketError}</p> : null}
-
         <form onSubmit={handleJoinRoom}>
           <label htmlFor="room-code">Room code</label>
           <input
@@ -199,13 +167,6 @@ export default function Quiz() {
         <p>Room: {joinedRoom}</p>
         <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
         {socketError ? <p>Socket error: {socketError}</p> : null}
-        <button onClick={handlePing} disabled={!connected}>
-          Send ping
-        </button>
-        {lastPong ? <p>{lastPong}</p> : null}
-        <button onClick={disconnect} disabled={!connected}>
-          Disconnect socket
-        </button>
         {currentQuestion ? (
           <>
             <p>{questionNumber} / {totalQuestions}</p>
@@ -223,25 +184,15 @@ export default function Quiz() {
           <p>Waiting for question...</p>
         )}
       </div>
-      
     );
   }
 
   return (
     <div>
       <p>Room: {joinedRoom}</p>
-       <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-        {socketError ? <p>Socket error: {socketError}</p> : null}
-        <button onClick={handlePing} disabled={!connected}>
-         Send ping
-        </button>
-         {lastPong ? <p>{lastPong}</p> : null}
-      <button onClick={disconnect} disabled={!connected}>
-        Disconnect socket
-      </button>
-      <button onClick={handleLeaveRoom}>
-        Leave room
-      </button>
+      <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
+      {socketError ? <p>Socket error: {socketError}</p> : null}
+      <button onClick={handleLeaveRoom}>Leave room</button>
       <button onClick={handleStartGame} disabled={!isHost}>
         Start the quiz?
       </button>
