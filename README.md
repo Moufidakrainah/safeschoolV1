@@ -13,10 +13,18 @@ SafeSchool est une application web permettant la gestion des signalements de har
 cp .env.example .env
 
 # 2. Lancer tous les services
-docker compose up --build
+docker compose up -d --build
 
-# 3.Appliquer les données de test
+# 3. Appliquer les données de test
 docker compose exec -T database psql -U postgres safeschool < database/seed.sql
+
+# 5. Verifier que les containers sont up
+docker ps -a
+
+# 6. En cas de probleme, pour supprimer tous les containers et les volumes
+docker rm -f $(docker ps -aq)
+
+
 
 ---
 

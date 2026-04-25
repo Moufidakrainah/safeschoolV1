@@ -222,6 +222,15 @@ export default function AdminDashboard() {
 
   const Header = () => (
 	<div>
+		<div className="text-3xl font-bold text-green-500">
+		Tailwind
+		</div>
+
+		<div style={{ color: 'red', fontSize: '40px' }}>
+		TEST
+		</div>
+
+
 		<div style={{ padding: '8px 32px', background: '#ebfcff', display: 'flex', alignItems: 'center', position:'relative' }}>
 			<span style={{ margin:'0 auto', color: '#000', fontWeight:'bold', fontSize: '14px' }}>Espace {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)} - {user?.firstName} {user?.lastName?.toUpperCase()}</span>
 			<button onClick={logoutUser} style={{ position:'absolute', right:'32px', padding: '8px 16px', background: 'transparent', color: '#000', border: '1px solid #0097b2', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
