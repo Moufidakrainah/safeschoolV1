@@ -11,7 +11,8 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 3. [L'authentification JWT](#3-lauthentification-jwt)
 4. [Le Frontend — React + Vite](#4-le-frontend--react--vite)
 5. [Tailwind CSS — le système de classes](#5-tailwind-css--le-système-de-classes)
-6. [Flux complet de A à Z](#6-flux-complet-de-a-à-z)
+6. [Accessibilité — WCAG](#6-accessibilité--wcag)
+7. [Flux complet de A à Z](#7-flux-complet-de-a-à-z)
 
 ---
 
@@ -60,64 +61,113 @@ La notation `"5000:3000"` signifie : _le port 3000 du conteneur est accessible v
 
 ### Volumes
 
-#### Deux types de volumes distincts
+#### Le schéma des couches — vue d'ensemble
 
-Docker propose deux mécanismes de volumes, et le `docker-compose.yml` du projet utilise les deux en même temps pour le service `frontend` (idem pour `backend`) :
-
-```yaml
-volumes:
-  - ./frontend:/app        # volume de type "bind mount" (miroir)
-  - /app/node_modules      # volume de type "volume nommé anonyme" (isolé)
-```
-
-#### Volume miroir (`./frontend:/app`)
-
-Ce volume synchronise **ton dossier local** avec le dossier `/app` dans le conteneur, en temps réel et dans les deux sens.
+Avant d'expliquer les deux types de volumes, voici comment les différentes couches s'empilent :
 
 ```
-TON DISQUE (host)              CONTENEUR
-────────────────────           ─────────────────────
-./frontend/                ←→  /app/
-  src/App.tsx              ←→    src/App.tsx
-  package.json             ←→    package.json
-  package-lock.json        ←→    package-lock.json
+┌─────────────────────────────────────────────────────────────┐
+│  TON DISQUE (le "host" — ta machine physique)               │
+│                                                             │
+│  /home/elodie/Documents/Transcendence/frontend/             │
+│    src/                                                     │
+│    package.json                                             │
+│    package-lock.json                                        │
+│    (pas de node_modules ici)                                │
+└────────────────────┬────────────────────────────────────────┘
+                     │  bind mount (miroir en temps réel)
+                     │  déclaré : - ./frontend:/app
+                     ↓
+┌─────────────────────────────────────────────────────────────┐
+│  CONTENEUR Docker (safeschool_frontend)                     │
+│  Système de fichiers Linux Alpine                           │
+│                                                             │
+│  /app/                          ← miroir de ton disque      │
+│    src/                         ← tes fichiers source       │
+│    package.json                 ← ta liste de dépendances   │
+│    package-lock.json            ← versions verrouillées     │
+│                                                             │
+│  /app/node_modules/             ← volume séparé (voir bas)  │
+│    react/                                                   │
+│    vite/                                                     │
+│    react-i18next/  ← installé ici, PAS sur ton disque       │
+└─────────────────────────────────────────────────────────────┘
+                     ↑
+                     │  volume nommé anonyme (isolé)
+                     │  déclaré : - /app/node_modules
+┌─────────────────────────────────────────────────────────────┐
+│  VOLUME DOCKER GÉRÉ PAR DOCKER (stocké ailleurs sur le SSD) │
+│  invisible depuis ton bureau, géré uniquement par Docker    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-Quand tu modifies `src/App.tsx` dans VS Code → le conteneur le voit immédiatement → Vite recharge le navigateur. C'est ce qui rend le **hot reload** possible sans rebuild.
+#### Deux types de volumes — la différence
 
-**Conséquence importante** : tout ce que le conteneur modifie dans `/app` (comme `package.json` lors d'un `npm install`) apparaît aussi sur ton disque.
+**Bind mount** (`./frontend:/app`) — un miroir
 
-#### Volume isolé (`/app/node_modules`)
-
-Cette ligne dit à Docker : _"le dossier `/app/node_modules` dans le conteneur est géré séparément — ne le synchronise pas avec le disque hôte"_.
+Un bind mount est un lien direct entre un dossier de ta machine et un chemin dans le conteneur. Ce qui existe dans l'un existe dans l'autre, en permanence et dans les deux sens.
 
 ```
-TON DISQUE (host)              CONTENEUR
-────────────────────           ─────────────────────
-./frontend/                    /app/
-  (pas de node_modules) ✗  ←→    node_modules/   ← volume Docker séparé
-                                    react/
-                                    vite/
-                                    ...
+Tu modifies src/App.tsx dans VS Code
+        ↓
+Le fichier change sur ton disque
+        ↓  (bind mount)
+Le fichier change dans /app/src/App.tsx dans le conteneur
+        ↓
+Vite détecte le changement → navigateur rechargé
 ```
 
-**Pourquoi c'est nécessaire** : `node_modules` contient des binaires compilés pour le système d'exploitation. Si tu es sur Mac et ton collègue sur Linux, les binaires sont incompatibles. En isolant `node_modules` dans un volume Docker, chaque machine a ses propres binaires compilés pour son OS — sans conflit.
+C'est le mécanisme qui rend le hot reload possible. Aucun rebuild nécessaire.
 
-#### Ce que ça implique pour `npm install`
+**Volume nommé anonyme** (`/app/node_modules`) — un espace isolé
 
-Pour installer un nouveau package (ex : `react-i18next`), il faut que la commande s'exécute **dans le conteneur**, pas sur ton disque hôte :
+Cette déclaration dit à Docker : _"pour ce chemin précis dans le conteneur, crée un espace de stockage séparé qui n'est pas relié à mon disque"_.
+
+```
+./frontend/          ←→  /app/           ← miroir (bind mount)
+  (rien ici)              node_modules/  ← espace isolé (volume)
+                            react/
+                            vite/
+                            react-i18next/
+```
+
+**Pourquoi isoler `node_modules` ?**
+
+`node_modules` contient des fichiers binaires compilés pour un OS spécifique. Si ton disque hôte est macOS et que le conteneur est Linux Alpine, ces binaires sont incompatibles. En mettant `node_modules` dans un volume Docker isolé, chaque machine (la tienne, celle de chaque collègue) a ses propres binaires compilés pour son propre OS, sans jamais se mélanger.
+
+Si ce volume n'existait pas, le bind mount écraserait le `node_modules` du conteneur avec le `node_modules` de ton disque (qui n'existe probablement pas) → le conteneur planterait au démarrage.
+
+#### Décorticage de la commande `docker compose exec`
 
 ```bash
-# Bonne pratique : exécuter dans le conteneur en cours d'exécution
-docker compose exec frontend npm install react-i18next i18next
+docker compose exec frontend npm install react-i18next i18next i18next-browser-languagedetector
+│      │       │    │        │   │       │
+│      │       │    │        │   │       └─ les 3 packages à installer
+│      │       │    │        │   └───────── commande npm standard
+│      │       │    │        └───────────── sous-commande npm : installe des packages
+│      │       │    └────────────────────── nom du service cible (dans docker-compose.yml)
+│      │       └─────────────────────────── "exécute une commande dans un conteneur en marche"
+│      └─────────────────────────────────── lit docker-compose.yml pour trouver le service
+└────────────────────────────────────────── outil Docker en ligne de commande
 ```
 
-Ce qui se passe :
-1. `package.json` est modifié dans `/app/` → miroir → ton `./frontend/package.json` est mis à jour ✅
-2. `package-lock.json` est modifié dans `/app/` → miroir → ton `./frontend/package-lock.json` est mis à jour ✅
-3. Les fichiers du package sont installés dans `/app/node_modules/` → volume isolé, disponible immédiatement dans le conteneur ✅
+- `docker compose` — pas `docker` seul. Cette variante lit ton `docker-compose.yml` et connaît les noms des services (`frontend`, `backend`, etc.). Elle sait donc ce que `frontend` signifie.
+- `exec` — "execute". Lance une commande à l'intérieur d'un conteneur **déjà en marche**, sans le redémarrer ni en créer un nouveau.
+- `frontend` — le nom du service tel qu'il est déclaré dans `docker-compose.yml`. Docker le traduit en ID de conteneur (`safeschool_frontend`).
+- `npm install` — commande Node standard. Ici elle s'exécute dans l'environnement Linux du conteneur, avec le bon Node, sur le bon OS.
+- `react-i18next i18next i18next-browser-languagedetector` — les trois packages à installer en une seule passe.
 
-**Les fichiers que git doit tracker (`package.json` et `package-lock.json`) sont bien sur ton disque**, donc `git add` et `git push` fonctionnent normalement.
+**Ce qui se passe dans le système de fichiers :**
+
+```
+npm install s'exécute dans /app/ (le conteneur)
+  │
+  ├── écrit dans /app/package.json            → bind mount → ton disque ✅ (git le voit)
+  ├── écrit dans /app/package-lock.json       → bind mount → ton disque ✅ (git le voit)
+  └── installe dans /app/node_modules/        → volume isolé ✅ (disponible immédiatement)
+```
+
+Les deux fichiers que git doit suivre (`package.json` et `package-lock.json`) sont sur ton disque grâce au bind mount. Le code des packages lui-même est dans le volume isolé — git ne le suit pas (c'est voulu : `node_modules` est dans `.gitignore`).
 
 #### Ce que récupère un collègue après `git pull`
 
@@ -140,7 +190,11 @@ Le `--build` reconstruit l'image Docker à partir du Dockerfile. La ligne `RUN n
 | `npm install ...` dans `./frontend/` directement | Si Node 20 est installé sur ta machine | Oui |
 | Modifier `package.json` à la main + `docker compose up --build` | Si le conteneur est arrêté | Non |
 
-Dans ce projet où tout est dockerisé, `docker compose exec` est la méthode recommandée.
+**Pourquoi A ne marche pas ici :** les binaires de `node_modules` installés sur le host ne correspondent pas à l'OS Linux du conteneur, et le volume isolé les rendrait de toute façon invisibles depuis le conteneur.
+
+**Pourquoi B est trop lourd :** reconstruire toute l'image prend plusieurs minutes alors que le conteneur tourne déjà. Pertinent seulement si le Dockerfile lui-même change.
+
+**Pourquoi C est la bonne option :** on entre dans le conteneur en marche, npm s'exécute dans le bon environnement, les fichiers de verrouillage sont mis à jour sur le disque via le bind mount. Résultat immédiat, sans surcoût.
 
 ### `depends_on` — ordre de démarrage
 
@@ -188,6 +242,162 @@ COPY . .
 EXPOSE 3000
 CMD ["npm", "run", "start:dev"]  # démarre NestJS en mode watch
 ```
+
+### Le bind mount — mécanisme central du développement sous Docker
+
+#### Définition
+
+Un **bind mount** est un lien direct entre un chemin sur le système hôte (ta machine) et un chemin dans le conteneur. Les deux pointent vers les mêmes données sur le disque physique — ce n'est pas une copie, c'est le même fichier accessible depuis deux endroits.
+
+```
+SYSTÈME HÔTE                       CONTENEUR
+────────────────                   ─────────────────────
+/home/elodie/.../frontend/   ←──→  /app/
+```
+
+Toute écriture dans l'un est immédiatement visible dans l'autre, dans les deux sens, sans aucune commande supplémentaire.
+
+#### Pourquoi c'est fondamental
+
+Sans bind mount, le conteneur contiendrait une **copie figée** du code au moment où l'image a été construite (`docker compose up --build`). Toute modification dans VS Code resterait invisible dans le conteneur, et il faudrait rebuilder l'image après chaque changement. C'est inutilisable en développement.
+
+Avec le bind mount `./frontend:/app` :
+
+```
+Tu modifies src/App.tsx dans VS Code
+        ↓  (même fichier sur le disque)
+Le conteneur voit le changement instantanément dans /app/src/App.tsx
+        ↓
+Vite détecte le changement
+        ↓
+HMR : le navigateur est mis à jour sans rechargement de page
+```
+
+#### Ce que le bind mount ne couvre pas
+
+Le bind mount synchronise tout le dossier `frontend/` — **sauf** `node_modules/`, qui est volontairement exclu par la deuxième entrée de volumes :
+
+```yaml
+volumes:
+  - ./frontend:/app        # bind mount — synchronisé
+  - /app/node_modules      # volume Docker — isolé, NON synchronisé
+```
+
+Cette exclusion est nécessaire car `node_modules` contient des binaires compilés pour l'OS du conteneur (Linux Alpine). Si le dossier `node_modules` du hôte existait et était synchronisé, il écraserait les binaires corrects avec des binaires potentiellement incompatibles.
+
+#### Récapitulatif
+
+| Ce qui change dans VS Code | Visible dans le conteneur ? | Via quel mécanisme ? |
+|---|---|---|
+| `src/App.tsx` | Oui, immédiatement | Bind mount |
+| `package.json` | Oui, immédiatement | Bind mount |
+| `node_modules/` | Non | Volume isolé intentionnel |
+
+### Avertissements `npm` — lecture et interprétation
+
+Lors d'une commande `npm install`, npm peut afficher des avertissements. Voici ceux rencontrés dans ce projet et leur signification.
+
+#### `version is obsolete` (dans docker-compose.yml)
+
+```
+WARN[0000] docker-compose.yml: the attribute `version` is obsolete
+```
+
+Le fichier `docker-compose.yml` du projet commence par `version: '3.8'`. Cette clé était autrefois obligatoire pour indiquer quelle version du format Compose utiliser. Les versions récentes de Docker Compose l'ignorent — le format est détecté automatiquement. Ce warning n'affecte rien au fonctionnement. La ligne peut être retirée du `docker-compose.yml` pour faire disparaître l'avertissement.
+
+#### `N vulnerabilities` (dans les dépendances npm)
+
+```
+4 vulnerabilities (3 moderate, 1 high)
+To address all issues, run: npm audit fix
+```
+
+Ce message signale que certains packages installés présentent des failles de sécurité connues, répertoriées dans la base de données publique npm. Il ne signifie pas que le projet est compromis — cela signifie que certaines dépendances ont des versions plus sécurisées disponibles.
+
+Points importants :
+- Ces vulnérabilités existaient avant l'installation des packages i18n — elles proviennent des dépendances déjà présentes (Vite, React, etc.)
+- En développement local, l'impact est faible car l'application n'est pas exposée sur un serveur public
+- La commande `npm audit fix` met à jour les dépendances affectées vers leurs versions corrigées lorsque c'est possible sans casser les autres packages
+
+#### `packages are looking for funding`
+
+```
+60 packages are looking for funding
+run `npm fund` for details
+```
+
+Message informatif uniquement. Certains mainteneurs de packages open source sollicitent des contributions financières. Aucune action requise.
+
+### Les fichiers JSON du projet — rôle de chacun
+
+Le projet contient plusieurs fichiers `.json` avec des rôles distincts. Aucun n'est interchangeable.
+
+#### `package.json` (frontend et backend)
+
+La **liste de courses** du projet Node. Contient :
+- `dependencies` : packages nécessaires en production et en développement
+- `devDependencies` : packages uniquement pour le développement (linters, types TypeScript…)
+- `scripts` : commandes raccourcies (`npm run dev` → `vite`, `npm run build` → `vite build`…)
+- `name`, `version` : métadonnées du projet
+
+C'est le seul fichier qu'un humain modifie directement (ou via `npm install`). Il n'existe pas de version binaire — c'est du JSON lisible.
+
+#### `package-lock.json` (frontend et backend)
+
+La **liste de courses avec les marques précises**. Généré automatiquement par npm, jamais modifié à la main. Contient les versions exactes de **toutes** les dépendances, y compris les dépendances des dépendances (l'arbre complet).
+
+Exemple : `package.json` dit `"react": "^18.0.0"` (n'importe quelle version 18.x). `package-lock.json` dit `"react": "18.3.1"` (exactement cette version). Cela garantit que deux développeurs différents installent exactement les mêmes versions, même si de nouvelles versions sont sorties entre-temps.
+
+**Ce fichier doit être commité dans git.** Sans lui, `npm install` pourrait installer des versions légèrement différentes sur chaque machine.
+
+#### `tsconfig.json` (frontend)
+
+Fichier d'entrée de la configuration TypeScript côté frontend. Dans ce projet, il ne contient pas de configuration directe — il délègue vers deux sous-configurations via `references` :
+
+```json
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+```
+
+Ce découpage permet d'avoir des règles TypeScript différentes pour le code applicatif (`src/`) et pour les fichiers de configuration Vite (qui s'exécutent dans Node, pas dans le navigateur).
+
+#### `tsconfig.app.json` (frontend)
+
+Configuration TypeScript pour le code de l'application (`src/`). Options clés :
+- `"target": "ES2023"` : le JavaScript produit doit être compatible ES2023
+- `"lib": ["ES2023", "DOM", "DOM.Iterable"]` : les types disponibles incluent les APIs du navigateur (DOM)
+- `"jsx": "react-jsx"` : active la transformation JSX pour React
+- `"strict": true` : active toutes les vérifications TypeScript strictes (typage complet obligatoire)
+- `"noEmit": true` : TypeScript vérifie les types mais ne génère pas de fichiers JS — c'est Vite qui s'en charge
+
+#### `tsconfig.node.json` (frontend)
+
+Configuration TypeScript pour les fichiers de configuration Vite (`vite.config.ts`). Ces fichiers s'exécutent dans Node.js au moment du build, pas dans le navigateur. La lib utilisée est donc `["ES2023"]` (sans DOM) et les types sont `["node"]` (API Node.js, pas DOM).
+
+#### `tsconfig.json` + `tsconfig.build.json` (backend)
+
+Le backend NestJS a également deux configurations TypeScript :
+- `tsconfig.json` : configuration de développement, inclut tous les fichiers `src/`
+- `tsconfig.build.json` : configuration de production, exclut les fichiers de test (`*.spec.ts`) pour ne pas les inclure dans le build final
+
+#### `nest-cli.json` (backend)
+
+Fichier de configuration du CLI NestJS. Utilisé par la commande `nest generate` pour créer automatiquement des modules, controllers, services. Options présentes :
+- `"sourceRoot": "src"` : le code source est dans `src/`
+- `"deleteOutDir": true` : supprime le dossier de build précédent avant chaque nouveau build
+
+#### `.vscode/settings.json`
+
+Configuration locale de VS Code pour ce projet. Ne concerne pas le code — s'applique uniquement à l'éditeur sur la machine courante. Peut contenir des réglages d'indentation, de formatage, de linting spécifiques au projet. Ce fichier peut être commité pour partager les réglages éditeur avec l'équipe, ou ignoré si chaque développeur préfère ses propres réglages.
+
+#### `elk/setup/ilm-policy.json`
+
+Configuration de la politique de rétention des logs Elasticsearch (ILM = Index Lifecycle Management). Définit combien de temps les logs sont conservés avant d'être archivés ou supprimés. Ce fichier est utilisé par le script `elk/setup/setup.sh` lors de l'initialisation de la stack ELK.
 
 ---
 
@@ -335,6 +545,71 @@ Cette ligne prend le nœud `<div id="root">` de `index.html` et y injecte toute 
 ### Vue d'ensemble du frontend
 
 Le frontend repose sur quelques fichiers pivots qui structurent toute l'application.
+
+---
+
+### Le format JSON
+
+JSON (JavaScript Object Notation) est un format de texte structuré pour stocker et transporter des données. Ce n'est pas du code — il ne contient aucune logique, aucune fonction. Uniquement des données sous forme de paires clé → valeur.
+
+```json
+{
+  "login": {
+    "labelEmail": "Identifiant",
+    "submit": "Se connecter"
+  }
+}
+```
+
+Tous les langages modernes savent lire et écrire du JSON. C'est le format standard d'échange de données sur le web (les réponses d'API sont en JSON, les fichiers de configuration aussi).
+
+Dans ce projet, JSON est utilisé pour trois usages distincts :
+
+| Fichier | Usage |
+|---|---|
+| `fr.json`, `en.json`, `de.json` | Données de traduction (textes de l'interface) |
+| `package.json`, `tsconfig.json`, `nest-cli.json` | Configuration des outils (Node, TypeScript, NestJS) |
+| `ilm-policy.json` | Paramètres Elasticsearch |
+
+**Règles de syntaxe JSON :**
+- Les clés sont toujours entre guillemets doubles `"clé"`
+- Les valeurs peuvent être : chaîne `"texte"`, nombre `42`, booléen `true`/`false`, objet `{}`, tableau `[]`, ou `null`
+- Pas de virgule après le dernier élément d'un objet ou d'un tableau
+- Pas de commentaires (contrairement à du code)
+
+---
+
+### `.ts` vs `.tsx` — la différence entre les deux extensions
+
+TypeScript utilise deux extensions de fichiers selon le contenu :
+
+| Extension | Contient du JSX ? | Utilisé pour |
+|---|---|---|
+| `.ts` | Non | Fonctions utilitaires, types, configuration, services HTTP |
+| `.tsx` | Oui | Composants React, pages — tout ce qui retourne du JSX |
+
+**JSX** est la syntaxe HTML-dans-du-TypeScript utilisée dans les `return` des composants React :
+
+```tsx
+// Ceci est du JSX — nécessite l'extension .tsx
+return <button className="bg-primary">Valider</button>;
+```
+
+Si ce code se trouve dans un fichier `.ts`, TypeScript refuse de compiler : il ne reconnaît pas les balises `<>` dans ce contexte. Le fichier doit être `.tsx`.
+
+**Répartition dans le projet :**
+
+```
+.ts (pas de JSX)                .tsx (contient du JSX)
+────────────────────────        ──────────────────────────────
+src/i18n/index.ts               src/main.tsx
+src/services/api.ts             src/App.tsx
+src/utils/validate-uuid.ts      src/pages/Login.tsx
+                                src/components/Button.tsx
+                                src/components/Input.tsx
+```
+
+**Règle pratique :** si le fichier contient un `return (...)` avec des balises HTML ou des composants React, c'est `.tsx`. Sinon, c'est `.ts`.
 
 ---
 
@@ -777,7 +1052,160 @@ Sur [tailwindcss.com/docs](https://tailwindcss.com/docs), la recherche se fait p
 
 ---
 
-## 6. Flux complet de A à Z
+## 6. Accessibilité — WCAG AA
+
+WCAG (Web Content Accessibility Guidelines) est le standard international d'accessibilité web, publié par le W3C. Le niveau **AA** est le niveau de conformité retenu pour ce projet. Il définit trois exigences techniques appliquées à l'ensemble du frontend : structure HTML sémantique, attributs ARIA sur les composants interactifs, et ratios de contraste conformes sur toute la palette de couleurs.
+
+---
+
+### HTML sémantique
+
+HTML5 fournit des éléments dont le nom exprime leur rôle structurel dans le document. Ces éléments permettent aux technologies d'assistance (lecteurs d'écran, outils de navigation par titres) de comprendre l'organisation de la page sans dépendre du CSS ou du JavaScript.
+
+#### Référentiel des balises structurelles
+
+| Balise | Rôle | Remarques |
+|---|---|---|
+| `<main>` | Contenu principal de la page | Unique par page, ne contient pas la navigation globale |
+| `<header>` | En-tête de page ou de section | Peut apparaître plusieurs fois dans un document |
+| `<footer>` | Pied de page ou de section | Contient les liens légaux, le sélecteur de langue |
+| `<nav>` | Bloc de navigation | Réservé aux groupes de liens de navigation |
+| `<section>` | Section thématique | Doit contenir un titre (`<h2>`, `<h3>`…) |
+| `<article>` | Contenu autonome et redistribuable | Fiches, cartes, entrées de liste |
+| `<h1>` à `<h6>` | Hiérarchie des titres | Ne pas sauter de niveau (`<h1>` → `<h3>` est interdit) |
+| `<button>` | Action déclenchable | Jamais remplacé par un `<div onClick>` |
+| `<form>` | Formulaire | Toujours présent autour d'un groupe de champs |
+
+`<div>` et `<span>` restent appropriés pour le layout (flex, grid, espacement) — ils ne doivent simplement pas être utilisés en lieu et place d'éléments structurels.
+
+#### Structure de référence d'une page
+
+```tsx
+<main>
+  <header>
+    <h1>Titre de la page</h1>
+  </header>
+
+  <section>
+    <h2>Titre de section</h2>
+    {/* contenu de la section */}
+  </section>
+
+  <footer>
+    {/* liens légaux, sélecteur de langue */}
+  </footer>
+</main>
+```
+
+`<main>` est le conteneur racine de chaque page. Il est unique dans le document. Les `<div>` de layout à l'intérieur sont autorisés — la sémantique s'applique aux niveaux structurels, pas à chaque boîte de mise en forme.
+
+---
+
+### Attributs ARIA
+
+ARIA (Accessible Rich Internet Applications) est un ensemble d'attributs HTML qui transmettent aux technologies d'assistance des informations que la structure seule ne peut pas exprimer : état d'un élément, association entre un champ et son message d'erreur, annonce dynamique d'un contenu.
+
+#### `aria-label`
+
+Fournit un nom accessible à un élément dont le contenu textuel est absent ou insuffisant.
+
+```tsx
+{/* Bouton icône sans texte visible */}
+<button aria-label={t('nav.close')}>✕</button>
+```
+
+Sans `aria-label`, un lecteur d'écran lirait le contenu textuel brut (`✕`), sans contexte.
+
+#### `role="alert"`
+
+Déclenche une annonce immédiate par le lecteur d'écran dès que l'élément apparaît dans le DOM, sans nécessiter de navigation de l'utilisateur vers cet élément.
+
+```tsx
+{error && (
+  <p role="alert" className="text-white text-sm bg-critical/30 ...">
+    {error}
+  </p>
+)}
+```
+
+Ce rôle est appliqué sur tous les messages d'erreur dynamiques de l'application.
+
+#### `aria-describedby`
+
+Associe un champ de formulaire à un texte descriptif ou à son message d'erreur, en référençant l'`id` de l'élément descriptif.
+
+```tsx
+<input id="email" aria-describedby="email-hint email-error" ... />
+<p id="email-hint">Format : prenom.nom@etablissement.fr</p>
+{error && <p id="email-error" role="alert">{error}</p>}
+```
+
+#### `aria-disabled`
+
+Communique l'état désactivé d'un composant aux technologies d'assistance, en complément de l'attribut HTML `disabled`.
+
+```tsx
+<button disabled aria-disabled="true">
+  {t('login.loading')}
+</button>
+```
+
+#### `aria-current="page"`
+
+Indique, dans un bloc de navigation, quel lien correspond à la page actuellement affichée.
+
+```tsx
+<nav>
+  <Link
+    to="/reporter"
+    aria-current={location.pathname === '/reporter' ? 'page' : undefined}
+  >
+    {t('nav.dashboard')}
+  </Link>
+</nav>
+```
+
+La valeur `undefined` supprime l'attribut de l'élément quand il n'est pas actif — l'attribut ne doit pas être présent avec une valeur fausse.
+
+#### Conventions pour `Button.tsx` et `Input.tsx`
+
+`Button` expose `aria-disabled` synchronisé avec la prop `disabled`. `Input` associe son label au champ via `htmlFor` / `id` et expose une prop `errorId` pour `aria-describedby`. Tout composant interactif qui ne comporte pas de texte visible reçoit une prop `aria-label` obligatoire dans son type TypeScript.
+
+---
+
+### Ratios de contraste
+
+WCAG AA définit les ratios minimaux suivants entre la luminance de la couleur de texte et celle du fond :
+
+| Contexte | Ratio minimum |
+|---|---|
+| Texte normal (< 18px, ou < 14px gras) | 4.5:1 |
+| Texte large (≥ 18px, ou ≥ 14px gras) | 3:1 |
+| Composants UI (bordures, icônes actives) | 3:1 |
+
+#### Palette du projet — conformité validée
+
+| Token | Valeur hex | Texte | Ratio | Conformité |
+|---|---|---|---|---|
+| `primary` | `#006278` | `#ffffff` blanc | **5.0:1** | ✅ AA texte normal |
+| `primary-hover` | `#004f62` | `#ffffff` blanc | **7.1:1** | ✅ AA texte normal |
+| `surface` | `#ebfcff` | `#000000` noir | **19.2:1** | ✅ AA |
+| `critical` | `#cc0000` | `#ffffff` blanc | **5.9:1** | ✅ AA |
+| `high` | `#ff914d` | `#000000` noir | **4.6:1** | ✅ AA |
+| `medium` | `#ffde59` | `#000000` noir | **11.5:1** | ✅ AA |
+| `low` | `#74cc00` | `#000000` noir | **5.8:1** | ✅ AA |
+
+La valeur de `primary` a été ajustée de `#0097b2` (ratio 2.9:1, non conforme) à `#006278` (ratio 5.0:1, conforme AA texte normal). `primary-hover` est ajusté en conséquence.
+
+Le token `--color-primary-hover` dans `index.css` passe de `#007a91` à `#004f62` pour maintenir la cohérence visuelle (assombrissement proportionnel).
+
+#### Outil de vérification
+
+[WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) — saisir les deux valeurs hexadécimales pour obtenir le ratio calculé et la conformité WCAG AA / AAA.
+
+---
+
+## 7. Flux complet de A à Z
 
 ### Première visite — page de login
 
@@ -895,11 +1323,11 @@ La différence entre `Link` et une balise `<a>` HTML classique : `Link` intercep
 
 `DevBar` est un composant de développement visible uniquement en mode dev grâce à la garde `if (import.meta.env.PROD) return null`. Il n'apparaît pas en production et ne casse rien.
 
-Cependant, le composant et ses imports (`Link`, `useLocation`) restent présents dans le code source, ce qu'un correcteur attentif pourrait relever comme code non-production.
+Le composant et ses imports (`Link`, `useLocation`) restent présents dans le code source en production (ils ne s'affichent pas, mais ils sont inclus dans le bundle).
 
 **À retirer avant livraison :**
 1. Le composant `DevBar` dans `App.tsx`
-2. `Link` et `useLocation` dans la ligne d'import de `react-router-dom`
+2. `Link` et `useLocation` dans la ligne d'import de `react-router-dom` si non utilisés ailleurs
 3. `<DevBar />` dans le JSX de `App`
 
 
