@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { API_GRADE_BADGE_LABELS, API_REPORT_GRADES, SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '../utils/severity';
 
 interface Props { reports: any[] }
-
-const COLORS = { critique: '#dc2626', grave: '#f97316', moyen: '#eab308', faible: '#22c55e' };
 
 export default function StatsDashboard({ reports }: Props) {
   const [period, setPeriod] = useState('all');
@@ -22,18 +21,21 @@ export default function StatsDashboard({ reports }: Props) {
     .filter(r => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
     .filter(r => filterGrade === 'all' || r.grade === filterGrade);
 
-  const gradeData = ['critique', 'grave', 'moyen', 'faible'].map(g => ({
-    name: g.charAt(0).toUpperCase() + g.slice(1),
-    value: filtered.filter(r => r.grade === g).length,
-    color: COLORS[g as keyof typeof COLORS],
-  })).filter(d => d.value > 0);
+  const gradeData = API_REPORT_GRADES.map((apiGrade) => {
+    const severity = severityFromApiGrade(apiGrade);
+    return {
+      name: SEVERITY_LABELS[severity],
+      value: filtered.filter(r => r.grade === apiGrade).length,
+      color: SEVERITY_COLORS[severity],
+    };
+  }).filter(d => d.value > 0);
 
   const classes = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
   const classData = classes.map(c => ({
     classe: c,
     total:    filtered.filter(r => r.student?.studentProfile?.schoolClass === c).length,
-    critique: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critique').length,
-    grave:    filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'grave').length,
+    critical: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critique').length,
+    high:     filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'grave').length,
   }));
 
   const typeData = ['Physique', 'Verbal', 'Cyber', 'Exclusion sociale', 'Sexuel', 'Autre'].map(t => ({
@@ -76,10 +78,9 @@ export default function StatsDashboard({ reports }: Props) {
         </select>
         <select value={filterGrade} onChange={e => setFilterGrade(e.target.value)} style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }}>
           <option value="all">Tous les grades</option>
-          <option value="critique">🔴 Critique</option>
-          <option value="grave">🟠 Grave</option>
-          <option value="moyen">🟡 Moyen</option>
-          <option value="faible">🟢 Faible</option>
+          {API_REPORT_GRADES.map((grade) => (
+            <option key={grade} value={grade}>{API_GRADE_BADGE_LABELS[grade]}</option>
+          ))}
         </select>
         <div style={{ background: '#f0f4ff', padding: '10px 16px', borderRadius: '8px', fontSize: '13px', color: '#0f3460', fontWeight: 600 }}>
           {filtered.length} signalement{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
@@ -125,8 +126,8 @@ export default function StatsDashboard({ reports }: Props) {
               <XAxis dataKey="classe" /><YAxis allowDecimals={false} />
               <Tooltip /><Legend />
               <Bar dataKey="total" name="Total" fill="#0f3460" />
-              <Bar dataKey="critique" name="Critique" fill="#dc2626" />
-              <Bar dataKey="grave" name="Grave" fill="#f97316" />
+              <Bar dataKey="critical" name={SEVERITY_LABELS.critical} fill={SEVERITY_COLORS.critical} />
+              <Bar dataKey="high" name={SEVERITY_LABELS.high} fill={SEVERITY_COLORS.high} />
             </BarChart>
           </ResponsiveContainer>
         )}

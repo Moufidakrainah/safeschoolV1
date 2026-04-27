@@ -12,7 +12,7 @@ export default function ReporterDashboard() {
   const [frequency, setFrequency] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [, setResult] = useState<any>(null);
   const [suspects, setSuspects] = useState<any[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
   const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);

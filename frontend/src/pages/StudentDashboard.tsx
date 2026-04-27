@@ -1,6 +1,7 @@
 import { useState, useEffect} from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createReport, searchUsers, getReports, getNotifications, markNotificationRead, getNotes } from '../services/api';
+import { SEVERITY_BADGES, SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -303,15 +304,13 @@ if (step === 8) return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {myReports
             .filter((report: any) => !report.title.includes('Je suis témoin'))
-            .map((report: any) => (
+            .map((report: any) => {
+            const severity = severityFromApiGrade(report.grade);
+            return (
             <div key={report.id} style={{
               background: 'white', borderRadius: '12px',
               padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-              borderLeft: `4px solid ${
-                report.grade === 'critique' ? '#dc2626' :
-                report.grade === 'grave' ? '#f97316' :
-                report.grade === 'moyen' ? '#eab308' : '#22c55e'
-              }`,
+              borderLeft: `4px solid ${SEVERITY_COLORS[severity]}`,
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
@@ -320,15 +319,11 @@ if (step === 8) return (
                       {report.caseNumber}
                     </span>
                     <span style={{
-                      background: report.grade === 'critique' ? '#dc2626' :
-                                  report.grade === 'grave' ? '#f97316' :
-                                  report.grade === 'moyen' ? '#eab308' : '#22c55e',
+                      background: SEVERITY_COLORS[severity],
                       color: 'white', padding: '2px 10px',
                       borderRadius: '12px', fontSize: '12px',
                     }}>
-                      {report.grade === 'critique' ? '🔴 Critique' :
-                       report.grade === 'grave' ? '🟠 Grave' :
-                       report.grade === 'moyen' ? '🟡 Moyen' : '🟢 Faible'}
+                      {SEVERITY_BADGES[severity]}
                     </span>
                   </div>
                   <div style={{ fontSize: '14px', color: '#333', marginBottom: '6px', fontWeight: 600 }}>
@@ -410,7 +405,7 @@ if (step === 8) return (
                 );
               })}
             </div>
-          ))}
+          )})}
         </div>
       )}
     </div>

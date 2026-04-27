@@ -17,3 +17,21 @@
 
 - [Webpack](https://www.axopen.com/blog/2021/10/webpack-projet-front-end-tuto/)
 
+---
+
+## Références rapides (cheatsheets)
+
+### React
+
+https://react.dev/reference/react
+
+Référence officielle maintenue par l'équipe React (Meta). Liste exhaustive de tous les hooks, API et composants built-in avec exemples interactifs. 
+
+---
+
+### Tailwind CSS
+
+https://tailwindcss.com/docs
+
+Documentation officielle v4. Couvre les nouvelles directives `@theme`, `@utility`, la configuration via CSS uniquement, et les changements de nommage des utilitaires.
+

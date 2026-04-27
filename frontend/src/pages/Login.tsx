@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import Button from '../components/Button';
+import Input  from '../components/Input';
 
-export default function Login() {
+export default function Login()
+{
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -15,55 +18,73 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    try {
+    try
+    {
       const data = await login(email, password);
       loginUser(data.access_token, data.user);
-      if (data.user.role === 'student') navigate('/student');
-      else if (data.user.role === 'teacher' || data.user.role === 'staff') navigate('/reporter');
-      else navigate('/dashboard');
-    } catch {
+      if (data.user.role === 'student')
+        navigate('/student');
+      else if (data.user.role === 'teacher' || data.user.role === 'staff')
+        navigate('/reporter');
+      else
+        navigate('/dashboard');
+    }
+    catch
+    {
       setError('Email ou mot de passe incorrect');
-    } finally {
+    }
+    finally
+    {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Segoe UI, sans-serif' }}>
-      <div style={{ background: 'white', borderRadius: '16px', padding: '48px', width: '100%', maxWidth: '420px', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #1a1a2e, #0f3460)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '28px' }}>🛡️</div>
-          <h1 style={{ margin: 0, fontSize: '24px', color: '#1a1a2e', fontWeight: 700 }}>SafeSchool</h1>
-          <p style={{ margin: '8px 0 0', color: '#888', fontSize: '14px' }}>Plateforme de signalement scolaire</p>
+    <div className="flex min-h-screen font-sans">
+
+      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-surface px-12">
+
+        <div className="flex flex-col items-center gap-10">
+          <img src="/logos/safeschool-logo.png" alt="SafeSchool logo" className="w-80 h-80 object-contain" />
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#333' }}>Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="votre@email.com" required
-              style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-              onFocus={(e) => e.target.style.borderColor = '#0f3460'} onBlur={(e) => e.target.style.borderColor = '#e0e0e0'} />
-          </div>
+      </div>
 
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#333' }}>Mot de passe</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required
-              style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-              onFocus={(e) => e.target.style.borderColor = '#0f3460'} onBlur={(e) => e.target.style.borderColor = '#e0e0e0'} />
-          </div>
+      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-primary px-16">
+
+        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full max-w-sm">
+
+          <Input
+            label="Identifiant"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            theme="light"
+          />
+
+          <Input
+            label="Mot de passe"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            theme="light"
+          />
 
           {error && (
-            <div style={{ background: '#fff0f0', border: '1px solid #ffcccc', borderRadius: '8px', padding: '12px', marginBottom: '20px', color: '#cc0000', fontSize: '14px' }}>
+            <p className="text-white text-sm bg-critical/30 px-4 py-2 rounded-lg w-full text-center">
               ⚠️ {error}
-            </div>
+            </p>
           )}
 
-          <button type="submit" disabled={loading}
-            style={{ width: '100%', padding: '14px', background: loading ? '#ccc' : 'linear-gradient(135deg, #1a1a2e, #0f3460)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}>
+          <Button type="submbit" variant="login" disabled={loading}>
             {loading ? 'Connexion...' : 'Se connecter'}
-          </button>
+          </Button>
+
         </form>
       </div>
+
     </div>
   );
 }
