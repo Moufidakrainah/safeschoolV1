@@ -95,15 +95,15 @@ const noop = () => undefined;
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function UiKit() {
   return (
-    <main className="min-h-screen bg-surface px-6 py-10 text-gray-900">
+    <main className="min-h-screen bg-surface px-5 py-5 text-gray-900">
       <div className="mx-auto flex max-w-5xl flex-col gap-10">
 
         {/* Header */}
-        <header className="rounded-2xl bg-primary px-8 py-8 text-white">
-          <p className="text-xs font-bold uppercase tracking-widest text-white/70">SafeSchool</p>
-          <h1 className="mt-2 text-3xl font-black">UI Kit</h1>
+        <header className="rounded-2xl bg-primary px-4 py-4 text-white">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/90">SafeSchool</p>
+          <h1 className="mt-2 text-3xl font-black">UI KIT</h1>
           <p className="mt-1 text-sm text-white/80">
-            Composants réutilisables — aperçu à gauche, code à copier à droite.
+            Liste des composants réutilisables : aperçu et code.
           </p>
         </header>
 
@@ -125,9 +125,11 @@ export default function UiKit() {
             </div>
 
             {/* Snippets */}
-            <div className="flex flex-col gap-2">
-              <CodeBlock code={`// 1. Import en haut de ta page\n${BUTTON_IMPORT}`} />
-              <CodeBlock code={`// 2. Usage dans le JSX\n${BUTTON_USAGE}`} />
+            <div className="flex flex-col">
+              <p className="text-xs px-2 py-2">Import en haut de la page</p>
+              <CodeBlock code={`${BUTTON_IMPORT}`} />
+              <p className="text-xs px-2 py-2">Utilisation dans le JSX</p>
+              <CodeBlock code={`${BUTTON_USAGE}`} />
             </div>
           </div>
         </section>

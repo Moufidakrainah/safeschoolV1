@@ -115,6 +115,15 @@ CMD ["npm", "run", "start:dev"]  # démarre NestJS en mode watch
 
 ## 2. Le Backend — NestJS
 
+### Node.js et NestJS — la différence
+
+Ces deux noms reviennent souvent ensemble et peuvent prêter à confusion :
+
+- **Node.js** : c'est le moteur qui exécute du JavaScript côté serveur, en dehors du navigateur. C'est l'"environnement d'exécution" — comme une machine virtuelle qui sait lire du JS.
+- **NestJS** : c'est un framework (une boîte à outils) qui s'appuie sur Node.js pour t'aider à créer des applications backend structurées. Il impose une architecture en modules, controllers, services, etc.
+
+En résumé : **Node.js exécute le code, NestJS l'organise.** Quand tu lances le backend (`npm run start:dev`), c'est Node.js qui lit et exécute le code NestJS.
+
 NestJS est un framework Node.js qui impose une architecture en **modules**. Chaque fonctionnalité est encapsulée dans son propre module.
 
 ### Architecture en modules
@@ -249,11 +258,110 @@ Cette ligne prend le nœud `<div id="root">` de `index.html` et y injecte toute 
 
 Le frontend repose sur quelques fichiers pivots qui structurent toute l'application.
 
+---
+
+### Les couches technologiques du front — JS, TS, React, JSX, Tailwind
+
+Quand on travaille sur le frontend, on manipule plusieurs technologies imbriquées. Voici comment elles s'articulent :
+
+| Couche | Rôle | Exemple |
+|---|---|---|
+| **JavaScript (JS)** | Le langage de base, exécuté par le navigateur | `const x = 5;` |
+| **TypeScript (TS)** | Une surcouche de JS qui ajoute le typage. Toujours transformé en JS avant d'être exécuté | `const x: number = 5;` |
+| **React** | Une bibliothèque JS/TS pour créer des interfaces avec des composants | `function Button() { ... }` |
+| **JSX / TSX** | Une syntaxe qui permet d'écrire du HTML dans du JS/TS, utilisée par React | `return <button>Valider</button>` |
+| **Tailwind** | Un framework CSS utilitaire : on stylise en ajoutant des classes directement dans le JSX | `className="bg-primary text-white"` |
+
+**Ce que ça veut dire concrètement :**
+
+- Dans un fichier `.tsx`, tu écris du **TypeScript** (avec typage).
+- À l'intérieur du `return` d'un composant, tu écris du **JSX** (HTML mélangé à du JS/TS).
+- Dans ce JSX, tu appliques les styles **Tailwind** via `className`.
+- **React** s'occupe d'assembler tout ça et de l'afficher dans la page.
+
+#### Le typage — ce que ça change
+
+JavaScript n'a pas de typage strict : tu peux écrire `let x = 5; x = "cinq";` sans erreur.
+
+TypeScript, lui, te force à préciser le type :
+```ts
+let x: number = 5;
+x = "cinq"; // ❌ Erreur TypeScript : on ne peut pas mettre une string dans un number
+```
+
+Le bénéfice : TypeScript attrape les erreurs **avant** l'exécution, directement dans l'éditeur. Il aide aussi à l'autocomplétion et à la documentation du code.
+
+#### Commenter dans JSX — la syntaxe `{/* ... */}`
+
+En JavaScript et TypeScript classiques (hors JSX), on commente normalement comme en C :
+```ts
+// commentaire sur une ligne
+/* commentaire sur
+   plusieurs lignes */
+```
+
+Mais **dans le JSX** (à l'intérieur du `return`), ces syntaxes provoquent une erreur de parsing. Il faut utiliser à la place :
+```tsx
+{/* ceci est un commentaire JSX */}
+```
+
+Les accolades `{}` signalent à JSX "ce qui suit est du JavaScript". Le `/* ... */` à l'intérieur est alors interprété comme un commentaire JS — et React l'ignore à l'affichage car l'expression ne retourne rien.
+
+Résumé :
+- Hors JSX (variables, fonctions…) → `//` et `/* */` fonctionnent.
+- Dans JSX (dans le `return`) → utiliser `{/* ... */}` obligatoirement.
+
+#### Les composants — ce qu'on crée nous-mêmes
+
+React ne te fournit pas des composants tout faits comme `<Button>` ou `<Input>`. Il te donne le **système** pour en créer. C'est toi qui les construis dans `frontend/src/components/` et qui les utilises ensuite comme des balises personnalisées :
+
+```tsx
+// Tu définis le composant dans Button.tsx
+function Button({ children }) {
+  return <button className="bg-primary text-white">{children}</button>;
+}
+
+// Tu l'utilises dans n'importe quelle page
+<Button>Valider</Button>
+```
+
+React s'occupe ensuite d'afficher, mettre à jour et organiser ces composants dans la page.
+
+---
+
 - `index.html` fournit le point d'ancrage HTML de l'application
 - `main.tsx` monte React dans le DOM
 - `AuthContext.tsx` conserve l'etat de connexion
 - `App.tsx` contient la table de routage principale
 - `pages/` contient les ecrans affiches selon l'URL et le role
+
+### Vite — le transpileur qui rend tout possible
+
+Le navigateur ne comprend pas le TypeScript ni le JSX. Il n'exécute que du JavaScript standard. **Vite** est l'outil qui fait la traduction :
+
+1. Il lit tous les fichiers `.ts` et `.tsx` du projet.
+2. Il les compile (on dit "transpile") en JavaScript compréhensible par le navigateur.
+3. Il applique Tailwind sur les classes CSS utilisées.
+4. Il sert le résultat via un serveur de développement (par défaut sur `http://localhost:5173`).
+
+Le fichier `vite.config.ts` configure ce processus :
+
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+})
+```
+
+- Le plugin **`react()`** permet à Vite de comprendre le JSX/TSX et active le hot reload (mise à jour instantanée dans le navigateur à chaque modification de fichier).
+- Le plugin **`tailwindcss()`** intègre Tailwind dans le processus de build.
+
+Quand tu lances `npm run dev`, Vite démarre, compile, et surveille les fichiers. Toute modification est reflétée dans le navigateur sans avoir à recharger manuellement.
+
+**Vite n'a aucun lien direct avec le backend.** Il s'occupe uniquement du frontend. Le frontend communique avec le backend via des requêtes HTTP (voir la section `api.ts`).
 
 ### Chaîne de chargement
 
@@ -468,7 +576,9 @@ import Input from '../components/Input';
 
 ### `api.ts` — couche HTTP
 
-`frontend/src/services/api.ts` centralise tous les appels au backend. Axios ajoute automatiquement le token JWT dans chaque requête via un intercepteur :
+`frontend/src/services/api.ts` centralise tous les appels au backend. Cette couche utilise **Axios**, une bibliothèque JavaScript qui simplifie l'envoi de requêtes HTTP (GET, POST, PATCH, DELETE…) depuis le frontend vers le backend. Sans Axios, il faudrait utiliser l'API `fetch` native du navigateur, plus verbeuse et sans gestion automatique des erreurs.
+
+Axios ajoute automatiquement le token JWT dans chaque requête via un intercepteur :
 
 ```typescript
 api.interceptors.request.use((config) => {
@@ -717,6 +827,27 @@ Cependant, le composant et ses imports (`Link`, `useLocation`) restent présents
 
 ---
 
+### Hot Module Replacement — comment l'URL se rafraîchit toute seule
+
+Quand un fichier est modifié dans l'éditeur, la page se met à jour dans le navigateur sans rechargement complet. Voici la chaîne complète :
+
+```
+Modification d'un fichier dans VS Code
+  → Le dossier ./frontend sur la machine hôte est modifié
+  → Le volume Docker ./frontend:/app le rend immédiatement visible dans le conteneur
+  → Vite surveille en permanence les fichiers dans /app
+  → Vite détecte le changement et recompile uniquement le module concerné
+  → Vite envoie une notification au navigateur via une connexion WebSocket ouverte en arrière-plan
+  → Le navigateur reçoit le signal et remplace le module à chaud
+  → La page se met à jour sans recharger complètement
+```
+
+Ce mécanisme s'appelle **HMR (Hot Module Replacement)**. Il est propre à l'environnement de développement — en production, Vite génère un build statique (`npm run build`) et il n'existe plus aucun serveur de surveillance.
+
+**Pourquoi le volume est essentiel ici :** sans `./frontend:/app`, les fichiers du conteneur seraient une copie figée au moment du build Docker. Toute modification locale serait invisible dans le conteneur, et le HMR ne fonctionnerait pas.
+
+---
+
 ### Correspondance appels front ↔ endpoints backend
 
 Tous les appels HTTP du frontend sont centralisés dans `frontend/src/services/api.ts`. Chaque fonction correspond exactement à un endpoint NestJS existant.
@@ -746,3 +877,65 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 - Le backend est démarré et la base de données est seedée avec des données de test
 - Le token JWT est valide et non expiré
 - Les objets retournés ont la structure attendue (ex : `user.studentProfile.schoolClass`)
+
+---
+
+## Questions / Reponses - Validation des connaissances
+
+### Docker et infrastructure
+
+| Question | Réponse attendue |
+|---|---|
+| Pourquoi le backend écoute sur 3000 mais est accessible sur 5000 ? | Mapping de ports dans docker-compose : `"5000:3000"` signifie que le port 3000 du conteneur est exposé sur le port 5000 de la machine hôte. |
+| Que se passe-t-il si on supprime la ligne `/app/node_modules` dans les volumes ? | Le volume `./frontend:/app` écraserait le dossier `node_modules` du conteneur avec celui de la machine hôte (vide ou incompatible). L'app ne démarrerait plus. |
+| Pourquoi le frontend `depends_on` le backend ? | Pour garantir l'ordre de démarrage. Mais `depends_on` sans `condition: service_healthy` ne garantit pas que le backend est prêt — juste qu'il a démarré. |
+| Que fait `pg_isready` dans le healthcheck ? | Il vérifie que PostgreSQL accepte des connexions. Docker interroge toutes les 5s, et attend que le service soit `healthy` avant de démarrer les services qui en dépendent. |
+| Comment deux services Docker se parlent-ils par nom ? | Via le réseau Docker privé `safeschool_network`. Docker résout les noms de services en IPs internes. Le backend peut appeler `database:5432` directement. |
+| Si on fait `docker compose down`, les données en base sont-elles perdues ? | Non, grâce au volume nommé `pgdata`. Les données persistent sur la machine hôte. `docker compose down -v` les supprimerait. |
+| Pourquoi le Dockerfile installe les dépendances avant de copier le code ? | Pour exploiter le cache Docker. Si le code change mais pas `package.json`, Docker réutilise le layer `npm install` déjà construit — le build est beaucoup plus rapide. |
+
+### Vite et Hot Module Replacement
+
+| Question | Réponse attendue |
+|---|---|
+| Comment le navigateur sait-il qu'un fichier a changé ? | Vite maintient une connexion WebSocket avec le navigateur. À chaque modification détectée, il recompile le module et envoie une notification via ce WebSocket. |
+| Est-ce que le hot reload fonctionne en production ? | Non. En production, `npm run build` génère un bundle statique. Il n'y a plus de serveur Vite, plus de surveillance de fichiers, plus de WebSocket. |
+| Qui transforme le TypeScript en JavaScript ? | Vite (via esbuild en interne). Le navigateur ne comprend pas le TypeScript — il reçoit uniquement du JavaScript compilé. |
+| Pourquoi `vite.config.ts` importe deux plugins ? | `react()` permet à Vite de traiter le JSX/TSX et active le HMR. `tailwindcss()` intègre Tailwind dans le pipeline de build pour générer uniquement le CSS des classes utilisées. |
+| Quelle est la différence entre `npm run dev` et `npm run build` ? | `dev` démarre un serveur de développement avec HMR, sans optimisation. `build` génère des fichiers statiques minifiés et optimisés pour la production, sans serveur. |
+
+### React et TypeScript
+
+| Question | Réponse attendue |
+|---|---|
+| Pourquoi `className` et pas `class` en JSX ? | `class` est un mot réservé JavaScript (utilisé pour les classes ES6). JSX étant du JavaScript, on utilise `className` à la place pour éviter le conflit. |
+| Quelle est la différence entre un composant et une page ? | Techniquement aucune — ce sont tous des fonctions React. C'est une convention d'organisation : les pages sont des composants associés à une route, les composants sont réutilisables dans plusieurs pages. |
+| À quoi sert `export default` ? | Rend le composant disponible pour les autres fichiers. Sans `export`, la fonction existe mais est inaccessible depuis l'extérieur du fichier — comme `private` en C++. |
+| Que veut dire `variant?: 'primary' | 'outline'` ? | Le `?` rend la prop optionnelle. Le type `'primary' | 'outline'` est une union — la valeur ne peut être que l'une de ces deux strings exactes. TypeScript refuse toute autre valeur. |
+| Pourquoi utiliser `{/* ... */}` pour commenter dans le JSX ? | Les commentaires `//` et `/* */` ne sont pas valides à l'intérieur du JSX (dans le `return`). `{/* */}` est une expression JavaScript qui retourne `undefined` — React l'ignore à l'affichage. |
+| Qu'est-ce que le virtual DOM ? | Une copie légère du DOM réel maintenue en mémoire par React. À chaque changement d'état, React calcule la différence entre l'ancien et le nouveau virtual DOM, puis applique uniquement les modifications nécessaires au vrai DOM. |
+| Que fait `useState` concrètement ? | Déclare une variable d'état et une fonction pour la modifier. Quand la fonction est appelée, React re-rend le composant avec la nouvelle valeur. Contrairement à une variable classique, la valeur persiste entre les rendus. |
+
+### Authentification et sécurité
+
+| Question | Réponse attendue |
+|---|---|
+| Pourquoi stocker le mot de passe hashé et non en clair ? | Si la base de données est compromise, les mots de passe en clair seraient directement exploitables. bcrypt produit un hash irréversible — impossible de retrouver le mot de passe original. |
+| Quelle est la différence entre `bcrypt.hash()` et `bcrypt.compare()` ? | `hash()` transforme un mot de passe en hash. `compare()` vérifie si un mot de passe saisi correspond à un hash stocké, sans "décoder" le hash. |
+| Que contient un JWT et comment est-il vérifié ? | Un JWT contient un payload JSON encodé (`{ sub, email, role }`) et une signature. Le backend vérifie la signature avec sa clé secrète — si elle est valide, le token est authentique et non altéré, sans requête en base. |
+| Comment savoir si un utilisateur est admin sans appeler le backend à chaque page ? | Le rôle est encodé dans le JWT, décodé au login et stocké dans `AuthContext`. Toute page peut lire ce rôle depuis le contexte sans requête réseau. |
+| Pourquoi le token est-il envoyé dans le header `Authorization` et non dans l'URL ? | L'URL est loggée dans les serveurs, les proxies et l'historique navigateur. Le header `Authorization` n'est pas exposé ainsi — c'est la pratique standard pour les tokens. |
+| Que se passe-t-il si le token JWT expire ? | Le backend renvoie une erreur 401. Le frontend (via l'intercepteur Axios) devrait détecter ce 401 et rediriger vers `/login`. Sans cette gestion, l'utilisateur voit des erreurs silencieuses. |
+| localStorage vs cookie pour stocker le token — trade-offs ? | `localStorage` : simple, accessible en JS, vulnérable au XSS (un script malveillant peut le lire). Cookie `httpOnly` : inaccessible en JS, protégé contre XSS, mais vulnérable au CSRF. Les deux approches nécessitent des protections complémentaires. |
+
+### Architecture et organisation du code
+
+| Question | Réponse attendue |
+|---|---|
+| Si le backend est down, que voit l'utilisateur ? | La page React s'affiche quand même (servie par Vite). Mais toutes les requêtes API échouent — les données ne chargent pas et les erreurs doivent être gérées côté front. |
+| Pourquoi centraliser tous les appels HTTP dans `api.ts` ? | Un seul endroit à modifier si l'URL du backend change. L'intercepteur Axios ajoute le token automatiquement à tous les appels. Les composants n'ont pas à gérer l'authentification individuellement. |
+| Pourquoi utiliser un `AuthContext` plutôt que passer le token en props ? | Évite le "prop drilling" : passer des données à travers de nombreux niveaux de composants intermédiaires. N'importe quel composant accède directement à l'état d'auth via `useAuth()`. |
+| Qu'est-ce qu'un module NestJS et pourquoi cette organisation ? | Un module encapsule un domaine fonctionnel (auth, users, reports…). Chaque module a son controller (routes), son service (logique métier) et son entity (structure de données). Cette séparation rend le code testable et maintenable indépendamment. |
+| Pourquoi TypeORM avec `synchronize: true` en dev et pas en prod ? | En dev, TypeORM met à jour automatiquement le schéma SQL à partir des entities — pratique pour itérer vite. En production, c'est dangereux : une modification d'entity pourrait supprimer ou altérer des colonnes avec des vraies données. |
+| Quelle est la différence entre `PATCH` et `PUT` en HTTP ? | `PUT` remplace la ressource entière. `PATCH` modifie partiellement — seuls les champs envoyés sont mis à jour. Pour un formulaire d'édition partielle, `PATCH` est plus approprié. |
+| Pourquoi ELK dans ce projet ? | Centraliser les logs de toutes les requêtes HTTP dans Elasticsearch, les transformer via Logstash, et les visualiser dans Kibana. Permet de monitorer l'activité, détecter des anomalies et déboguer sans accès aux conteneurs. |
