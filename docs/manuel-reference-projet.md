@@ -60,9 +60,87 @@ La notation `"5000:3000"` signifie : _le port 3000 du conteneur est accessible v
 
 ### Volumes
 
-`./backend:/app` monte le dossier `backend/` de la machine hôte dans `/app` du conteneur. Toute modification de fichier dans l'éditeur est immédiatement visible dans le conteneur — ce qui rend le hot reload possible.
+#### Deux types de volumes distincts
 
-La deuxième entrée `/app/node_modules` empêche le volume précédent d'écraser les dépendances installées dans le conteneur.
+Docker propose deux mécanismes de volumes, et le `docker-compose.yml` du projet utilise les deux en même temps pour le service `frontend` (idem pour `backend`) :
+
+```yaml
+volumes:
+  - ./frontend:/app        # volume de type "bind mount" (miroir)
+  - /app/node_modules      # volume de type "volume nommé anonyme" (isolé)
+```
+
+#### Volume miroir (`./frontend:/app`)
+
+Ce volume synchronise **ton dossier local** avec le dossier `/app` dans le conteneur, en temps réel et dans les deux sens.
+
+```
+TON DISQUE (host)              CONTENEUR
+────────────────────           ─────────────────────
+./frontend/                ←→  /app/
+  src/App.tsx              ←→    src/App.tsx
+  package.json             ←→    package.json
+  package-lock.json        ←→    package-lock.json
+```
+
+Quand tu modifies `src/App.tsx` dans VS Code → le conteneur le voit immédiatement → Vite recharge le navigateur. C'est ce qui rend le **hot reload** possible sans rebuild.
+
+**Conséquence importante** : tout ce que le conteneur modifie dans `/app` (comme `package.json` lors d'un `npm install`) apparaît aussi sur ton disque.
+
+#### Volume isolé (`/app/node_modules`)
+
+Cette ligne dit à Docker : _"le dossier `/app/node_modules` dans le conteneur est géré séparément — ne le synchronise pas avec le disque hôte"_.
+
+```
+TON DISQUE (host)              CONTENEUR
+────────────────────           ─────────────────────
+./frontend/                    /app/
+  (pas de node_modules) ✗  ←→    node_modules/   ← volume Docker séparé
+                                    react/
+                                    vite/
+                                    ...
+```
+
+**Pourquoi c'est nécessaire** : `node_modules` contient des binaires compilés pour le système d'exploitation. Si tu es sur Mac et ton collègue sur Linux, les binaires sont incompatibles. En isolant `node_modules` dans un volume Docker, chaque machine a ses propres binaires compilés pour son OS — sans conflit.
+
+#### Ce que ça implique pour `npm install`
+
+Pour installer un nouveau package (ex : `react-i18next`), il faut que la commande s'exécute **dans le conteneur**, pas sur ton disque hôte :
+
+```bash
+# Bonne pratique : exécuter dans le conteneur en cours d'exécution
+docker compose exec frontend npm install react-i18next i18next
+```
+
+Ce qui se passe :
+1. `package.json` est modifié dans `/app/` → miroir → ton `./frontend/package.json` est mis à jour ✅
+2. `package-lock.json` est modifié dans `/app/` → miroir → ton `./frontend/package-lock.json` est mis à jour ✅
+3. Les fichiers du package sont installés dans `/app/node_modules/` → volume isolé, disponible immédiatement dans le conteneur ✅
+
+**Les fichiers que git doit tracker (`package.json` et `package-lock.json`) sont bien sur ton disque**, donc `git add` et `git push` fonctionnent normalement.
+
+#### Ce que récupère un collègue après `git pull`
+
+```bash
+git pull
+# → récupère package.json avec les nouveaux packages listés
+# → récupère package-lock.json avec les versions exactes verrouillées
+
+docker compose up --build
+# → Dockerfile: RUN npm install  ← lit package.json → installe tout, y compris les nouveaux packages
+```
+
+Le `--build` reconstruit l'image Docker à partir du Dockerfile. La ligne `RUN npm install` y est présente, donc tout est réinstallé automatiquement dans le conteneur du collègue. Il n'a rien d'autre à faire.
+
+#### Alternatives à `docker compose exec`
+
+| Méthode | Quand l'utiliser | Besoin de Node sur le host ? |
+|---|---|---|
+| `docker compose exec frontend npm install ...` | Conteneur déjà lancé (cas habituel) | Non |
+| `npm install ...` dans `./frontend/` directement | Si Node 20 est installé sur ta machine | Oui |
+| Modifier `package.json` à la main + `docker compose up --build` | Si le conteneur est arrêté | Non |
+
+Dans ce projet où tout est dockerisé, `docker compose exec` est la méthode recommandée.
 
 ### `depends_on` — ordre de démarrage
 
