@@ -26,7 +26,7 @@
 | _10 reusable components_                           | Minor | 1      | eguthman + mdoan |	[ ]	 |
 | # Messagerie  				 		             |       |        |             |		 |
 | _User interaction system (chat, profile, friends)_ | Major | 2      |          	|	[ ]	 |
-| _Notification system_                              | Minor | 1      |             |	[ ]	 |
+| _Notification system_                              | Minor | 1      | mobougri    |	[x]	 |
 
 | 2. Accessibility and Internationalization 	   | Type  | Points | Responsible | Done |
 | ------------------------------------------------ | ----- | ------ | ----------- | ---- |
@@ -38,7 +38,7 @@
 | 3. User Management (6 points)					   | Type  | Points | Responsible | Done |
 | ------------------------------------------------ | ----- | ------ | ----------- | ---- |
 | User management and authentication 		       | Major | 2      | mobougri    |[ ]   |
-| Advanced permissions system					   | Major | 2      | mobougri    |[ ]   |
+| Advanced permissions system (CRUD)			   | Major | 2      | mobougri    |[x]   |
 | Organization system 							   | Major | 2      | mobougri    |[ ]   |
 | **_Options (3 points)_**: 
 | _OAuth 2.0 authentification_				 	   | Minor | 1      |             |[ ]   |
@@ -81,8 +81,8 @@
 
 | 8. Data and Analytics (4 points)				   | Type  | Points | Responsible | Done |
 | ------------------------------------------------ | ----- | ------ | ----------- | ---- |
-| GDPR 									 	  	   | Minor | 1      |             | [ ]  |
-| Data export and import						   | Minor | 1      |             | [ ]  |
+| GDPR 									 	  	   | Minor | 1      | eguthman    | [ ]  |
+| Data export and import						   | Minor | 1      | mobougri    | [ ]  |
 | # Ateliers				 		               |       |        |             |		 |
 | Advanced analytics dashboard 		 	   	   	   | Major | 2      | quclaque    |	[ ]	 |
 
@@ -102,4 +102,4 @@
 
 ## 19 points = 125%
 
-### update 24/04/2026 : 9 points [x]
+### update 24/04/2026 : 12 points [x]
