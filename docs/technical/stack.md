@@ -26,3 +26,9 @@
 ### Outils de développement
 - **Git / GitHub** — pour versionner et partager le code
 - **curl** — pour tester les APIs depuis le terminal
+
+### Communication
+- **GitHub** — gestion de projet
+- **Slack** — organisation, collaboration, information
+
+
