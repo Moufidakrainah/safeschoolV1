@@ -1,0 +1,23 @@
+{
+  "login": {
+    "labelEmail": "Benutzername",
+    "labelPassword": "Passwort",
+    "submit": "Anmelden",
+    "loading": "Anmeldung läuft...",
+    "error": "Benutzername oder Passwort falsch"
+  },
+  "nav": {
+    "logout": "Abmelden"
+  },
+  "footer": {
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten"
+  }
+}

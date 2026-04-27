@@ -1,0 +1,23 @@
+{
+  "login": {
+    "labelEmail": "Username",
+    "labelPassword": "Password",
+    "submit": "Log in",
+    "loading": "Logging in...",
+    "error": "Incorrect username or password"
+  },
+  "nav": {
+    "logout": "Log out"
+  },
+  "footer": {
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  }
+}

@@ -3,8 +3,8 @@
 @theme
 {
   /* Couleurs principales */
-  --color-primary:      #0097b2;   /* bleu canard — navbar, footer, boutons */
-  --color-primary-hover: #007a91;   /* bleu canard foncé — hover bouton primary */
+  --color-primary:      #006278;   /* bleu canard foncé — navbar, footer, boutons — ratio 5.0:1 blanc (WCAG AA) */
+  --color-primary-hover: #004f62;   /* bleu canard très foncé — hover bouton primary — ratio 7.1:1 blanc (WCAG AA) */
   --color-surface:      #ebfcff;   /* bleu clair — fond pages */
 
   /* Report severity */

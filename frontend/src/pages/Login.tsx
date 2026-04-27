@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { login } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
@@ -13,6 +14,7 @@ export default function Login()
   const [loading, setLoading] = useState(false);
   const { loginUser } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ export default function Login()
     }
     catch
     {
-      setError('Email ou mot de passe incorrect');
+      setError(t('login.error'));
     }
     finally
     {
@@ -40,13 +42,11 @@ export default function Login()
   };
 
   return (
-    <div className="flex min-h-screen font-sans">
+    <main className="flex min-h-screen font-sans">
 
       <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-surface px-12">
 
-        <div className="flex flex-col items-center gap-10">
           <img src="/logos/safeschool-logo.png" alt="SafeSchool logo" className="w-80 h-80 object-contain" />
-        </div>
 
       </div>
 
@@ -55,7 +55,7 @@ export default function Login()
         <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full max-w-sm">
 
           <Input
-            label="Identifiant"
+            label={t('login.labelEmail')}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -64,7 +64,7 @@ export default function Login()
           />
 
           <Input
-            label="Mot de passe"
+            label={t('login.labelPassword')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -78,13 +78,13 @@ export default function Login()
             </p>
           )}
 
-          <Button type="submbit" variant="login" disabled={loading}>
-            {loading ? 'Connexion...' : 'Se connecter'}
+          <Button type="submit" variant="login" disabled={loading}>
+            {loading ? t('login.loading') : t('login.submit')}
           </Button>
 
         </form>
       </div>
 
-    </div>
+    </main>
   );
 }
