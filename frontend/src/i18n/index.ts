@@ -18,7 +18,7 @@ i18n
     lng: 'fr',             // langue par défaut au premier chargement
     fallbackLng: 'fr',     // langue de secours si clé manquante
     detection: {
-      order: ['localStorage', 'navigator'], // mémorise le choix de l'utilisateur
+      order: ['localStorage'], // mémorise le choix de l'utilisateur, ignore la langue du navigateur
       caches: ['localStorage'],
     },
     interpolation: {

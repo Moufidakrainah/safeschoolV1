@@ -8,7 +8,7 @@ import {
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import Button from '../components/Button';
-import Badge, { BadgeVariant } from '../components/Badge';
+import Badge, { type BadgeVariant } from '../components/Badge';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
 import Select from '../components/Select';

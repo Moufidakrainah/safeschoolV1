@@ -57,6 +57,8 @@ function DevBar() {
 
 export default function App()
 {
+  const location = useLocation();
+
   return (
     <div className="flex flex-col min-h-screen">
 
@@ -92,8 +94,8 @@ export default function App()
       </Routes>
       </div>
 
-      {/* Footer : toujours en bas grâce au flex-col du parent — ne scroll pas, reste visible */}
-      <Footer />
+      {/* Footer : rendu global partout sauf dans le UI Kit, où il est montré comme composant documenté */}
+      {location.pathname !== '/ui-kit' && <Footer />}
 
     </div>
   );
