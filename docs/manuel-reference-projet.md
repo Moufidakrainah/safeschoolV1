@@ -716,6 +716,77 @@ Quand tu lances `npm run dev`, Vite démarre, compile, et surveille les fichiers
 
 **Vite n'a aucun lien direct avec le backend.** Il s'occupe uniquement du frontend. Le frontend communique avec le backend via des requêtes HTTP (voir la section `api.ts`).
 
+### Variables d'environnement — fichiers `.env` et ordre de chargement
+
+Les variables d'environnement permettent de configurer le comportement de l'application sans modifier le code source. Deux systèmes coexistent dans le projet : Docker Compose pour le backend, Vite pour le frontend.
+
+#### Fichiers `.env` du projet
+
+| Fichier | Emplacement | Lu par | Versionné | Rôle |
+|---|---|---|---|---|
+| `.env` | racine | Docker Compose | ❌ gitignored | Variables d'exécution : credentials DB, JWT secret, clés API |
+| `.env.example` | racine | personne | ✅ oui | Modèle documentaire — contient uniquement des placeholders |
+| `.env.development` | `frontend/` | Vite | ✅ oui | Valeurs par défaut en mode développement |
+| `.env.local` | `frontend/` | Vite (override) | ❌ gitignored | Override local — écrase `.env.development` si présent |
+
+`.env.example` est un fichier de documentation : il montre quelles variables sont nécessaires sans exposer les valeurs réelles. Un nouveau développeur fait `cp .env.example .env` puis remplace les placeholders par ses vraies valeurs.
+
+#### Ordre de chargement Vite
+
+Vite lit les fichiers `.env` dans un ordre précis, du moins prioritaire au plus prioritaire. Si une même clé apparaît dans deux fichiers, la valeur du fichier le plus prioritaire écrase l'autre :
+
+```
+.env.development   →  VITE_DEVBAR=true   (lu en premier, valeur par défaut)
+.env.local         →  VITE_DEVBAR=false  (lu ensuite, écrase si présent)
+
+résultat final : VITE_DEVBAR=false
+```
+
+Si `.env.local` n'existe pas, seul `.env.development` est lu — la valeur par défaut s'applique.
+
+#### Préfixe `VITE_` — ce qui est exposé au navigateur
+
+Vite lit tous les fichiers `.env`, mais n'expose au code React **que les variables dont le nom commence par `VITE_`**. Les autres sont lues par Vite pour usage interne mais jamais transmises au navigateur.
+
+```ts
+// ✅ accessible dans le code React
+import.meta.env.VITE_DEVBAR
+
+// ❌ invisible depuis le code React (pas de préfixe VITE_)
+import.meta.env.DB_PASSWORD
+```
+
+C'est une protection intentionnelle : les variables sensibles (mots de passe, clés API) ne doivent jamais se retrouver dans le bundle JavaScript envoyé au navigateur.
+
+#### Le système DevBar — application concrète
+
+Le projet utilise ce mécanisme pour contrôler la DevBar (barre de navigation développeur) et le bypass d'authentification de `ProtectedRoute` :
+
+```
+frontend/.env.development   →  VITE_DEVBAR=true   (valeur par défaut, versionné)
+frontend/.env.local         →  créé/supprimé par toggle-devbar.sh, gitignored
+```
+
+Le script `frontend/toggle-devbar.sh` crée ou supprime `.env.local` selon l'état courant. Un redémarrage du serveur Vite est nécessaire après chaque basculement pour que les nouvelles valeurs soient prises en compte.
+
+```bash
+cd frontend
+bash toggle-devbar.sh   # bascule ON ↔ OFF
+docker compose restart frontend
+```
+
+Dans le code React, la garde est unique :
+
+```tsx
+// Dans ProtectedRoute — bypass actif seulement si VITE_DEVBAR=true
+if (import.meta.env.VITE_DEVBAR === 'true') return children;
+
+// Dans DevBar — composant invisible si VITE_DEVBAR !== 'true'
+if (import.meta.env.VITE_DEVBAR !== 'true') return null;
+```
+
+Un seul toggle contrôle les deux comportements simultanément.
+
 ### Chaîne de chargement
 
 Le parcours de chargement du frontend peut se lire comme suit :
