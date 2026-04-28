@@ -10,9 +10,11 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 2. [Le Backend — NestJS](#2-le-backend--nestjs)
 3. [L'authentification JWT](#3-lauthentification-jwt)
 4. [Le Frontend — React + Vite](#4-le-frontend--react--vite)
-5. [Tailwind CSS — le système de classes](#5-tailwind-css--le-système-de-classes)
-6. [Accessibilité — WCAG](#6-accessibilité--wcag)
-7. [Flux complet de A à Z](#7-flux-complet-de-a-à-z)
+5. [Design System — composants et conventions](#5-design-system--composants-et-conventions)
+6. [Internationalisation — react-i18next](#6-internationalisation--react-i18next)
+7. [Tailwind CSS — le système de classes](#7-tailwind-css--le-système-de-classes)
+8. [Accessibilité — WCAG AA et ARIA](#8-accessibilité--wcag-aa-et-aria)
+9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
 
 ---
 
@@ -1136,7 +1138,262 @@ Endpoints disponibles :
 
 ---
 
-## 5. Tailwind CSS — le système de classes
+## 5. Design System — composants et conventions
+
+### Principe
+
+Tout l'UI est construit à partir de composants réutilisables dans `frontend/src/components/`. Chaque composant embarque ses propres styles Tailwind, sa gestion d'accessibilité ARIA et ses labels via `useTranslation`. La collègue qui code un nouvel écran n'a pas à penser à l'accessibilité : elle est contenue dans le composant.
+
+**Règle fondamentale :** jamais de couleur inline (`style={{ color: '#006278' }}`). Toujours les tokens Tailwind (`text-primary`, `bg-critical`…).
+
+### Inventaire des composants
+
+| Composant | Fichier | Rôle |
+|-----------|---------|------|
+| `Button` | `Button.tsx` | Bouton avec 7 variantes |
+| `Input` | `Input.tsx` | Champ texte avec label optionnel |
+| `Select` | `Select.tsx` | Menu déroulant stylisé |
+| `Badge` | `Badge.tsx` | Étiquette gravité ou statut |
+| `Card` | `Card.tsx` | Conteneur blanc, bordure gauche colorée dynamique |
+| `StatCard` | `StatCard.tsx` | Carte statistique cliquable (filtre actif) |
+| `NoteBlock` | `NoteBlock.tsx` | Bloc note administrative ou convocation |
+| `Pagination` | `Pagination.tsx` | Barre de pagination complète |
+
+### Button
+
+```tsx
+// Variantes disponibles
+<Button variant="primary">Valider</Button>
+<Button variant="outline">Annuler</Button>
+<Button variant="ghost">Réinitialiser</Button>
+<Button variant="danger">Supprimer</Button>
+<Button variant="warning">Escalader</Button>
+<Button variant="success">Clôturer</Button>
+<Button variant="login">Se connecter</Button>
+
+// Props complètes
+<Button
+  variant="danger"
+  type="submit"
+  disabled={saving}
+  fullWidth
+  aria-label={t('admin.users.delete') + ' ' + user.firstName}
+  onClick={handleDelete}
+>
+  🗑️ {t('admin.users.delete')}
+</Button>
+```
+
+**`aria-label` obligatoire** quand le bouton ne contient que des emojis/icônes sans texte.
+
+### Input
+
+```tsx
+// Avec label (cas normal)
+<Input
+  label={t('login.labelEmail')}
+  type="email"
+  value={email}
+  onChange={e => setEmail(e.target.value)}
+  required
+  theme="light"   // label blanc, pour fond coloré
+/>
+
+// Sans label visible → aria-label obligatoire
+<Input
+  type="search"
+  value={search}
+  onChange={e => setSearch(e.target.value)}
+  placeholder={t('admin.search.placeholder')}
+  aria-label={t('admin.search.placeholder')}
+/>
+```
+
+Quand `label` est absent, le champ est muet pour les lecteurs d'écran sans `aria-label`.
+
+### Select
+
+```tsx
+<Select
+  value={filterStatus}
+  onChange={e => setFilterStatus(e.target.value)}
+  aria-label={t('admin.filters.allStatuses')}
+>
+  <option value="all">{t('admin.filters.allStatuses')}</option>
+  <option value="pending">{t('admin.status.pending')}</option>
+</Select>
+```
+
+`aria-label` toujours requis — un `<select>` sans label visible est inaccessible.
+
+### Badge
+
+Les labels sont entièrement gérés via `useTranslation` — ne jamais hardcoder de texte.
+
+```tsx
+// Variant gravité
+<Badge variant="critical" />  // affiche t('badge.critical') = "🔴 Critique"
+<Badge variant="high" />
+<Badge variant="medium" />
+<Badge variant="low" />
+
+// Variant statut
+<Badge variant="pending" />    // affiche t('badge.pending') = "⏳ En attente"
+<Badge variant="in_progress" />
+<Badge variant="escalated" />
+<Badge variant="closed" />
+<Badge variant="rejected" />
+
+// Surcharge du label
+<Badge variant="critical" label="Très critique" />
+```
+
+### Card
+
+```tsx
+// Simple
+<Card>Contenu</Card>
+
+// Avec bordure gauche colorée (gravité du signalement)
+<Card borderColor={SEVERITY_COLORS[severityFromApiGrade(report.grade)]}>
+  ...
+</Card>
+
+// Avec classe supplémentaire
+<Card className="mb-6">...</Card>
+```
+
+### StatCard
+
+La StatCard est un bouton de filtre. Les 3 premières filtrent par **grade** (valeurs API : `critique`/`grave`/`moyen`/`faible`). Les 2 dernières filtrent par **statut** (valeurs : `pending`/`escalated`). Ne pas mélanger.
+
+```tsx
+// Filtre par grade
+<StatCard
+  label={t('admin.stats.critical')}
+  value={stats.critical}
+  color={SEVERITY_COLORS.critical}
+  active={filterGrade === 'critique'}          // valeur API, pas 'critical'
+  onClick={() => { setFilterGrade('critique'); setFilterStatus('all'); }}
+/>
+
+// Filtre par statut
+<StatCard
+  label={t('admin.stats.pending')}
+  value={stats.pending}
+  color="#eab308"
+  active={filterStatus === 'pending'}
+  onClick={() => { setFilterStatus('pending'); setFilterGrade('all'); }}
+/>
+```
+
+**Bug classique** : utiliser `setFilterGrade('pending')` pour la carte "En attente". `r.grade` n'a jamais la valeur `'pending'` — ce filtre ne retourne rien.
+
+### NoteBlock
+
+```tsx
+// Type 'note' → bordure primary, fond gris
+// Type 'convocation' → bordure purple, fond indigo
+{notes.map(note => <NoteBlock key={note.id} note={note} />)}
+```
+
+Les labels "📝 Note" / "📅 Convocation" sont gérés via `t('noteblock.note')` et `t('noteblock.convocation')`.
+
+### Pagination
+
+```tsx
+<Pagination
+  currentPage={currentPage}
+  totalPages={totalPages}
+  totalItems={filtered.length}
+  onPageChange={setCurrentPage}
+/>
+```
+
+Retourne `null` si `totalPages <= 1`. Génère automatiquement `<nav>`, `aria-label`, `aria-current="page"`, et aria-labels sur les boutons «/».
+
+### UI Kit — page de référence
+
+`/ui-kit` affiche une galerie de tous les composants avec toutes leurs variantes. C'est la source de vérité visuelle. Avant de coder un nouvel écran, vérifier ce qui est déjà disponible.
+
+---
+
+## 6. Internationalisation — react-i18next
+
+### Principe
+
+Toutes les chaînes visibles dans l'interface passent par la fonction `t()`. Jamais de texte hardcodé dans les composants.
+
+```tsx
+// ❌ interdit
+<button>Se connecter</button>
+
+// ✅ correct
+const { t } = useTranslation();
+<button>{t('login.submit')}</button>
+```
+
+### Structure des fichiers de traduction
+
+Les fichiers JSON sont dans `frontend/src/i18n/locales/` :
+
+```
+fr.json   ← source de vérité (langue par défaut)
+en.json   ← traduction anglaise
+de.json   ← traduction allemande
+```
+
+### Arborescence des clés
+
+```
+badge.*              labels Badge (critical, high, medium, low, pending…)
+noteblock.*          labels NoteBlock (note, convocation)
+pagination.*         labels Pagination (nav, summary, prev, next, page)
+login.*              page de connexion
+nav.*                navigation globale (logout)
+footer.*             pied de page
+common.*             save, cancel, delete, loading, error
+admin.*
+  nav.*              navigation admin (reports, users, stats, ariaLabel)
+  topbar.*           bandeau utilisateur (role)
+  stats.*            StatCards (total, critical, high, pending, escalated)
+  search.*           champ de recherche
+  filters.*          filtres (allStatuses, allClasses, reset…)
+  status.*           libellés de statut (pending, in_progress, escalated…)
+  detail.*           vue détail signalement (info, titleField, date…)
+  actions.*          boutons d'action (inProgress, escalate, close, reject)
+  notes.*            bloc notes (title, empty, placeholder, save)
+  convocation.*      bloc convocation (title, dateLabel, send…)
+  users.*            gestion utilisateurs (title, add, edit, delete…)
+  users.roles.*      libellés de rôle (student, teacher, staff, admin, director)
+privacy.*            politique de confidentialité
+terms.*              conditions d'utilisation
+```
+
+### Interpolation de variables
+
+```json
+// fr.json
+"reportLabel": "Signalement {{number}}",
+"summary": "{{totalItems}} résultats · Page {{currentPage}} sur {{totalPages}}"
+```
+
+```tsx
+t('admin.reportLabel', { number: report.caseNumber })
+t('pagination.summary', { totalItems, currentPage, totalPages })
+```
+
+### Ajouter une nouvelle clé
+
+1. Ajouter la clé dans `fr.json` (source de vérité)
+2. Ajouter la traduction dans `en.json` et `de.json`
+3. Utiliser `t('ma.cle')` dans le composant
+
+Jamais laisser une clé manquante dans une langue — react-i18next afficherait la clé brute (`"admin.nav.reports"`) dans l'interface.
+
+---
+
+## 7. Tailwind CSS — le système de classes
 
 ### Principe
 
@@ -1309,13 +1566,13 @@ Les classes `bg-primary`, `text-critical`, `border-high` etc. ne sont pas défin
 
 ```css
 @theme {
-  --color-primary:      #0097b2;
-  --color-primary-dark: #007a91;
-  --color-bg-light:     #ebfcff;
-  --color-critical:     #cc0000;
-  --color-high:         #ff914d;
-  --color-medium:       #ffde59;
-  --color-low:          #74cc00;
+  --color-primary:       #006278;  /* couleur principale — validée WCAG AA (ratio 5.0:1 sur blanc) */
+  --color-primary-hover: #004f62;  /* survol — assombrissement proportionnel */
+  --color-surface:       #ebfcff;  /* fond clair bleuté */
+  --color-critical:      #cc0000;  /* rouge critique */
+  --color-high:          #ff914d;  /* orange grave */
+  --color-medium:        #ffde59;  /* jaune moyen */
+  --color-low:           #74cc00;  /* vert faible */
 }
 ```
 
@@ -1351,7 +1608,7 @@ Sur [tailwindcss.com/docs](https://tailwindcss.com/docs), la recherche se fait p
 
 ---
 
-## 6. Accessibilité — WCAG AA
+## 8. Accessibilité — WCAG AA et ARIA
 
 WCAG (Web Content Accessibility Guidelines) est le standard international d'accessibilité web, publié par le W3C. Le niveau **AA** est le niveau de conformité retenu pour ce projet. Il définit trois exigences techniques appliquées à l'ensemble du frontend : structure HTML sémantique, attributs ARIA sur les composants interactifs, et ratios de contraste conformes sur toute la palette de couleurs.
 
@@ -1466,9 +1723,103 @@ Indique, dans un bloc de navigation, quel lien correspond à la page actuellemen
 
 La valeur `undefined` supprime l'attribut de l'élément quand il n'est pas actif — l'attribut ne doit pas être présent avec une valeur fausse.
 
-#### Conventions pour `Button.tsx` et `Input.tsx`
+#### `aria-pressed`
 
-`Button` expose `aria-disabled` synchronisé avec la prop `disabled`. `Input` associe son label au champ via `htmlFor` / `id` et expose une prop `errorId` pour `aria-describedby`. Tout composant interactif qui ne comporte pas de texte visible reçoit une prop `aria-label` obligatoire dans son type TypeScript.
+Indique l'état activé/désactivé d'un bouton toggle (bouton qui bascule entre deux états).
+
+```tsx
+// StatCard — filtre actif ou non
+<div
+  role="button"
+  aria-pressed={active}   // true quand ce filtre est sélectionné
+  aria-label={`${label} : ${value}`}
+>
+```
+
+Sans `aria-pressed`, un screen reader ne sait pas si le filtre est actif — il annonce juste "bouton Critique".
+
+#### `aria-live`
+
+Indique qu'une zone de la page peut être mise à jour dynamiquement. Le lecteur d'écran annonce les changements automatiquement.
+
+```tsx
+// Bandeau utilisateur — le nom change après connexion
+<span aria-live="polite">{user?.firstName}</span>
+
+// Compteur de pagination — change à chaque filtre
+<span aria-live="polite">
+  {t('pagination.summary', { totalItems, currentPage, totalPages })}
+</span>
+```
+
+`polite` = annonce quand l'utilisateur est disponible (ne coupe pas la lecture en cours). `assertive` = annonce immédiate (réservé aux erreurs critiques — `role="alert"` est préférable).
+
+#### `aria-hidden`
+
+Masque un élément aux technologies d'assistance. Utilisé sur les emojis décoratifs — un lecteur d'écran lirait sinon "emoji feu", "emoji horloge" etc. au milieu du contenu.
+
+```tsx
+<span aria-hidden="true">📅</span>
+<span>{t('admin.convocation.title')}</span>
+```
+
+#### `role="group"` + `aria-label`
+
+Groupe des éléments liés sans leur donner le comportement d'un widget complexe. Le lecteur d'écran annonce le groupe avant de lire les éléments.
+
+```tsx
+// Groupe de filtres
+<div role="group" aria-label={t('admin.filters.groupLabel')}>
+  <Select ... />
+  <Select ... />
+  <Button variant="ghost">{t('admin.filters.reset')}</Button>
+</div>
+
+// Groupe de boutons d'action
+<div role="group" aria-label={t('admin.actions.groupLabel')}>
+  <Button variant="warning">Escalader</Button>
+  <Button variant="success">Clôturer</Button>
+</div>
+```
+
+#### `role="status"`
+
+Annonce un message d'état non urgent (chargement, confirmation). Équivalent de `aria-live="polite"` sous forme de rôle sémantique.
+
+```tsx
+{loading && <p role="status">{t('admin.loading')}</p>}
+```
+
+### Les composants comme "legos ARIA"
+
+Chaque composant du design system embarque son propre comportement ARIA. La collègue qui utilise `<Pagination>` n'a pas à y penser : le `<nav aria-label>`, les `aria-current="page"`, et les aria-labels sur `«`/`»` sont déjà là.
+
+**Contrat à respecter côté utilisateur du composant :**
+
+| Situation | Obligatoire |
+|-----------|-------------|
+| `<Button>` avec icône seule, sans texte visible | `aria-label={t('...')}` |
+| `<Input>` sans `label` visible | `aria-label={t('...')}` |
+| `<Select>` (jamais de label visible) | `aria-label={t('...')}` |
+| `<Badge>`, `<StatCard>`, `<NoteBlock>`, `<Pagination>` | rien — tout géré en interne |
+
+### Tableau récapitulatif ARIA
+
+| Attribut / Rôle | Quand l'utiliser | Exemple dans le projet |
+|---|---|---|
+| `aria-label` | Élément sans texte visible (bouton icône, input sans label) | Boutons «/» pagination, inputs filtres |
+| `role="alert"` | Message d'erreur dynamique | Erreur de connexion Login.tsx |
+| `role="status"` | Message d'état (chargement) | Spinner/texte chargement AdminDashboard |
+| `role="button"` | Élément cliquable non-`<button>` | Lignes de liste de signalements (`<li>`) |
+| `role="group"` | Groupe d'éléments liés | Filtres, boutons d'action |
+| `aria-current="page"` | Lien/bouton correspondant à la page active | Nav header, boutons pagination |
+| `aria-pressed` | Bouton toggle (état actif/inactif) | StatCard filtre sélectionné |
+| `aria-live="polite"` | Zone mise à jour dynamiquement | Bandeau utilisateur, compteur pagination |
+| `aria-hidden="true"` | Élément décoratif invisible au screen reader | Emojis, flèches `→` |
+| `aria-labelledby` | Section liée à son titre par `id` | `<section aria-labelledby="users-title">` |
+| `aria-describedby` | Champ lié à son message d'aide/erreur | Input + hint text + error message |
+| `tabIndex={0}` | Rendre un élément non-interactif focusable | `<li role="button">` |
+| `onKeyDown` | Gérer Enter/Space sur un rôle button | Lignes de signalement cliquables |
 
 ---
 
@@ -1504,7 +1855,7 @@ Le token `--color-primary-hover` dans `index.css` passe de `#007a91` à `#004f62
 
 ---
 
-## 7. Flux complet de A à Z
+## 9. Flux complet de A à Z
 
 ### Première visite — page de login
 
