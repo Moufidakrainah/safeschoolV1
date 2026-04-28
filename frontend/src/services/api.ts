@@ -8,6 +8,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+
+
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
 
