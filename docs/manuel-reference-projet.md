@@ -1391,6 +1391,35 @@ t('pagination.summary', { totalItems, currentPage, totalPages })
 
 Jamais laisser une clé manquante dans une langue — react-i18next afficherait la clé brute (`"admin.nav.reports"`) dans l'interface.
 
+### Clés i18n liées à l'accessibilité
+
+Certaines clés sont destinées exclusivement aux attributs ARIA — elles ne produisent aucun texte visible dans l'interface. Elles sont aussi importantes que les autres.
+
+```tsx
+// aria-label descriptif pour un bouton de changement de langue
+aria-label={t('footer.changeLanguage', { language: title() })}
+// → "Passer en Français" / "Switch to English" / "Zu Deutsch wechseln"
+
+// aria-label pour le groupe de navigation légale
+<nav aria-label={t('footer.legalNav')}>
+```
+
+Ces clés sont présentes dans les trois fichiers JSON sous `footer.legalNav` et `footer.changeLanguage`.
+
+### Sélection de langue — hook `useLanguage`
+
+La logique de changement de langue est centralisée dans `src/hooks/useLanguage.ts`. Ce hook :
+- change la langue dans i18next
+- persiste le choix dans `localStorage`
+- met à jour l'attribut `lang` de la balise `<html>` (requis WCAG pour les lecteurs d'écran)
+
+```tsx
+// Dans tout composant qui a besoin de changer la langue
+const { currentLanguage, changeLanguage } = useLanguage();
+```
+
+Ne jamais appeler `i18n.changeLanguage()` directement dans un composant — passer par ce hook pour garantir que l'attribut `lang` est toujours synchronisé.
+
 ---
 
 ## 7. Tailwind CSS — le système de classes
@@ -1820,6 +1849,30 @@ Chaque composant du design system embarque son propre comportement ARIA. La coll
 | `aria-describedby` | Champ lié à son message d'aide/erreur | Input + hint text + error message |
 | `tabIndex={0}` | Rendre un élément non-interactif focusable | `<li role="button">` |
 | `onKeyDown` | Gérer Enter/Space sur un rôle button | Lignes de signalement cliquables |
+| `aria-pressed` | État actif/inactif d'un bouton toggle | Sélecteur de langue dans le Footer |
+| `role="contentinfo"` | Identifie le `<footer>` de la page | Footer (balise `<footer>` + rôle explicite) |
+
+#### Cibles tactiles — WCAG 2.5.5
+
+Les éléments interactifs doivent avoir une zone cliquable d'au moins **44×44 px** pour être accessibles sur mobile et aux utilisateurs avec des limitations motrices.
+
+```tsx
+// Boutons de sélection de langue — garantit 44px minimum de largeur
+className="min-w-[44px] px-3 py-1 ..."
+```
+
+Appliquer `min-w-[44px]` et `min-h-[44px]` (ou `py-3` équivalent) sur tout bouton qui risque d'être trop petit visuellement.
+
+#### Focus visible — `focus:ring-offset`
+
+Sur un fond coloré, le `focus:ring-2 focus:ring-white` seul peut être peu visible si le fond est blanc. L'offset crée un espace entre l'élément et l'anneau de focus pour le rendre toujours lisible.
+
+```tsx
+// Sur fond primary (bleu foncé)
+className="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary"
+```
+
+Toujours utiliser `focus:ring-offset-{couleur}` avec la couleur du fond de l'élément parent pour garantir le contraste du focus ring.
 
 ---
 
