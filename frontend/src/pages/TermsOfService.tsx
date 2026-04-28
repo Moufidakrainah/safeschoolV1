@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Footer from '../components/Footer';
 
 export default function TermsOfService()
 {
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface font-sans">
-
+    <div className="flex-1 flex flex-col bg-surface font-sans">
+    {/* flex-1 flex flex-col : s'étire dans le layout App (div.flex-1.flex.flex-col) — pas de min-h-screen ici, App gère la hauteur */}
+      {/* flex-1 : grandit pour pousser le Footer en bas — fonctionne car le parent est flex-col */}
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
 
         <Link
@@ -89,8 +89,6 @@ export default function TermsOfService()
         </section>
 
       </main>
-
-      <Footer />
 
     </div>
   );

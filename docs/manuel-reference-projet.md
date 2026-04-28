@@ -1068,6 +1068,132 @@ Tailwind inverse ce paradigme : **chaque classe = une seule propriété CSS**. L
 | `font-semibold` | `font-weight: 600` |
 | `min-h-screen` | `min-height: 100vh` |
 
+### Flex — quand l'utiliser et quand ne pas l'utiliser
+
+`flex` est une propriété CSS de mise en page. Elle sert à aligner et distribuer des éléments sur un axe. Ce n'est pas une règle universelle — elle est pertinente quand elle résout un problème concret.
+
+#### Cas d'usage appropriés
+
+| Situation | Classes utilisées |
+|---|---|
+| Layout de page (contenu + footer collé en bas) | `flex flex-col min-h-screen` sur le conteneur racine |
+| Deux colonnes côte à côte | `flex` sur le parent, `w-1/2` sur chaque colonne |
+| Centrer un bloc dans son conteneur | `flex items-center justify-center` |
+| Barre de navigation horizontale | `flex gap-4 items-center` |
+| Boutons en ligne avec espacement | `flex gap-2` |
+
+#### Cas où flex n'est pas nécessaire
+
+- Un `<p>`, un `<h2>`, une `<section>` avec du texte qui suit le flux normal → pas besoin de flex
+- Une liste de cartes en grille → préférer `grid grid-cols-3`
+- Un bloc centré horizontalement avec une largeur max → `mx-auto max-w-3xl` suffit
+
+#### La règle de propagation — ce qui casse le plus souvent
+
+`flex-1` ne fonctionne que si le **parent direct** est en mode `display: flex`. Si un maillon de la chaîne n'est pas flex, l'instruction est ignorée sans message d'erreur.
+
+```
+✅ Chaîne valide :
+div.flex.flex-col          ← flex activé
+  └── main.flex-1          ← flex-1 fonctionne, parent est flex
+
+❌ Chaîne cassée :
+div (block par défaut)     ← flex NON activé
+  └── main.flex-1          ← flex-1 ignoré silencieusement
+```
+
+Pour qu'une page s'étire jusqu'au bas de l'écran dans un layout avec footer, **toute la chaîne doit être flex** :
+
+```
+App : div.flex.flex-col.min-h-screen
+  └── div.flex-1.flex.flex-col       ← conteneur des routes
+        └── Page : div.flex-1.flex.flex-col  ou  main.flex.flex-1
+```
+
+`min-h-screen` ne doit apparaître qu'**une seule fois**, sur le conteneur racine d'App. Le mettre sur une page individuelle crée un double 100vh qui repousse le footer hors de l'écran.
+
+#### `self-stretch`
+
+Dans un conteneur `flex`, les enfants s'alignent par défaut sur `align-items: stretch` — ils s'étirent pour occuper toute la hauteur du parent. Si un enfant ne s'étire pas comme attendu, `self-stretch` (`align-self: stretch`) force ce comportement explicitement.
+
+```tsx
+{/* Deux colonnes qui remplissent toute la hauteur du <main> */}
+<main className="flex flex-1">
+  <div className="w-1/2 bg-surface self-stretch">…</div>
+  <div className="w-1/2 bg-primary self-stretch">…</div>
+</main>
+```
+
+#### WCAG et flex
+
+Flex n'affecte pas l'accessibilité en soi. Le seul point d'attention : si l'ordre visuel diverge de l'ordre dans le HTML (via `order` ou `flex-direction: row-reverse`), les lecteurs d'écran lisent dans l'ordre du DOM, pas l'ordre visuel — ce qui crée une incohérence. `flex-col`, `flex-row` classiques sans inversion ne posent aucun problème.
+
+#### Styles inline vs classes Tailwind
+
+Utiliser `style={{ minHeight: '100vh' }}` contourne Tailwind et crée les mêmes problèmes qu'une classe `min-h-screen` dans une sous-page — sauf que c'est encore plus difficile à détecter lors d'une revue de code.
+
+```tsx
+// ❌ à éviter — bypasse Tailwind, invisible à l'audit de classes
+<main style={{ minHeight: '100vh', background: '#f5f7fa' }}>
+
+// ✅ préférer — classe Tailwind, cohérent avec le reste du layout
+<main className="flex-1 bg-surface">
+```
+
+Règle : réserver `style={{}}` aux valeurs **dynamiques** qui dépendent d'une variable JavaScript (ex. largeur calculée, couleur issue d'une API). Tout ce qui est statique doit passer par une classe Tailwind.
+
+#### flex vs grid — quoi choisir
+
+| Besoin | Choix |
+|---|---|
+| Aligner des éléments sur **un seul axe** (ligne ou colonne) | `flex` |
+| Distribuer des éléments sur **deux axes** (lignes et colonnes) | `grid` |
+| Footer collé en bas, header + contenu | `flex flex-col` |
+| Grille de cartes avec colonnes fixes | `grid grid-cols-3 gap-4` |
+| Navigation horizontale | `flex gap-4` |
+| Formulaire avec label + champ | `flex flex-col gap-2` |
+
+#### `gap` vs `margin` pour espacer des éléments flex
+
+`gap` est préférable à `margin` dans un contexte flex/grid car il n'ajoute pas d'espace sur le premier ou le dernier élément.
+
+```tsx
+// ❌ marge appliquée sur tous les éléments dont le premier/dernier
+<div className="flex">
+  <button className="mr-2">A</button>
+  <button className="mr-2">B</button>   {/* marge en trop sur le dernier */}
+</div>
+
+// ✅ gap s'applique uniquement entre les éléments
+<div className="flex gap-2">
+  <button>A</button>
+  <button>B</button>
+</div>
+```
+
+#### `flex-wrap` — quand les éléments doivent passer à la ligne
+
+Par défaut, `flex` force tous les enfants sur une seule ligne, même s'ils dépassent la largeur du conteneur. `flex-wrap` autorise le retour à la ligne automatique.
+
+```tsx
+// Footer : langue switcher + liens légaux → passent à la ligne sur mobile
+<footer className="flex flex-wrap gap-4 items-center justify-between">
+```
+
+À utiliser dès qu'un conteneur flex peut contenir un nombre variable d'éléments ou doit être responsive.
+
+#### Récapitulatif — grandes règles
+
+| Règle | Explication |
+|---|---|
+| `flex-1` nécessite un parent `flex` | Sans parent flex, `flex-1` est ignoré silencieusement |
+| `min-h-screen` une seule fois | Sur le conteneur racine d'App uniquement — jamais sur une page individuelle |
+| Pas de `style={{ minHeight: '100vh' }}` | Utiliser `className="flex-1"` à la place |
+| `gap` plutôt que `margin` entre éléments flex | `gap` ne s'applique pas au premier/dernier élément |
+| `flex-wrap` si le nombre d'éléments est variable | Évite le débordement horizontal sur petits écrans |
+| `grid` pour deux axes, `flex` pour un axe | Ne pas utiliser flex pour des grilles de cartes |
+| Ne jamais inverser l'ordre visuel sans nécessité | `order`, `row-reverse` cassent la navigation clavier/lecteur d'écran |
+
 ### Le système d'échelle
 
 Tailwind utilise une échelle où chaque unité = 0.25rem = 4px :

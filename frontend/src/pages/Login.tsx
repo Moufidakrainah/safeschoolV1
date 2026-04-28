@@ -42,15 +42,15 @@ export default function Login()
   };
 
   return (
-    <main className="flex min-h-screen font-sans">
+    <main className="flex flex-1 font-sans">
 
-      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-surface px-12">
+      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-surface px-12 self-stretch">
 
           <img src="/logos/safeschool-logo.png" alt="SafeSchool logo" className="w-80 h-80 object-contain" />
 
       </div>
 
-      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-primary px-16">
+      <div className="flex flex-col items-center justify-center gap-8 w-1/2 bg-primary px-16 self-stretch">
 
         <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full max-w-sm">
 

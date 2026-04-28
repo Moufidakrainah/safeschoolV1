@@ -15,7 +15,12 @@ i18n
       en: { translation: en },
       de: { translation: de },
     },
-    fallbackLng: 'fr',     // langue par défaut si la langue détectée n'est pas supportée
+    lng: 'fr',             // langue par défaut au premier chargement
+    fallbackLng: 'fr',     // langue de secours si clé manquante
+    detection: {
+      order: ['localStorage', 'navigator'], // mémorise le choix de l'utilisateur
+      caches: ['localStorage'],
+    },
     interpolation: {
       escapeValue: false,  // React échappe déjà le HTML, pas besoin de le faire deux fois
     },

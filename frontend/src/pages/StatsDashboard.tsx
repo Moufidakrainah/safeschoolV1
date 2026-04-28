@@ -63,7 +63,7 @@ export default function StatsDashboard({ reports }: Props) {
   const allClasses = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
 
   return (
-    <div>
+    <main>
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
         <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '10px 14px', borderRadius: '8px', border: '2px solid #e0e0e0', fontSize: '13px', outline: 'none', background: 'white', color: '#333' }}>
           <option value="all">Toute la période</option>
@@ -161,6 +161,6 @@ export default function StatsDashboard({ reports }: Props) {
           </ResponsiveContainer>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

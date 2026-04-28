@@ -416,7 +416,7 @@ if (step === 8) return (
   const steps = ['Qui signale', 'Type', 'Faits', 'Personnes', 'Preuves', 'Validation'];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
+    <main style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
       <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
           <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
@@ -697,6 +697,6 @@ if (step === 8) return (
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
