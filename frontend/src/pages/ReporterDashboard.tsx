@@ -7,6 +7,7 @@ import Card from '../components/Card';
 import ReporterHeader from '../components/ReporterHeader';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
+import Header from '../components/Header';
 
 // ─── ReporterDashboard ────────────────────────────────────────────────────────
 
@@ -170,8 +171,20 @@ export default function ReporterDashboard() {
   ];
 
   return (
+	<>
+    <Header
+      user={user}
+      logoutUser={logoutUser}
+      viewSection={viewSection}
+      setViewSection={setViewSection}
+      setSelected={setSelected}
+      fetchUsers={fetchUsers}
+      t={t}
+    />
     <main className="min-h-screen bg-gray-50 font-sans">
-      <ReporterHeader user={user} logoutUser={logoutUser} onCancel={resetForm} showCancel t={t} />
+      
+	
+	<ReporterHeader user={user} logoutUser={logoutUser} onCancel={resetForm} showCancel t={t} />
       <StepBar steps={steps} currentStep={step} />
 
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
@@ -423,5 +436,6 @@ export default function ReporterDashboard() {
         </Card>
       </div>
     </main>
+	  </>
   );
 }
