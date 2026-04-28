@@ -11,7 +11,9 @@
   },
   "footer": {
     "privacy": "Datenschutzerklärung",
-    "terms": "Nutzungsbedingungen"
+    "terms": "Nutzungsbedingungen",
+    "backToApp": "Zurück zur App",
+    "languageSwitcher": "Sprache wählen"
   },
   "common": {
     "save": "Speichern",

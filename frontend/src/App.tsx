@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
-import { useState, useEffect } from 'react'; // LIVRAISON: retirer useState+useEffect si DevBar supprimée
-import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'; // LIVRAISON: retirer Link, useLocation si DevBar supprimée
+import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
@@ -8,13 +7,15 @@ import AdminDashboard from './pages/AdminDashboard';
 import ReporterDashboard from './pages/ReporterDashboard';
 import UiKit from './pages/UiKit';
 import StatsDashboard from './pages/StatsDashboard';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import Footer from './components/Footer';
 
 // FIX: utiliser element react car config TS actuelle expose pas JSX.Element pendant le build.
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] })
 {
-  // LIVRAISON: supprimer les 2 lignes suivantes — elles court-circuitent toute la protection par rôle
-  // DEV : bypass complet pour naviguer librement via la DevBar.
-  if (import.meta.env.DEV) return children;
+  // Bypass désactivé automatiquement quand VITE_DEVBAR !== 'true' (toggle-devbar.sh)
+  if (import.meta.env.VITE_DEVBAR === 'true') return children;
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated)
     return <Navigate to="/login" />;
@@ -23,11 +24,10 @@ function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: s
   return children;
 }
 
-// LIVRAISON: supprimer tout le bloc DevBar ci-dessous (fonction + import StatsDashboard
-// + import UiKit si /ui-kit non conservé + useState devBarVisible + useEffect toggle)
+// DevBar — visible uniquement quand VITE_DEVBAR=true (toggle via frontend/toggle-devbar.sh)
 function DevBar() {
   const location = useLocation();
-  if (import.meta.env.PROD) return null;
+  if (import.meta.env.VITE_DEVBAR !== 'true') return null;
   return (
     <div style={{
       position: 'fixed', bottom: '16px', right: '16px', zIndex: 9999,
@@ -57,27 +57,11 @@ function DevBar() {
 
 export default function App()
 {
-  const [devBarVisible, setDevBarVisible] = useState(true); // LIVRAISON: supprimer
-
-  // LIVRAISON: supprimer ce useEffect (toggle Ctrl+Shift+D pour masquer/afficher la DevBar)
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-        e.preventDefault();
-        setDevBarVisible(v => !v);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
   return (
     <>
-      {devBarVisible && <DevBar />} {/* LIVRAISON: supprimer cette ligne */}
+      <DevBar />
       <Routes>
       <Route path="/login" element={<Login />} />
-      {/* LIVRAISON: supprimer route ui-kit et stats (dev uniquement) */}
       <Route path="/ui-kit" element={<UiKit />} />
       <Route path="/stats" element={<StatsDashboard reports={[]} />} />
       <Route path="/reporter" element={
@@ -96,8 +80,11 @@ export default function App()
         </ProtectedRoute>
       } />
       <Route path="/" element={<Navigate to="/login" />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
+    <Footer />
     </>
   );
 }

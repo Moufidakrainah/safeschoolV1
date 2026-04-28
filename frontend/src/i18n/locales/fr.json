@@ -11,7 +11,9 @@
   },
   "footer": {
     "privacy": "Politique de confidentialité",
-    "terms": "Conditions d'utilisation"
+    "terms": "Conditions d'utilisation",
+    "backToApp": "Retour à l'application",
+    "languageSwitcher": "Choisir la langue"
   },
   "common": {
     "save": "Enregistrer",

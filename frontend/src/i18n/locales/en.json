@@ -11,7 +11,9 @@
   },
   "footer": {
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "backToApp": "Back to app",
+    "languageSwitcher": "Choose language"
   },
   "common": {
     "save": "Save",
