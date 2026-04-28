@@ -1,33 +1,72 @@
-type ButtonVariant = 'primary' | 'danger' | 'success' | 'warning' | 'ghost' | 'outline';
+// ============================================================
+// BUTTON
+//
+// Props :
+//   children  : contenu du bouton (texte, JSX, etc.)
+//   variant   : "primary" | "outline" | "danger" | "login"
+//   type      : "button" | "submit" | "reset"   (défaut: "button")
+//   onClick   : fonction appelée au clic        (optionnel)
+//   disabled  : désactive le bouton             (optionnel)
+//   fullWidth : prend toute la largeur          (optionnel)
+//
+// Utilisation :
+//   <Button variant="primary" type="submit">Enregistrer</Button>
+//   <Button variant="danger" onClick={handleDelete}>Supprimer</Button>
+// ============================================================
 
-const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-[#0097b2] text-white hover:opacity-90',
-  danger:  'bg-[#ff3131] text-white hover:opacity-90',
-  success: 'bg-[#74cc00] text-white hover:opacity-90',
-  warning: 'bg-[#ffde59] text-black hover:opacity-90',
-  ghost:   'bg-gray-100 text-gray-600 hover:bg-gray-200',
-  outline: 'bg-transparent border border-[#0097b2] text-[#0097b2] hover:bg-[#ebfcff]',
+// ─── Type ────────────────────────────────────────────────────────────────────
+// Déclare la forme des props acceptées par ce composant.
+// Chaque champ avec ? est optionnel — React utilisera la valeur défaut si absent.
+type ButtonProps =
+{
+  children:   React.ReactNode;         // contenu entre les balises <Button>…</Button>
+  variant?:   'primary' | 'outline' | 'danger' | 'login' | 'ghost' | 'warning' | 'success';
+  type?:      'button' | 'submit' | 'reset';
+  onClick?:   () => void;
+  disabled?:  boolean;
+  fullWidth?:  boolean;
+  className?: string;
+  'aria-label'?: string;
 };
 
-interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  variant?: ButtonVariant;
-  disabled?: boolean;
-  className?: string;
-}
+// ─── Styles ──────────────────────────────────────────────────────────────────
+// Classes Tailwind communes à toutes les variantes.
+const base = 'px-6 py-3 rounded-full font-semibold text-sm cursor-pointer transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
 
-export default function Button({ children, onClick, variant = 'primary', disabled, className = '' }: ButtonProps) {
+// Chaque variante surcharge uniquement ce qui change (couleur, bordure…).
+const variants =
+{
+  login:   'bg-white text-primary border border-white hover:bg-surface',
+  primary: 'bg-primary text-white hover:bg-primary-hover',
+  outline: 'bg-transparent text-primary border border-primary hover:bg-surface',
+  danger:  'bg-critical text-white hover:opacity-90',
+  ghost:   'bg-transparent text-gray-600 border border-gray-200 hover:bg-gray-50',
+  warning: 'bg-purple-600 text-white hover:bg-purple-700',
+  success: 'bg-green-500 text-white hover:bg-green-600',
+};
+
+// ─── Composant ───────────────────────────────────────────────────────────────
+// La fonction reçoit les props, applique les valeurs défaut, retourne du JSX.
+export default function Button(
+{
+  children,
+  variant   = 'primary',
+  type      = 'button',
+  onClick,
+  disabled  = false,
+  fullWidth = false,
+  className = '',
+  'aria-label': ariaLabel,
+}: ButtonProps)
+{
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`
-        px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-all
-        ${variantClasses[variant]}
-        ${disabled ? 'opacity-40 cursor-not-allowed' : ''}
-        ${className}
-      `}>
+      aria-label={ariaLabel}
+      className={`${base} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
+    >
       {children}
     </button>
   );

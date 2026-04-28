@@ -1,3 +1,5 @@
-Detailled product features
-What problem does the product solve? What gaps does it fill?
-Target audience: who will use the product
+**Vision produit**
+
+Fonctionnalités détaillées du produit
+Quel problème le produit résout-il ? Quels manques comble-t-il ?
+Public cible : qui utilisera le produit

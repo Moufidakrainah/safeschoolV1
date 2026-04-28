@@ -1,0 +1,222 @@
+{
+  "login": {
+    "labelEmail": "Benutzername",
+    "labelPassword": "Passwort",
+    "submit": "Anmelden",
+    "loading": "Anmeldung läuft...",
+    "error": "Benutzername oder Passwort falsch"
+  },
+  "nav": {
+    "logout": "Abmelden"
+  },
+  "footer": {
+    "privacy": "Datenschutzerklärung",
+    "terms": "Nutzungsbedingungen",
+    "backToApp": "Zurück zur App",
+    "languageSwitcher": "Sprache wählen"
+  },
+  "admin": {
+    "prev": "Zurück",
+    "next": "Weiter",
+    "reportLabel": "Meldung {{number}}",
+    "loading": "Laden...",
+    "noReports": "Keine Meldungen gefunden",
+    "reportsList": "Meldungsliste",
+    "nav": {
+      "ariaLabel": "Hauptnavigation",
+      "reports": "Meldungen",
+      "users": "Benutzer",
+      "stats": "Statistiken"
+    },
+    "topbar": {
+      "role": "{{role}}-Bereich"
+    },
+    "stats": {
+      "groupLabel": "Meldungsstatistiken",
+      "total": "Gesamt",
+      "critical": "Kritisch",
+      "high": "Ernst",
+      "pending": "Ausstehend",
+      "escalated": "Eskaliert"
+    },
+    "search": {
+      "placeholder": "Nach Name, Titel, Beschreibung suchen"
+    },
+    "filters": {
+      "groupLabel": "Filter",
+      "allStatuses": "Alle Status",
+      "allClasses": "Alle Klassen",
+      "allReporters": "Alle Melder",
+      "suspectPlaceholder": "Nach Verdächtigem filtern...",
+      "dateRange": "Datumsbereich",
+      "dateFrom": "Von Datum",
+      "dateTo": "Bis Datum",
+      "reset": "Zurücksetzen"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "escalated": "Eskaliert",
+      "closed": "Geschlossen",
+      "rejected": "Abgelehnt"
+    },
+    "detail": {
+      "info": "Meldungsinformationen",
+      "titleField": "Titel",
+      "date": "Datum",
+      "class": "Klasse",
+      "aiScore": "KI-Score",
+      "aiReason": "KI-Analyse",
+      "anonymous": "Anonym",
+      "yes": "Ja",
+      "no": "Nein",
+      "people": "Beteiligte Personen",
+      "reportedBy": "Gemeldet von",
+      "anonymousLabel": "Anonym",
+      "victim": "Opfer",
+      "suspects": "Verdächtige(r)",
+      "noSuspect": "Kein Verdächtiger angegeben",
+      "gradeModified": "Note geändert",
+      "suspectsCount": "Verdächtige(r)"
+    },
+    "actions": {
+      "groupLabel": "Aktionen zur Meldung",
+      "inProgress": "In Bearbeitung",
+      "escalate": "Eskalieren",
+      "close": "Schließen",
+      "reject": "Ablehnen"
+    },
+    "notes": {
+      "title": "Verwaltungsnotizen",
+      "empty": "Keine Notizen für diesen Fall",
+      "placeholder": "Notiz hinzufügen...",
+      "save": "Notiz speichern"
+    },
+    "convocation": {
+      "title": "Beteiligte Personen vorladen",
+      "dateLabel": "Datum und Uhrzeit",
+      "placeholder": "Vorladungsnachricht...",
+      "send": "Vorladung senden"
+    },
+    "users": {
+      "title": "Benutzerverwaltung",
+      "add": "+ Benutzer hinzufügen",
+      "formTitle": "einen Benutzer",
+      "formAdd": "Hinzufügen",
+      "formEdit": "Bearbeiten",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "save": "Speichern",
+      "deleteConfirm": "Diesen Benutzer löschen?",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "selectClass": "Klasse auswählen",
+      "roles": {
+        "label": "Rolle",
+        "student": "Schüler",
+        "teacher": "Lehrer",
+        "staff": "Personal",
+        "admin": "Admin",
+        "director": "Direktor"
+      }
+    }
+  },
+  "badge": {
+    "critical":    "🔴 Kritisch",
+    "high":        "🟠 Ernst",
+    "medium":      "🟡 Mäßig",
+    "low":         "🟢 Gering",
+    "pending":     "⏳ Ausstehend",
+    "in_progress": "🔄 In Bearbeitung",
+    "escalated":   "🚨 Eskaliert",
+    "closed":      "✅ Geschlossen",
+    "rejected":    "❌ Abgelehnt"
+  },
+  "noteblock": {
+    "note":        "📝 Notiz",
+    "convocation": "📅 Vorladung"
+  },
+  "pagination": {
+    "nav":     "Seitennavigation",
+    "summary": "{{totalItems}} Ergebnisse · Seite {{currentPage}} von {{totalPages}}",
+    "prev":    "Vorherige Seite",
+    "next":    "Nächste Seite",
+    "page":    "Seite {{n}}"
+  },
+  "common": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten"
+  },
+  "privacy": {
+    "updated": "Letzte Aktualisierung: April 2026",
+    "s1": {
+      "title": "1. Verantwortliche Stelle",
+      "body": "Die SafeSchool-Anwendung wird im Rahmen einer Bildungseinrichtung betrieben. Verantwortliche Stelle für die Datenverarbeitung ist die Einrichtung, die diese Instanz der Anwendung bereitgestellt hat. Bei Fragen zu Ihren personenbezogenen Daten wenden Sie sich bitte an die Verwaltung Ihrer Einrichtung."
+    },
+    "s2": {
+      "title": "2. Erhobene Daten",
+      "intro": "Im Rahmen des Betriebs der Anwendung werden folgende Daten verarbeitet:",
+      "items": [
+        "E-Mail-Adresse und Anmeldedaten",
+        "Rolle in der Einrichtung (Schüler, Lehrer, Personal, Administrator)",
+        "Inhalt der von autorisierten Nutzern erfassten Meldungen",
+        "Notizen und Kommentare zu Falldokumentationen",
+        "Technische Aktivitätsprotokolle (Anmelde- und Aktionsprotokolle)"
+      ]
+    },
+    "s3": {
+      "title": "3. Zweck der Verarbeitung",
+      "body": "Die Daten werden ausschließlich für folgende Zwecke verarbeitet: Verwaltung und Nachverfolgung von Meldungen besorgniserregender Situationen, Koordination zwischen befugten Mitarbeitern sowie administrative Überwachung. Daten werden weder für kommerzielle Zwecke genutzt noch an externe Dritte weitergegeben."
+    },
+    "s4": {
+      "title": "4. Speicherdauer",
+      "body": "Meldungsbezogene Daten werden für die zur Bearbeitung der Fälle erforderliche Dauer aufbewahrt, entsprechend den für Bildungseinrichtungen geltenden gesetzlichen Verpflichtungen. Technische Protokolle werden maximal 90 Tage aufbewahrt."
+    },
+    "s5": {
+      "title": "5. Nutzerrechte",
+      "body": "Gemäß der Datenschutz-Grundverordnung (DSGVO) haben Sie das Recht auf Auskunft, Berichtigung und Löschung Ihrer personenbezogenen Daten sowie das Recht auf Einschränkung der Verarbeitung. Zur Ausübung dieser Rechte richten Sie eine schriftliche Anfrage an die Verwaltung Ihrer Einrichtung."
+    },
+    "s6": {
+      "title": "6. Sicherheit",
+      "body": "Der Zugang zur Anwendung ist durch Authentifizierung gesichert. Passwörter werden in gehashter Form (bcrypt) gespeichert. Die Kommunikation zwischen Browser und Server ist verschlüsselt. Der Datenzugriff ist strikt auf Nutzer mit den entsprechenden rollenbasierten Berechtigungen beschränkt."
+    }
+  },
+  "terms": {
+    "updated": "Letzte Aktualisierung: April 2026",
+    "s1": {
+      "title": "1. Zweck",
+      "body": "SafeSchool ist eine Anwendung zur Verwaltung und Nachverfolgung von Meldungen besorgniserregender Situationen in Bildungseinrichtungen. Sie ist ausschließlich für Mitarbeiter und Schüler bestimmt, die von der Verwaltung der Einrichtung im System registriert wurden."
+    },
+    "s2": {
+      "title": "2. Zugang und Benutzerkonten",
+      "body": "Der Zugang zur Anwendung setzt ein von der Verwaltung erstelltes Konto voraus. Zugangsdaten sind persönlich und dürfen nicht weitergegeben werden. Jeder unbefugte Zugang oder Versuch, die Authentifizierungsmechanismen zu umgehen, ist streng verboten und kann disziplinarische Konsequenzen haben."
+    },
+    "s3": {
+      "title": "3. Zulässige Nutzung",
+      "intro": "Die Nutzer verpflichten sich:",
+      "items": [
+        "Die Anwendung ausschließlich im Rahmen ihrer Aufgaben in der Einrichtung zu nutzen",
+        "Genaue und gutgläubige Informationen in den Meldungen einzugeben",
+        "Die Vertraulichkeit der ihnen zugänglichen Fallakten zu wahren",
+        "Nicht zu versuchen, auf Daten zuzugreifen, die ihre Berechtigungsstufe überschreiten"
+      ]
+    },
+    "s4": {
+      "title": "4. Inhalt der Meldungen",
+      "body": "Meldungen müssen sorgfältig und objektiv verfasst werden. Jeder Inhalt, der offensichtlich unzutreffend, diffamierend oder nicht mit einer echten besorgniserregenden Situation verbunden ist, liegt in der Verantwortung des Verfassers. Die Verwaltung behält sich das Recht vor, jeden Fall zu schließen, der diese Kriterien nicht erfüllt."
+    },
+    "s5": {
+      "title": "5. Haftung",
+      "body": "Die Einrichtung ergreift angemessene technische Maßnahmen, um die Verfügbarkeit und Sicherheit der Anwendung zu gewährleisten. Sie haftet nicht für Dienstunterbrechungen oder Datenverluste, die auf Ereignisse außerhalb ihres Einflussbereichs zurückzuführen sind. Die Nutzer sind für die von ihnen im System eingegebenen Informationen verantwortlich."
+    },
+    "s6": {
+      "title": "6. Änderungen dieser Bedingungen",
+      "body": "Diese Nutzungsbedingungen können von der Verwaltung jederzeit aktualisiert werden. Nutzer werden über wesentliche Änderungen informiert. Die weitere Nutzung der Anwendung nach der Benachrichtigung gilt als Zustimmung zu den überarbeiteten Bedingungen."
+    }
+  }
+}

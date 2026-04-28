@@ -1,4 +1,17 @@
 {
   "typescript.validate.enable": false,
-  "javascript.validate.enable": false
+  "javascript.validate.enable": false,
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "off",
+    "strings": "on"
+  },
+  "tailwindCSS.experimental.configFile": {
+    "frontend/src/index.css": "frontend/src/**"
+  },
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className"
+  ],
+  "tailwindCSS.emmetCompletions": true
 }
