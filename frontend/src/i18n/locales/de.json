@@ -15,6 +15,136 @@
     "backToApp": "Zurück zur App",
     "languageSwitcher": "Sprache wählen"
   },
+  "admin": {
+    "prev": "Zurück",
+    "next": "Weiter",
+    "reportLabel": "Meldung {{number}}",
+    "loading": "Laden...",
+    "noReports": "Keine Meldungen gefunden",
+    "reportsList": "Meldungsliste",
+    "nav": {
+      "ariaLabel": "Hauptnavigation",
+      "reports": "Meldungen",
+      "users": "Benutzer",
+      "stats": "Statistiken"
+    },
+    "topbar": {
+      "role": "{{role}}-Bereich"
+    },
+    "stats": {
+      "groupLabel": "Meldungsstatistiken",
+      "total": "Gesamt",
+      "critical": "Kritisch",
+      "high": "Ernst",
+      "pending": "Ausstehend",
+      "escalated": "Eskaliert"
+    },
+    "search": {
+      "placeholder": "Nach Name, Titel, Beschreibung suchen"
+    },
+    "filters": {
+      "groupLabel": "Filter",
+      "allStatuses": "Alle Status",
+      "allClasses": "Alle Klassen",
+      "allReporters": "Alle Melder",
+      "suspectPlaceholder": "Nach Verdächtigem filtern...",
+      "dateRange": "Datumsbereich",
+      "dateFrom": "Von Datum",
+      "dateTo": "Bis Datum",
+      "reset": "Zurücksetzen"
+    },
+    "status": {
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "escalated": "Eskaliert",
+      "closed": "Geschlossen",
+      "rejected": "Abgelehnt"
+    },
+    "detail": {
+      "info": "Meldungsinformationen",
+      "titleField": "Titel",
+      "date": "Datum",
+      "class": "Klasse",
+      "aiScore": "KI-Score",
+      "aiReason": "KI-Analyse",
+      "anonymous": "Anonym",
+      "yes": "Ja",
+      "no": "Nein",
+      "people": "Beteiligte Personen",
+      "reportedBy": "Gemeldet von",
+      "anonymousLabel": "Anonym",
+      "victim": "Opfer",
+      "suspects": "Verdächtige(r)",
+      "noSuspect": "Kein Verdächtiger angegeben",
+      "gradeModified": "Note geändert",
+      "suspectsCount": "Verdächtige(r)"
+    },
+    "actions": {
+      "groupLabel": "Aktionen zur Meldung",
+      "inProgress": "In Bearbeitung",
+      "escalate": "Eskalieren",
+      "close": "Schließen",
+      "reject": "Ablehnen"
+    },
+    "notes": {
+      "title": "Verwaltungsnotizen",
+      "empty": "Keine Notizen für diesen Fall",
+      "placeholder": "Notiz hinzufügen...",
+      "save": "Notiz speichern"
+    },
+    "convocation": {
+      "title": "Beteiligte Personen vorladen",
+      "dateLabel": "Datum und Uhrzeit",
+      "placeholder": "Vorladungsnachricht...",
+      "send": "Vorladung senden"
+    },
+    "users": {
+      "title": "Benutzerverwaltung",
+      "add": "+ Benutzer hinzufügen",
+      "formTitle": "einen Benutzer",
+      "formAdd": "Hinzufügen",
+      "formEdit": "Bearbeiten",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "password": "Passwort",
+      "save": "Speichern",
+      "deleteConfirm": "Diesen Benutzer löschen?",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "selectClass": "Klasse auswählen",
+      "roles": {
+        "label": "Rolle",
+        "student": "Schüler",
+        "teacher": "Lehrer",
+        "staff": "Personal",
+        "admin": "Admin",
+        "director": "Direktor"
+      }
+    }
+  },
+  "badge": {
+    "critical":    "🔴 Kritisch",
+    "high":        "🟠 Ernst",
+    "medium":      "🟡 Mäßig",
+    "low":         "🟢 Gering",
+    "pending":     "⏳ Ausstehend",
+    "in_progress": "🔄 In Bearbeitung",
+    "escalated":   "🚨 Eskaliert",
+    "closed":      "✅ Geschlossen",
+    "rejected":    "❌ Abgelehnt"
+  },
+  "noteblock": {
+    "note":        "📝 Notiz",
+    "convocation": "📅 Vorladung"
+  },
+  "pagination": {
+    "nav":     "Seitennavigation",
+    "summary": "{{totalItems}} Ergebnisse · Seite {{currentPage}} von {{totalPages}}",
+    "prev":    "Vorherige Seite",
+    "next":    "Nächste Seite",
+    "page":    "Seite {{n}}"
+  },
   "common": {
     "save": "Speichern",
     "cancel": "Abbrechen",

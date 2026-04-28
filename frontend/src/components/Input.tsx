@@ -17,13 +17,14 @@
 //   />
 
 type InputProps = {
-  label: string;
+  label?: string;
   type?: 'text' | 'email' | 'password';
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
   theme?: 'light' | 'dark';
+  'aria-label'?: string;
 };
 
 export default function Input({
@@ -34,6 +35,7 @@ export default function Input({
   placeholder,
   required = false,
   theme = 'dark',
+  'aria-label': ariaLabel,
 }: InputProps) {
 
   const labelClass = theme === 'light'
@@ -42,13 +44,14 @@ export default function Input({
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      <label className={labelClass}>{label}</label>
+      {label && <label className={labelClass}>{label}</label>}
       <input
         type={type}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         required={required}
+        aria-label={ariaLabel}
         className="w-full px-4 py-3 rounded-full bg-white text-gray-800 text-sm outline-none focus:ring-2 focus:ring-primary border-none"
       />
     </div>

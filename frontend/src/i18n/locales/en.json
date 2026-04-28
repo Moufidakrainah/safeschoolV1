@@ -15,6 +15,136 @@
     "backToApp": "Back to app",
     "languageSwitcher": "Choose language"
   },
+  "admin": {
+    "prev": "Previous",
+    "next": "Next",
+    "reportLabel": "Report {{number}}",
+    "loading": "Loading...",
+    "noReports": "No reports found",
+    "reportsList": "Reports list",
+    "nav": {
+      "ariaLabel": "Main navigation",
+      "reports": "Reports",
+      "users": "Users",
+      "stats": "Statistics"
+    },
+    "topbar": {
+      "role": "{{role}} space"
+    },
+    "stats": {
+      "groupLabel": "Report statistics",
+      "total": "Total",
+      "critical": "Critical",
+      "high": "Serious",
+      "pending": "Pending",
+      "escalated": "Escalated"
+    },
+    "search": {
+      "placeholder": "Search by name, title, description"
+    },
+    "filters": {
+      "groupLabel": "Filters",
+      "allStatuses": "All statuses",
+      "allClasses": "All classes",
+      "allReporters": "All reporters",
+      "suspectPlaceholder": "Filter by suspect...",
+      "dateRange": "Date range",
+      "dateFrom": "From date",
+      "dateTo": "To date",
+      "reset": "Reset"
+    },
+    "status": {
+      "pending": "Pending",
+      "in_progress": "In progress",
+      "escalated": "Escalated",
+      "closed": "Closed",
+      "rejected": "Rejected"
+    },
+    "detail": {
+      "info": "Report information",
+      "titleField": "Title",
+      "date": "Date",
+      "class": "Class",
+      "aiScore": "AI Score",
+      "aiReason": "AI Analysis",
+      "anonymous": "Anonymous",
+      "yes": "Yes",
+      "no": "No",
+      "people": "People involved",
+      "reportedBy": "Reported by",
+      "anonymousLabel": "Anonymous",
+      "victim": "Victim",
+      "suspects": "Suspect(s)",
+      "noSuspect": "No suspect indicated",
+      "gradeModified": "Grade modified",
+      "suspectsCount": "suspect(s)"
+    },
+    "actions": {
+      "groupLabel": "Report actions",
+      "inProgress": "In progress",
+      "escalate": "Escalate",
+      "close": "Close",
+      "reject": "Reject"
+    },
+    "notes": {
+      "title": "Administrative notes",
+      "empty": "No notes for this case",
+      "placeholder": "Add a note...",
+      "save": "Save note"
+    },
+    "convocation": {
+      "title": "Summon people involved",
+      "dateLabel": "Date and time",
+      "placeholder": "Summons message...",
+      "send": "Send summons"
+    },
+    "users": {
+      "title": "User management",
+      "add": "+ Add a user",
+      "formTitle": "a user",
+      "formAdd": "Add",
+      "formEdit": "Edit",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "password": "Password",
+      "save": "Save",
+      "deleteConfirm": "Delete this user?",
+      "edit": "Edit",
+      "delete": "Delete",
+      "selectClass": "Select a class",
+      "roles": {
+        "label": "Role",
+        "student": "Student",
+        "teacher": "Teacher",
+        "staff": "Staff",
+        "admin": "Admin",
+        "director": "Director"
+      }
+    }
+  },
+  "badge": {
+    "critical":    "🔴 Critical",
+    "high":        "🟠 Serious",
+    "medium":      "🟡 Moderate",
+    "low":         "🟢 Minor",
+    "pending":     "⏳ Pending",
+    "in_progress": "🔄 In progress",
+    "escalated":   "🚨 Escalated",
+    "closed":      "✅ Closed",
+    "rejected":    "❌ Rejected"
+  },
+  "noteblock": {
+    "note":        "📝 Note",
+    "convocation": "📅 Summons"
+  },
+  "pagination": {
+    "nav":     "Pagination",
+    "summary": "{{totalItems}} results · Page {{currentPage}} of {{totalPages}}",
+    "prev":    "Previous page",
+    "next":    "Next page",
+    "page":    "Page {{n}}"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",

@@ -15,6 +15,136 @@
     "backToApp": "Retour à l'application",
     "languageSwitcher": "Choisir la langue"
   },
+  "admin": {
+    "prev": "Précédent",
+    "next": "Suivant",
+    "reportLabel": "Signalement {{number}}",
+    "loading": "Chargement...",
+    "noReports": "Aucun signalement trouvé",
+    "reportsList": "Liste des signalements",
+    "nav": {
+      "ariaLabel": "Navigation principale",
+      "reports": "Signalements",
+      "users": "Utilisateurs",
+      "stats": "Statistiques"
+    },
+    "topbar": {
+      "role": "Espace {{role}}"
+    },
+    "stats": {
+      "groupLabel": "Statistiques des signalements",
+      "total": "Total",
+      "critical": "Critique",
+      "high": "Grave",
+      "pending": "En attente",
+      "escalated": "Escaladés"
+    },
+    "search": {
+      "placeholder": "Rechercher par nom, titre, description"
+    },
+    "filters": {
+      "groupLabel": "Filtres",
+      "allStatuses": "Tous les statuts",
+      "allClasses": "Toutes les classes",
+      "allReporters": "Tous les signalants",
+      "suspectPlaceholder": "Filtrer par soupçonné...",
+      "dateRange": "Plage de dates",
+      "dateFrom": "Date de début",
+      "dateTo": "Date de fin",
+      "reset": "Réinitialiser"
+    },
+    "status": {
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "escalated": "Escaladé",
+      "closed": "Clôturé",
+      "rejected": "Rejeté"
+    },
+    "detail": {
+      "info": "Informations du signalement",
+      "titleField": "Titre",
+      "date": "Date",
+      "class": "Classe",
+      "aiScore": "Score IA",
+      "aiReason": "Analyse IA",
+      "anonymous": "Anonyme",
+      "yes": "Oui",
+      "no": "Non",
+      "people": "Personnes impliquées",
+      "reportedBy": "Signalé par",
+      "anonymousLabel": "Anonyme",
+      "victim": "Victime",
+      "suspects": "Soupçonné(s)",
+      "noSuspect": "Aucun soupçonné indiqué",
+      "gradeModified": "Grade modifié",
+      "suspectsCount": "coupable(s)"
+    },
+    "actions": {
+      "groupLabel": "Actions sur le signalement",
+      "inProgress": "En cours",
+      "escalate": "Escalader",
+      "close": "Clôturer",
+      "reject": "Rejeter"
+    },
+    "notes": {
+      "title": "Notes administratives",
+      "empty": "Aucune note pour ce dossier",
+      "placeholder": "Ajouter une note...",
+      "save": "Enregistrer la note"
+    },
+    "convocation": {
+      "title": "Convoquer les personnes impliquées",
+      "dateLabel": "Date et heure",
+      "placeholder": "Message de convocation...",
+      "send": "Envoyer la convocation"
+    },
+    "users": {
+      "title": "Gestion des utilisateurs",
+      "add": "+ Ajouter un utilisateur",
+      "formTitle": "un utilisateur",
+      "formAdd": "Ajouter",
+      "formEdit": "Modifier",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Email",
+      "password": "Mot de passe",
+      "save": "Enregistrer",
+      "deleteConfirm": "Supprimer cet utilisateur ?",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "selectClass": "Sélectionner une classe",
+      "roles": {
+        "label": "Rôle",
+        "student": "Élève",
+        "teacher": "Professeur",
+        "staff": "Personnel",
+        "admin": "Admin",
+        "director": "Directeur"
+      }
+    }
+  },
+  "badge": {
+    "critical":    "🔴 Critique",
+    "high":        "🟠 Grave",
+    "medium":      "🟡 Moyen",
+    "low":         "🟢 Faible",
+    "pending":     "⏳ En attente",
+    "in_progress": "🔄 En cours",
+    "escalated":   "🚨 Escaladé",
+    "closed":      "✅ Clôturé",
+    "rejected":    "❌ Rejeté"
+  },
+  "noteblock": {
+    "note":        "📝 Note",
+    "convocation": "📅 Convocation"
+  },
+  "pagination": {
+    "nav":     "Pagination",
+    "summary": "{{totalItems}} résultats · Page {{currentPage}} sur {{totalPages}}",
+    "prev":    "Page précédente",
+    "next":    "Page suivante",
+    "page":    "Page {{n}}"
+  },
   "common": {
     "save": "Enregistrer",
     "cancel": "Annuler",

@@ -20,11 +20,13 @@
 type ButtonProps =
 {
   children:   React.ReactNode;         // contenu entre les balises <Button>…</Button>
-  variant?:   'primary' | 'outline' | 'danger' | 'login';
+  variant?:   'primary' | 'outline' | 'danger' | 'login' | 'ghost' | 'warning' | 'success';
   type?:      'button' | 'submit' | 'reset';
   onClick?:   () => void;
   disabled?:  boolean;
   fullWidth?:  boolean;
+  className?: string;
+  'aria-label'?: string;
 };
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
@@ -38,6 +40,9 @@ const variants =
   primary: 'bg-primary text-white hover:bg-primary-hover',
   outline: 'bg-transparent text-primary border border-primary hover:bg-surface',
   danger:  'bg-critical text-white hover:opacity-90',
+  ghost:   'bg-transparent text-gray-600 border border-gray-200 hover:bg-gray-50',
+  warning: 'bg-purple-600 text-white hover:bg-purple-700',
+  success: 'bg-green-500 text-white hover:bg-green-600',
 };
 
 // ─── Composant ───────────────────────────────────────────────────────────────
@@ -50,6 +55,8 @@ export default function Button(
   onClick,
   disabled  = false,
   fullWidth = false,
+  className = '',
+  'aria-label': ariaLabel,
 }: ButtonProps)
 {
   return (
@@ -57,7 +64,8 @@ export default function Button(
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${base} ${variants[variant]} ${fullWidth ? 'w-full' : ''}`}
+      aria-label={ariaLabel}
+      className={`${base} ${variants[variant]} ${fullWidth ? 'w-full' : ''} ${className}`}
     >
       {children}
     </button>
