@@ -1,21 +1,25 @@
 #!/usr/bin/env bash
-# toggle-devbar.sh — active ou désactive la DevBar sans toucher au code source
-# Utilisation : bash toggle-devbar.sh  (depuis le dossier frontend/)
+# active ou désactive la DevBar
+# Utilisation : ./toggle-devbar.sh depuis le dossier frontend/
+#
+# Priorité Vite : .env.development.local > .env.development > .env.local > .env
+# On écrit dans .env.development.local pour écraser .env.development (VITE_DEVBAR=true)
 
-ENV_LOCAL="$(dirname "$0")/.env.local"
+ENV_LOCAL="$(dirname "$0")/.env.development.local"
+COMPOSE_DIR="$(dirname "$0")/.."
 
 is_disabled() {
   [[ -f "$ENV_LOCAL" ]] && grep -q "VITE_DEVBAR=false" "$ENV_LOCAL"
 }
 
 if is_disabled; then
-  # Actuellement OFF → on passe ON (supprime la ligne)
-  sed -i '/VITE_DEVBAR=false/d' "$ENV_LOCAL"
-  # Nettoie le fichier s'il est vide
-  [[ ! -s "$ENV_LOCAL" ]] && rm -f "$ENV_LOCAL"
-  echo "✅ DevBar ACTIVÉE — redémarrer le serveur Vite pour appliquer"
+  rm -f "$ENV_LOCAL"
+  echo "✅ DevBar ON"
 else
-  # Actuellement ON → on passe OFF
-  echo "VITE_DEVBAR=false" >> "$ENV_LOCAL"
-  echo "🚫 DevBar DÉSACTIVÉE — redémarrer le serveur Vite pour appliquer"
+  echo "VITE_DEVBAR=false" > "$ENV_LOCAL"
+  echo "🚫 DevBar OFF"
 fi
+
+echo "🔄 Redémarrage du frontend..."
+docker compose -f "$COMPOSE_DIR/docker-compose.yml" restart frontend
+echo "✔  Frontend redémarré."

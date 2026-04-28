@@ -21,5 +21,72 @@
     "delete": "Delete",
     "loading": "Loading...",
     "error": "An error occurred"
+  },
+  "privacy": {
+    "updated": "Last updated: April 2026",
+    "s1": {
+      "title": "1. Data Controller",
+      "body": "The SafeSchool application is operated within a school institution. The data controller is the institution that has deployed this instance of the application. For any questions regarding your personal data, please contact your institution's administration."
+    },
+    "s2": {
+      "title": "2. Data Collected",
+      "intro": "The following data is processed in the course of operating the application:",
+      "items": [
+        "Email address and login credentials",
+        "Role within the institution (student, teacher, staff, administrator)",
+        "Content of reports submitted by authorised users",
+        "Notes and comments associated with case files",
+        "Technical activity logs (login and action logs)"
+      ]
+    },
+    "s3": {
+      "title": "3. Purposes of Processing",
+      "body": "Data is processed exclusively for the following purposes: management and monitoring of concerning situation reports, coordination among authorised staff members, and administrative oversight. No data is used for commercial purposes or shared with parties outside the institution."
+    },
+    "s4": {
+      "title": "4. Retention Period",
+      "body": "Data relating to reports is retained for the duration necessary for case processing, in accordance with the legal obligations applicable to educational institutions. Technical logs are retained for a maximum of 90 days."
+    },
+    "s5": {
+      "title": "5. User Rights",
+      "body": "In accordance with the General Data Protection Regulation (GDPR), you have the right to access, rectify, and erase your personal data, as well as the right to restrict processing. To exercise these rights, submit a written request to your institution's administration."
+    },
+    "s6": {
+      "title": "6. Security",
+      "body": "Access to the application is secured by authentication. Passwords are stored in hashed form (bcrypt). Communications between the browser and the server are encrypted. Data access is strictly limited to users with the appropriate role-based permissions."
+    }
+  },
+  "terms": {
+    "updated": "Last updated: April 2026",
+    "s1": {
+      "title": "1. Purpose",
+      "body": "SafeSchool is an application for managing and tracking reports of concerning situations within educational institutions. It is intended exclusively for staff members and students registered in the system by the institution's administration."
+    },
+    "s2": {
+      "title": "2. Access and User Accounts",
+      "body": "Access to the application requires an account created by the administration. Credentials are personal and must not be shared. Any unauthorised access or attempt to circumvent authentication mechanisms is strictly prohibited and may result in disciplinary action."
+    },
+    "s3": {
+      "title": "3. Acceptable Use",
+      "intro": "Users agree to:",
+      "items": [
+        "Use the application solely within the scope of their duties at the institution",
+        "Enter accurate and good-faith information in reports",
+        "Respect the confidentiality of case files they have access to",
+        "Not attempt to access data beyond their authorisation level"
+      ]
+    },
+    "s4": {
+      "title": "4. Report Content",
+      "body": "Reports must be written with rigour and objectivity. Any content that is manifestly inaccurate, defamatory, or unrelated to a genuine concerning situation is the responsibility of its author. The administration reserves the right to close any case that does not meet these criteria."
+    },
+    "s5": {
+      "title": "5. Liability",
+      "body": "The institution implements reasonable technical measures to ensure the availability and security of the application. It cannot be held liable for service interruptions or data loss resulting from events outside its control. Users are responsible for the information they enter in the system."
+    },
+    "s6": {
+      "title": "6. Amendments to These Terms",
+      "body": "These terms of use may be updated at any time by the administration. Users will be notified of any material changes. Continued use of the application after notification constitutes acceptance of the revised terms."
+    }
   }
 }

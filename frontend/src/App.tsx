@@ -39,9 +39,9 @@ function DevBar() {
       {[
         { to: '/ui-kit', label: '🎨 UI kit' },
         { to: '/login', label: '🔑 login' },
+        { to: '/dashboard', label: '🛡️ admin' },
         { to: '/student', label: '🎒 student' },
         { to: '/reporter', label: '📋 reporter' },
-        { to: '/dashboard', label: '🛡️ admin' },
         { to: '/stats', label: '📊 stats' },
       ].map(({ to, label }) => (
         <Link key={to} to={to} style={{

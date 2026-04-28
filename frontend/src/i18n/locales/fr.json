@@ -21,5 +21,72 @@
     "delete": "Supprimer",
     "loading": "Chargement...",
     "error": "Une erreur est survenue"
+  },
+  "privacy": {
+    "updated": "Dernière mise à jour : avril 2026",
+    "s1": {
+      "title": "1. Responsable du traitement",
+      "body": "L'application SafeSchool est opérée dans le cadre d'un établissement scolaire. Le responsable du traitement des données est l'établissement ayant déployé cette instance de l'application. Pour toute question relative à vos données personnelles, contactez l'administration de votre établissement."
+    },
+    "s2": {
+      "title": "2. Données collectées",
+      "intro": "Dans le cadre du fonctionnement de l'application, les données suivantes sont traitées :",
+      "items": [
+        "Adresse e-mail et identifiant de connexion",
+        "Rôle dans l'établissement (élève, enseignant, personnel, administrateur)",
+        "Contenu des signalements saisis par les utilisateurs autorisés",
+        "Notes et commentaires associés aux dossiers",
+        "Journaux d'activité techniques (logs de connexion et d'action)"
+      ]
+    },
+    "s3": {
+      "title": "3. Finalités du traitement",
+      "body": "Les données sont traitées exclusivement aux fins suivantes : gestion et suivi des signalements de situations préoccupantes, coordination entre les membres du personnel habilités, et supervision administrative. Aucune donnée n'est utilisée à des fins commerciales ou partagée avec des tiers extérieurs à l'établissement."
+    },
+    "s4": {
+      "title": "4. Durée de conservation",
+      "body": "Les données relatives aux signalements sont conservées pour la durée nécessaire au traitement des dossiers, conformément aux obligations légales applicables aux établissements scolaires. Les journaux techniques sont conservés pendant une durée maximale de 90 jours."
+    },
+    "s5": {
+      "title": "5. Droits des utilisateurs",
+      "body": "Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et d'effacement de vos données personnelles, ainsi que d'un droit à la limitation du traitement. Pour exercer ces droits, adressez une demande écrite à l'administration de votre établissement."
+    },
+    "s6": {
+      "title": "6. Sécurité",
+      "body": "L'accès à l'application est sécurisé par authentification. Les mots de passe sont stockés sous forme hachée (bcrypt). Les communications entre le navigateur et le serveur sont chiffrées. L'accès aux données est strictement limité aux utilisateurs disposant des droits correspondants à leur rôle."
+    }
+  },
+  "terms": {
+    "updated": "Dernière mise à jour : avril 2026",
+    "s1": {
+      "title": "1. Objet",
+      "body": "SafeSchool est une application de gestion et de suivi des signalements de situations préoccupantes au sein des établissements scolaires. Elle est destinée exclusivement aux membres du personnel et aux élèves enregistrés dans le système par l'administration de l'établissement."
+    },
+    "s2": {
+      "title": "2. Accès et comptes utilisateurs",
+      "body": "L'accès à l'application est conditionné à la possession d'un compte créé par l'administration. Les identifiants sont personnels et ne doivent pas être partagés. Tout accès non autorisé ou toute tentative de contournement des mécanismes d'authentification est strictement interdit et susceptible d'entraîner des sanctions disciplinaires."
+    },
+    "s3": {
+      "title": "3. Utilisation acceptable",
+      "intro": "Les utilisateurs s'engagent à :",
+      "items": [
+        "Utiliser l'application uniquement dans le cadre de leurs fonctions dans l'établissement",
+        "Saisir des informations exactes et de bonne foi dans les signalements",
+        "Respecter la confidentialité des dossiers auxquels ils ont accès",
+        "Ne pas tenter d'accéder à des données dépassant leur niveau d'habilitation"
+      ]
+    },
+    "s4": {
+      "title": "4. Contenu des signalements",
+      "body": "Les signalements doivent être rédigés avec rigueur et objectivité. Tout contenu manifestement inexact, diffamatoire ou sans lien avec une situation préoccupante réelle engage la responsabilité de son auteur. L'administration se réserve le droit de clôturer tout dossier ne répondant pas à ces critères."
+    },
+    "s5": {
+      "title": "5. Responsabilités",
+      "body": "L'établissement met en œuvre les mesures techniques raisonnables pour assurer la disponibilité et la sécurité de l'application. Il ne saurait être tenu responsable d'une interruption de service ou d'une perte de données résultant d'un événement extérieur à son contrôle. Les utilisateurs sont responsables des informations qu'ils saisissent dans le système."
+    },
+    "s6": {
+      "title": "6. Modification des présentes conditions",
+      "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions."
+    }
   }
 }

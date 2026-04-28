@@ -517,6 +517,108 @@ Le `JwtAuthGuard` est appliqué à toutes les routes qui nécessitent une authen
 
 ## 4. Le Frontend — React + Vite
 
+### Pourquoi React, Tailwind et cet écosystème
+
+La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
+
+#### Avant les frameworks — comment ça se dégradait
+
+Un site web classique repose sur trois fichiers :
+
+- HTML → structure
+- CSS → style
+- JavaScript → interactions
+
+Ça fonctionne pour un site de quelques pages. Ça devient ingérable quand le projet grossit :
+
+- fichiers de plusieurs milliers de lignes
+- copier-coller du code identique entre pages
+- un changement dans une partie casse autre chose ailleurs
+- responsive à gérer manuellement avec des media queries
+- état de l'interface (qui est connecté ? quel onglet est actif ? quelles données sont chargées ?) difficile à maintenir proprement
+
+**Dans le contexte de Transcendance**, les écrans à gérer sont : login, dashboard, chat, match Pong, profil, invitations, notifications. Sans architecture, c'est un enfer organisationnel dès la deuxième semaine.
+
+#### Ce que React change
+
+React introduit un principe central : **l'interface est un assemblage de composants**.
+
+Au lieu d'un gros fichier HTML, tu construis des blocs indépendants, chacun responsable de son propre code, son propre style, son propre comportement — et tu les assembles :
+
+```tsx
+<App>
+  <Navbar />
+  <Sidebar />
+  <Game />
+  <Chat />
+</App>
+```
+
+**Le vrai gain : la gestion de l'état.**
+
+Quand les données changent, React met à jour uniquement les parties de l'interface concernées. Un message qui arrive ne rafraîchit que le composant `<Chat />`, pas toute la page. Dans Transcendance, cela concerne : l'utilisateur connecté, le score du match en cours, les statuts en ligne, les invitations en temps réel, les événements WebSocket.
+
+Sans React, tout cela nécessite de manipuler le DOM manuellement — chaque changement devient un risque de bug. Avec React, tu modifies les données, et l'interface suit automatiquement.
+
+#### Ce que Tailwind change
+
+CSS classique sépare le style dans des fichiers dédiés :
+
+```css
+/* button.css */
+.button {
+  padding: 12px 24px;
+  background: #0097b2;
+  border-radius: 8px;
+}
+```
+
+Avec le temps, ce fichier grossit, accumule des classes inutilisées, et devient difficile à maintenir. Jongler entre HTML, CSS et media queries ralentit le développement.
+
+Tailwind applique les styles directement dans le composant :
+
+```tsx
+<button className="px-6 py-3 bg-primary rounded-lg text-white">
+  Valider
+</button>
+```
+
+**Ce que ça change pour le responsive :** Tailwind intègre des préfixes de breakpoints directement dans les classes :
+
+```tsx
+<div className="flex flex-col md:flex-row">
+```
+
+- Sur mobile : les éléments s'empilent verticalement (`flex-col`)
+- Sur desktop (≥ 768px) : ils s'affichent côte à côte (`md:flex-row`)
+
+Pas de media queries à écrire. Le responsive est déclaré là où il s'applique, dans le composant lui-même.
+
+#### L'écosystème — ce que chaque outil résout
+
+| Outil | Problème résolu |
+|---|---|
+| **React** | Organisation de l'interface en composants + gestion de l'état |
+| **TypeScript** | Détection des erreurs à l'écriture plutôt qu'à l'exécution |
+| **Tailwind** | Design rapide, responsive intégré, styles colocalisés avec le HTML |
+| **React Router** | Navigation entre pages sans rechargement (SPA) |
+| **Hooks** | Logique réutilisable (état, effets, contexte) sans duplication |
+| **Vite** | Compilation rapide, hot reload, build optimisé |
+| **react-i18next** | Traductions centralisées, switchables sans rechargement |
+
+#### Pourquoi 42 impose cet écosystème dans Transcendance
+
+Ce projet simule une application SaaS réelle. Les apprentissages visés dépassent le code :
+
+- Architecture frontend modulaire et maintenable
+- Collaboration en équipe sur une base de code partagée
+- Séparation claire des responsabilités (composants, services, état)
+- UI dynamique avec mises à jour temps réel
+
+L'enjeu n'est pas de faire une belle interface. C'est de passer de "écrire des pages" à "construire une application" — c'est-à-dire un système qui évolue, qui gère des données en temps réel, et qui tient quand plusieurs développeurs y travaillent simultanément.
+
+Transcendance est exactement ce cas.
+
 ### Le DOM — ce que React manipule
 
 Le DOM (Document Object Model) est la représentation en mémoire de la page HTML, sous forme d'arbre d'objets. Quand le navigateur charge une page, il construit cet arbre à partir du HTML :
@@ -898,7 +1000,7 @@ Exemple :
 - `/ui-kit` expose une page de reference interne pour les composants et tokens visuels deja disponibles
 
 La fonction `ProtectedRoute` sert de filtre :
-- si aucun utilisateur n'est connecte, redirection vers `/login`
+- si aucun utilisateur n'est connecté, redirection vers `/login`
 - si le role n'est pas autorise, redirection vers `/login`
 - sinon, la page demandee est affichee
 
@@ -1090,7 +1192,7 @@ Tailwind inverse ce paradigme : **chaque classe = une seule propriété CSS**. L
 
 #### La règle de propagation — ce qui casse le plus souvent
 
-`flex-1` ne fonctionne que si le **parent direct** est en mode `display: flex`. Si un maillon de la chaîne n'est pas flex, l'instruction est ignorée sans message d'erreur.
+`flex-1` ne fonctionne que si le **parent direct** est en mode `display: flex`. Si un maillon de la chaîne n'est pas flex, l'instruction est ignorée silencieusement.
 
 ```
 ✅ Chaîne valide :
