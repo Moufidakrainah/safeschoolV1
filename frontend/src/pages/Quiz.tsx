@@ -226,23 +226,26 @@ export default function Quiz() {
 
   if (!joinedRoom) {
     return (
-      <div>
-        <h1>Quiz</h1>
-        <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-        {socketError ? <p>Socket error: {socketError}</p> : null}
-        <form onSubmit={handleJoinRoom}>
-          <label htmlFor="room-code">Room code</label>
-          <input
-            id="room-code"
-            type="text"
-            value={roomCode}
-            onChange={(event) => setRoomCode(event.target.value)}
-            placeholder="Enter room id"
-          />
-          <button type="submit" disabled={!connected}>
-            Submit
-          </button>
-        </form>
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
+          <h1 className="text-center text-2xl font-black">Quiz</h1>
+          <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
+          {socketError ? <p>Socket error: {socketError}</p> : null}
+          <form onSubmit={handleJoinRoom}>
+            <label htmlFor="room-code" className="text-sm font-medium text-gray-700">Room code</label>
+            <input
+              id="room-code"
+              type="text"
+              value={roomCode}
+              onChange={(event) => setRoomCode(event.target.value)}
+              placeholder="Enter room id"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+            />
+            <button type="submit" disabled={!connected} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
+              Submit
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -251,49 +254,54 @@ export default function Quiz() {
     const secondsLeft = Math.ceil(timeLeftMs / 1000);
 
     return (
-      <div>
-        <h1>Quiz</h1>
-        <p>Room: {joinedRoom}</p>
-        <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-        {socketError ? <p>Socket error: {socketError}</p> : null}
-        {isGameOver ? <h2>Game over</h2> : null}
-        {currentQuestion ? (
-          <>
-            <p>{questionNumber} / {totalQuestions}</p>
-            <p>Time left: {secondsLeft}s</p>
-            <h2>{currentQuestion.text}</h2>
-            {answerResultMessage ? <p>{answerResultMessage}</p> : null}
-            <ul>
-              {currentQuestion.options.map((opt, i) => (
-                <li key={i}>
-                  <button
-                    onClick={() => handleAnswer(i)}
-                    disabled={hasAnsweredCurrentQuestion || timeLeftMs <= 0}
-                  >
-                    {opt}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {hasAnsweredCurrentQuestion ? <p>Answer submitted. Waiting for other players...</p> : null}
-            {!hasAnsweredCurrentQuestion && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
-          </>
-        ) : (
-          <p>{isGameOver ? 'Thanks for playing.' : 'Waiting for question...'}</p>
-        )}
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
+          <h1 className="text-center text-2xl font-black">Quiz</h1>
+          <p>Room: {joinedRoom}</p>
+          <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
+          {socketError ? <p>Socket error: {socketError}</p> : null}
+          {isGameOver ? <h2>Game over</h2> : null}
+          {currentQuestion ? (
+            <>
+              <p>{questionNumber} / {totalQuestions}</p>
+              <p>Time left: {secondsLeft}s</p>
+              <h2>{currentQuestion.text}</h2>
+              {answerResultMessage ? <p>{answerResultMessage}</p> : null}
+              <ul>
+                {currentQuestion.options.map((opt, i) => (
+                  <li key={i}>
+                    <button
+                      onClick={() => handleAnswer(i)}
+                      disabled={hasAnsweredCurrentQuestion || timeLeftMs <= 0}
+                      className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
+                    >
+                      {opt}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {hasAnsweredCurrentQuestion ? <p>Answer submitted. Waiting for other players...</p> : null}
+              {!hasAnsweredCurrentQuestion && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
+            </>
+          ) : (
+            <p>{isGameOver ? 'Thanks for playing.' : 'Waiting for question...'}</p>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <p>Room: {joinedRoom}</p>
-      <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-      {socketError ? <p>Socket error: {socketError}</p> : null}
-      <button onClick={handleLeaveRoom}>Leave room</button>
-      <button onClick={handleStartGame} disabled={!isHost}>
-        Start the quiz?
-      </button>
+    <div className="flex items-center justify-center h-screen">
+      <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
+        <p>Room: {joinedRoom}</p>
+        <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
+        {socketError ? <p>Socket error: {socketError}</p> : null}
+        <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave room</button>
+        <button onClick={handleStartGame} disabled={!isHost} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
+          Start the quiz?
+        </button>
+      </div>
     </div>
   );
 }

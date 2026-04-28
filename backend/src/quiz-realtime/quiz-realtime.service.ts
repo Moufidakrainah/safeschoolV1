@@ -352,14 +352,6 @@ export class QuizRealtimeService {
 		return this.advanceToNextQuestion(room);
 	}
 
-	private removeAllPlayersFromARoomId(room: QuizRoom) {
-		if (!room || room.players.size <= 0) return;
-
-		room.players.forEach((client) => {
-			room.players.delete(client.clientId);
-		})
-	}
-
 	private advanceToNextQuestion(room: QuizRoom) {
 		this.clearQuestionTimer(room);
 		room.currentQuestionIndex += 1;
@@ -367,11 +359,13 @@ export class QuizRealtimeService {
 
 		const hasMoreQuestions = room.currentQuestionIndex < QUESTIONS.length;
 		if (!hasMoreQuestions) {
-			this.removeAllPlayersFromARoomId(room);
+			const roomSnapshot = this.getRoomSnapshot(room.roomId);
 			room.status = 'finished';
+			room.players.clear();
+			this.rooms.delete(room.roomId);
 			return {
-				roomSnapshot: this.getRoomSnapshot(room.roomId),
-				nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
+				roomSnapshot,
+				nextQuestionSnapshot: null,
 			};
 		}
 

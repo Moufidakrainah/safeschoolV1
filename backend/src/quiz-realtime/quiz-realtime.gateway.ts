@@ -50,6 +50,7 @@ export class QuizRealtimeGateway
 				}
 
 				this.server.to(roomId).emit('quiz:game:over', roomSnapshot);
+				void this.server.in(roomId).socketsLeave(roomId);
 			},
 		);
 	}
@@ -229,6 +230,7 @@ export class QuizRealtimeGateway
 				this.server.to(payload.roomId).emit('quiz:question', questionSnapshot);
 			} else {
 				this.server.to(payload.roomId).emit('quiz:game:over', result.roomSnapshot);
+				void this.server.in(payload.roomId).socketsLeave(payload.roomId);
 			}
 		}
 
