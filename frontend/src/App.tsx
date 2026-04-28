@@ -44,6 +44,7 @@ function DevBar() {
         { to: '/student', label: '🎒 student' },
         { to: '/reporter', label: '📋 reporter' },
         { to: '/stats', label: '📊 stats' },
+        { to: '/quiz', label: 'quiz'},
       ].map(({ to, label }) => (
         <Link key={to} to={to} style={{
           color: location.pathname === to ? '#0097b2' : '#aaa',
