@@ -150,6 +150,8 @@
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "loading": "Laden...",
+    "previous": "Zurück",
+    "next": "Weiter",
     "error": "Ein Fehler ist aufgetreten"
   },
   "privacy": {
@@ -185,6 +187,107 @@
       "title": "6. Sicherheit",
       "body": "Der Zugang zur Anwendung ist durch Authentifizierung gesichert. Passwörter werden in gehashter Form (bcrypt) gespeichert. Die Kommunikation zwischen Browser und Server ist verschlüsselt. Der Datenzugriff ist strikt auf Nutzer mit den entsprechenden rollenbasierten Berechtigungen beschränkt."
     }
+  },
+  "reporter": {
+    "roles": {
+      "teacher": "Lehrer",
+      "staff": "Schulpersonal"
+    },
+    "header": {
+      "brand1": "Meldung",
+      "brand2": "Schule"
+    },
+    "home": {
+      "school": "Jeanne-d'Arc-Schule — Anti-Mobbing-System",
+      "title": "Zeugen einer Mobbing-Situation?",
+      "subtitle": "Melden Sie es in 5 Minuten. Anonymität möglich. Unser Team reagiert innerhalb von 24 Stunden.",
+      "cta": "Eine Meldung machen",
+      "statsLabel": "Kennzahlen",
+      "stat1": "Reaktionszeit",
+      "stat2": "Vertraulichkeit garantiert",
+      "stat3value": "Anonym",
+      "stat3": "Option verfügbar"
+    },
+    "success": {
+      "iconLabel": "Erfolg",
+      "title": "Meldung übermittelt",
+      "message": "Ihre Meldung wurde erhalten. Die Schulleitung wird so schnell wie möglich informiert.",
+      "notice": "✉️ Eine Empfangsbestätigung wurde Ihnen zugesandt. Sie haben keinen Zugriff auf die Fallverfolgung — diese wird direkt von der Verwaltung bearbeitet.",
+      "back": "Zurück zur Startseite"
+    },
+    "steps": {
+      "who": "Melder",
+      "type": "Art",
+      "facts": "Fakten",
+      "people": "Personen",
+      "evidence": "Beweise",
+      "validate": "Überprüfen"
+    },
+    "step1": {
+      "title": "Wer meldet?",
+      "subtitle": "Wählen Sie Ihre Situation",
+      "teacher": "Ich melde als Lehrer",
+      "staff": "Ich melde als Schulpersonal"
+    },
+    "step2": {
+      "title": "Welche Art von Mobbing?",
+      "subtitle": "Wählen Sie die passende Art",
+      "physical": "Körperlich",
+      "physicalSub": "Schlagen, Schubsen",
+      "verbal": "Verbal",
+      "verbalSub": "Beleidigungen, Spott",
+      "cyber": "Cyber",
+      "cyberSub": "Soziale Medien, SMS",
+      "exclusion": "Soziale Ausgrenzung",
+      "exclusionSub": "Ausgeschlossen werden",
+      "sexual": "Sexuell",
+      "sexualSub": "Gesten, Bemerkungen",
+      "other": "Sonstiges",
+      "otherSub": "Unten beschreiben"
+    },
+    "step3": {
+      "title": "Fakten beschreiben",
+      "subtitle": "Erklären Sie, was Sie beobachtet haben",
+      "descriptionLabel": "Beschreibung",
+      "descriptionPlaceholder": "Beschreiben Sie, was passiert ist, wann, wo und wer beteiligt war...",
+      "frequencyLabel": "Häufigkeit der Vorfälle",
+      "frequencyPlaceholder": "Auswählen...",
+      "freq1": "Einmal",
+      "freq2": "Zweimal",
+      "freq3": "Dreimal oder öfter",
+      "freq4": "Jeden Tag"
+    },
+    "step4": {
+      "title": "Beteiligte Personen",
+      "subtitle": "Geben Sie das Opfer und verdächtige Personen an — diese Informationen sind vertraulich",
+      "victimLabel": "Name des Opfers",
+      "suspectsLabel": "Verdächtige(r)",
+      "searchPlaceholder": "Nach Name suchen...",
+      "selected": "ausgewählt",
+      "addFreeText": "Hinzufügen",
+      "suspectsAdded": "Hinzugefügte Verdächtige",
+      "removeSuspect": "Entfernen",
+      "noSuspect": "Kein Verdächtiger hinzugefügt — Sie können diesen Schritt überspringen"
+    },
+    "step5": {
+      "title": "Beweise",
+      "subtitle": "Fotos, Screenshots usw.",
+      "soon": "Diese Funktion wird bald verfügbar sein"
+    },
+    "step6": {
+      "title": "Überprüfen",
+      "subtitle": "Überprüfen und senden Sie Ihre Meldung",
+      "who": "Melder",
+      "type": "Art",
+      "description": "Beschreibung",
+      "frequency": "Häufigkeit",
+      "victim": "Opfer",
+      "suspects": "Verdächtige",
+      "anonymous": "Anonyme Meldung",
+      "anonymousDesc": "mein Name wird nicht sichtbar sein"
+    },
+    "submitting": "Wird gesendet...",
+    "submit": "Meldung absenden"
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",

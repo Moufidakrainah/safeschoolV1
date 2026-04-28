@@ -43,8 +43,10 @@ export default function ReporterDashboard() {
       }));
       await createReport(title, fullDescription, isAnonymous, suspectsData, frequency, '');
       setStep(7);
-    } catch {
-      console.error('Erreur envoi signalement');
+    // } catch {
+    //   console.error('Erreur envoi signalement');
+      } catch (err) {
+    console.error('Erreur envoi signalement', err); // ← ajoute err ici
     } finally {
       setLoading(false);
     }
@@ -175,10 +177,6 @@ export default function ReporterDashboard() {
     <Header
       user={user}
       logoutUser={logoutUser}
-      viewSection={viewSection}
-      setViewSection={setViewSection}
-      setSelected={setSelected}
-      fetchUsers={fetchUsers}
       t={t}
     />
     <main className="min-h-screen bg-gray-50 font-sans">

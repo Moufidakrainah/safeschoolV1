@@ -150,7 +150,110 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "loading": "Loading...",
+    "previous": "Previous",
+    "next": "Next",
     "error": "An error occurred"
+  },
+  "reporter": {
+    "roles": {
+      "teacher": "Teacher",
+      "staff": "School staff"
+    },
+    "header": {
+      "brand1": "Report",
+      "brand2": "School"
+    },
+    "home": {
+      "school": "Jeanne d'Arc School — Anti-bullying system",
+      "title": "Witnessing a bullying situation?",
+      "subtitle": "Report it in 5 minutes. Anonymous option available. Our team responds within 24h.",
+      "cta": "Make a report",
+      "statsLabel": "Key indicators",
+      "stat1": "Response time",
+      "stat2": "Confidentiality guaranteed",
+      "stat3value": "Anonymous",
+      "stat3": "Option available"
+    },
+    "success": {
+      "iconLabel": "Success",
+      "title": "Report submitted",
+      "message": "Your report has been received. The management team will be informed as soon as possible.",
+      "notice": "✉️ A receipt has been sent to you. You do not have access to case follow-up — it is handled directly by the administration.",
+      "back": "Back to home"
+    },
+    "steps": {
+      "who": "Reporter",
+      "type": "Type",
+      "facts": "Facts",
+      "people": "People",
+      "evidence": "Evidence",
+      "validate": "Review"
+    },
+    "step1": {
+      "title": "Who is reporting?",
+      "subtitle": "Select your situation",
+      "teacher": "I am reporting as a teacher",
+      "staff": "I am reporting as school staff"
+    },
+    "step2": {
+      "title": "What type of bullying?",
+      "subtitle": "Select the most appropriate type",
+      "physical": "Physical",
+      "physicalSub": "Hitting, pushing",
+      "verbal": "Verbal",
+      "verbalSub": "Insults, mockery",
+      "cyber": "Cyber",
+      "cyberSub": "Social media, SMS",
+      "exclusion": "Social exclusion",
+      "exclusionSub": "Being left out",
+      "sexual": "Sexual",
+      "sexualSub": "Gestures, remarks",
+      "other": "Other",
+      "otherSub": "Describe below"
+    },
+    "step3": {
+      "title": "Describe the facts",
+      "subtitle": "Explain what you observed",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe what happened, when, where and who was involved...",
+      "frequencyLabel": "Frequency of acts",
+      "frequencyPlaceholder": "Select...",
+      "freq1": "Once",
+      "freq2": "Twice",
+      "freq3": "Three times or more",
+      "freq4": "Every day"
+    },
+    "step4": {
+      "title": "People involved",
+      "subtitle": "Indicate the victim and suspected persons — this information is confidential",
+      "victimLabel": "Victim's name",
+      "suspectsLabel": "Suspect(s)",
+      "searchPlaceholder": "Search by name...",
+      "selected": "selected",
+      "addFreeText": "Add",
+      "suspectsAdded": "Suspects added",
+      "removeSuspect": "Remove",
+      "noSuspect": "No suspect added — you can skip this step"
+    },
+    "step5": {
+      "title": "Evidence",
+      "subtitle": "Photos, screenshots, etc.",
+      "soon": "This feature will be available soon"
+    },
+    "step6": {
+      "title": "Review",
+      "subtitle": "Check and submit your report",
+      "who": "Reporter",
+      "type": "Type",
+      "description": "Description",
+      "frequency": "Frequency",
+      "victim": "Victim",
+      "suspects": "Suspects",
+      "anonymous": "Anonymous report",
+      "anonymousDesc": "my name will not be visible"
+    },
+    "submitting": "Sending...",
+    "submit": "Submit report"
   },
   "privacy": {
     "updated": "Last updated: April 2026",
