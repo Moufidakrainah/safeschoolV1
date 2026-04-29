@@ -1,7 +1,8 @@
 import Button from './Button';
+import type { AuthUser } from '../types';
 
 interface ReporterHeaderProps {
-  user: any;
+  user: AuthUser | null;
   logoutUser: () => void;
   onCancel?: () => void;
   showCancel?: boolean;

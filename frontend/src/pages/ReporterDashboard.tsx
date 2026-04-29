@@ -7,7 +7,7 @@ import Card from '../components/Card';
 import ReporterHeader from '../components/ReporterHeader';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
-import Header from '../components/Header';
+import type { UserSearchResult } from '../types';
 
 // ─── ReporterDashboard ────────────────────────────────────────────────────────
 
@@ -22,14 +22,14 @@ export default function ReporterDashboard() {
   const [frequency, setFrequency] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [suspects, setSuspects] = useState<any[]>([]);
+  const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);
+  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
   const [victimName, setVictimName] = useState('');
   const [victimInput, setVictimInput] = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
-  const [selectedVictim, setSelectedVictim] = useState<any>(null);
+  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
+  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -174,11 +174,6 @@ export default function ReporterDashboard() {
 
   return (
 	<>
-    <Header
-      user={user}
-      logoutUser={logoutUser}
-      t={t}
-    />
     <main className="min-h-screen bg-gray-50 font-sans">
       
 	

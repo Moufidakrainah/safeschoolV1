@@ -1,7 +1,8 @@
 import Button from './Button';
+import type { AuthUser } from '../types';
 
 interface HeaderProps {
-  user: any;
+  user: AuthUser | null;
   logoutUser: () => void;
   t: (key: string) => string;
 }

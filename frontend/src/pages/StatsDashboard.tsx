@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { API_GRADE_BADGE_LABELS, API_REPORT_GRADES, SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '../utils/severity';
+import type { Report } from '../types';
 
-interface Props { reports: any[] }
+interface Props { reports: Report[] }
 
 export default function StatsDashboard({ reports }: Props) {
   const [period, setPeriod] = useState('all');

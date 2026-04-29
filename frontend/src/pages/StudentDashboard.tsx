@@ -2,6 +2,7 @@ import { useState, useEffect} from 'react';
 import { useAuth } from '../context/AuthContext';
 import { createReport, searchUsers, getReports, getNotifications, markNotificationRead, getNotes } from '../services/api';
 import { SEVERITY_BADGES, SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+import type { Report, Note, UserSearchResult } from '../types';
 
 export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
@@ -14,20 +15,20 @@ export default function StudentDashboard() {
   const [frequency, setFrequency] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [suspects, setSuspects] = useState<any[]>([]);
+  const [result, setResult] = useState<Report | null>(null);
+  const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<any[]>([]);
+  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
-  const [myReports, setMyReports] = useState<any[]>([]);
+  const [myReports, setMyReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
   const [victimName, setVictimName] = useState('');
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Note[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [victimInput, setVictimInput] = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<any[]>([]);
-  const [selectedVictim, setSelectedVictim] = useState<any>(null);
+  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
+  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
   const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
 
   const handleSubmit = async () => {

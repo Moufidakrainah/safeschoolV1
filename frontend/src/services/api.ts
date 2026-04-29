@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { SuspectInput } from '../types';
 
 const api = axios.create({ baseURL: 'http://localhost:5000' });
 
@@ -20,7 +21,7 @@ export const getReports = async () => (await api.get('/reports')).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
 
-export const createReport = async (title: string, description: string, isAnonymous: boolean, suspects: any[], frequency: string, schoolClass: string) =>
+export const createReport = async (title: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], frequency: string, schoolClass: string) =>
   (await api.post('/reports', { title, description, isAnonymous, suspects, frequency, schoolClass })).data;
 
 export const updateReport = async (id: string, updates: object) =>
@@ -47,9 +48,9 @@ export const markNotificationRead = async (id: string) =>
 
 export const getAllUsers = async () => (await api.get('/users')).data;
 
-export const createUser = async (dto: any) => (await api.post('/users', dto)).data;
+export const createUser = async (dto: Record<string, string>) => (await api.post('/users', dto)).data;
 
-export const updateUser = async (id: string, dto: any) => (await api.patch(`/users/${id}`, dto)).data;
+export const updateUser = async (id: string, dto: Record<string, string>) => (await api.patch(`/users/${id}`, dto)).data;
 
 export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`)).data;
 

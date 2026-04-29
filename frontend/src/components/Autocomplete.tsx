@@ -1,8 +1,10 @@
+import type { UserSearchResult } from '../types';
+
 interface AutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  suggestions: any[];
-  onSelect: (item: any) => void;
+  suggestions: UserSearchResult[];
+  onSelect: (item: UserSearchResult) => void;
   placeholder: string;
   label: string;
 }
