@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 import Badge from '../components/Badge';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -10,7 +12,7 @@ import StatCard from '../components/StatCard';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
 import Header from '../components/Header';
-import ReporterHeader from '../components/ReporterHeader';
+import ReporterHeader from '../components/Jeter-ReporterHeader';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report } from '../types';
 

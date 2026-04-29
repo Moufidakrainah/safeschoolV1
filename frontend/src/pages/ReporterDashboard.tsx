@@ -4,9 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { createReport, searchUsers } from '../services/api';
 import Button from '../components/Button';
 import Card from '../components/Card';
-import ReporterHeader from '../components/ReporterHeader';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
+import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 import type { UserSearchResult } from '../types';
 
 // ─── ReporterDashboard ────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@ import type { UserSearchResult } from '../types';
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
 
   const [whoSignals, setWhoSignals] = useState('');
   const [type, setType] = useState('');
@@ -30,6 +30,7 @@ export default function ReporterDashboard() {
   const [victimInput, setVictimInput] = useState('');
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('report');
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -88,61 +89,13 @@ export default function ReporterDashboard() {
     setIsAnonymous(false);
   };
 
-  // ── Page accueil ─────────────────────────────────────────────────────────────
-  if (step === 0) return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <ReporterHeader user={user} logoutUser={logoutUser} t={t} />
+  const headerProps = {
+	user,
+	logoutUser,
+	viewSection,
+	setViewSection,
+	};
 
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 px-8 py-16 text-center">
-        <div className="max-w-xl mx-auto">
-          <p className="text-primary text-sm font-semibold mb-3">
-            {t('reporter.home.school')}
-          </p>
-          <h1 className="text-3xl font-extrabold text-gray-800 mb-4 leading-tight">
-            {t('reporter.home.title')}
-          </h1>
-          <p className="text-primary text-sm mb-8">
-            {t('reporter.home.subtitle')}
-          </p>
-          <Button onClick={() => setStep(1)} className="px-8 py-4 text-base">
-            {t('reporter.home.cta')}
-          </Button>
-        </div>
-      </div>
-
-      <div
-        className="grid grid-cols-3 gap-4 max-w-xl mx-auto mt-8 px-5"
-        role="list"
-        aria-label={t('reporter.home.statsLabel')}
-      >
-        {([
-          { value: '24h',     label: t('reporter.home.stat1'), color: 'text-primary' },
-          { value: '100%',    label: t('reporter.home.stat2'), color: 'text-green-500' },
-          { value: t('reporter.home.stat3value'), label: t('reporter.home.stat3'), color: 'text-orange-400' },
-        ] as const).map(stat => (
-          <Card key={stat.label} className="text-center" role="listitem">
-            <div className={`text-xl font-bold ${stat.color}`}>{stat.value}</div>
-            <div className="text-xs text-gray-500 mt-1">{stat.label}</div>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── Page confirmation ─────────────────────────────────────────────────────────
-  if (step === 7) return (
-    <div className="min-h-screen bg-gray-50 font-sans flex items-center justify-center">
-      <Card className="max-w-md w-full mx-5 text-center">
-        <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
-        <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
-        <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
-        <div className="bg-surface rounded-lg p-4 mb-6 text-left">
-          <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
-        </div>
-        <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-      </Card>
-    </div>
-  );
 
   // ── Formulaire multi-étapes ───────────────────────────────────────────────────
   const steps = [
@@ -172,12 +125,66 @@ export default function ReporterDashboard() {
     { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
   ];
 
+
+
+	// ── Navigation entre les sections ─────────────────────────────────────────────
+	if (viewSection === 'profile') {
+	return (
+		<>
+		<ReporterHeader {...headerProps} />
+		<main className="p-8 max-w-xl mx-auto">
+			<h2 className="text-2xl font-bold mb-4">{t('reporter.profile.title')}</h2>
+
+			<div className="bg-white shadow rounded-lg p-6 space-y-4">
+			<p><strong>{t('reporter.profile.firstName')} :</strong> {user?.firstName}</p>
+			<p><strong>{t('reporter.profile.lastName')} :</strong> {user?.lastName}</p>
+			<p><strong>{t('reporter.profile.email')} :</strong> {user?.email}</p>
+			<p><strong>{t('reporter.profile.role')} :</strong> {user?.role}</p>
+			</div>
+		</main>
+		</>
+	);
+	}
+
+	if (viewSection === 'workshop') {
+	return (
+		<>
+		<ReporterHeader {...headerProps} />
+		<main className="p-8">
+			<h2 className="text-2xl font-bold">{t('reporter.workshop.title')}</h2>
+			<p className="text-gray-600 mt-2">{t('reporter.workshop.soon')}</p>
+		</main>
+		</>
+	);
+	}
+
+	if (viewSection === 'quiz') {
+	return (
+		<>
+		<ReporterHeader {...headerProps} />
+		<main className="p-8">
+			<h2 className="text-2xl font-bold">{t('reporter.quiz.title')}</h2>
+			<p className="text-gray-600 mt-2">{t('reporter.quiz.soon')}</p>
+		</main>
+		</>
+	);
+	}
+
+
+
+
+  if (viewSection === 'report') 
+  {
+	
   return (
 	<>
-    <main className="min-h-screen bg-gray-50 font-sans">
+
+	<ReporterHeader {...headerProps} />
+
+
+    <main className="bg-gray-50 font-sans">
       
 	
-	<ReporterHeader user={user} logoutUser={logoutUser} onCancel={resetForm} showCancel t={t} />
       <StepBar steps={steps} currentStep={step} />
 
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
@@ -403,32 +410,56 @@ export default function ReporterDashboard() {
             </div>
           )}
 
-          {/* ── Navigation ── */}
-          <div className="flex justify-between mt-8">
-            <Button variant="ghost" onClick={() => setStep(s => s - 1)}>
-              ← {t('common.previous')}
-            </Button>
-            {step < 6 ? (
-              <Button
-                onClick={() => setStep(s => s + 1)}
-                disabled={isNextDisabled}
-              >
-                {t('common.next')} →
-              </Button>
-            ) : (
-              <Button
-                variant="success"
-                onClick={handleSubmit}
-                disabled={loading}
-              >
-                {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
-              </Button>
-            )}
-          </div>
+		{/* // ── Page confirmation ───────────────────────────────────────────────────────── */}
+		{step <= 6 && (
+		<div className="flex justify-between mt-8">
+			<Button
+			variant="ghost"
+			onClick={() => setStep(s => s - 1)}
+			disabled={step === 1}
+			>
+			← {t('common.previous')}
+			</Button>
+
+			{step < 6 ? (
+			<Button
+				onClick={() => setStep(s => s + 1)}
+				disabled={isNextDisabled}
+			>
+				{t('common.next')} →
+			</Button>
+			) : (
+			<Button
+				variant="success"
+				onClick={handleSubmit}
+				disabled={loading}
+			>
+				{loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
+			</Button>
+			)}
+		</div>
+		)}
+
+		{step === 7 &&  (
+			<div className="bg-gray-50 font-sans flex items-center justify-center">
+			<Card className="max-w-md w-full mx-5 text-center">
+				<div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
+				<h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
+				<p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
+				<div className="bg-surface rounded-lg p-4 mb-6 text-left">
+				<p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
+				</div>
+				<Button onClick={resetForm}>{t('reporter.success.back')}</Button>
+			</Card>
+			</div>
+			// </>
+		)}
 
         </Card>
       </div>
     </main>
 	  </>
   );
+
+  }
 }
