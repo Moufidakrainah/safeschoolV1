@@ -13,7 +13,14 @@
     "privacy": "Politique de confidentialité",
     "terms": "Conditions d'utilisation",
     "backToApp": "Retour à l'application",
-    "languageSwitcher": "Choisir la langue"
+    "languageSwitcher": "Choisir la langue",
+    "legalNav": "Liens légaux",
+    "changeLanguage": "Passer en {{language}}"
+  },
+  "languages": {
+    "french": "Français",
+    "english": "English",
+    "german": "Deutsch"
   },
   "admin": {
     "prev": "Précédent",

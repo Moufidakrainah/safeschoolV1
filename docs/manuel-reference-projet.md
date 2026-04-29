@@ -1136,9 +1136,175 @@ Endpoints disponibles :
 | `updateUser` | PATCH | `/users/:id` |
 | `deleteUser` | DELETE | `/users/:id` |
 
+### Gestion des erreurs API
+
+Aujourd'hui, les appels dans `api.ts` ne gèrent pas les erreurs de façon centralisée. Si le backend renvoie une erreur (ex : 401, 500), le composant qui a fait l'appel reçoit une exception non capturée — l'utilisateur voit une page vide ou rien du tout.
+
+#### Ce qui existe déjà
+
+L'intercepteur de requête ajoute le token JWT automatiquement. Il n'y a pas encore d'intercepteur de *réponse* pour capturer les erreurs.
+
+#### Ce qui devrait être fait
+
+Ajouter un intercepteur de réponse dans `api.ts` :
+
+```typescript
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expiré ou invalide → rediriger vers /login
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+Et dans chaque composant qui fait un appel API, entourer avec `try/catch` et afficher un message d'erreur visible :
+
+```tsx
+try {
+  const data = await getReports();
+  setReports(data);
+} catch {
+  setError(t('errors.loadFailed')); // message visible dans l'UI
+}
+```
+
+#### Règle
+
+- Ne jamais laisser une erreur réseau silencieuse. L'utilisateur doit toujours savoir si quelque chose a échoué.
+- Les erreurs 401 doivent systématiquement déconnecter et rediriger vers `/login`.
+- Les erreurs 4xx métier (ex : 403 accès refusé, 404 ressource introuvable) doivent afficher un message contextualisé.
+- Les erreurs 5xx (serveur) affichent un message générique.
+
+---
+
+### TypeScript — `any` et les types partagés
+
+#### Ce qu'est `any`
+
+`any` est un type spécial TypeScript qui signifie : *"désactive toutes les vérifications de type sur cette valeur"*. C'est comme dire à TypeScript "je sais ce que je fais, ne regarde pas".
+
+```typescript
+// Avec any : TypeScript ne vérifie rien
+const user: any = getUserFromApi();
+user.prenom;          // pas d'erreur même si le champ n'existe pas
+user.nonExistant();   // pas d'erreur — TypeScript fait confiance aveuglément
+
+// Avec un type précis : TypeScript protège
+const user: AuthUser = getUserFromApi();
+user.prenom;          // ❌ ERREUR — le champ s'appelle firstName
+user.nonExistant();   // ❌ ERREUR — cette méthode n'existe pas
+```
+
+`any` est l'outil de dernier recours. Dans la pratique, il masque des bugs et annule l'intérêt d'utiliser TypeScript.
+
+#### TypeScript : vérification à l'écriture, pas à l'exécution
+
+C'est un point fondamental à comprendre : **TypeScript ne s'exécute pas dans le navigateur**. Il est compilé en JavaScript pur avant d'être envoyé au navigateur. Tous les types, interfaces et annotations disparaissent à cette étape — on appelle ça "l'effacement des types" (*type erasure*).
+
+Conséquences directes :
+
+- **Le backend ne connaît pas tes types.** Il envoie du JSON brut, sans savoir que tu as écrit `interface Report { ... }`.
+- **Si le backend change la structure de ses réponses**, TypeScript ne le détectera pas à l'exécution — tu auras des bugs silencieux (ex : `undefined` là où tu attendais une valeur).
+- Les types sont un **contrat écrit par les développeurs frontend** pour refléter ce que le backend renvoie. Si le backend change, il faut mettre les types à jour à la main.
+
+```
+Backend (NestJS)                   Frontend (React + TypeScript)
+──────────────────                 ──────────────────────────────
+Envoie du JSON brut   ──HTTP──▶   Reçoit le JSON
+{ id: "1", title: ... }            TypeScript vérifie au moment où tu
+                                   *écris le code*, pas à l'exécution.
+                                   Le navigateur ne voit que du JS.
+```
+
+En résumé : les types protègent **toi** quand tu développes, pas l'application en production contre des données inattendues.
+
+#### Les types partagés du projet
+
+Tous les types correspondant aux données de l'API backend sont centralisés dans `frontend/src/types/index.ts`. Ces types doivent être utilisés dans toutes les pages et composants à la place de `any`.
+
+| Type | Description | Utilisation |
+|---|---|---|
+| `AuthUser` | Utilisateur connecté (depuis AuthContext) | Prop `user` dans Header, ReporterHeader, etc. |
+| `AdminUser` | Utilisateur dans les listes admin | `useState<AdminUser[]>` dans AdminDashboard |
+| `UserSearchResult` | Résultat de recherche autocomplete | `useState<UserSearchResult[]>` dans Autocomplete |
+| `Report` | Signalement complet | `useState<Report[]>` dans AdminDashboard |
+| `Note` | Note administrative | `useState<Note[]>` dans AdminDashboard |
+| `ReportSuspect` | Suspect dans un signalement | Champ `suspects` de `Report` |
+| `SuspectInput` | Payload envoyé à l'API | Paramètre de `createReport()` |
+
+#### Comment utiliser ces types
+
+```typescript
+// ❌ interdit — annule la vérification TypeScript
+const [reports, setReports] = useState<any[]>([]);
+const [selected, setSelected] = useState<any>(null);
+
+// ✅ correct — TypeScript vérifie tout
+import type { Report } from '../types';
+const [reports, setReports] = useState<Report[]>([]);
+const [selected, setSelected] = useState<Report | null>(null);
+```
+
+#### La règle `| null`
+
+Quand une valeur peut être absente (pas encore chargée, désélectionnée...), le type est `MonType | null`, pas `MonType | undefined`. `null` est explicite et volontaire ; `undefined` signifie "oublié". On distingue les deux :
+
+```typescript
+const [selected, setSelected] = useState<Report | null>(null);  // ✅ — null est intentionnel
+```
+
+#### Ajouter un nouveau type
+
+Si l'API renvoie un nouveau format de données, ajouter l'interface dans `frontend/src/types/index.ts`. Ne jamais créer une interface locale à un seul composant si la donnée vient de l'API — elle sera très probablement réutilisée ailleurs.
+
 ---
 
 ## 5. Design System — composants et conventions
+
+### Hooks personnalisés — `src/hooks/`
+
+Un **hook React** est une fonction qui commence par `use` et qui appelle des primitives React (`useState`, `useEffect`, `useContext`…). Les hooks personnalisés permettent d'extraire une logique réutilisable hors des composants.
+
+**Règle :** si une même logique (avec appels React) doit être utilisée dans plusieurs composants, elle va dans un hook. Si c'est une simple fonction pure sans React, elle va dans `utils/`.
+
+#### `useLanguage`
+
+Fichier : `frontend/src/hooks/useLanguage.ts`
+
+Centralise le changement de langue. Trois actions indissociables :
+1. Changer la langue dans i18next
+2. Persister le choix dans `localStorage`
+3. Mettre à jour `document.documentElement.lang` (requis WCAG)
+
+```typescript
+const { currentLanguage, changeLanguage } = useLanguage();
+// Ne jamais appeler i18n.changeLanguage() directement — utiliser ce hook
+```
+
+### Structure des composants — `src/components/`
+
+```
+components/
+├── layout/              ← composants structurels (ossature de toutes les pages)
+│   ├── Footer/
+│   │   ├── Footer.tsx
+│   │   └── Footer.constants.ts
+│   └── AdminHeader/
+│       └── AdminHeader.tsx
+├── Button.tsx           ← composants UI réutilisables
+├── Card.tsx
+├── Badge.tsx
+└── ...
+```
+
+**`layout/`** contient les composants présents sur toutes (ou presque toutes) les pages : `Footer`, `AdminHeader`, etc. Ils font partie du design system et comptent comme composants réutilisables au même titre que les composants UI.
+
+**`ui/` (ou racine `components/`)** contient les composants purement visuels : boutons, cartes, badges, inputs.
 
 ### Principe
 
@@ -1312,6 +1478,56 @@ Les labels "📝 Note" / "📅 Convocation" sont gérés via `t('noteblock.note'
 
 Retourne `null` si `totalPages <= 1`. Génère automatiquement `<nav>`, `aria-label`, `aria-current="page"`, et aria-labels sur les boutons «/».
 
+### StepBar
+
+Fichier : `frontend/src/components/StepBar.tsx`
+
+Barre de progression multi-étapes. Affichée en haut du formulaire de création de signalement pour indiquer à quel stade l'utilisateur se trouve.
+
+```tsx
+<StepBar
+  steps={['Signalement', 'Suspects', 'Récapitulatif']}
+  currentStep={2}
+/>
+```
+
+| Prop | Type | Description |
+|---|---|---|
+| `steps` | `string[]` | Labels de chaque étape, dans l'ordre |
+| `currentStep` | `number` | Index 1-based de l'étape active |
+
+États visuels : étape passée (vert), étape active (primaire + gras), étape future (gris). Accessible via `role="progressbar"`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`.
+
+> **Attention :** les labels d'étapes sont actuellement passés en dur par le composant parent. Ils devraient passer par `t()` si les étapes sont affichées dans une langue précise.
+
+### Autocomplete
+
+Fichier : `frontend/src/components/Autocomplete.tsx`
+
+Champ de recherche avec liste de suggestions déroulante. Utilisé pour rechercher un utilisateur (suspect dans un signalement).
+
+```tsx
+<Autocomplete
+  value={query}
+  onChange={setQuery}
+  suggestions={results}          // UserSearchResult[]
+  onSelect={handleSelect}
+  placeholder="Rechercher un utilisateur..."
+  label="Recherche utilisateur"
+/>
+```
+
+| Prop | Type | Description |
+|---|---|---|
+| `value` | `string` | Valeur courante du champ texte |
+| `onChange` | `(value: string) => void` | Appelée à chaque frappe |
+| `suggestions` | `UserSearchResult[]` | Résultats renvoyés par `searchUsers()` |
+| `onSelect` | `(item: UserSearchResult) => void` | Appelée au clic sur une suggestion |
+| `placeholder` | `string` | Texte indicatif du champ |
+| `label` | `string` | Label aria (accessibilité, non affiché) |
+
+La liste disparaît automatiquement quand `suggestions` est vide. Accessible via `role="listbox"` / `role="option"`.
+
 ### UI Kit — page de référence
 
 `/ui-kit` affiche une galerie de tous les composants avec toutes leurs variantes. C'est la source de vérité visuelle. Avant de coder un nouvel écran, vérifier ce qui est déjà disponible.
@@ -1390,6 +1606,35 @@ t('pagination.summary', { totalItems, currentPage, totalPages })
 3. Utiliser `t('ma.cle')` dans le composant
 
 Jamais laisser une clé manquante dans une langue — react-i18next afficherait la clé brute (`"admin.nav.reports"`) dans l'interface.
+
+### Clés i18n liées à l'accessibilité
+
+Certaines clés sont destinées exclusivement aux attributs ARIA — elles ne produisent aucun texte visible dans l'interface. Elles sont aussi importantes que les autres.
+
+```tsx
+// aria-label descriptif pour un bouton de changement de langue
+aria-label={t('footer.changeLanguage', { language: title() })}
+// → "Passer en Français" / "Switch to English" / "Zu Deutsch wechseln"
+
+// aria-label pour le groupe de navigation légale
+<nav aria-label={t('footer.legalNav')}>
+```
+
+Ces clés sont présentes dans les trois fichiers JSON sous `footer.legalNav` et `footer.changeLanguage`.
+
+### Sélection de langue — hook `useLanguage`
+
+La logique de changement de langue est centralisée dans `src/hooks/useLanguage.ts`. Ce hook :
+- change la langue dans i18next
+- persiste le choix dans `localStorage`
+- met à jour l'attribut `lang` de la balise `<html>` (requis WCAG pour les lecteurs d'écran)
+
+```tsx
+// Dans tout composant qui a besoin de changer la langue
+const { currentLanguage, changeLanguage } = useLanguage();
+```
+
+Ne jamais appeler `i18n.changeLanguage()` directement dans un composant — passer par ce hook pour garantir que l'attribut `lang` est toujours synchronisé.
 
 ---
 
@@ -1820,6 +2065,30 @@ Chaque composant du design system embarque son propre comportement ARIA. La coll
 | `aria-describedby` | Champ lié à son message d'aide/erreur | Input + hint text + error message |
 | `tabIndex={0}` | Rendre un élément non-interactif focusable | `<li role="button">` |
 | `onKeyDown` | Gérer Enter/Space sur un rôle button | Lignes de signalement cliquables |
+| `aria-pressed` | État actif/inactif d'un bouton toggle | Sélecteur de langue dans le Footer |
+| `role="contentinfo"` | Identifie le `<footer>` de la page | Footer (balise `<footer>` + rôle explicite) |
+
+#### Cibles tactiles — WCAG 2.5.5
+
+Les éléments interactifs doivent avoir une zone cliquable d'au moins **44×44 px** pour être accessibles sur mobile et aux utilisateurs avec des limitations motrices.
+
+```tsx
+// Boutons de sélection de langue — garantit 44px minimum de largeur
+className="min-w-[44px] px-3 py-1 ..."
+```
+
+Appliquer `min-w-[44px]` et `min-h-[44px]` (ou `py-3` équivalent) sur tout bouton qui risque d'être trop petit visuellement.
+
+#### Focus visible — `focus:ring-offset`
+
+Sur un fond coloré, le `focus:ring-2 focus:ring-white` seul peut être peu visible si le fond est blanc. L'offset crée un espace entre l'élément et l'anneau de focus pour le rendre toujours lisible.
+
+```tsx
+// Sur fond primary (bleu foncé)
+className="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary"
+```
+
+Toujours utiliser `focus:ring-offset-{couleur}` avec la couleur du fond de l'élément parent pour garantir le contraste du focus ring.
 
 ---
 
