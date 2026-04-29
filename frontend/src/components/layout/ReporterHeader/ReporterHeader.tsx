@@ -1,31 +1,29 @@
 import { useTranslation } from 'react-i18next';
 import Header from '../Header/Header';
 import type { AuthUser } from '../../../types';
-import type { Report } from '../../../types';
 
-interface AdminHeaderProps {
+type ReporterSection = 'profile' | 'report' | 'workshop' | 'quiz';
+
+interface ReporterHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
-  viewSection: 'reports' | 'users' | 'stats';
-  setViewSection: (s: 'reports' | 'users' | 'stats') => void;
-  setSelected: (r: Report | null) => void;
-  fetchUsers: () => void;
+  viewSection: ReporterSection;
+  setViewSection: (s: ReporterSection) => void;
 }
 
-export default function AdminHeader({
+export default function ReporterHeader({
   user,
   logoutUser,
   viewSection,
   setViewSection,
-  setSelected,
-  fetchUsers,
-}: AdminHeaderProps) {
+}: ReporterHeaderProps) {
   const { t } = useTranslation();
 
-  const navItems: { key: 'reports' | 'users' | 'stats'; label: string; onClick: () => void }[] = [
-    { key: 'reports', label: t('admin.nav.reports'), onClick: () => { setSelected(null); setViewSection('reports'); } },
-    { key: 'users',   label: t('admin.nav.users'),   onClick: () => { setSelected(null); setViewSection('users'); fetchUsers(); } },
-    { key: 'stats',   label: t('admin.nav.stats'),   onClick: () => { setSelected(null); setViewSection('stats'); } },
+  const navItems: { key: ReporterSection; label: string }[] = [
+	{ key: 'profile'  as const, label: t('reporter.nav.profile') },
+    { key: 'report',   label: t('reporter.nav.report') },
+    { key: 'workshop', label: t('reporter.nav.workshop') },
+    { key: 'quiz',     label: t('reporter.nav.quiz') },
   ];
 
   return (
@@ -34,13 +32,13 @@ export default function AdminHeader({
 
       <nav
         className="bg-primary px-8 py-4 flex items-center gap-8"
-        aria-label={t('admin.nav.ariaLabel')}
+        aria-label={t('reporter.nav.ariaLabel')}
       >
         <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-8" />
         {navItems.map(item => (
           <button
             key={item.key}
-            onClick={item.onClick}
+            onClick={() => setViewSection(item.key)}
             aria-current={viewSection === item.key ? 'page' : undefined}
             className={`font-bold text-sm transition-opacity ${
               viewSection === item.key

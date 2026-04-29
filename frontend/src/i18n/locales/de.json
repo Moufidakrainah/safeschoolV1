@@ -196,6 +196,20 @@
     }
   },
   "reporter": {
+	"nav": {
+		"ariaLabel": "Reporter-Navigation",
+		"profile": "Mein Profil",
+		"report":   "Meldung erstellen",
+		"workshop": "Workshops",
+		"quiz":     "Quiz"
+	},
+	"profile": {
+		"title": "Mein Profil",
+		"firstName": "Vorname",
+		"lastName": "Nachname",
+		"email": "E-Mail",
+		"role": "Rolle"
+	},
     "roles": {
       "teacher": "Lehrer",
       "staff": "Schulpersonal"

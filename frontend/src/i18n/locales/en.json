@@ -162,6 +162,20 @@
     "error": "An error occurred"
   },
   "reporter": {
+	"nav": {
+		"ariaLabel": "Reporter navigation",
+		"profile": "My profile",
+		"report":   "Make a report",
+		"workshop": "Workshops",
+		"quiz":     "Quiz"
+	},
+	"profile": {
+		"title": "My profile",
+		"firstName": "First name",
+		"lastName": "Last name",
+		"email": "Email",
+		"role": "Role"
+	},
     "roles": {
       "teacher": "Teacher",
       "staff": "School staff"

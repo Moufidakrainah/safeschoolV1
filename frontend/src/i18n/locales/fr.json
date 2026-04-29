@@ -162,6 +162,20 @@
     "error": "Une erreur est survenue"
   },
   "reporter": {
+	"nav": {
+		"ariaLabel": "Navigation reporter",
+  		"profile": "Mon profil",
+		"report":   "Faire un signalement",
+		"workshop": "Ateliers",
+		"quiz":     "Quiz"
+	},
+	"profile": {
+		"title": "Mon profil",
+		"firstName": "Prénom",
+		"lastName": "Nom",
+		"email": "Email",
+		"role": "Rôle"
+	},
     "roles": {
       "teacher": "Professeur",
       "staff": "Personnel du collège"
