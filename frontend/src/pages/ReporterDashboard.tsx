@@ -14,7 +14,7 @@ import type { UserSearchResult } from '../types';
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(2);
 
   const [whoSignals, setWhoSignals] = useState('');
   const [type, setType] = useState('');
@@ -77,7 +77,7 @@ export default function ReporterDashboard() {
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(1);
+    setStep(2);
     setType('');
     setDescription('');
     setFrequency('');
@@ -99,7 +99,7 @@ export default function ReporterDashboard() {
 
   // ── Formulaire multi-étapes ───────────────────────────────────────────────────
   const steps = [
-    t('reporter.steps.who'),
+    // t('reporter.steps.who'),
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -108,7 +108,7 @@ export default function ReporterDashboard() {
   ];
 
   const isNextDisabled =
-    (step === 1 && !whoSignals) ||
+    // (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
     (step === 3 && (!description || !frequency));
 
@@ -191,7 +191,7 @@ export default function ReporterDashboard() {
         <Card>
 
           {/* ── Étape 1 : Qui signale ── */}
-          {step === 1 && (
+          {/* {step === 1 && (
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step1.title')}</legend>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step1.subtitle')}</p>
@@ -213,7 +213,7 @@ export default function ReporterDashboard() {
                 ))}
               </div>
             </fieldset>
-          )}
+          )} */}
 
           {/* ── Étape 2 : Type ── */}
           {step === 2 && (
