@@ -49,34 +49,34 @@ INSERT INTO student_profiles (id, class, "parentEmail", "parentPhone", "dateOfBi
 
 -- PROFILS STAFF (employés du collège)
 INSERT INTO staff_profiles (id, profession, subject, "userId") VALUES
-  ('g0h1i2j3-0000-0000-0000-000000000001', 'enseignant',     'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
-  ('g0h1i2j3-0000-0000-0000-000000000002', 'enseignant',     'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
-  ('g0h1i2j3-0000-0000-0000-000000000003', 'agent de saisie', NULL,           'a0b1c2d3-0000-0000-0000-000000000005');
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'enseignant',     'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'enseignant',     'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
+  ('a0b2d3c9-0000-0000-0000-000000000003', 'agent de saisie', NULL,           'a0b1c2d3-0000-0000-0000-000000000005');
 
 -- AFFECTATION STAFF ↔ CLASSES
-INSERT INTO staff_classes ("staffProfileId", "schoolClassId") VALUES
-  ('g0h1i2j3-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000003'),
-  ('g0h1i2j3-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000004'),
-  ('g0h1i2j3-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000005'),
-  ('g0h1i2j3-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000007');
+INSERT INTO staff_classes ("staffProfilesId", "classesId") VALUES
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000003'),
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000004'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000005'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000007');
 
 -- PARENTS
 INSERT INTO parents (id, "firstName", "lastName", email, phone, address) VALUES
-  ('h0i1j2k3-0000-0000-0000-000000000001', 'Ahmed',   'Bougrine', 'ahmed.bougrine@gmail.com',  '0612345690', '12 rue des Lilas, Lyon'),
-  ('h0i1j2k3-0000-0000-0000-000000000002', 'Claire',  'Bernard',  'claire.bernard@gmail.com',  '0612345691', '5 avenue Victor Hugo, Paris'),
-  ('h0i1j2k3-0000-0000-0000-000000000003', 'Marc',    'Petit',    'marc.petit@gmail.com',      '0612345692', '8 rue de la Paix, Bordeaux'),
-  ('h0i1j2k3-0000-0000-0000-000000000004', 'Sophie',  'Thomas',   'sophie.thomas@gmail.com',   '0612345693', '3 impasse des Roses, Nantes'),
-  ('h0i1j2k3-0000-0000-0000-000000000005', 'Pierre',  'Moulin',   'pierre.moulin@gmail.com',   '0612345694', '17 boulevard Gambetta, Marseille');
+  ('d8e2a4b2-0000-0000-0000-000000000001', 'Ahmed',   'Bougrine', 'ahmed.bougrine@gmail.com',  '0612345690', '12 rue des Lilas, Lyon'),
+  ('d8e2a4b2-0000-0000-0000-000000000002', 'Claire',  'Bernard',  'claire.bernard@gmail.com',  '0612345691', '5 avenue Victor Hugo, Paris'),
+  ('d8e2a4b2-0000-0000-0000-000000000003', 'Marc',    'Petit',    'marc.petit@gmail.com',      '0612345692', '8 rue de la Paix, Bordeaux'),
+  ('d8e2a4b2-0000-0000-0000-000000000004', 'Sophie',  'Thomas',   'sophie.thomas@gmail.com',   '0612345693', '3 impasse des Roses, Nantes'),
+  ('d8e2a4b2-0000-0000-0000-000000000005', 'Pierre',  'Moulin',   'pierre.moulin@gmail.com',   '0612345694', '17 boulevard Gambetta, Marseille');
 
 -- LIAISON PARENTS ↔ ÉLÈVES
-INSERT INTO student_parents ("studentProfileId", "parentId") VALUES
-  ('b0c1d2e3-0000-0000-0000-000000000001', 'h0i1j2k3-0000-0000-0000-000000000001'),
-  ('b0c1d2e3-0000-0000-0000-000000000002', 'h0i1j2k3-0000-0000-0000-000000000001'),
-  ('b0c1d2e3-0000-0000-0000-000000000003', 'h0i1j2k3-0000-0000-0000-000000000001'),
-  ('b0c1d2e3-0000-0000-0000-000000000004', 'h0i1j2k3-0000-0000-0000-000000000002'),
-  ('b0c1d2e3-0000-0000-0000-000000000005', 'h0i1j2k3-0000-0000-0000-000000000003'),
-  ('b0c1d2e3-0000-0000-0000-000000000006', 'h0i1j2k3-0000-0000-0000-000000000004'),
-  ('b0c1d2e3-0000-0000-0000-000000000007', 'h0i1j2k3-0000-0000-0000-000000000005');
+INSERT INTO student_parents ("studentProfilesId", "parentsId") VALUES
+  ('b0c1d2e3-0000-0000-0000-000000000001', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000002', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000003', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000004', 'd8e2a4b2-0000-0000-0000-000000000002'),
+  ('b0c1d2e3-0000-0000-0000-000000000005', 'd8e2a4b2-0000-0000-0000-000000000003'),
+  ('b0c1d2e3-0000-0000-0000-000000000006', 'd8e2a4b2-0000-0000-0000-000000000004'),
+  ('b0c1d2e3-0000-0000-0000-000000000007', 'd8e2a4b2-0000-0000-0000-000000000005');
 
 -- SIGNALEMENTS
 INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "aiReason", "gradeModified", "gradeModificationReason", status, "adminNote", "isAnonymous", "studentId", "createdAt") VALUES
