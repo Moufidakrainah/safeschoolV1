@@ -6,10 +6,6 @@ import { Parent } from '../parents/parent.entity';
 export class StudentProfile {
   @PrimaryGeneratedColumn('uuid') id: string;
 
-  @Column({ nullable: true }) parentEmail: string;
-
-  @Column({ nullable: true }) parentPhone: string;
-
   @Column({ name: 'class', nullable: true }) schoolClass: string;
 
   @Column({ nullable: true }) dateOfBirth: string;

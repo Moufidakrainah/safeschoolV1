@@ -4,16 +4,12 @@ import { StudentProfilesService } from './student-profiles.service';
 import { validateUUID } from '../utils/validate-uuid';
 
 class CreateProfileDto {
-  parentEmail: string;
-  parentPhone: string;
   schoolClass: string;
   dateOfBirth: string;
   userId: string;
 }
 
 class UpdateProfileDto {
-  parentEmail?: string;
-  parentPhone?: string;
   schoolClass?: string;
   dateOfBirth?: string;
 }
@@ -26,7 +22,7 @@ export class StudentProfilesController {
   @Post()
   async create(@Body() dto: CreateProfileDto, @Request() req) {
     if (req.user.role !== 'admin' && req.user.role !== 'director') throw new ForbiddenException('Only admin can create a profile');
-    return this.studentProfilesService.create(dto.parentEmail, dto.parentPhone, dto.schoolClass, dto.dateOfBirth, dto.userId);
+    return this.studentProfilesService.create( dto.schoolClass, dto.dateOfBirth, dto.userId);
   }
 
   @Get()
