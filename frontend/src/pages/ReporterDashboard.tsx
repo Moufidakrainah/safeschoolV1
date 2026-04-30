@@ -77,7 +77,7 @@ export default function ReporterDashboard() {
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(0);
+    setStep(1);
     setType('');
     setDescription('');
     setFrequency('');

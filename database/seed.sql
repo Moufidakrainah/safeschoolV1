@@ -1,10 +1,72 @@
 -- Nettoyer les tables
-TRUNCATE TABLE notifications CASCADE;
-TRUNCATE TABLE report_notes CASCADE;
-TRUNCATE TABLE report_suspects CASCADE;
-TRUNCATE TABLE reports CASCADE;
-TRUNCATE TABLE student_profiles CASCADE;
-TRUNCATE TABLE users CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS report_notes CASCADE;
+DROP TABLE IF EXISTS report_suspects CASCADE;
+DROP TABLE IF EXISTS reports CASCADE;
+DROP TABLE IF EXISTS student_profiles CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL,
+  "firstName" TEXT NOT NULL,
+  "lastName" TEXT NOT NULL,
+  "createdAt" TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS student_profiles (
+  id UUID PRIMARY KEY,
+  class TEXT NOT NULL,
+  "parentEmail" TEXT,
+  "parentPhone" TEXT,
+  "dateOfBirth" DATE,
+  "userId" UUID UNIQUE,
+
+  FOREIGN KEY ("userId") REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS reports (
+  id UUID PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  grade TEXT,
+  "caseNumber" TEXT UNIQUE,
+  "aiScore" FLOAT,
+  "aiReason" TEXT,
+  "gradeModified" BOOLEAN DEFAULT FALSE,
+  "gradeModificationReason" TEXT,
+  status TEXT NOT NULL,
+  "adminNote" TEXT,
+  "isAnonymous" BOOLEAN DEFAULT FALSE,
+  "studentId" UUID,
+  "createdAt" TIMESTAMP DEFAULT NOW(),
+
+  FOREIGN KEY ("studentId") REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS report_suspects (
+  id UUID PRIMARY KEY,
+  "reportId" UUID NOT NULL,
+  "userId" UUID,
+  "freeText" TEXT,
+
+  FOREIGN KEY ("reportId") REFERENCES reports(id) ON DELETE CASCADE,
+  FOREIGN KEY ("userId") REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS report_notes (
+  id UUID PRIMARY KEY,
+  content TEXT NOT NULL,
+  type TEXT NOT NULL,
+  "createdAt" TIMESTAMP DEFAULT NOW(),
+  "reportId" UUID NOT NULL,
+  "authorId" UUID,
+
+  FOREIGN KEY ("reportId") REFERENCES reports(id) ON DELETE CASCADE,
+  FOREIGN KEY ("authorId") REFERENCES users(id) ON DELETE SET NULL
+);
 
 -- UTILISATEURS
 INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdAt") VALUES
