@@ -14,8 +14,6 @@ export interface AuthUser {
   studentProfile?: {
     id: string;
     schoolClass: string;
-    parentEmail: string;
-    parentPhone: string;
     dateOfBirth: string;
   } | null;
 }

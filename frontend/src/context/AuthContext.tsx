@@ -11,8 +11,6 @@ interface User {
   studentProfile?: {
     id: string;
     schoolClass: string;
-    parentEmail: string;
-    parentPhone: string;
     dateOfBirth: string;
   } | null;
 }

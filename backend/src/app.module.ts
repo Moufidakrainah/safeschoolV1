@@ -8,6 +8,9 @@ import { StudentProfilesModule } from './student-profiles/student-profiles.modul
 import { NotificationsModule } from './notifications/notifications.module';
 import { LoggerModule } from './logger/logger.module';
 import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
+import { ClassesModule } from './classes/classes.module';
+import { StaffProfilesModule } from './staff/staff-profiles.module';
+import { ParentsModule } from './parents/parents.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
     ReportsModule,
     NotificationsModule,
     StudentProfilesModule,
+    ClassesModule,
+    StaffProfilesModule,
+    ParentsModule,
   ],
 })
 export class AppModule implements NestModule {
