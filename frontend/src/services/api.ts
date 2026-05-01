@@ -9,14 +9,12 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-
-
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
 
 export const register = async (email: string, password: string, firstName: string, lastName: string) =>
   (await api.post('/auth/register', { email, password, firstName, lastName })).data;
-// FIX? Duplicate getReports getAllReports ?
+
 export const getReports = async () => (await api.get('/reports')).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
@@ -53,5 +51,9 @@ export const createUser = async (dto: Record<string, string>) => (await api.post
 export const updateUser = async (id: string, dto: Record<string, string>) => (await api.patch(`/users/${id}`, dto)).data;
 
 export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`)).data;
+
+// Récupère les parents liés à un élève
+export const getStudentParents = async (userId: string) =>
+  (await api.get(`/student-profiles/parents/${userId}`)).data;
 
 export default api;

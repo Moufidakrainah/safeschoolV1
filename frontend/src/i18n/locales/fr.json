@@ -162,185 +162,144 @@
     "error": "Une erreur est survenue"
   },
   "reporter": {
-	"nav": {
-		"ariaLabel": "Navigation reporter",
-  		"profile": "Mon profil",
-		"report":   "Faire un signalement",
-		"workshop": "Ateliers",
-		"quiz":     "Quiz"
-	},
-	"profile": {
-		"title": "Mon profil",
-		"firstName": "Prénom",
-		"lastName": "Nom",
-		"email": "Email",
-		"role": "Rôle"
-	},
+    "nav": {
+      "ariaLabel": "Navigation reporter",
+      "profile":   "Mon profil",
+      "report":    "Faire un signalement",
+      "workshop":  "Ateliers",
+      "quiz":      "Quiz"
+    },
+    "profile": {
+      "title":     "Mon profil",
+      "firstName": "Prénom",
+      "lastName":  "Nom",
+      "email":     "Email",
+      "role":      "Rôle"
+    },
+    "workshop": {
+      "title": "Ateliers",
+      "soon":  "Cette section sera disponible prochainement."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "Cette section sera disponible prochainement."
+    },
     "roles": {
       "teacher": "Professeur",
-      "staff": "Personnel du collège"
+      "staff":   "Personnel du collège"
     },
     "header": {
       "brand1": "Signalement",
       "brand2": "Collège"
     },
     "home": {
-      "school": "Collège Jeanne d'Arc — Dispositif anti-harcèlement",
-      "title": "Vous êtes témoin d'une situation de harcèlement ?",
-      "subtitle": "Signalez-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.",
-      "cta": "Faire un signalement",
+      "school":     "Collège Jeanne d'Arc — Dispositif anti-harcèlement",
+      "title":      "Vous êtes témoin d'une situation de harcèlement ?",
+      "subtitle":   "Signalez-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.",
+      "cta":        "Faire un signalement",
       "statsLabel": "Indicateurs clés",
-      "stat1": "Délai de prise en charge",
-      "stat2": "Confidentialité garantie",
+      "stat1":      "Délai de prise en charge",
+      "stat2":      "Confidentialité garantie",
       "stat3value": "Anonymat",
-      "stat3": "Option disponible"
+      "stat3":      "Option disponible"
     },
     "success": {
       "iconLabel": "Succès",
-      "title": "Signalement transmis",
-      "message": "Votre signalement a bien été reçu. L'équipe de direction en sera informée dans les plus brefs délais.",
-      "notice": "✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.",
-      "back": "Retour à l'accueil"
+      "title":     "Signalement transmis",
+      "message":   "Votre signalement a bien été reçu. L'équipe de direction en sera informée dans les plus brefs délais.",
+      "notice":    "✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.",
+      "back":      "Retour à l'accueil"
     },
     "steps": {
-      "who": "Qui signale",
-      "type": "Type",
-      "facts": "Faits",
-      "people": "Personnes",
+      "who":      "Qui signale",
+      "type":     "Type",
+      "facts":    "Faits",
+      "people":   "Personnes",
       "evidence": "Preuves",
       "validate": "Validation"
     },
     "step1": {
-      "title": "Qui signale ?",
+      "title":    "Qui signale ?",
       "subtitle": "Sélectionne ta situation",
-      "teacher": "Je signale en tant que professeur",
-      "staff": "Je signale en tant que personnel du collège"
+      "teacher":  "Je signale en tant que professeur",
+      "staff":    "Je signale en tant que personnel du collège"
     },
     "step2": {
-      "title": "Quel type de harcèlement ?",
-      "subtitle": "Sélectionne le type qui correspond le mieux",
-      "physical": "Physique",
-      "physicalSub": "Coups, bousculades",
-      "verbal": "Verbal",
-      "verbalSub": "Insultes, moqueries",
-      "cyber": "Cyber",
-      "cyberSub": "Réseaux, SMS",
-      "exclusion": "Exclusion sociale",
+      "title":        "Quel type de harcèlement ?",
+      "subtitle":     "Sélectionne le type qui correspond le mieux",
+      "physical":     "Physique",
+      "physicalSub":  "Coups, bousculades",
+      "verbal":       "Verbal",
+      "verbalSub":    "Insultes, moqueries",
+      "cyber":        "Cyber",
+      "cyberSub":     "Réseaux, SMS",
+      "exclusion":    "Exclusion sociale",
       "exclusionSub": "Mise à l'écart",
-      "sexual": "Sexuel",
-      "sexualSub": "Gestes, remarques",
-      "other": "Autre",
-      "otherSub": "Décrire ci-dessous"
+      "sexual":       "Sexuel",
+      "sexualSub":    "Gestes, remarques",
+      "other":        "Autre",
+      "otherSub":     "Décrire ci-dessous"
     },
     "step3": {
-      "title": "Décris les faits",
-      "subtitle": "Explique ce que vous avez observé",
-      "descriptionLabel": "Description",
+      "title":                  "Décris les faits",
+      "subtitle":               "Explique ce que vous avez observé",
+      "descriptionLabel":       "Description",
       "descriptionPlaceholder": "Décris ce qui s'est passé, quand, où et qui était impliqué...",
-      "frequencyLabel": "Fréquence des actes",
-      "frequencyPlaceholder": "Sélectionner...",
+      "frequencyLabel":         "Fréquence des actes",
+      "frequencyPlaceholder":   "Sélectionner...",
       "freq1": "Une fois",
       "freq2": "Deux fois",
       "freq3": "Trois fois ou plus",
       "freq4": "Tous les jours"
     },
     "step4": {
-      "title": "Personnes impliquées",
-      "subtitle": "Indique la victime et les personnes soupçonnées — cette information est confidentielle",
-      "victimLabel": "Nom de la victime",
-      "suspectsLabel": "Soupçonné(s)",
+      "title":           "Personnes impliquées",
+      "subtitle":        "Indique la victime et les personnes soupçonnées — cette information est confidentielle",
+      "victimLabel":     "Nom de la victime",
+      "suspectsLabel":   "Soupçonné(s)",
       "searchPlaceholder": "Rechercher par nom ou prénom...",
-      "selected": "sélectionné(e)",
-      "addFreeText": "Ajouter",
-      "suspectsAdded": "Soupçonnés ajoutés",
-      "removeSuspect": "Retirer",
-      "noSuspect": "Aucun soupçonné ajouté — tu peux passer cette étape"
+      "selected":        "sélectionné(e)",
+      "addFreeText":     "Ajouter",
+      "suspectsAdded":   "Soupçonnés ajoutés",
+      "removeSuspect":   "Retirer",
+      "noSuspect":       "Aucun soupçonné ajouté — tu peux passer cette étape"
     },
     "step5": {
-      "title": "Preuves",
+      "title":    "Preuves",
       "subtitle": "Photos, captures d'écran, etc.",
-      "soon": "Cette fonctionnalité sera disponible prochainement"
+      "soon":     "Cette fonctionnalité sera disponible prochainement"
     },
     "step6": {
-      "title": "Validation",
-      "subtitle": "Vérifiez et envoyez votre signalement",
-      "who": "Qui signale",
-      "type": "Type",
-      "description": "Description",
-      "frequency": "Fréquence",
-      "victim": "Victime",
-      "suspects": "Soupçonnés",
-      "anonymous": "Signalement anonyme",
+      "title":         "Validation",
+      "subtitle":      "Vérifiez et envoyez votre signalement",
+      "who":           "Qui signale",
+      "type":          "Type",
+      "description":   "Description",
+      "frequency":     "Fréquence",
+      "victim":        "Victime",
+      "suspects":      "Soupçonnés",
+      "anonymous":     "Signalement anonyme",
       "anonymousDesc": "mon nom ne sera pas visible"
     },
     "submitting": "Envoi...",
-    "submit": "Envoyer le signalement"
+    "submit":     "Envoyer le signalement"
   },
   "privacy": {
     "updated": "Dernière mise à jour : avril 2026",
-    "s1": {
-      "title": "1. Responsable du traitement",
-      "body": "L'application SafeSchool est opérée dans le cadre d'un établissement scolaire. Le responsable du traitement des données est l'établissement ayant déployé cette instance de l'application. Pour toute question relative à vos données personnelles, contactez l'administration de votre établissement."
-    },
-    "s2": {
-      "title": "2. Données collectées",
-      "intro": "Dans le cadre du fonctionnement de l'application, les données suivantes sont traitées :",
-      "items": [
-        "Adresse e-mail et identifiant de connexion",
-        "Rôle dans l'établissement (élève, enseignant, personnel, administrateur)",
-        "Contenu des signalements saisis par les utilisateurs autorisés",
-        "Notes et commentaires associés aux dossiers",
-        "Journaux d'activité techniques (logs de connexion et d'action)"
-      ]
-    },
-    "s3": {
-      "title": "3. Finalités du traitement",
-      "body": "Les données sont traitées exclusivement aux fins suivantes : gestion et suivi des signalements de situations préoccupantes, coordination entre les membres du personnel habilités, et supervision administrative. Aucune donnée n'est utilisée à des fins commerciales ou partagée avec des tiers extérieurs à l'établissement."
-    },
-    "s4": {
-      "title": "4. Durée de conservation",
-      "body": "Les données relatives aux signalements sont conservées pour la durée nécessaire au traitement des dossiers, conformément aux obligations légales applicables aux établissements scolaires. Les journaux techniques sont conservés pendant une durée maximale de 90 jours."
-    },
-    "s5": {
-      "title": "5. Droits des utilisateurs",
-      "body": "Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et d'effacement de vos données personnelles, ainsi que d'un droit à la limitation du traitement. Pour exercer ces droits, adressez une demande écrite à l'administration de votre établissement."
-    },
-    "s6": {
-      "title": "6. Sécurité",
-      "body": "L'accès à l'application est sécurisé par authentification. Les mots de passe sont stockés sous forme hachée (bcrypt). Les communications entre le navigateur et le serveur sont chiffrées. L'accès aux données est strictement limité aux utilisateurs disposant des droits correspondants à leur rôle."
-    }
+    "s1": { "title": "1. Responsable du traitement", "body": "L'application SafeSchool est opérée dans le cadre d'un établissement scolaire. Le responsable du traitement des données est l'établissement ayant déployé cette instance de l'application. Pour toute question relative à vos données personnelles, contactez l'administration de votre établissement." },
+    "s2": { "title": "2. Données collectées", "intro": "Dans le cadre du fonctionnement de l'application, les données suivantes sont traitées :", "items": ["Adresse e-mail et identifiant de connexion","Rôle dans l'établissement (élève, enseignant, personnel, administrateur)","Contenu des signalements saisis par les utilisateurs autorisés","Notes et commentaires associés aux dossiers","Journaux d'activité techniques (logs de connexion et d'action)"] },
+    "s3": { "title": "3. Finalités du traitement", "body": "Les données sont traitées exclusivement aux fins suivantes : gestion et suivi des signalements de situations préoccupantes, coordination entre les membres du personnel habilités, et supervision administrative. Aucune donnée n'est utilisée à des fins commerciales ou partagée avec des tiers extérieurs à l'établissement." },
+    "s4": { "title": "4. Durée de conservation", "body": "Les données relatives aux signalements sont conservées pour la durée nécessaire au traitement des dossiers, conformément aux obligations légales applicables aux établissements scolaires. Les journaux techniques sont conservés pendant une durée maximale de 90 jours." },
+    "s5": { "title": "5. Droits des utilisateurs", "body": "Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès, de rectification et d'effacement de vos données personnelles, ainsi que d'un droit à la limitation du traitement. Pour exercer ces droits, adressez une demande écrite à l'administration de votre établissement." },
+    "s6": { "title": "6. Sécurité", "body": "L'accès à l'application est sécurisé par authentification. Les mots de passe sont stockés sous forme hachée (bcrypt). Les communications entre le navigateur et le serveur sont chiffrées. L'accès aux données est strictement limité aux utilisateurs disposant des droits correspondants à leur rôle." }
   },
   "terms": {
     "updated": "Dernière mise à jour : avril 2026",
-    "s1": {
-      "title": "1. Objet",
-      "body": "SafeSchool est une application de gestion et de suivi des signalements de situations préoccupantes au sein des établissements scolaires. Elle est destinée exclusivement aux membres du personnel et aux élèves enregistrés dans le système par l'administration de l'établissement."
-    },
-    "s2": {
-      "title": "2. Accès et comptes utilisateurs",
-      "body": "L'accès à l'application est conditionné à la possession d'un compte créé par l'administration. Les identifiants sont personnels et ne doivent pas être partagés. Tout accès non autorisé ou toute tentative de contournement des mécanismes d'authentification est strictement interdit et susceptible d'entraîner des sanctions disciplinaires."
-    },
-    "s3": {
-      "title": "3. Utilisation acceptable",
-      "intro": "Les utilisateurs s'engagent à :",
-      "items": [
-        "Utiliser l'application uniquement dans le cadre de leurs fonctions dans l'établissement",
-        "Saisir des informations exactes et de bonne foi dans les signalements",
-        "Respecter la confidentialité des dossiers auxquels ils ont accès",
-        "Ne pas tenter d'accéder à des données dépassant leur niveau d'habilitation"
-      ]
-    },
-    "s4": {
-      "title": "4. Contenu des signalements",
-      "body": "Les signalements doivent être rédigés avec rigueur et objectivité. Tout contenu manifestement inexact, diffamatoire ou sans lien avec une situation préoccupante réelle engage la responsabilité de son auteur. L'administration se réserve le droit de clôturer tout dossier ne répondant pas à ces critères."
-    },
-    "s5": {
-      "title": "5. Responsabilités",
-      "body": "L'établissement met en œuvre les mesures techniques raisonnables pour assurer la disponibilité et la sécurité de l'application. Il ne saurait être tenu responsable d'une interruption de service ou d'une perte de données résultant d'un événement extérieur à son contrôle. Les utilisateurs sont responsables des informations qu'ils saisissent dans le système."
-    },
-    "s6": {
-      "title": "6. Modification des présentes conditions",
-      "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions."
-    }
+    "s1": { "title": "1. Objet", "body": "SafeSchool est une application de gestion et de suivi des signalements de situations préoccupantes au sein des établissements scolaires. Elle est destinée exclusivement aux membres du personnel et aux élèves enregistrés dans le système par l'administration de l'établissement." },
+    "s2": { "title": "2. Accès et comptes utilisateurs", "body": "L'accès à l'application est conditionné à la possession d'un compte créé par l'administration. Les identifiants sont personnels et ne doivent pas être partagés. Tout accès non autorisé ou toute tentative de contournement des mécanismes d'authentification est strictement interdit et susceptible d'entraîner des sanctions disciplinaires." },
+    "s3": { "title": "3. Utilisation acceptable", "intro": "Les utilisateurs s'engagent à :", "items": ["Utiliser l'application uniquement dans le cadre de leurs fonctions dans l'établissement","Saisir des informations exactes et de bonne foi dans les signalements","Respecter la confidentialité des dossiers auxquels ils ont accès","Ne pas tenter d'accéder à des données dépassant leur niveau d'habilitation"] },
+    "s4": { "title": "4. Contenu des signalements", "body": "Les signalements doivent être rédigés avec rigueur et objectivité. Tout contenu manifestement inexact, diffamatoire ou sans lien avec une situation préoccupante réelle engage la responsabilité de son auteur. L'administration se réserve le droit de clôturer tout dossier ne répondant pas à ces critères." },
+    "s5": { "title": "5. Responsabilités", "body": "L'établissement met en œuvre les mesures techniques raisonnables pour assurer la disponibilité et la sécurité de l'application. Il ne saurait être tenu responsable d'une interruption de service ou d'une perte de données résultant d'un événement extérieur à son contrôle. Les utilisateurs sont responsables des informations qu'ils saisissent dans le système." },
+    "s6": { "title": "6. Modification des présentes conditions", "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions." }
   }
 }
