@@ -5,8 +5,6 @@
 - Ateliers
 - Messagerie
 
-# Modules
-
 ## Selected Modules
 
 | 1. Web (9 points) 							   | Type  | Points | Responsible | Done |
@@ -85,20 +83,10 @@
 | # Ateliers				 		               |       |        |             |		 |
 | Advanced analytics dashboard 		 	   	   	   | Major | 2      | quclaque    |	[ ]	 |
 
-| 9. Blockchain (0 point)			
-| ---------------------------------------
-
-| 10. Modules of choice (0 point)				   | Type  | Points | Responsible | Done |	   		   
-| ------------------------------------------------ | ----- | ------ | ----------- | ---- |
-| **_Options (3 points)_**: 
-| _???_ 		 	   							   | Major | 2      |             | [ ]  |
-| _Scan a QR code to add a friend_				   | Minor | 1      |             | [ ]  |
 
 
 ## Total: 21 points (**_+ 33 optional points_**) / 14 required 
 
-## 14 points = 100%
-
-## 19 points = 125%
+## 14 points = 100% | 19 points = 125%
 
 ### Update 28/04/2026 : 15 points [x]

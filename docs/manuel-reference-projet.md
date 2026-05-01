@@ -2364,3 +2364,18 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 | Pourquoi TypeORM avec `synchronize: true` en dev et pas en prod ? | En dev, TypeORM met à jour automatiquement le schéma SQL à partir des entities — pratique pour itérer vite. En production, c'est dangereux : une modification d'entity pourrait supprimer ou altérer des colonnes avec des vraies données. |
 | Quelle est la différence entre `PATCH` et `PUT` en HTTP ? | `PUT` remplace la ressource entière. `PATCH` modifie partiellement — seuls les champs envoyés sont mis à jour. Pour un formulaire d'édition partielle, `PATCH` est plus approprié. |
 | Pourquoi ELK dans ce projet ? | Centraliser les logs de toutes les requêtes HTTP dans Elasticsearch, les transformer via Logstash, et les visualiser dans Kibana. Permet de monitorer l'activité, détecter des anomalies et déboguer sans accès aux conteneurs. |
+
+### React
+
+https://react.dev/reference/react
+
+Référence officielle maintenue par l'équipe React (Meta). Liste exhaustive de tous les hooks, API et composants built-in avec exemples interactifs. 
+
+---
+
+### Tailwind CSS
+
+https://tailwindcss.com/docs
+
+Documentation officielle v4. Couvre les nouvelles directives `@theme`, `@utility`, la configuration via CSS uniquement, et les changements de nommage des utilitaires.
+
