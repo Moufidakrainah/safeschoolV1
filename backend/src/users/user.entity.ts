@@ -12,9 +12,11 @@ export enum UserRole {
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ unique: true }) email: string;
-  @Column({ select: false }) password: string;
+  @PrimaryGeneratedColumn('uuid') id: string; /*le typeORM genère automatiquement
+                                                un UUID à chaque nouvel utilisateur  */
+  @Column({ unique: true }) email: string; 
+  @Column({ select: false }) password: string; /*meme si on fait un select * on voit 
+                                                pas le password */
   @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT }) role: UserRole;
   @Column() firstName: string;
   @Column() lastName: string;

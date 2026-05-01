@@ -16,6 +16,7 @@ class UpdateProfileDto {
 
 @Controller('student-profiles')
 @UseGuards(AuthGuard('jwt'))
+
 export class StudentProfilesController {
   constructor(private readonly studentProfilesService: StudentProfilesService) {}
 
