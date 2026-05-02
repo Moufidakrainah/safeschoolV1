@@ -150,8 +150,8 @@ export default function ReporterDashboard() {
 	return (
 		<>
 		<ReporterHeader {...headerProps} />
-		<main className="p-8">
-			<h2 className="text-2xl font-bold">{t('reporter.workshop.title')}</h2>
+		<main className="p-8 ">
+			<h2 className="text-2xl font-bold mt-2">{t('reporter.workshop.title')}</h2>
 			<p className="text-gray-600 mt-2">{t('reporter.workshop.soon')}</p>
 		</main>
 		</>
@@ -171,6 +171,26 @@ export default function ReporterDashboard() {
 	}
 
 
+	// // Page confirmation — séparée du formulaire
+	// if (step === 7) {
+	// 	return (
+	// 	<>
+	// 		<ReporterHeader {...headerProps} />
+	// 		<main className="bg-gray-50 font-sans flex items-center justify-center min-h-[80vh]">
+	// 		<Card className="max-w-md w-full mx-5 text-center">
+	// 			<div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
+	// 			<h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
+	// 			<p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
+	// 			<div className="bg-surface rounded-lg p-4 mb-6 text-left">
+	// 			<p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
+	// 			</div>
+	// 			<Button onClick={resetForm}>{t('reporter.success.back')}</Button>
+	// 		</Card>
+	// 		</main>
+	// 	</>
+	// 	);
+	// }
+
 
 
   if (viewSection === 'report') 
@@ -185,7 +205,7 @@ export default function ReporterDashboard() {
     <main className="bg-gray-50 font-sans">
       
 	
-      <StepBar steps={steps} currentStep={step} />
+      <StepBar steps={steps} currentStep={step - 1} />
 
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card>
