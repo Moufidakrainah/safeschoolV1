@@ -11,6 +11,7 @@ import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
 import { ClassesModule } from './classes/classes.module';
 import { StaffProfilesModule } from './staff/staff-profiles.module';
 import { ParentsModule } from './parents/parents.module';
+import { QuizRealtimeModule } from './quiz-realtime/quiz-realtime.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ParentsModule } from './parents/parents.module';
     ClassesModule,
     StaffProfilesModule,
     ParentsModule,
+    QuizRealtimeModule,
   ],
 })
 export class AppModule implements NestModule {

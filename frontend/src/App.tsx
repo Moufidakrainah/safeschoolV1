@@ -9,6 +9,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import Footer from './components/Footer';
 import UiKit from './pages/UiKit';
+import Quiz from './pages/Quiz';
 
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
@@ -42,8 +43,15 @@ function DevBar() {
         { to: '/ui-kit',    label: '🎨 UI kit' },
         { to: '/login',     label: '🔑 login' },
         { to: '/dashboard', label: '🛡️ admin' },
+<<<<<<< HEAD
         { to: '/student',   label: '🎒 student' },
         { to: '/reporter',  label: '📋 reporter' },
+=======
+        { to: '/student', label: '🎒 student' },
+        { to: '/reporter', label: '📋 reporter' },
+        { to: '/stats', label: '📊 stats' },
+        { to: '/quiz', label: 'quiz'},
+>>>>>>> feat/quiz
       ].map(({ to, label }) => (
         <Link key={to} to={to} style={{
           color: location.pathname === to ? '#0097b2' : '#aaa',
@@ -64,6 +72,7 @@ export default function App() {
       <DevBar />
       <div className="flex-1 flex flex-col">
         <Routes>
+<<<<<<< HEAD
           <Route path="/login" element={<Login />} />
           <Route path="/ui-kit" element={<UiKit />} />
           <Route path="/reporter" element={
@@ -86,6 +95,36 @@ export default function App() {
           <Route path="/terms" element={<TermsOfService />} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
+=======
+        <Route path="/login" element={<Login />} />
+        <Route path="/ui-kit" element={<UiKit />} />
+        <Route path="/stats" element={<StatsDashboard reports={[]} />} />
+        <Route path="/reporter" element={
+          <ProtectedRoute roles={['teacher', 'staff']}>
+            <ReporterDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/student" element={
+          <ProtectedRoute roles={['student']}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/dashboard" element={
+          <ProtectedRoute roles={['admin', 'director']}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/quiz" element={
+		      <ProtectedRoute>
+		        <Quiz />
+		      </ProtectedRoute>
+	      } />
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="*" element={<Navigate to="/login" />} />
+      </Routes>
+>>>>>>> feat/quiz
       </div>
       {location.pathname !== '/ui-kit' && <Footer />}
     </div>
