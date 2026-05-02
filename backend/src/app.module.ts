@@ -8,6 +8,7 @@ import { StudentProfilesModule } from './student-profiles/student-profiles.modul
 import { NotificationsModule } from './notifications/notifications.module';
 import { LoggerModule } from './logger/logger.module';
 import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
+import { QuizRealtimeModule } from './quiz-realtime/quiz-realtime.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { HttpLoggerMiddleware } from './logger/http-logger.middleware';
     ReportsModule,
     NotificationsModule,
     StudentProfilesModule,
+    QuizRealtimeModule,
   ],
 })
 export class AppModule implements NestModule {
