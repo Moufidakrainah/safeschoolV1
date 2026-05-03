@@ -35,10 +35,10 @@ const SOCKET_URL =
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('report');
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('quiz');
 
 useEffect(() => {
-    if (viewSection === 'quiz') {
+    if (viewSection !== 'quiz') {
       navigate('/reporter');
     }
   }, [viewSection, navigate]);

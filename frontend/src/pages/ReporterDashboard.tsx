@@ -136,7 +136,7 @@ export default function ReporterDashboard() {
 useEffect(() => {
     if (viewSection === 'quiz') {
       navigate('/quiz');
-	  setViewSection('report');
+	  setViewSection('quiz');
     }
   }, [viewSection, navigate]);
 
@@ -250,8 +250,8 @@ useEffect(() => {
 
 
 
-//   if (viewSection === 'report') 
-// {
+  if (viewSection === 'report') 
+{
 
   // Formulaire multi-étapes
   return (
@@ -496,4 +496,4 @@ useEffect(() => {
     </>
   );
 }
-// }
+}
