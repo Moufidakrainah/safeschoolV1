@@ -29,17 +29,15 @@ const SOCKET_URL =
   import.meta.env.VITE_API_URL ??
   'http://localhost:5000';
 
-
-
-
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('quiz');
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
 
 useEffect(() => {
-    if (viewSection !== 'quiz') {
+    if (viewSection === 'report') {
       navigate('/reporter');
+	  setViewSection('reporter');
     }
   }, [viewSection, navigate]);
 
