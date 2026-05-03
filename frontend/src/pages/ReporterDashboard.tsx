@@ -13,6 +13,11 @@ import type { UserSearchResult } from '../types';
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
+
+
+console.log("USER:", user);
+
+
   const { t } = useTranslation();
   const [step, setStep] = useState(2);
 
@@ -126,11 +131,11 @@ export default function ReporterDashboard() {
   ];
 
 
-
 	// ── Navigation entre les sections ─────────────────────────────────────────────
 	if (viewSection === 'profile') {
 	return (
 		<>
+    			
 		<ReporterHeader {...headerProps} />
 		<main className="p-8 max-w-xl mx-auto">
 			<h2 className="text-2xl font-bold mb-4">{t('reporter.profile.title')}</h2>
@@ -140,7 +145,14 @@ export default function ReporterDashboard() {
 			<p><strong>{t('reporter.profile.lastName')} :</strong> {user?.lastName}</p>
 			<p><strong>{t('reporter.profile.email')} :</strong> {user?.email}</p>
 			<p><strong>{t('reporter.profile.role')} :</strong> {user?.role}</p>
-			</div>
+
+
+      {user?.role === 'teacher' && (
+        <p>
+          <strong>{t('reporter.profile.subject')} :</strong>{' '}
+          {user?.staffProfile?.subject ?? t('reporter.profile.subjectUnknown')}
+        </p>)}
+      </div>
 		</main>
 		</>
 	);

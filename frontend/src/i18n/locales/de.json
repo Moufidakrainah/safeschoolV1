@@ -208,7 +208,9 @@
 		"firstName": "Vorname",
 		"lastName": "Nachname",
 		"email": "E-Mail",
-		"role": "Rolle"
+    "role": "Beruf",
+    "subject": "Fach",
+    "subjectUnknown": "Unbekannt"
 	},
     "roles": {
       "teacher": "Lehrer",
