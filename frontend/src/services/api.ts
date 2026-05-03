@@ -56,4 +56,7 @@ export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`
 export const getStudentParents = async (userId: string) =>
   (await api.get(`/student-profiles/parents/${userId}`)).data;
 
+export const getStaffProfile = async (userId: string) =>
+  (await api.get(`/staff-profiles/by-user/${userId}`)).data;
+
 export default api;

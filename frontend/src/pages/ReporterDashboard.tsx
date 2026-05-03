@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers } from '../services/api';
+import { createReport, searchUsers, getStaffProfile } from '../services/api';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import StepBar from '../components/StepBar';
@@ -11,12 +12,8 @@ import type { UserSearchResult } from '../types';
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
-
-
-console.log("USER:", user);
-
-
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [step, setStep] = useState(2);
 
   const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff');
@@ -35,8 +32,24 @@ console.log("USER:", user);
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
   const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('report');
+  const [staffProfile, setStaffProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // ✅ FIX 1 : useEffect déplacé AVANT tout return conditionnel
+  useEffect(() => {
+    if (user?.id) {
+      setLoadingProfile(true);
+      getStaffProfile(user.id)
+        .then(data => setStaffProfile(data))
+        .catch(() => setStaffProfile(null))
+        .finally(() => setLoadingProfile(false));
+    }
+  }, [user?.id]);
 
   const handleSubmit = async () => {
+    // ✅ FIX 2 : guard sur frequency avant envoi
+    if (!type || !description || !frequency) return;
+
     setLoading(true);
     try {
       const title = `${type} - ${whoSignals}`;
@@ -83,7 +96,7 @@ console.log("USER:", user);
     setType('');
     setDescription('');
     setFrequency('');
-    setWhoSignals('');
+    setWhoSignals(defaultWho);
     setVictimName('');
     setVictimInput('');
     setSelectedVictim(null);
@@ -94,7 +107,6 @@ console.log("USER:", user);
   const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   const steps = [
-    
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -103,13 +115,12 @@ console.log("USER:", user);
   ];
 
   const isNextDisabled =
-    
     (step === 2 && !type) ||
     (step === 3 && (!description || !frequency));
 
   const whoOptions = user?.role === 'teacher'
     ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
-    : [{ value: t('reporter.step1.staff'),   label: t('reporter.step1.staff') }];
+    : [{ value: t('reporter.step1.staff'), label: t('reporter.step1.staff') }];
 
   const typeOptions = [
     { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
@@ -120,195 +131,138 @@ console.log("USER:", user);
     { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
   ];
 
+  // ✅ Les returns conditionnels sont maintenant APRÈS tous les hooks
+
+useEffect(() => {
+    if (viewSection === 'quiz') {
+      navigate('/quiz');
+	  setViewSection('report');
+    }
+  }, [viewSection, navigate]);
+
+
   // Section profil
   if (viewSection === 'profile') {
     return (
       <>
         <ReporterHeader {...headerProps} />
         <main className="p-8 max-w-xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">{t('reporter.profile.title')}</h2>
-          <div className="bg-white shadow rounded-lg p-6 space-y-4">
-            <p><strong>{t('reporter.profile.firstName')} :</strong> {user?.firstName}</p>
-            <p><strong>{t('reporter.profile.lastName')} :</strong> {user?.lastName}</p>
-            <p><strong>{t('reporter.profile.email')} :</strong> {user?.email}</p>
-            <p><strong>{t('reporter.profile.role')} :</strong> {user?.role}</p>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
+
+          {/* Informations personnelles */}
+          <div className="bg-white shadow rounded-lg p-6 mb-4">
+            <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {[
+                  { label: t('reporter.profile.firstName'), value: user?.firstName },
+                  { label: t('reporter.profile.lastName'),  value: user?.lastName },
+                  { label: t('reporter.profile.email'),     value: user?.email },
+                //   { label: t('reporter.profile.role'),      value: user?.role },
+                ].map(row => (
+                  <tr key={row.label} className="border-b border-gray-100">
+                    <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
+                    <td className="py-2 text-gray-700">{row.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Profil professionnel */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-primary font-bold text-sm mb-4">🏫 Profil professionnel</h3>
+            {loadingProfile ? (
+              <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>
+            ) : !staffProfile ? (
+              <p className="text-gray-400 text-sm text-center py-4">Aucun profil professionnel enregistré</p>
+            ) : (
+              <>
+                <table className="w-full text-sm mb-4">
+                  <tbody>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-2 text-gray-400 font-semibold w-2/5">Profession</td>
+                      <td className="py-2 text-gray-700 capitalize">{staffProfile.profession}</td>
+                    </tr>
+                    {staffProfile.subject && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-2 text-gray-400 font-semibold w-2/5">Matière</td>
+                        <td className="py-2 text-gray-700">{staffProfile.subject}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+
+                {staffProfile.classes?.length > 0 && (
+                  <>
+                    <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {staffProfile.classes.map((c: any) => (
+                        <span key={c.id} className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full">
+                          {c.level} {c.section}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </main>
       </>
     );
   }
 
-	// ── Navigation entre les sections ─────────────────────────────────────────────
-	if (viewSection === 'profile') {
-	return (
-		<>
-    			
-		<ReporterHeader {...headerProps} />
-		<main className="p-8 max-w-xl mx-auto">
-			<h2 className="text-2xl font-bold mb-4">{t('reporter.profile.title')}</h2>
-
-			<div className="bg-white shadow rounded-lg p-6 space-y-4">
-			<p><strong>{t('reporter.profile.firstName')} :</strong> {user?.firstName}</p>
-			<p><strong>{t('reporter.profile.lastName')} :</strong> {user?.lastName}</p>
-			<p><strong>{t('reporter.profile.email')} :</strong> {user?.email}</p>
-			<p><strong>{t('reporter.profile.role')} :</strong> {user?.role}</p>
-
-
-      {user?.role === 'teacher' && (
-        <p>
-          <strong>{t('reporter.profile.subject')} :</strong>{' '}
-          {user?.staffProfile?.subject ?? t('reporter.profile.subjectUnknown')}
-        </p>)}
-      </div>
-		</main>
-		</>
-	);
-	}
-
-	if (viewSection === 'workshop') {
-	return (
-		<>
-		<ReporterHeader {...headerProps} />
-		<main className="p-8 ">
-			<h2 className="text-2xl font-bold mt-2">{t('reporter.workshop.title')}</h2>
-			<p className="text-gray-600 mt-2">{t('reporter.workshop.soon')}</p>
-		</main>
-		</>
-	);
-	}
-
-	if (viewSection === 'quiz') {
-	return (
-		<>
-		<ReporterHeader {...headerProps} />
-		<main className="p-8">
-			<h2 className="text-2xl font-bold">{t('reporter.quiz.title')}</h2>
-			<p className="text-gray-600 mt-2">{t('reporter.quiz.soon')}</p>
-		</main>
-		</>
-	);
-	}
-
-
-	// // Page confirmation — séparée du formulaire
-	// if (step === 7) {
 	// 	return (
 	// 	<>
-	// 		<ReporterHeader {...headerProps} />
-	// 		<main className="bg-gray-50 font-sans flex items-center justify-center min-h-[80vh]">
-	// 		<Card className="max-w-md w-full mx-5 text-center">
-	// 			<div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
-	// 			<h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
-	// 			<p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
-	// 			<div className="bg-surface rounded-lg p-4 mb-6 text-left">
-	// 			<p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
-	// 			</div>
-	// 			<Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-	// 		</Card>
-	// 		</main>
+	// 	<ReporterHeader {...headerProps} />
+	// 	<main className="p-8">
+	// 		<h2 className="text-2xl font-bold">{t('reporter.quiz.title')}</h2>
+	// 		<p className="text-gray-600 mt-2">{t('reporter.quiz.soon')}</p>
+	// 	</main>
 	// 	</>
-	// 	);
-	// }
+	// );
 
 
 
-  if (viewSection === 'report') 
-  {
-	
-  return (
-	<>
 
-	<ReporterHeader {...headerProps} />
+	// if (viewSection === 'report') {
+
+	// // Page confirmation — séparée du formulaire
+	if (step === 7) {
+		return (
+		<>
+			<ReporterHeader {...headerProps} />
+			<main className="bg-gray-50 font-sans flex items-center justify-center min-h-[80vh]">
+			<Card className="max-w-md w-full mx-5 text-center">
+				<div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
+				<h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
+				<p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
+				<div className="bg-surface rounded-lg p-4 mb-6 text-left">
+				<p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
+				</div>
+				<Button onClick={resetForm}>{t('reporter.success.back')}</Button>
+			</Card>
+			</main>
+		</>
+		);
+	}
 
 
-    <main className="bg-gray-50 font-sans">
-      
-	
-      <StepBar steps={steps} currentStep={step - 1} />
 
-      <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
-
-
-          {/* ── Étape 2 : Type ── */}
-          {step === 2 && (
-            <fieldset>
-              <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
-              <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
-              <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                {typeOptions.map(opt => (
-                  <button
-                    key={opt.label}
-                    role="radio"
-                    aria-checked={type === opt.label}
-                    onClick={() => setType(opt.label)}
-                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                      type === opt.label
-                        ? 'border-primary bg-surface'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="text-2xl mb-1" role="img" aria-hidden="true">{opt.icon}</div>
-                    <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
-                    <div className="text-xs text-gray-400">{opt.sub}</div>
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-          )}
-
-          {/* ── Étape 3 : Faits ── */}
-          {step === 3 && (
-            <div>
-              <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step3.title')}</h2>
-              <p className="text-gray-500 text-sm mb-6">{t('reporter.step3.subtitle')}</p>
-              <label className="block mb-1 text-sm font-semibold text-gray-700" htmlFor="description">
-                {t('reporter.step3.descriptionLabel')}
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder={t('reporter.step3.descriptionPlaceholder')}
-                rows={5}
-                aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y font-[inherit] box-border mb-5"
-              />
-              <label className="block mb-2 text-sm font-semibold text-gray-700" htmlFor="frequency">
-                {t('reporter.step3.frequencyLabel')}
-              </label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={e => setFrequency(e.target.value)}
-                aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
-              >
-                <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
-                <option value="Une fois">{t('reporter.step3.freq1')}</option>
-                <option value="Deux fois">{t('reporter.step3.freq2')}</option>
-                <option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
-                <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
-              </select>
-            </div>)}
-            <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-          </Card>
-		</div>
-        </main>
-      </>
-    );
-  }
+//   if (viewSection === 'report') 
+// {
 
   // Formulaire multi-étapes
   return (
     <>
       <ReporterHeader {...headerProps} />
       <main className="bg-gray-50 font-sans">
-        <StepBar steps={steps} currentStep={step - 1} />
+        <StepBar steps={steps} currentStep={step - 2} /> {/* ✅ FIX 4 : step - 2 car step démarre à 2 */}
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card>
 
-            {/* Étape 1 : Qui signale */}
+            {/* Étape 1 : Qui signale — conservé mais inaccessible si step démarre à 2 */}
             {step === 1 && (
               <fieldset>
                 <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step1.title')}</legend>
@@ -521,7 +475,7 @@ console.log("USER:", user);
               <Button
                 variant="ghost"
                 onClick={() => setStep(s => s - 1)}
-                disabled={step === 2}
+                disabled={step === 2} // ✅ Cohérent : step 2 est le premier écran visible
               >
                 ← {t('common.previous')}
               </Button>
@@ -542,3 +496,4 @@ console.log("USER:", user);
     </>
   );
 }
+// }
