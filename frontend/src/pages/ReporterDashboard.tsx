@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers } from '../services/api';
+import { createReport, searchUsers, getStaffProfile } from '../services/api';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import StepBar from '../components/StepBar';
@@ -30,8 +30,24 @@ export default function ReporterDashboard() {
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
   const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('report');
+  const [staffProfile, setStaffProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
+  // ✅ FIX 1 : useEffect déplacé AVANT tout return conditionnel
+  useEffect(() => {
+    if (user?.id) {
+      setLoadingProfile(true);
+      getStaffProfile(user.id)
+        .then(data => setStaffProfile(data))
+        .catch(() => setStaffProfile(null))
+        .finally(() => setLoadingProfile(false));
+    }
+  }, [user?.id]);
 
   const handleSubmit = async () => {
+    // ✅ FIX 2 : guard sur frequency avant envoi
+    if (!type || !description || !frequency) return;
+
     setLoading(true);
     try {
       const title = `${type} - ${whoSignals}`;
@@ -74,11 +90,11 @@ export default function ReporterDashboard() {
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(1);
+    setStep(2); // ✅ FIX 3 : cohérent avec l'état initial (step démarre à 2)
     setType('');
     setDescription('');
     setFrequency('');
-    setWhoSignals('');
+    setWhoSignals(defaultWho);
     setVictimName('');
     setVictimInput('');
     setSelectedVictim(null);
@@ -89,7 +105,6 @@ export default function ReporterDashboard() {
   const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   const steps = [
-    
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -98,13 +113,12 @@ export default function ReporterDashboard() {
   ];
 
   const isNextDisabled =
-    
     (step === 2 && !type) ||
     (step === 3 && (!description || !frequency));
 
   const whoOptions = user?.role === 'teacher'
     ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
-    : [{ value: t('reporter.step1.staff'),   label: t('reporter.step1.staff') }];
+    : [{ value: t('reporter.step1.staff'), label: t('reporter.step1.staff') }];
 
   const typeOptions = [
     { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
@@ -115,18 +129,74 @@ export default function ReporterDashboard() {
     { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
   ];
 
+  // ✅ Les returns conditionnels sont maintenant APRÈS tous les hooks
+
   // Section profil
   if (viewSection === 'profile') {
     return (
       <>
         <ReporterHeader {...headerProps} />
         <main className="p-8 max-w-xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">{t('reporter.profile.title')}</h2>
-          <div className="bg-white shadow rounded-lg p-6 space-y-4">
-            <p><strong>{t('reporter.profile.firstName')} :</strong> {user?.firstName}</p>
-            <p><strong>{t('reporter.profile.lastName')} :</strong> {user?.lastName}</p>
-            <p><strong>{t('reporter.profile.email')} :</strong> {user?.email}</p>
-            <p><strong>{t('reporter.profile.role')} :</strong> {user?.role}</p>
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
+
+          {/* Informations personnelles */}
+          <div className="bg-white shadow rounded-lg p-6 mb-4">
+            <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {[
+                  { label: t('reporter.profile.firstName'), value: user?.firstName },
+                  { label: t('reporter.profile.lastName'),  value: user?.lastName },
+                  { label: t('reporter.profile.email'),     value: user?.email },
+                  { label: t('reporter.profile.role'),      value: user?.role },
+                ].map(row => (
+                  <tr key={row.label} className="border-b border-gray-100">
+                    <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
+                    <td className="py-2 text-gray-700">{row.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Profil professionnel */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <h3 className="text-primary font-bold text-sm mb-4">🏫 Profil professionnel</h3>
+            {loadingProfile ? (
+              <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>
+            ) : !staffProfile ? (
+              <p className="text-gray-400 text-sm text-center py-4">Aucun profil professionnel enregistré</p>
+            ) : (
+              <>
+                <table className="w-full text-sm mb-4">
+                  <tbody>
+                    <tr className="border-b border-gray-100">
+                      <td className="py-2 text-gray-400 font-semibold w-2/5">Profession</td>
+                      <td className="py-2 text-gray-700 capitalize">{staffProfile.profession}</td>
+                    </tr>
+                    {staffProfile.subject && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-2 text-gray-400 font-semibold w-2/5">Matière</td>
+                        <td className="py-2 text-gray-700">{staffProfile.subject}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+
+                {staffProfile.classes?.length > 0 && (
+                  <>
+                    <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
+                    <div className="flex flex-wrap gap-2">
+                      {staffProfile.classes.map((c: any) => (
+                        <span key={c.id} className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full">
+                          {c.level} {c.section}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </main>
       </>
@@ -184,11 +254,11 @@ export default function ReporterDashboard() {
     <>
       <ReporterHeader {...headerProps} />
       <main className="bg-gray-50 font-sans">
-        <StepBar steps={steps} currentStep={step - 1} />
+        <StepBar steps={steps} currentStep={step - 2} /> {/* ✅ FIX 4 : step - 2 car step démarre à 2 */}
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card>
 
-            {/* Étape 1 : Qui signale */}
+            {/* Étape 1 : Qui signale — conservé mais inaccessible si step démarre à 2 */}
             {step === 1 && (
               <fieldset>
                 <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step1.title')}</legend>
@@ -401,7 +471,7 @@ export default function ReporterDashboard() {
               <Button
                 variant="ghost"
                 onClick={() => setStep(s => s - 1)}
-                disabled={step === 2}
+                disabled={step === 2} // ✅ Cohérent : step 2 est le premier écran visible
               >
                 ← {t('common.previous')}
               </Button>
