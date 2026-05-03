@@ -13,7 +13,7 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmailWithProfile(email);
     console.log('USER FROM DB:', user); // ← très important
-    console.log("USER RECEIVED FROM BACKEND:", data.user);
+
 
     if (!user) throw new UnauthorizedException('Email ou mot de passe incorrect');
     const isMatch = await bcrypt.compare(password, user.password);
@@ -27,8 +27,8 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        // studentProfile: user.studentProfile || null,
-        staffProfile: user.staffProfile || null, 
+        studentProfile: user.studentProfile || null,
+        // staffProfile: user.staffProfile || null, 
       },
     };
   }

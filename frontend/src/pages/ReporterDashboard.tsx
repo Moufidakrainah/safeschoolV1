@@ -229,30 +229,6 @@ console.log("USER:", user);
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card>
 
-          {/* ── Étape 1 : Qui signale ── */}
-          {/* {step === 1 && (
-            <fieldset>
-              <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step1.title')}</legend>
-              <p className="text-gray-500 text-sm mb-6">{t('reporter.step1.subtitle')}</p>
-              <div className="flex flex-col gap-3">
-                {whoOptions.map(opt => (
-                  <button
-                    key={opt.value}
-                    role="radio"
-                    aria-checked={whoSignals === opt.value}
-                    onClick={() => setWhoSignals(opt.value)}
-                    className={`px-4 py-4 rounded-lg cursor-pointer text-sm text-left transition-all border-2 ${
-                      whoSignals === opt.value
-                        ? 'border-primary bg-surface font-semibold'
-                        : 'border-gray-200 bg-white font-normal'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-          )} */}
 
           {/* ── Étape 2 : Type ── */}
           {step === 2 && (
@@ -314,9 +290,10 @@ console.log("USER:", user);
                 <option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
                 <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
               </select>
-            </div>
+            </div>)}
             <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
           </Card>
+		</div>
         </main>
       </>
     );
