@@ -21,6 +21,17 @@ type AnswerResultPayload = {
   isCorrect: boolean;
 };
 
+type GamePhase = 'lobby' | 'playing' | 'over';
+
+type QuestionState = {
+  question: QuestionPayload['question'];
+  questionNumber: number;
+  totalQuestions: number;
+  endsAt: number | null;
+  hasAnswered: boolean;
+  answerResult: string;
+} | null;
+
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ??
   import.meta.env.VITE_API_URL ??
@@ -33,15 +44,9 @@ export default function Quiz() {
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [socketError, setSocketError] = useState<string>('');
-  const [gameStarted, setGameStarted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload['question'] | null>(null);
-  const [questionNumber, setQuestionNumber] = useState(0);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [questionEndsAt, setQuestionEndsAt] = useState<number | null>(null);
+  const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
+  const [questionState, setQuestionState] = useState<QuestionState>(null);
   const [timeLeftMs, setTimeLeftMs] = useState(0);
-  const [hasAnsweredCurrentQuestion, setHasAnsweredCurrentQuestion] = useState(false);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [answerResultMessage, setAnswerResultMessage] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -91,15 +96,9 @@ export default function Quiz() {
       socket.on('quiz:left', () => {
         setRoomCode('');
         setJoinedRoom(null);
-        setCurrentQuestion(null);
-        setQuestionNumber(0);
-        setTotalQuestions(0);
-        setQuestionEndsAt(null);
+        setQuestionState(null);
         setTimeLeftMs(0);
-        setGameStarted(false);
-        setIsGameOver(false);
-        setHasAnsweredCurrentQuestion(false);
-        setAnswerResultMessage('');
+        setGamePhase('lobby');
       });
 
       socket.on('quiz:joined', (data: { roomId: string; hostId: string }) => {
@@ -109,29 +108,31 @@ export default function Quiz() {
       });
 
       socket.on('quiz:game:started', () => {
-        setGameStarted(true);
-        setIsGameOver(false);
+        setGamePhase('playing');
       });
 
       socket.on('quiz:question', (data: QuestionPayload) => {
-        setCurrentQuestion(data.question);
-        setQuestionNumber(data.questionNumber);
-        setTotalQuestions(data.totalQuestions);
-        setQuestionEndsAt(data.endsAt);
+        setQuestionState({
+          question: data.question,
+          questionNumber: data.questionNumber,
+          totalQuestions: data.totalQuestions,
+          endsAt: data.endsAt,
+          hasAnswered: false,
+          answerResult: '',
+        });
         setTimeLeftMs(data.endsAt ? Math.max(0, data.endsAt - Date.now()) : data.timeLimitMs);
-        setHasAnsweredCurrentQuestion(false);
-        setAnswerResultMessage('');
       });
 
       socket.on('quiz:game:over', () => {
-        setCurrentQuestion(null);
-        setQuestionEndsAt(null);
+        setQuestionState(null);
         setTimeLeftMs(0);
-        setIsGameOver(true);
+        setGamePhase('over');
       });
 
       socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
-        setAnswerResultMessage(data.isCorrect ? 'Correct answer!' : 'Wrong answer.');
+        setQuestionState((prev) =>
+          prev ? { ...prev, answerResult: data.isCorrect ? 'Correct answer!' : 'Wrong answer.' } : prev
+        );
       });
 
       socket.on('quiz:join:ignored', (data) => {
@@ -154,14 +155,16 @@ export default function Quiz() {
     };
   }, []);
 
+  const endsAt = questionState?.endsAt ?? null;
+
   useEffect(() => {
-    if (!questionEndsAt || !gameStarted || isGameOver) {
+    if (!endsAt || gamePhase !== 'playing') {
       setTimeLeftMs(0);
       return;
     }
 
     const tick = () => {
-      setTimeLeftMs(Math.max(0, questionEndsAt - Date.now()));
+      setTimeLeftMs(Math.max(0, endsAt - Date.now()));
     };
 
     tick();
@@ -170,7 +173,7 @@ export default function Quiz() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [questionEndsAt, gameStarted, isGameOver]);
+  }, [endsAt, gamePhase]);
 
   function handleJoinRoom(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -212,16 +215,16 @@ export default function Quiz() {
   }
 
   function handleAnswer(selectedIndex: number) {
-    if (!joinedRoom || !currentQuestion) return;
-    if (hasAnsweredCurrentQuestion || timeLeftMs <= 0) return;
+    if (!joinedRoom || !questionState) return;
+    if (questionState.hasAnswered || timeLeftMs <= 0) return;
 
     socketRef.current?.emit('quiz:answer', {
       roomId: joinedRoom,
-      questionId: currentQuestion.id,
+      questionId: questionState.question.id,
       selectedIndex,
     });
 
-    setHasAnsweredCurrentQuestion(true);
+    setQuestionState((prev) => prev ? { ...prev, hasAnswered: true } : prev);
   }
 
   if (!joinedRoom) {
@@ -250,7 +253,7 @@ export default function Quiz() {
     );
   }
 
-  if (gameStarted) {
+  if (gamePhase === 'playing' || gamePhase === 'over') {
     const secondsLeft = Math.ceil(timeLeftMs / 1000);
 
     return (
@@ -260,19 +263,19 @@ export default function Quiz() {
           <p>Room: {joinedRoom}</p>
           <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
           {socketError ? <p>Socket error: {socketError}</p> : null}
-          {isGameOver ? <h2>Game over</h2> : null}
-          {currentQuestion ? (
+          {gamePhase === 'over' ? <h2>Game over</h2> : null}
+          {questionState ? (
             <>
-              <p>{questionNumber} / {totalQuestions}</p>
+              <p>{questionState.questionNumber} / {questionState.totalQuestions}</p>
               <p>Time left: {secondsLeft}s</p>
-              <h2>{currentQuestion.text}</h2>
-              {answerResultMessage ? <p>{answerResultMessage}</p> : null}
+              <h2>{questionState.question.text}</h2>
+              {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
               <ul>
-                {currentQuestion.options.map((opt, i) => (
+                {questionState.question.options.map((opt, i) => (
                   <li key={i}>
                     <button
                       onClick={() => handleAnswer(i)}
-                      disabled={hasAnsweredCurrentQuestion || timeLeftMs <= 0}
+                      disabled={questionState.hasAnswered || timeLeftMs <= 0}
                       className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
                     >
                       {opt}
@@ -280,11 +283,11 @@ export default function Quiz() {
                   </li>
                 ))}
               </ul>
-              {hasAnsweredCurrentQuestion ? <p>Answer submitted. Waiting for other players...</p> : null}
-              {!hasAnsweredCurrentQuestion && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
+              {questionState.hasAnswered ? <p>Answer submitted. Waiting for other players...</p> : null}
+              {!questionState.hasAnswered && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
             </>
           ) : (
-            <p>{isGameOver ? 'Thanks for playing.' : 'Waiting for question...'}</p>
+            <p>{gamePhase === 'over' ? 'Thanks for playing.' : 'Waiting for question...'}</p>
           )}
         </div>
       </div>
