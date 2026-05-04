@@ -479,7 +479,7 @@ useEffect(() => {
               >
                 ← {t('common.previous')}
               </Button>
-              {step < 6 ? (
+              {step < 5 ? (
                 <Button onClick={() => setStep(s => s + 1)} disabled={isNextDisabled}>
                   {t('common.next')} →
                 </Button>
