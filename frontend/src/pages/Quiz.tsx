@@ -35,9 +35,11 @@ export default function Quiz() {
   const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
 
 useEffect(() => {
+    if (viewSection === 'profile') {
+      navigate('/reporter?section=profile');
+    }
     if (viewSection === 'report') {
-      navigate('/reporter');
-	  setViewSection('reporter');
+      navigate('/reporter?section=report');
     }
   }, [viewSection, navigate]);
 
