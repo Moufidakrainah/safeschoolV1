@@ -15,6 +15,11 @@ export interface AuthUser {
     id: string;
     schoolClass: string;
     dateOfBirth: string;
+  } | null;  
+  staffProfile?: {
+    id: string;
+    role: string;
+    subject: string;
   } | null;
 }
 

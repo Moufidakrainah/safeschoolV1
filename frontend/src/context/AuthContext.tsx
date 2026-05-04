@@ -13,6 +13,11 @@ interface User {
     schoolClass: string;
     dateOfBirth: string;
   } | null;
+  staffProfile?: {
+    id: string;
+    role: string;
+    subject?:string;
+  }
 }
 
 interface AuthContextType {
