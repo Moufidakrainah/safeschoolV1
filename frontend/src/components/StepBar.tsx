@@ -16,15 +16,15 @@ export default function StepBar({ steps, currentStep }: StepBarProps) {
       <div className="max-w-xl mx-auto flex gap-2">
         {steps.map((s, i) => (
           <div key={s} className="flex-1 text-center">
-            <div className={`text-xs font-${currentStep === i ? 'bold' : 'normal'} ${
-              currentStep === i ? 'text-primary' :
-              currentStep > i ? 'text-green-500' : 'text-gray-300'
+            <div className={`text-xs font-${currentStep === i + 1 ? 'bold' : 'normal'} ${
+              currentStep === i + 1 ? 'text-primary' :
+              currentStep > i + 1 ? 'text-green-500' : 'text-gray-300'
             }`}>
               {s}
             </div>
             <div className={`h-1 rounded mt-1 ${
-              currentStep > i ? 'bg-green-500' :
-              currentStep === i ? 'bg-primary'   : 'bg-gray-200'
+              currentStep > i + 1 ? 'bg-green-500' :
+              currentStep === i + 1 ? 'bg-primary'   : 'bg-gray-200'
             }`} />
           </div>
         ))}

@@ -14,7 +14,7 @@ export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
 
   const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff');
   const [whoSignals, setWhoSignals] = useState(defaultWho);
@@ -60,7 +60,7 @@ export default function ReporterDashboard() {
         freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
       }));
       await createReport(title, fullDescription, isAnonymous, suspectsData, frequency, '');
-      setStep(7);
+      setStep(6);
     } catch (err) {
       console.error('Erreur envoi signalement', err);
     } finally {
@@ -70,7 +70,7 @@ export default function ReporterDashboard() {
 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
+    if (value.length < 1) { setSuspectSuggestions([]); return; }
     setSearchingUsers(true);
     try {
       setSuspectSuggestions(await searchUsers(value));
@@ -92,7 +92,7 @@ export default function ReporterDashboard() {
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(2);
+    setStep(1);
     setType('');
     setDescription('');
     setFrequency('');
@@ -115,8 +115,8 @@ export default function ReporterDashboard() {
   ];
 
   const isNextDisabled =
-    (step === 2 && !type) ||
-    (step === 3 && (!description || !frequency));
+    (step === 1 && !type) ||
+    (step === 2 && (!description || !frequency));
 
   const whoOptions = user?.role === 'teacher'
     ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
@@ -229,7 +229,7 @@ useEffect(() => {
 	// if (viewSection === 'report') {
 
 	// // Page confirmation — séparée du formulaire
-	if (step === 7) {
+	if (step === 6) {
 		return (
 		<>
 			<ReporterHeader {...headerProps} />
@@ -258,12 +258,12 @@ useEffect(() => {
     <>
       <ReporterHeader {...headerProps} />
       <main className="bg-gray-50 font-sans">
-        <StepBar steps={steps} currentStep={step - 2} /> {/* ✅ FIX 4 : step - 2 car step démarre à 2 */}
+        <StepBar steps={steps} currentStep={step} /> {/* ✅ FIX 4 : step - 2 car step démarre à 2 */}
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card>
 
             {/* Étape 1 : Qui signale — conservé mais inaccessible si step démarre à 2 */}
-            {step === 1 && (
+            {/* {step === 1 && (
               <fieldset>
                 <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step1.title')}</legend>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step1.subtitle')}</p>
@@ -285,10 +285,10 @@ useEffect(() => {
                   ))}
                 </div>
               </fieldset>
-            )}
+            )} */}
 
             {/* Étape 2 : Type */}
-            {step === 2 && (
+            {step === 1 && (
               <fieldset>
                 <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
@@ -315,7 +315,7 @@ useEffect(() => {
             )}
 
             {/* Étape 3 : Faits */}
-            {step === 3 && (
+            {step === 2 && (
               <div>
                 <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step3.title')}</h2>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step3.subtitle')}</p>
@@ -351,7 +351,7 @@ useEffect(() => {
             )}
 
             {/* Étape 4 : Personnes */}
-            {step === 4 && (
+            {step === 3 && (
               <div>
                 <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step4.title')}</h2>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step4.subtitle')}</p>
@@ -425,7 +425,7 @@ useEffect(() => {
             )}
 
             {/* Étape 5 : Preuves */}
-            {step === 5 && (
+            {step === 4 && (
               <div>
                 <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step5.title')}</h2>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step5.subtitle')}</p>
@@ -436,7 +436,7 @@ useEffect(() => {
             )}
 
             {/* Étape 6 : Validation */}
-            {step === 6 && (
+            {step === 5 && (
               <div>
                 <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step6.title')}</h2>
                 <p className="text-gray-500 text-sm mb-6">{t('reporter.step6.subtitle')}</p>
@@ -475,7 +475,7 @@ useEffect(() => {
               <Button
                 variant="ghost"
                 onClick={() => setStep(s => s - 1)}
-                disabled={step === 2} // ✅ Cohérent : step 2 est le premier écran visible
+                disabled={step === 1} // ✅ Cohérent : step 2 est le premier écran visible
               >
                 ← {t('common.previous')}
               </Button>
