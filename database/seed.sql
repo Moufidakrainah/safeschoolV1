@@ -3,8 +3,24 @@ TRUNCATE TABLE notifications CASCADE;
 TRUNCATE TABLE report_notes CASCADE;
 TRUNCATE TABLE report_suspects CASCADE;
 TRUNCATE TABLE reports CASCADE;
+TRUNCATE TABLE student_parents CASCADE;
+TRUNCATE TABLE parents CASCADE;
 TRUNCATE TABLE student_profiles CASCADE;
+TRUNCATE TABLE staff_classes CASCADE;
+TRUNCATE TABLE staff_profiles CASCADE;
+TRUNCATE TABLE classes CASCADE;
 TRUNCATE TABLE users CASCADE;
+
+-- CLASSES
+INSERT INTO classes (id, level, section) VALUES
+  ('f0a1b2c3-0000-0000-0000-000000000001', '6eme', 'A'),
+  ('f0a1b2c3-0000-0000-0000-000000000002', '6eme', 'B'),
+  ('f0a1b2c3-0000-0000-0000-000000000003', '5eme', 'A'),
+  ('f0a1b2c3-0000-0000-0000-000000000004', '5eme', 'B'),
+  ('f0a1b2c3-0000-0000-0000-000000000005', '4eme', 'A'),
+  ('f0a1b2c3-0000-0000-0000-000000000006', '4eme', 'B'),
+  ('f0a1b2c3-0000-0000-0000-000000000007', '3eme', 'A'),
+  ('f0a1b2c3-0000-0000-0000-000000000008', '3eme', 'B');
 
 -- UTILISATEURS
 INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdAt") VALUES
@@ -22,14 +38,45 @@ INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdA
   ('a0b1c2d3-0000-0000-0000-000000000012', 'sara@safeschool.com',      '$2b$10$8Ajlev4sZJzadv1FU7SAFujVsTl9ht0GKoS7TFu.qSpOBPv3KLGv6', 'Sara',    'Moulin',   'student',  NOW());
 
 -- PROFILS ÉLÈVES
-INSERT INTO student_profiles (id, class, "parentEmail", "parentPhone", "dateOfBirth", "userId") VALUES
-  ('b0c1d2e3-0000-0000-0000-000000000001', '5eme', 'parent.lotfi@gmail.com',  '0612345678', '2012-03-15', 'a0b1c2d3-0000-0000-0000-000000000006'),
-  ('b0c1d2e3-0000-0000-0000-000000000002', '4eme', 'parent.danya@gmail.com',  '0612345679', '2013-06-20', 'a0b1c2d3-0000-0000-0000-000000000007'),
-  ('b0c1d2e3-0000-0000-0000-000000000003', '3eme', 'parent.lina@gmail.com',   '0612345680', '2014-09-10', 'a0b1c2d3-0000-0000-0000-000000000008'),
-  ('b0c1d2e3-0000-0000-0000-000000000004', '6eme', 'parent.lucas@gmail.com',  '0612345681', '2015-01-05', 'a0b1c2d3-0000-0000-0000-000000000009'),
-  ('b0c1d2e3-0000-0000-0000-000000000005', '5eme', 'parent.emma@gmail.com',   '0612345682', '2012-11-25', 'a0b1c2d3-0000-0000-0000-000000000010'),
-  ('b0c1d2e3-0000-0000-0000-000000000006', '4eme', 'parent.kevin@gmail.com',  '0612345683', '2013-04-18', 'a0b1c2d3-0000-0000-0000-000000000011'),
-  ('b0c1d2e3-0000-0000-0000-000000000007', '6eme', 'parent.sara@gmail.com',   '0612345684', '2015-07-30', 'a0b1c2d3-0000-0000-0000-000000000012');
+INSERT INTO student_profiles (id, class,"dateOfBirth", "userId") VALUES
+  ('b0c1d2e3-0000-0000-0000-000000000001', '5eme', '2012-03-15', 'a0b1c2d3-0000-0000-0000-000000000006'),
+  ('b0c1d2e3-0000-0000-0000-000000000002', '4eme', '2013-06-20', 'a0b1c2d3-0000-0000-0000-000000000007'),
+  ('b0c1d2e3-0000-0000-0000-000000000003', '3eme', '2014-09-10', 'a0b1c2d3-0000-0000-0000-000000000008'),
+  ('b0c1d2e3-0000-0000-0000-000000000004', '6eme', '2015-01-05', 'a0b1c2d3-0000-0000-0000-000000000009'),
+  ('b0c1d2e3-0000-0000-0000-000000000005', '5eme', '2012-11-25', 'a0b1c2d3-0000-0000-0000-000000000010'),
+  ('b0c1d2e3-0000-0000-0000-000000000006', '4eme', '2013-04-18', 'a0b1c2d3-0000-0000-0000-000000000011'),
+  ('b0c1d2e3-0000-0000-0000-000000000007', '6eme', '2015-07-30', 'a0b1c2d3-0000-0000-0000-000000000012');
+
+-- PROFILS STAFF (employés du collège)
+INSERT INTO staff_profiles (id, profession, subject, "userId") VALUES
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'enseignant',     'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'enseignant',     'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
+  ('a0b2d3c9-0000-0000-0000-000000000003', 'agent de saisie', NULL,           'a0b1c2d3-0000-0000-0000-000000000005');
+
+-- AFFECTATION STAFF ↔ CLASSES
+INSERT INTO staff_classes ("staffProfilesId", "classesId") VALUES
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000003'),
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000004'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000005'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000007');
+
+-- PARENTS
+INSERT INTO parents (id, "firstName", "lastName", email, phone, address) VALUES
+  ('d8e2a4b2-0000-0000-0000-000000000001', 'Ahmed',   'Bougrine', 'ahmed.bougrine@gmail.com',  '0612345690', '12 rue des Lilas, Lyon'),
+  ('d8e2a4b2-0000-0000-0000-000000000002', 'Claire',  'Bernard',  'claire.bernard@gmail.com',  '0612345691', '5 avenue Victor Hugo, Paris'),
+  ('d8e2a4b2-0000-0000-0000-000000000003', 'Marc',    'Petit',    'marc.petit@gmail.com',      '0612345692', '8 rue de la Paix, Bordeaux'),
+  ('d8e2a4b2-0000-0000-0000-000000000004', 'Sophie',  'Thomas',   'sophie.thomas@gmail.com',   '0612345693', '3 impasse des Roses, Nantes'),
+  ('d8e2a4b2-0000-0000-0000-000000000005', 'Pierre',  'Moulin',   'pierre.moulin@gmail.com',   '0612345694', '17 boulevard Gambetta, Marseille');
+
+-- LIAISON PARENTS ↔ ÉLÈVES
+INSERT INTO student_parents ("studentProfilesId", "parentsId") VALUES
+  ('b0c1d2e3-0000-0000-0000-000000000001', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000002', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000003', 'd8e2a4b2-0000-0000-0000-000000000001'),
+  ('b0c1d2e3-0000-0000-0000-000000000004', 'd8e2a4b2-0000-0000-0000-000000000002'),
+  ('b0c1d2e3-0000-0000-0000-000000000005', 'd8e2a4b2-0000-0000-0000-000000000003'),
+  ('b0c1d2e3-0000-0000-0000-000000000006', 'd8e2a4b2-0000-0000-0000-000000000004'),
+  ('b0c1d2e3-0000-0000-0000-000000000007', 'd8e2a4b2-0000-0000-0000-000000000005');
 
 -- SIGNALEMENTS
 INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "aiReason", "gradeModified", "gradeModificationReason", status, "adminNote", "isAnonymous", "studentId", "createdAt") VALUES

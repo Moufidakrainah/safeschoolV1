@@ -14,68 +14,8 @@ import StatCard from '../components/StatCard';
 import Select from '../components/Select';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
-
-// ─── Header ──────────────────────────────────────────────────────────────────
-// Extrait en dehors du composant principal pour éviter la recréation à chaque render.
-
-interface HeaderProps {
-  user: { role: string; firstName?: string; lastName?: string } | null;
-  logoutUser: () => void;
-  viewSection: string;
-  setViewSection: (s: 'reports' | 'users' | 'stats') => void;
-  setSelected: (r: any) => void;
-  fetchUsers: () => void;
-  t: (key: string) => string;
-}
-
-function Header({ user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers, t }: HeaderProps) {
-  const navItems: { key: 'reports' | 'users' | 'stats'; label: string; onClick: () => void }[] = [
-    { key: 'reports', label: t('admin.nav.reports'), onClick: () => { setSelected(null); setViewSection('reports'); } },
-    { key: 'users',   label: t('admin.nav.users'),   onClick: () => { setSelected(null); setViewSection('users'); fetchUsers(); } },
-    { key: 'stats',   label: t('admin.nav.stats'),   onClick: () => { setSelected(null); setViewSection('stats'); } },
-  ];
-
-  const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : '';
-
-  return (
-    <header>
-      {/* Bandeau utilisateur */}
-      <div className="px-8 py-2 bg-surface flex items-center">
-        <div className="flex-1" />
-        <span className="text-gray-800 font-bold text-sm" aria-live="polite">
-          {t('admin.topbar.role').replace('{{role}}', roleLabel)}
-          {user?.firstName ? ` — ${user.firstName} ${user.lastName?.toUpperCase() ?? ''}` : ''}
-        </span>
-        <div className="flex-1 flex justify-end">
-          <Button variant="outline" onClick={logoutUser}>
-            {t('nav.logout')}
-          </Button>
-        </div>
-      </div>
-
-      {/* Barre de navigation */}
-      <nav className="bg-primary px-8 py-4 flex items-center gap-8" aria-label={t('admin.nav.ariaLabel')}>
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-8" />
-        {navItems.map(item => (
-          <button
-            key={item.key}
-            onClick={item.onClick}
-            aria-current={viewSection === item.key ? 'page' : undefined}
-            className={`font-bold text-sm transition-opacity ${
-              viewSection === item.key
-                ? 'text-white underline underline-offset-4'
-                : 'text-white/80 hover:text-white'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
-    </header>
-  );
-}
+import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
+import type { Report, Note, AdminUser } from '../types';
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -85,9 +25,9 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   // ── État signalements
-  const [reports, setReports] = useState<any[]>([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<any>(null);
+  const [selected, setSelected] = useState<Report | null>(null);
   const [adminNote, setAdminNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [view, setView] = useState<'list' | 'detail'>('list');
@@ -105,7 +45,7 @@ export default function AdminDashboard() {
   const [resetKey, setResetKey] = useState(0);
 
   // ── État notes
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [newNote, setNewNote] = useState('');
   const [convocationDate, setConvocationDate] = useState('');
   const [convocationMessage, setConvocationMessage] = useState('');
@@ -114,10 +54,10 @@ export default function AdminDashboard() {
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>('reports');
 
   // ── État utilisateurs
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [userForm, setUserForm] = useState({
     firstName: '', lastName: '', email: '',
     password: '', role: 'student', schoolClass: '',
@@ -156,14 +96,14 @@ export default function AdminDashboard() {
   };
 
   // ── Filtrage
-  const filtered = reports.filter((r: any) => {
+  const filtered = reports.filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
     if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
     if (filterSuspect) {
       const q = filterSuspect.toLowerCase();
-      const match = r.suspects?.some((s: any) => {
+      const match = r.suspects?.some(s => {
         const name = `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.toLowerCase();
         return name.includes(q) || (s.freeText?.toLowerCase() ?? '').includes(q);
       });
@@ -190,10 +130,10 @@ export default function AdminDashboard() {
   // ── Compteurs pour les StatCards
   const stats = {
     total:     reports.length,
-    critical:  reports.filter((r: any) => severityFromApiGrade(r.grade) === 'critical').length,
-    high:      reports.filter((r: any) => severityFromApiGrade(r.grade) === 'high').length,
-    pending:   reports.filter((r: any) => r.status === 'pending').length,
-    escalated: reports.filter((r: any) => r.status === 'escalated').length,
+    critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
+    high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
+    pending:   reports.filter(r => r.status === 'pending').length,
+    escalated: reports.filter(r => r.status === 'escalated').length,
   };
 
   const handleReset = () => {
@@ -275,16 +215,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const headerProps: HeaderProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers, t };
+  const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
 
-  // ── Vue détail ──────────────────────────────────────────────────────────────
+  // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
-    const idx = filtered.findIndex((r: any) => r.id === selected.id);
+    const idx = filtered.findIndex(r => r.id === selected.id);
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
     return (
       <div className="flex-1 bg-gray-50 font-sans">
-        <Header {...headerProps} />
+        <AdminHeader {...headerProps} />
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
           {/* Navigation précédent / suivant */}
@@ -379,7 +319,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
               {selected.suspects?.length > 0 ? (
                 <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
-                  {selected.suspects.map((s: any, i: number) => (
+                  {selected.suspects.map((s, i) => (
                     <li key={i} className="bg-surface px-3 py-1 text-sm text-red-500">
                       {s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
                     </li>
@@ -404,7 +344,7 @@ export default function AdminDashboard() {
             <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
             {notes.length > 0 ? (
               <div className="flex flex-col gap-3 mb-5">
-                {notes.map((note: any) => <NoteBlock key={note.id} note={note} />)}
+                {notes.map(note => <NoteBlock key={note.id} note={note} />)}
               </div>
             ) : (
               <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>
@@ -462,7 +402,7 @@ export default function AdminDashboard() {
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
     <div className="flex-1 bg-white font-sans">
-      <Header {...headerProps} />
+      <AdminHeader {...headerProps} />
 
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
@@ -533,7 +473,7 @@ export default function AdminDashboard() {
 
               <Select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allClasses')}>
                 <option value="all">{t('admin.filters.allClasses')}</option>
-                {[...new Set(reports.map((r: any) => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
+                {[...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
                   <option key={cls} value={cls}>{cls}</option>
                 ))}
               </Select>
@@ -542,9 +482,9 @@ export default function AdminDashboard() {
                 <option value="all">{t('admin.filters.allReporters')}</option>
                 {[...new Map(
                   reports
-                    .filter((r: any) => r.student && !r.isAnonymous)
-                    .map((r: any) => [r.student.id, r.student])
-                ).values()].map((s: any) => (
+                    .filter(r => r.student && !r.isAnonymous)
+                    .map(r => [r.student!.id, r.student!])
+                ).values()].map(s => (
                   <option key={s.id} value={s.id}>
                     {s.firstName} {s.lastName} ({s.role})
                   </option>
@@ -726,7 +666,7 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {users.map((u: any) => (
+                {users.map(u => (
                   <li key={u.id}>
                     <Card className="flex justify-between items-center">
                       <div>

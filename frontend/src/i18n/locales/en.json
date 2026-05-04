@@ -13,7 +13,14 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "backToApp": "Back to app",
-    "languageSwitcher": "Choose language"
+    "languageSwitcher": "Choose language",
+    "legalNav": "Legal links",
+    "changeLanguage": "Switch to {{language}}"
+  },
+  "languages": {
+    "french": "French",
+    "english": "English",
+    "german": "German"
   },
   "admin": {
     "prev": "Previous",
@@ -155,6 +162,22 @@
     "error": "An error occurred"
   },
   "reporter": {
+	"nav": {
+		"ariaLabel": "Reporter navigation",
+		"profile": "My profile",
+		"report":   "Make a report",
+		"workshop": "Workshops",
+		"quiz":     "Quiz"
+	},
+	"profile": {
+		"title": "My profile",
+		"firstName": "First name",
+		"lastName": "Last name",
+		"email": "Email",
+    "role": "Occupation",
+    "subject": "Subject",
+    "subjectUnknown": "Unknown"
+	},
     "roles": {
       "teacher": "Teacher",
       "staff": "School staff"

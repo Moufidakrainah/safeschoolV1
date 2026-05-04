@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
+import { useAuth } from '../context/AuthContext';
+import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 
 type QuestionPayload = {
   roomId: string;
@@ -27,6 +30,17 @@ const SOCKET_URL =
   'http://localhost:5000';
 
 export default function Quiz() {
+  const { user, logoutUser } = useAuth();
+  const navigate = useNavigate();
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
+
+useEffect(() => {
+    if (viewSection === 'report') {
+      navigate('/reporter');
+	  setViewSection('reporter');
+    }
+  }, [viewSection, navigate]);
+
   const socketRef = useRef<Socket | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [roomCode, setRoomCode] = useState('');
@@ -223,9 +237,12 @@ export default function Quiz() {
 
     setHasAnsweredCurrentQuestion(true);
   }
+  const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   if (!joinedRoom) {
     return (
+		<>
+	<ReporterHeader {...headerProps} />
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -247,6 +264,7 @@ export default function Quiz() {
           </form>
         </div>
       </div>
+	  </>
     );
   }
 
@@ -254,6 +272,8 @@ export default function Quiz() {
     const secondsLeft = Math.ceil(timeLeftMs / 1000);
 
     return (
+<>
+	<ReporterHeader {...headerProps} />
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -288,10 +308,14 @@ export default function Quiz() {
           )}
         </div>
       </div>
+	  </>
     );
   }
 
   return (
+
+<>
+	<ReporterHeader {...headerProps} />
     <div className="flex items-center justify-center h-screen">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
         <p>Room: {joinedRoom}</p>
@@ -303,5 +327,6 @@ export default function Quiz() {
         </button>
       </div>
     </div>
+	</>
   );
 }
