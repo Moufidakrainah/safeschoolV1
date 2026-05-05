@@ -14,6 +14,9 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 6. [Internationalisation — react-i18next](#6-internationalisation--react-i18next)
 7. [Tailwind CSS — le système de classes](#7-tailwind-css--le-système-de-classes)
 8. [Accessibilité — WCAG AA et ARIA](#8-accessibilité--wcag-aa-et-aria)
+8b. [Bugs corrigés — AdminDashboard (Phase 1)](#8b-bugs-corrigés--admindashboard-phase-1)
+8c. [Tester l'accessibilité](#8c-tester-laccessibilité)
+8d. [Optimisation React.memo](#8d-optimisation-reactmemo)
 9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
 10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
 11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
@@ -2221,6 +2224,208 @@ const handleAddNote = async (type: string = 'note') => {
 ```
 
 **Règle générale :** toujours ajouter `if (!x) return;` en début de fonction quand `x` est potentiellement `null` ou `undefined` et est utilisé dans le corps. C'est du **narrowing TypeScript** : après la ligne de guard, le compilateur sait que `x` est non-null.
+
+---
+
+## 8c. Tester l'accessibilité
+
+Cette section décrit comment vérifier concrètement que l'application respecte les exigences WCAG AA. Trois méthodes complémentaires sont à combiner : l'extension axe DevTools, la navigation clavier, et la vérification manuelle des contrastes.
+
+---
+
+### Méthode 1 — WAVE (WebAIM) et IBM Equal Access Checker
+
+Deux extensions **100 % gratuites** pour auditer l'accessibilité. Axe DevTools (anciennement recommandé) a placé la majorité de ses règles derrière un abonnement payant — éviter.
+
+#### WAVE — WebAIM (recommandé en premier)
+
+WAVE inspecte la page et affiche les erreurs directement en superposition sur la page, ce qui est très lisible.
+
+**Installation :**
+- Chrome : [WAVE Evaluation Tool](https://chrome.google.com/webstore/detail/wave-evaluation-tool/jbbplnpkjmmeebjpijfedlgcdilocofh)
+- Firefox : [WAVE Evaluation Tool](https://addons.mozilla.org/en-US/firefox/addon/wave-accessibility-tool/)
+
+**Utilisation :**
+1. Ouvrir l'application dans le navigateur (`http://localhost:5173`)
+2. Cliquer sur l'icône WAVE dans la barre d'extensions
+3. La page affiche des icônes colorées en superposition :
+   - 🔴 **Errors** : violations WCAG réelles à corriger
+   - 🟡 **Alerts** : problèmes potentiels à vérifier manuellement
+   - 🟢 **Features** : éléments d'accessibilité détectés (aria, labels…)
+4. Cliquer sur une icône pour voir le détail et la règle concernée
+
+#### IBM Equal Access Checker (complément)
+
+Couvre davantage de règles WCAG, notamment les règles dynamiques (ARIA states, live regions).
+
+**Installation :**
+- Chrome / Edge : [IBM Equal Access Checker](https://chrome.google.com/webstore/detail/ibm-equal-access-accessib/lkcagbfjnkomcinoddgooolagloogehp)
+
+**Utilisation :**
+1. Ouvrir les DevTools (`F12`)
+2. Aller dans l'onglet **Accessibility Checker**
+3. Cliquer sur **Scan**
+4. Lire les violations classées par niveau WCAG (A, AA)
+
+**Ce que ces outils détectent automatiquement :**
+- `outline-none` sans remplacement (`focus:ring`) → violation WCAG 2.4.7
+- Boutons ou liens sans nom accessible (`aria-label` manquant)
+- Images sans `alt`
+- Ratios de contraste insuffisants
+- Structure de titres incorrecte (saut de niveau `h1` → `h3`)
+- Éléments interactifs non atteignables au clavier
+
+**Ce qu'ils ne détectent pas (à vérifier manuellement) :**
+- Ordre logique de la navigation au clavier
+- Labels présents mais trompeurs ou mal formulés
+- Comportement des messages d'erreur dynamiques (`role="alert"`)
+
+---
+
+### Méthode 2 — Navigation clavier
+
+La navigation clavier est le test le plus direct : si tu peux utiliser toute l'application sans souris, elle est accessible.
+
+**Touches à connaître :**
+
+| Touche | Action |
+|--------|--------|
+| `Tab` | Aller à l'élément interactif suivant |
+| `Shift + Tab` | Aller à l'élément interactif précédent |
+| `Enter` | Activer un bouton ou un lien |
+| `Espace` | Cocher une case, activer un bouton |
+| `Flèches` | Naviguer dans un groupe de radio, une liste |
+| `Esc` | Fermer une modale, annuler |
+
+**Checklist de test :**
+
+```
+□ Appuyer Tab depuis le haut de la page — tous les éléments interactifs sont-ils atteints dans un ordre logique ?
+□ Le focus ring (anneau bleu) est-il visible à chaque étape ?
+□ Les boutons désactivés (disabled) sont-ils ignorés par Tab ?
+□ Les liens du header et du footer sont-ils accessibles ?
+□ Le formulaire de login peut-il être soumis entièrement au clavier ?
+□ Les filtres de AdminDashboard sont-ils navigables ?
+□ Les lignes de signalements (li role="button") s'activent-elles avec Enter ?
+□ La pagination est-elle utilisable (Précédent / Suivant / numéros de page) ?
+```
+
+**Signe d'une bonne accessibilité clavier :** à aucun moment le focus ne « disparaît » ou ne se retrouve sur un élément invisible. Si tu perds de vue où tu es, c'est un bug.
+
+---
+
+### Méthode 3 — Contraste des couleurs
+
+Utiliser [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) pour vérifier que chaque combinaison texte/fond respecte les ratios WCAG AA.
+
+**Rappel des ratios minimum :**
+
+| Contexte | Ratio minimum |
+|----------|---------------|
+| Texte normal (< 18px) | 4.5:1 |
+| Texte large (≥ 18px ou ≥ 14px gras) | 3:1 |
+| Composants UI (bordures, icônes) | 3:1 |
+
+**Palette du projet — valeurs à vérifier :**
+
+| Combinaison | Ratio | Statut |
+|-------------|-------|--------|
+| `#006278` (primary) sur blanc `#ffffff` | 5.0:1 | ✅ AA |
+| `#ffffff` sur `#006278` (primary) | 5.0:1 | ✅ AA |
+| `#cc0000` (critical) sur blanc | 5.9:1 | ✅ AA |
+| `#ff914d` (high) sur noir `#000000` | 4.6:1 | ✅ AA |
+| `#ffde59` (medium) sur noir | 11.5:1 | ✅ AA |
+
+**Astuce Chrome :** dans les DevTools, inspecter un élément texte → onglet **Styles** → cliquer sur le carré de couleur → Chrome affiche le ratio de contraste directement dans le sélecteur de couleur.
+
+---
+
+### Méthode 4 — Lecteur d'écran (test avancé)
+
+Pour une vérification complète, tester avec un lecteur d'écran réel. Ce test est optionnel pour la soutenance mais recommandé.
+
+| OS | Lecteur d'écran | Gratuit |
+|----|----------------|--------|
+| Linux | Orca (`orca` dans le terminal) | ✅ |
+| macOS | VoiceOver (natif, `Cmd + F5`) | ✅ |
+| Windows | NVDA ([nvaccess.org](https://www.nvaccess.org/)) | ✅ |
+| Windows | Narrator (natif) | ✅ |
+
+**Sur Linux avec Orca :**
+```bash
+orca &   # lance Orca en arrière-plan
+# naviguer dans le navigateur avec Tab, les flèches
+# Orca lit les aria-label, les rôles, les états
+```
+
+**Ce qu'on attend :** Orca (ou VoiceOver) doit annoncer correctement :
+- Le nom de chaque bouton (pas juste « bouton »)
+- Le titre de chaque section
+- Les messages d'erreur au moment où ils apparaissent (`role="alert"`)
+- L'état des filtres (actif/inactif via `aria-pressed`)
+
+---
+
+### Lighthouse — est-ce suffisant ?
+
+**Non.** Lighthouse (intégré dans les DevTools Chrome, onglet "Lighthouse") est pratique mais largement insuffisant pour un audit WCAG AA sérieux.
+
+**Ce que Lighthouse détecte :** les violations mécaniquement vérifiables — ratios de contraste, images sans `alt`, éléments sans label, formulaires sans association `label/input`. Il couvre environ **30 à 40 % des critères WCAG AA**.
+
+**Ce que Lighthouse ne détecte pas :**
+- Navigation clavier incomplète ou dans le mauvais ordre
+- `aria-label` présents mais incorrects ou trompeurs
+- Messages d'erreur dynamiques (`role="alert"`) qui ne s'annoncent pas
+- Titres qui existent mais dont la hiérarchie est incohérente sémantiquement
+- Cibles tactiles trop petites (WCAG 2.5.5)
+
+**WAVE vs Lighthouse :**
+
+| Outil | Couverture WCAG AA | Gratuit | Manuel requis |
+|-------|--------------------|---------|---------------|
+| Lighthouse | ~30–40 % | ✅ | oui |
+| WAVE | ~50–60 % | ✅ | oui |
+| IBM Equal Access | ~57 % | ✅ | oui |
+| WAVE + IBM + Tab + contraste | ~80 % | ✅ | oui |
+| + screen reader | ~95 % | ✅ | peu |
+
+**Règle du projet :** utiliser **WAVE** comme outil principal, **IBM Equal Access** en complément. Lighthouse reste utile pour les performances et le SEO — pas pour l'accessibilité fine.
+
+---
+
+### Résumé — ordre recommandé pour auditer une page
+
+1. **WAVE + IBM Equal Access** → scan automatique, corriger toutes les violations signalées
+2. **Navigation Tab** → vérifier l'ordre et la visibilité du focus
+3. **Contraste** → vérifier toute nouvelle couleur introduite avec WebAIM Contrast Checker
+4. **Lecteur d'écran** → test final si le temps le permet
+
+Une page est « prête » quand axe ne signale aucune violation AA et que la navigation Tab est fluide de bout en bout.
+
+---
+
+## 8d. Optimisation React.memo
+
+### Utilisation de React.memo pour les composants statiques
+
+Certains composants du projet, comme le Footer, sont rendus sur toutes les pages mais ne changent quasiment jamais. Pour éviter des recalculs inutiles à chaque re-render du parent, on utilise `React.memo` :
+
+```tsx
+import { memo } from 'react';
+
+export const Footer = memo(function Footer() {
+  // ...
+});
+```
+
+**Fonctionnement** : si les props du composant ne changent pas, React réutilise le rendu précédent sans réexécuter la fonction. Cela améliore les performances, surtout pour les composants globaux ou statiques.
+
+**À retenir** : utiliser `memo` sur les composants qui :
+- n'ont pas de props dynamiques,
+- ou dont les props changent rarement,
+- ou qui sont affichés sur toutes les pages (header, footer, etc.).
+
+Voir l'implémentation dans `components/Footer.tsx` et `components/layout/Footer/Footer.tsx`.
 
 ---
 
