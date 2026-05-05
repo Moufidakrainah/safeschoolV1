@@ -2429,6 +2429,99 @@ Voir l'implémentation dans `components/Footer.tsx` et `components/layout/Footer
 
 ---
 
+## 8e. Fonctions métier asynchrones — séparation JSX / logique
+
+### Qu'est-ce qu'une fonction métier asynchrone ?
+
+Une **fonction métier** est une fonction qui contient de la logique applicative : appel API, transformation de données, mise à jour d'état. Elle est dite **asynchrone** quand elle utilise `async/await` — c'est-à-dire quand elle attend la réponse d'une opération qui prend du temps (réseau, base de données).
+
+```tsx
+// Exemple — fonction métier asynchrone
+const handleSuspectSearch = async (value: string) => {
+  setSuspectInput(value);
+  if (value.length < 1) { setSuspectSuggestions([]); return; }
+  try {
+    setSuspectSuggestions(await searchUsers(value)); // appel réseau
+  } catch {
+    setSuspectSuggestions([]); // gestion d'erreur explicite
+  }
+};
+```
+
+### Pourquoi ne pas écrire cette logique directement dans le JSX ?
+
+Le JSX a un seul rôle : **décrire la structure visuelle** de l'interface. Dès qu'on y insère de la logique (conditions, appels API, `async/await`), deux problèmes apparaissent :
+
+1. **Lisibilité** — quelqu'un qui lit le JSX pour comprendre la mise en page doit s'arrêter sur une fonction de 5 lignes cachée dans un prop. Le signal/bruit est mauvais.
+2. **Gestion d'erreur absente** — une fonction anonyme inline invite à ignorer le `try/catch`. Si l'appel réseau échoue, l'état n'est jamais remis à zéro et l'interface peut rester dans un état incohérent (liste figée, spinner infini).
+
+```tsx
+// ❌ À éviter — logique métier inline dans le JSX
+<Autocomplete
+  onChange={async val => {
+    setInput(val);
+    if (val.length >= 2) setSuggestions(await searchUsers(val)); // pas de try/catch
+    else setSuggestions([]);
+  }}
+/>
+
+// ✅ Correct — handler nommé, déclaré avant le return
+const handleSearch = async (value: string) => {
+  setInput(value);
+  if (value.length < 2) { setSuggestions([]); return; }
+  try {
+    setSuggestions(await searchUsers(value));
+  } catch {
+    setSuggestions([]);
+  }
+};
+
+// Dans le JSX — une seule ligne, lisible
+<Autocomplete onChange={handleSearch} />
+```
+
+### Règles à respecter
+
+| Règle | Raison |
+|-------|--------|
+| Toujours nommer la fonction (`handleXxx`) | Lisibilité, débogage (nom visible dans la stack trace) |
+| Toujours entourer l'appel API d'un `try/catch` | Évite les états incohérents si le réseau échoue |
+| Remettre les suggestions à `[]` dans le `catch` | L'utilisateur ne voit pas de liste obsolète |
+| Déclarer le handler avant le `return` du composant | Le handler est ainsi disponible et nommé dans la portée du composant |
+
+### Application dans ce projet
+
+L'`Autocomplete` de la victime dans `ReporterDashboard` avait sa logique inline. Le suspect avait déjà été extrait. La correction extrait `handleVictimSearch` pour rendre les deux cohérents :
+
+```tsx
+// AVANT — logique inline, pas de try/catch
+onChange={async val => {
+  setVictimInput(val);
+  setSelectedVictim(null);
+  setVictimName(val);
+  if (val.length >= 2) setVictimSuggestions(await searchUsers(val));
+  else setVictimSuggestions([]);
+}}
+
+// APRÈS — handler nommé, try/catch présent
+const handleVictimSearch = async (value: string) => {
+  setVictimInput(value);
+  setSelectedVictim(null);
+  setVictimName(value);
+  if (value.length < 2) { setVictimSuggestions([]); return; }
+  try {
+    setVictimSuggestions(await searchUsers(value));
+  } catch {
+    setVictimSuggestions([]);
+  }
+};
+
+// JSX
+<Autocomplete onChange={handleVictimSearch} />
+```
+
+---
+
 ## 9. Flux complet de A à Z
 
 ### Première visite — page de login

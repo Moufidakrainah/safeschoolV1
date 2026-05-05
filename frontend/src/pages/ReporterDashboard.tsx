@@ -1,47 +1,93 @@
+// React & libs
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+
+// Contexts & hooks
 import { useAuth } from '../context/AuthContext';
+
+// API services
 import { createReport, searchUsers, getStaffProfile } from '../services/api';
+
+// UI components
 import Button from '../components/Button';
 import Card from '../components/Card';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
-import type { UserSearchResult } from '../types';
-import { useSearchParams } from 'react-router-dom';
 
+// Types
+import type { UserSearchResult } from '../types';
+
+
+/**
+ * ReporterDashboard — page principale pour les utilisateurs de rôle 'teacher' ou 'staff'.
+ *
+ * Ce composant gère trois sections via l'état `viewSection` :
+ *   - 'profile'  : informations personnelles et professionnelles de l'utilisateur
+ *   - 'report'   : formulaire multi-étapes de signalement (5 étapes + écran de succès)
+ *   - 'quiz'     : redirection vers le module quiz
+ *
+ * L'état de navigation entre sections est initialisé depuis le query param ?section=
+ * pour permettre les deeplinks (ex. /reporter?section=profile).
+ */
 export default function ReporterDashboard() {
+  // --- Hooks globaux ---
+  // useAuth fournit l'utilisateur connecté et la fonction de déconnexion
   const { user, logoutUser } = useAuth();
+  // t() est la fonction de traduction — toutes les chaînes UI passent par elle
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
 
+  // --- Navigation entre sections ---
+  // viewSection détermine quelle vue afficher : profil, formulaire ou quiz
+  // La valeur initiale est lue depuis ?section= pour supporter les liens directs
+  const [searchParams] = useSearchParams();
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>(
+    (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
+  );
+
+  // --- État du formulaire multi-étapes ---
+  // step contrôle quelle étape du formulaire est affichée (1 à 5, puis 6 = succès)
+  const [step, setStep] = useState(1);
+  // defaultWho est calculé une fois au montage selon le rôle de l'utilisateur
   const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff');
-  const [whoSignals, setWhoSignals] = useState(defaultWho);
-  const [type, setType] = useState('');
-  const [description, setDescription] = useState('');
-  const [frequency, setFrequency] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [whoSignals, setWhoSignals] = useState(defaultWho);   // étape 1 : qui signale
+  const [type, setType] = useState('');                        // étape 1 : type de harcèlement
+  const [description, setDescription] = useState('');         // étape 2 : description des faits
+  const [frequency, setFrequency] = useState('');             // étape 2 : fréquence
+  const [isAnonymous, setIsAnonymous] = useState(false);      // étape 5 : signalement anonyme
+  const [loading, setLoading] = useState(false);              // soumission en cours
+
+  // --- État de la recherche de suspects ---
+  // suspects : liste finale des suspects ajoutés au signalement
+  // suspectInput : valeur en temps réel du champ de recherche
+  // suspectSuggestions : résultats retournés par l'API pour l'autocomplétion
+  // searchingUsers : booléen de chargement, conditionne l'affichage du bouton "texte libre"
   const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
   const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+
+  // --- État de la recherche de victime ---
+  // victimName : nom final de la victime (texte libre ou issu de la sélection)
+  // victimInput : valeur en temps réel du champ de recherche
+  // victimSuggestions : résultats API pour l'autocomplétion
+  // selectedVictim : objet complet si la victime a été sélectionnée dans la liste
   const [victimName, setVictimName] = useState('');
   const [victimInput, setVictimInput] = useState('');
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
-  const [searchParams] = useSearchParams();
-
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>(
-    (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
-  );
-
+  // --- État du profil professionnel (section 'profile') ---
   const [staffProfile, setStaffProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
+  // --- Effets ---
+
+  // Charge le profil professionnel dès que l'id utilisateur est disponible.
+  // La dépendance [user?.id] garantit que le chargement ne se relance que si
+  // l'utilisateur change (reconnexion avec un autre compte).
   useEffect(() => {
     if (user?.id) {
       setLoadingProfile(true);
@@ -52,6 +98,12 @@ export default function ReporterDashboard() {
     }
   }, [user?.id]);
 
+  // --- Handlers métier ---
+
+  // Soumet le signalement à l'API.
+  // Guard en début de fonction : les trois champs obligatoires doivent être remplis
+  // (double sécurité — le bouton Suivant est déjà désactivé via isNextDisabled).
+  // La victime est encodée dans la description pour compatibilité avec le backend actuel.
   const handleSubmit = async () => {
     if (!type || !description || !frequency) return;
 
@@ -73,9 +125,12 @@ export default function ReporterDashboard() {
     }
   };
 
+  // Recherche de suspects : appel API à chaque frappe.
+  // searchingUsers est mis à true pendant le chargement pour masquer
+  // le bouton "ajouter en texte libre" le temps d'avoir les résultats.
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
-    if (value.length < 1) { setSuspectSuggestions([]); return; }
+    if (value.length < 2) { setSuspectSuggestions([]); return; }
     setSearchingUsers(true);
     try {
       setSuspectSuggestions(await searchUsers(value));
@@ -86,6 +141,23 @@ export default function ReporterDashboard() {
     }
   };
 
+  // Recherche de victime : appel API à chaque frappe.
+  // Pas de searchingUsers car la victime n'a pas de bouton "texte libre" —
+  // l'utilisateur peut directement taper un nom libre dans l'input.
+  const handleVictimSearch = async (value: string) => {
+    setVictimInput(value);
+    setSelectedVictim(null);
+    setVictimName(value);
+    if (value.length < 2) { setVictimSuggestions([]); return; }
+    try {
+      setVictimSuggestions(await searchUsers(value));
+    } catch {
+      setVictimSuggestions([]);
+    }
+  };
+
+  // Ajoute un suspect à la liste en évitant les doublons (comparaison prénom+nom).
+  // Accepte aussi bien un objet issu de l'API (avec id) qu'un texte libre (sans id).
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect]);
@@ -94,8 +166,11 @@ export default function ReporterDashboard() {
     setSuspectSuggestions([]);
   };
 
+  // Supprime un suspect par son index dans le tableau.
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
+  // Réinitialise tous les champs du formulaire et revient à l'étape 1.
+  // Appelé après un envoi réussi (bouton "Nouveau signalement" sur l'écran de succès).
   const resetForm = () => {
     setStep(1);
     setType('');
@@ -109,8 +184,13 @@ export default function ReporterDashboard() {
     setIsAnonymous(false);
   };
 
+  // --- Données dérivées ---
+
+  // headerProps regroupe les props partagées par le header dans toutes les vues.
+  // Passer un objet unique évite de répéter les 4 props à chaque <ReporterHeader />.
   const headerProps = { user, logoutUser, viewSection, setViewSection };
 
+  // Labels des étapes affichés dans la barre de progression (StepBar).
   const steps = [
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
@@ -119,10 +199,14 @@ export default function ReporterDashboard() {
     t('reporter.steps.validate'),
   ];
 
+  // Désactive le bouton "Suivant" si les champs obligatoires de l'étape courante
+  // ne sont pas remplis. Validation légère côté client avant soumission.
   const isNextDisabled =
     (step === 1 && !type) ||
     (step === 2 && (!description || !frequency));
 
+  // whoOptions et typeOptions sont mémoïsés avec useMemo : ils ne sont recalculés
+  // que si la langue (t) ou le rôle changent, pas à chaque re-render du composant.
   const whoOptions = useMemo(
     () => user?.role === 'teacher'
       ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
@@ -142,14 +226,21 @@ export default function ReporterDashboard() {
     [t]
   );
 
-useEffect(() => {
+  // Redirige vers la page quiz si l'utilisateur sélectionne cette section.
+  // Le navigate est dans un effet car il s'agit d'un side effect (action sur le routeur)
+  // qui ne doit pas se produire pendant le rendu.
+  useEffect(() => {
     if (viewSection === 'quiz') {
       navigate('/quiz');
-	  setViewSection('quiz');
     }
   }, [viewSection, navigate]);
 
 
+  // --- Rendu conditionnel par section ---
+  // Chaque section retourne son propre arbre JSX (early return pattern).
+  // Cela évite une imbrication profonde et rend chaque section lisible indépendamment.
+
+  // SECTION PROFIL — informations personnelles et professionnelles
   if (viewSection === 'profile') {
     return (
       <>
@@ -221,9 +312,12 @@ useEffect(() => {
     );
   }
 
-  if (viewSection === 'report') 
+  // SECTION SIGNALEMENT — formulaire multi-étapes
+  // Deux cas : écran de succès (step === 6) ou formulaire actif (step 1 à 5)
+  if (viewSection === 'report')
 	{
 
+		// Écran de confirmation affiché après un envoi réussi
 		if (step === 6)
 		{
 			return (		
@@ -247,12 +341,15 @@ useEffect(() => {
 				</>
 				)
 			}
-	// Formulaire multi-étapes
+		// Formulaire multi-étapes (steps 1 à 5)
+		// Chaque étape est rendue conditionnellement selon la valeur de `step`.
+		// La StepBar en haut reflète la progression. Les boutons Précédent/Suivant
+		// incrémentent/décrémentent step. Le bouton Envoyer n'apparaît qu'à l'étape 5.
 	return (
 	<>
 		<ReporterHeader {...headerProps} />
 		<main className="bg-gray-50 font-sans">
-		<StepBar steps={steps} currentStep={step} /> {/* ✅ FIX 4 : step - 2 car step démarre à 2 */}
+		<StepBar steps={steps} currentStep={step} />
 		<div className="max-w-xl mx-auto mt-8 px-5 pb-10">
 			<Card>
 
@@ -329,13 +426,7 @@ useEffect(() => {
 				</label>
 				<Autocomplete
 					value={victimInput}
-					onChange={async val => {
-					setVictimInput(val);
-					setSelectedVictim(null);
-					setVictimName(val);
-					if (val.length >= 2) setVictimSuggestions(await searchUsers(val));
-					else setVictimSuggestions([]);
-					}}
+					onChange={handleVictimSearch}
 					suggestions={victimSuggestions}
 					onSelect={s => {
 					setSelectedVictim(s);
@@ -444,7 +535,7 @@ useEffect(() => {
 				<Button
 				variant="ghost"
 				onClick={() => setStep(s => s - 1)}
-				disabled={step === 1} // ✅ Cohérent : step 2 est le premier écran visible
+				disabled={step === 1}
 				>
 				← {t('common.previous')}
 				</Button>
