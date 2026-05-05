@@ -312,8 +312,9 @@
       "anonymous": "Anonyme Meldung",
       "anonymousDesc": "mein Name wird nicht sichtbar sein"
     },
-    "submitting": "Wird gesendet...",
-    "submit": "Meldung absenden"
+    "submitting":  "Wird gesendet...",
+    "submit":      "Meldung absenden",
+    "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen."
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",

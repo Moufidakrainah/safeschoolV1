@@ -284,8 +284,9 @@
       "anonymous":     "Signalement anonyme",
       "anonymousDesc": "mon nom ne sera pas visible"
     },
-    "submitting": "Envoi...",
-    "submit":     "Envoyer le signalement"
+    "submitting":   "Envoi...",
+    "submit":       "Envoyer le signalement",
+    "submitError":  "L'envoi a échoué. Vérifie ta connexion et réessaie."
   },
   "privacy": {
     "updated": "Dernière mise à jour : avril 2026",

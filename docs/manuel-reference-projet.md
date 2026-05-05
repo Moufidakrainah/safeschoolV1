@@ -76,7 +76,7 @@ Avant d'expliquer les deux types de volumes, voici comment les différentes couc
 ┌─────────────────────────────────────────────────────────────┐
 │  TON DISQUE (le "host" — ta machine physique)               │
 │                                                             │
-│  /home/elodie/Documents/Transcendence/frontend/             │
+│  /home/user/Documents/Transcendence/frontend/               │
 │    src/                                                     │
 │    package.json                                             │
 │    package-lock.json                                        │
@@ -259,7 +259,7 @@ Un **bind mount** est un lien direct entre un chemin sur le système hôte (ta m
 ```
 SYSTÈME HÔTE                       CONTENEUR
 ────────────────                   ─────────────────────
-/home/elodie/.../frontend/   ←──→  /app/
+/home/user/.../frontend/     ←──→  /app/
 ```
 
 Toute écriture dans l'un est immédiatement visible dans l'autre, dans les deux sens, sans aucune commande supplémentaire.
@@ -1325,7 +1325,7 @@ components/
 
 ### Principe
 
-Tout l'UI est construit à partir de composants réutilisables dans `frontend/src/components/`. Chaque composant embarque ses propres styles Tailwind, sa gestion d'accessibilité ARIA et ses labels via `useTranslation`. La collègue qui code un nouvel écran n'a pas à penser à l'accessibilité : elle est contenue dans le composant.
+Tout l'UI est construit à partir de composants réutilisables dans `frontend/src/components/`. Chaque composant embarque ses propres styles Tailwind, sa gestion d'accessibilité ARIA et ses labels via `useTranslation`. Le développeur qui code un nouvel écran n'a pas à penser à l'accessibilité : elle est contenue dans le composant.
 
 **Règle fondamentale :** jamais de couleur inline (`style={{ color: '#006278' }}`). Toujours les tokens Tailwind (`text-primary`, `bg-critical`…).
 
@@ -2054,7 +2054,7 @@ Annonce un message d'état non urgent (chargement, confirmation). Équivalent de
 
 ### Les composants comme "legos ARIA"
 
-Chaque composant du design system embarque son propre comportement ARIA. La collègue qui utilise `<Pagination>` n'a pas à y penser : le `<nav aria-label>`, les `aria-current="page"`, et les aria-labels sur `«`/`»` sont déjà là.
+Chaque composant du design system embarque son propre comportement ARIA. Le développeur qui utilise `<Pagination>` n'a pas à y penser : le `<nav aria-label>`, les `aria-current="page"`, et les aria-labels sur `«`/`»` sont déjà là.
 
 **Contrat à respecter côté utilisateur du composant :**
 

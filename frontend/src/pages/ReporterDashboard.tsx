@@ -48,16 +48,16 @@ export default function ReporterDashboard() {
   );
 
   // --- État du formulaire multi-étapes ---
-  // step contrôle quelle étape du formulaire est affichée (1 à 5, puis 6 = succès)
-  const [step, setStep] = useState(1);
-  // defaultWho est calculé une fois au montage selon le rôle de l'utilisateur
-  const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff');
+  const [step, setStep] = useState(1);  // step contrôle quelle étape du formulaire est affichée (1 à 5, puis 6 = succès)
+  const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff'); // defaultWho est calculé une fois au montage selon le rôle de l'utilisateur
   const [whoSignals, setWhoSignals] = useState(defaultWho);   // étape 1 : qui signale
-  const [type, setType] = useState('');                        // étape 1 : type de harcèlement
+  const [type, setType] = useState('');                       // étape 1 : type de harcèlement
   const [description, setDescription] = useState('');         // étape 2 : description des faits
   const [frequency, setFrequency] = useState('');             // étape 2 : fréquence
   const [isAnonymous, setIsAnonymous] = useState(false);      // étape 5 : signalement anonyme
   const [loading, setLoading] = useState(false);              // soumission en cours
+  const [submitError, setSubmitError] = useState<string | null>(null);  // message d'erreur affiché à l'utilisateur si l'envoi echoue. null = pas d'erreur. Non-null = bandeau rouge visible à l'étape 5.
+
 
   // --- État de la recherche de suspects ---
   // suspects : liste finale des suspects ajoutés au signalement
@@ -108,6 +108,8 @@ export default function ReporterDashboard() {
     if (!type || !description || !frequency) return;
 
     setLoading(true);
+    // Reset any previous error before each new attempt
+    setSubmitError(null);
     try {
       const title = `${type} - ${whoSignals}`;
       const victimInfo = victimName ? ` | Victime : ${victimName}` : '';
@@ -119,7 +121,9 @@ export default function ReporterDashboard() {
       await createReport(title, fullDescription, isAnonymous, suspectsData, frequency, '');
       setStep(6);
     } catch (err) {
-      console.error('Erreur envoi signalement', err);
+      // Show a visible error banner — console.error alone is not enough for the user
+      console.error('Report submission failed', err);
+      setSubmitError(t('reporter.submitError'));
     } finally {
       setLoading(false);
     }
@@ -182,6 +186,7 @@ export default function ReporterDashboard() {
     setSelectedVictim(null);
     setSuspects([]);
     setIsAnonymous(false);
+    setSubmitError(null);
   };
 
   // --- Données dérivées ---
@@ -527,6 +532,16 @@ export default function ReporterDashboard() {
 					<strong>{t('reporter.step6.anonymous')}</strong> — {t('reporter.step6.anonymousDesc')}
 					</span>
 				</label>
+				{/* Error banner — only visible if the previous submission attempt failed */}
+				{submitError && (
+					<div
+						role="alert"
+						className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2"
+					>
+						<span aria-hidden="true">⚠️</span>
+						{submitError}
+					</div>
+				)}
 				</div>
 			)}
 				
