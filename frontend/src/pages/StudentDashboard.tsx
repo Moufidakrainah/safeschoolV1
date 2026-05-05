@@ -181,10 +181,17 @@ export default function StudentDashboard() {
           <div className="flex-1 flex justify-end items-center gap-3">
             {/* Cloche notifications */}
             <div className="relative">
+
+
+
+
+
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg cursor-pointer text-base relative"
                 aria-label="Notifications"
+				aria-haspopup="listbox"
+				aria-expanded={showNotifications}
               >
                 🔔
                 {unreadCount > 0 && (
@@ -193,8 +200,12 @@ export default function StudentDashboard() {
                   </span>
                 )}
               </button>
+
+
+
+
               {showNotifications && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-xl w-80 z-50 max-h-96 overflow-y-auto border border-gray-100">
+                <div role="listbox" className="absolute right-0 top-10 bg-white rounded-xl shadow-xl w-80 z-50 max-h-96 overflow-y-auto border border-gray-100">
                   <div className="px-4 py-3 border-b border-gray-100 font-bold text-sm">
                     Notifications {unreadCount > 0 && <span className="text-red-600">({unreadCount} non lues)</span>}
                   </div>
@@ -203,17 +214,24 @@ export default function StudentDashboard() {
                   ) : notifications.map((n: any) => (
                     <div
                       key={n.id}
+					  role="option"
+					  aria-selected={!n.isRead}
                       onClick={async () => { await markNotificationRead(n.id); fetchNotifications(); }}
                       className={`px-4 py-3 border-b border-gray-50 cursor-pointer ${n.isRead ? 'bg-white' : 'bg-surface'}`}
                     >
                       <p className="text-sm text-gray-700 m-0 mb-1">{n.message}</p>
-                      <p className="text-xs text-gray-400 m-0">
+                      <span className="text-xs text-gray-400 m-0">
                         {new Date(n.createdAt).toLocaleDateString('fr-FR')} à {new Date(n.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      </span>
                     </div>
                   ))}
                 </div>
               )}
+
+
+
+
+
             </div>
             <Button variant="outline" onClick={logoutUser}>Se déconnecter</Button>
           </div>
