@@ -15,6 +15,8 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 7. [Tailwind CSS — le système de classes](#7-tailwind-css--le-système-de-classes)
 8. [Accessibilité — WCAG AA et ARIA](#8-accessibilité--wcag-aa-et-aria)
 9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
+10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
+11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
 
 ---
 
@@ -469,6 +471,10 @@ C'est le système centralisé de logs :
 3. Logstash l'envoie à **Elasticsearch** qui la stocke et l'indexe
 4. **Kibana** (port 5601) permet de visualiser et requêter les logs via une interface web
 
+### Pourquoi NestJS et pas Express
+
+Express est minimaliste : il gère les routes HTTP et rien d'autre. Toute l'architecture (structure des fichiers, injection de dépendances, validation, authentification) est à inventer. NestJS impose une architecture — modules, controllers, services, guards, pipes, interceptors — ce qui est un avantage pour une équipe multiple : tout le monde sait où mettre le code. L'injection de dépendances intégrée rend les services testables unitairement sans couplage fort.
+
 ---
 
 ## 3. L'authentification JWT
@@ -521,7 +527,15 @@ Le `JwtAuthGuard` est appliqué à toutes les routes qui nécessitent une authen
 
 ### Pourquoi React, Tailwind et cet écosystème
 
-La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
+#### Pourquoi React et pas Vue ou Svelte
+
+Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour trois raisons : l'écosystème TypeScript est mature (types officiels, excellent support dans les outils), la courbe d'apprentissage est compatible avec le niveau de l'équipe en début de projet, et la documentation officielle (`react.dev`) est de haute qualité.
+
+#### Pourquoi Tailwind et pas Bootstrap
+
+Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles — ce qui annule son intérêt. Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
+
+#### La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
 
 #### Avant les frameworks — comment ça se dégradait
 
@@ -2364,3 +2378,129 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 | Pourquoi TypeORM avec `synchronize: true` en dev et pas en prod ? | En dev, TypeORM met à jour automatiquement le schéma SQL à partir des entities — pratique pour itérer vite. En production, c'est dangereux : une modification d'entity pourrait supprimer ou altérer des colonnes avec des vraies données. |
 | Quelle est la différence entre `PATCH` et `PUT` en HTTP ? | `PUT` remplace la ressource entière. `PATCH` modifie partiellement — seuls les champs envoyés sont mis à jour. Pour un formulaire d'édition partielle, `PATCH` est plus approprié. |
 | Pourquoi ELK dans ce projet ? | Centraliser les logs de toutes les requêtes HTTP dans Elasticsearch, les transformer via Logstash, et les visualiser dans Kibana. Permet de monitorer l'activité, détecter des anomalies et déboguer sans accès aux conteneurs. |
+
+### React
+
+https://react.dev/reference/react
+
+Référence officielle maintenue par l'équipe React (Meta). Liste exhaustive de tous les hooks, API et composants built-in avec exemples interactifs. 
+
+---
+
+### Tailwind CSS
+
+https://tailwindcss.com/docs
+
+Documentation officielle v4. Couvre les nouvelles directives `@theme`, `@utility`, la configuration via CSS uniquement, et les changements de nommage des utilitaires.
+
+---
+
+## 10. WebSockets — le module Quiz temps réel
+
+### HTTP vs WebSocket — la différence fondamentale
+
+HTTP est un protocole **requête-réponse** : le client demande, le serveur répond, la connexion se ferme. Si le serveur a une nouvelle information, il ne peut pas la pousser vers le client — il faut que le client re-demande.
+
+WebSocket est un protocole **bidirectionnel persistant** : une seule connexion reste ouverte, et chacune des deux parties peut envoyer un message à l'autre à n'importe quel moment. C'est indispensable pour un quiz en temps réel où le serveur doit pousser les questions à tous les joueurs simultanément.
+
+```
+[Quiz.tsx — navigateur A]              [QuizRealtimeGateway — NestJS]
+        │                                          │
+        │  connect (handshake HTTP → upgrade WS)   │
+        │ ─────────────────────────────────────── >│
+        │ < ──────────────────────────────────────  │  connexion établie
+        │                                          │
+        │  emit('joinRoom', { roomId, user })       │
+        │ ─────────────────────────────────────── >│
+        │                                          │  room.add(socketA)
+        │                                          │
+[Quiz.tsx — navigateur B]                         │
+        │  emit('joinRoom', { roomId, user })       │
+        │ ─────────────────────────────────────── >│  room.add(socketB)
+        │                                          │
+        │                    emit('question', q) ──>│  broadcast vers la room
+        │ < ──────────────────────────────────────  │
+        │ < ──────────────────────────────────────  │  (reçu par A et B)
+        │                                          │
+        │  emit('answer', { choice })              │
+        │ ─────────────────────────────────────── >│
+        │                                          │  calcule score
+        │ < ──────────────────────────────────────  │  emit('leaderboard', ...)
+```
+
+### Architecture dans le projet
+
+**Côté backend** — `backend/src/quiz-realtime/` :
+
+- **`quiz-realtime.gateway.ts`** : le point d'entrée WebSocket. Décoré avec `@WebSocketGateway()`, il écoute les événements émis par les clients (`@SubscribeMessage('joinRoom')`, etc.) et peut émettre vers une room ou vers tous les clients connectés.
+- **`quiz-realtime.service.ts`** : la logique métier du quiz — gestion des rooms, suivi des scores, envoi des questions dans l'ordre.
+- **`quiz-realtime.module.ts`** : module NestJS qui déclare et relie les deux.
+
+**Côté frontend** — `frontend/src/pages/Quiz.tsx` :
+
+- Connexion au gateway via `socket.io-client` : `const socket = io(SOCKET_URL)`.
+- La référence au socket est stockée dans un `useRef` (pas un `useState`) pour éviter les re-renders à chaque message reçu.
+- Les événements entrants (`question`, `leaderboard`, `gameEnd`) déclenchent des mises à jour d'état React.
+
+### Points d'attention actuels
+
+| Problème | Impact | Référence |
+|---|---|---|
+| `SOCKET_URL` codé en dur (`http://localhost:5000`) | La connexion échoue hors de la machine de développement — le sujet exige HTTPS | `Quiz.tsx` ligne ~8 |
+| Bug room cleanup | La room n'est pas nettoyée correctement quand un quiz se termine | Documenté dans le dernier commit de `feat/quiz` |
+
+### Socket.io vs WebSocket natif
+
+Socket.io est une bibliothèque construite au-dessus des WebSockets natifs. Elle ajoute : reconnexion automatique, rooms (groupes de clients), namespaces, et un système d'événements nommés (`emit('question', data)`) plus lisible que les messages bruts. NestJS intègre nativement Socket.io via `@WebSocketGateway()`.
+
+---
+
+## 11. Next.js, NestJS, Node.js
+
+Ces trois noms se ressemblent visuellement et sont souvent mentionnés ensemble dans l'écosystème JavaScript. Ils opèrent à des niveaux complètement différents.
+
+### Les trois en une phrase
+
+| Nom | Catégorie | Rôle |
+|---|---|---|
+| **Node.js** | Environnement d'exécution | Exécute du JavaScript en dehors du navigateur, côté serveur. C'est le moteur. |
+| **NestJS** | Framework backend | S'exécute sur Node.js. Impose une architecture (modules, controllers, services) pour construire des APIs REST. |
+| **Next.js** | Framework fullstack | S'exécute aussi sur Node.js. Permet de faire du rendu côté serveur (SSR) et des React Server Components. C'est un concurrent de l'approche React + backend séparé. |
+
+### Pourquoi ce projet n'utilise pas Next.js
+
+Ce n'est pas un défaut de conception — c'est un choix d'architecture dicté par le sujet.
+
+Le sujet ft_transcendence v21.1 exige un **framework frontend** (React) et un **framework backend** séparés, communiquant via une API. C'est l'architecture SPA + API REST. Ce modèle est la norme dans les équipes qui séparent les responsabilités front/back — c'est ce que le sujet teste.
+
+Next.js est un framework **fullstack** — il fusionne le frontend et le backend dans un seul projet. Adopter Next.js aurait nécessité de réécrire le backend NestJS en API Routes Next.js, ce qui est hors scope.
+
+### React Server Components — ce que c'est et pourquoi ça ne s'applique pas ici
+
+Les **React Server Components (RSC)** sont une fonctionnalité qui permet à certains composants React de s'exécuter côté serveur — ils accèdent directement à la base de données, ne s'envoient jamais au client, et n'augmentent pas la taille du bundle JavaScript.
+
+```
+// Composant serveur (Next.js uniquement) — accès direct à la base
+async function ReportList() {
+  const reports = await db.query('SELECT * FROM reports'); // côté serveur
+  return <ul>{reports.map(r => <li>{r.title}</li>)}</ul>;
+  // le HTML est rendu sur le serveur, le client reçoit du HTML, pas du JS
+}
+```
+
+**Pourquoi RSC ne s'applique pas à ce projet :**
+
+Vite compile et sert des fichiers statiques. Le frontend n'a pas de processus serveur Node.js — il n'existe que dans le navigateur après le chargement initial. Les RSC nécessitent un serveur qui exécute React au moment de la requête, ce que seul Next.js (ou Remix) fournit nativement.
+
+Dans l'architecture SafeSchool, l'équivalent fonctionnel est simplement un `useEffect` qui appelle l'API NestJS — le résultat est le même (données chargées et affichées), mais le rendu se fait dans le navigateur plutôt que sur le serveur.
+
+### Tableau récapitulatif — qui fait quoi dans ce projet
+
+| Ce qui tourne | Où | Technologie |
+|---|---|---|
+| Interface utilisateur | Navigateur | React 18 + TypeScript (compilé par Vite) |
+| Serveur de fichiers statiques | Conteneur Docker frontend | Vite (dev) / fichiers statiques (prod) |
+| API REST | Conteneur Docker backend | NestJS sur Node.js |
+| Base de données | Conteneur Docker database | PostgreSQL |
+| Logs | Conteneurs ELK | Elasticsearch + Logstash + Kibana |
+
