@@ -567,13 +567,13 @@ export default function StudentDashboard() {
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Décris ce qui s'est passé, quand, où et qui était impliqué..."
                 rows={5}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y font-[inherit] box-border mb-5"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-5"
               />
               <label className="block mb-2 text-sm font-semibold text-gray-700">Fréquence des actes</label>
               <select
                 value={frequency}
                 onChange={e => setFrequency(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               >
                 <option value="">Sélectionner...</option>
                 <option value="Une fois">Une fois</option>

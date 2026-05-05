@@ -159,7 +159,13 @@ export default function AdminDashboard() {
     }
   };
 
+  const goTo = (report: typeof selected) => {
+    setSelected(report);
+    if (report) loadNotes(report.id);
+  };
+
   const handleAddNote = async (type: string = 'note') => {
+    if (!selected) return;
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     // Si convocation avec date, on préfixe le message avec la date choisie
@@ -231,7 +237,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center mb-6">
             <Button
               variant="ghost"
-              onClick={() => setSelected(filtered[idx - 1])}
+              onClick={() => goTo(filtered[idx - 1])}
               disabled={idx === 0}
               aria-label={t('admin.prev')}
             >
@@ -242,7 +248,7 @@ export default function AdminDashboard() {
             </span>
             <Button
               variant="ghost"
-              onClick={() => setSelected(filtered[idx + 1])}
+              onClick={() => goTo(filtered[idx + 1])}
               disabled={idx === filtered.length - 1}
               aria-label={t('admin.next')}
             >
@@ -357,7 +363,7 @@ export default function AdminDashboard() {
                   rows={3}
                   placeholder={t('admin.notes.placeholder')}
                   aria-label={t('admin.notes.placeholder')}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y mb-3 font-[inherit] box-border"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
                 />
                 <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
               </>
@@ -377,7 +383,7 @@ export default function AdminDashboard() {
                   type="datetime-local"
                   value={convocationDate}
                   onChange={e => setConvocationDate(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none text-gray-700"
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
                 />
               </div>
               <textarea
@@ -386,7 +392,7 @@ export default function AdminDashboard() {
                 rows={3}
                 placeholder={t('admin.convocation.placeholder')}
                 aria-label={t('admin.convocation.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y mb-3 font-[inherit] box-border"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
               />
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
@@ -456,7 +462,7 @@ export default function AdminDashboard() {
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.search.placeholder')}
                 aria-label={t('admin.search.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
 
@@ -497,7 +503,7 @@ export default function AdminDashboard() {
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               />
 
               <div className="flex items-center gap-1" role="group" aria-label={t('admin.filters.dateRange')}>
@@ -507,7 +513,7 @@ export default function AdminDashboard() {
                   value={filterDateFrom}
                   onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateFrom')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
                 <span aria-hidden="true" className="text-gray-400">→</span>
                 <input
@@ -516,7 +522,7 @@ export default function AdminDashboard() {
                   value={filterDateTo}
                   onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateTo')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
               </div>
 
@@ -612,21 +618,21 @@ export default function AdminDashboard() {
                     value={userForm.firstName}
                     onChange={e => setUserForm({ ...userForm, firstName: e.target.value })}
                     aria-label={t('admin.users.firstName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <input
                     placeholder={t('admin.users.lastName')}
                     value={userForm.lastName}
                     onChange={e => setUserForm({ ...userForm, lastName: e.target.value })}
                     aria-label={t('admin.users.lastName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <input
                     placeholder={t('admin.users.email')}
                     value={userForm.email}
                     onChange={e => setUserForm({ ...userForm, email: e.target.value })}
                     aria-label={t('admin.users.email')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <input
                     placeholder={t('admin.users.password')}
@@ -634,7 +640,7 @@ export default function AdminDashboard() {
                     value={userForm.password}
                     onChange={e => setUserForm({ ...userForm, password: e.target.value })}
                     aria-label={t('admin.users.password')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
                     <option value="student">{t('admin.users.roles.student')}</option>

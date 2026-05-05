@@ -329,7 +329,7 @@ useEffect(() => {
                   placeholder={t('reporter.step3.descriptionPlaceholder')}
                   rows={5}
                   aria-required="true"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y font-[inherit] box-border mb-5"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-5"
                 />
                 <label className="block mb-2 text-sm font-semibold text-gray-700" htmlFor="frequency">
                   {t('reporter.step3.frequencyLabel')}
@@ -339,7 +339,7 @@ useEffect(() => {
                   value={frequency}
                   onChange={e => setFrequency(e.target.value)}
                   aria-required="true"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 >
                   <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
                   <option value="Une fois">{t('reporter.step3.freq1')}</option>

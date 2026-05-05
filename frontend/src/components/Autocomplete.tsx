@@ -18,7 +18,7 @@ export default function Autocomplete({ value, onChange, suggestions, onSelect, p
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={label}
-        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none box-border"
+        className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary box-border"
       />
       {suggestions.length > 0 && (
         <ul

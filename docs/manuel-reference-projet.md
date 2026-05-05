@@ -2104,6 +2104,43 @@ className="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 
 
 Toujours utiliser `focus:ring-offset-{couleur}` avec la couleur du fond de l'élément parent pour garantir le contraste du focus ring.
 
+#### `focus-visible` vs `focus` — règle de la maison (WCAG 2.4.7)
+
+**Problème :** `outline-none` seul supprime complètement le focus ring. Un utilisateur qui navigue au clavier (Tab) ne voit plus où il se trouve sur la page. C'est une violation de WCAG 2.4.7 Focus Visible (AA).
+
+**Règle :** ne jamais utiliser `outline-none` seul. Toujours le combiner avec des classes `focus-visible:`.
+
+```tsx
+// ❌ INTERDIT — supprime le focus ring pour tout le monde
+className="... outline-none"
+
+// ✅ CORRECT — supprime l'outline natif et le remplace par un ring
+// visible uniquement à la navigation clavier (pas au clic souris)
+className="... focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+```
+
+**Pourquoi `focus-visible` plutôt que `focus` ?**
+
+| Classe | S'affiche au clic souris | S'affiche au clavier |
+|--------|--------------------------|----------------------|
+| `focus:ring-2` | ✅ oui | ✅ oui |
+| `focus-visible:ring-2` | ❌ non | ✅ oui |
+
+`focus-visible` correspond à la pseudo-classe CSS `:focus-visible` du navigateur : elle s'active uniquement quand le navigateur juge que l'indicateur est nécessaire (navigation clavier, pas clic souris). C'est le comportement attendu par les utilisateurs et le standard WCAG.
+
+**Variante pour les boutons (avec offset) :**
+
+```tsx
+// Button.tsx — focus ring avec espace entre le bouton et l'anneau
+className="... focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+```
+
+`ring-offset-2` ajoute un espace blanc de 2px entre le bouton et l'anneau, améliorant la lisibilité sur fonds colorés.
+
+**Fichiers corrigés (commit `fix/a1-a2-focus-rings`) :**
+- `components/Input.tsx`, `Button.tsx`, `Pagination.tsx`, `Select.tsx`, `Autocomplete.tsx` — composants du design system
+- `pages/AdminDashboard.tsx`, `ReporterDashboard.tsx`, `StudentDashboard.tsx`, `Quiz.tsx` — pages avec `<input>`, `<textarea>`, `<select>` natifs
+
 ---
 
 ### Ratios de contraste
@@ -2135,6 +2172,55 @@ Le token `--color-primary-hover` dans `index.css` passe de `#007a91` à `#004f62
 #### Outil de vérification
 
 [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) — saisir les deux valeurs hexadécimales pour obtenir le ratio calculé et la conformité WCAG AA / AAA.
+
+---
+
+## 8b. Bugs corrigés — AdminDashboard (Phase 1)
+
+### Bug navigation Prev/Next — notes non rechargées (P1-3)
+
+**Problème :** les boutons « Précédent » et « Suivant » dans la vue détail d'un signalement appelaient `setSelected(report)` mais pas `loadNotes(report.id)`. En naviguant d'un signalement à l'autre, les notes affichées restaient celles du signalement précédent.
+
+**Correction :** création d'une fonction `goTo` qui regroupe les deux appels :
+
+```tsx
+// AVANT — notes non rechargées
+onClick={() => setSelected(filtered[idx - 1])}
+
+// APRÈS — setSelected + loadNotes atomiquement
+const goTo = (report: typeof selected) => {
+  setSelected(report);
+  if (report) loadNotes(report.id);
+};
+
+onClick={() => goTo(filtered[idx - 1])}
+onClick={() => goTo(filtered[idx + 1])}
+```
+
+**Règle générale :** dès que `setSelected` est appelé sur un objet qui a des données associées chargées de manière asynchrone (notes, commentaires, pièces jointes…), il faut recharger ces données en même temps.
+
+---
+
+### Narrowing TypeScript sur `selected` (P1-4)
+
+**Problème :** `selected` est typé `Report | null`. Dans `handleAddNote`, la valeur était utilisée directement (`selected.id`) sans vérifier qu'elle n'est pas `null`. TypeScript peut signaler une erreur, et un appel API avec `undefined` comme ID causerait une requête invalide.
+
+**Correction :** guard explicite avec early return en début de fonction :
+
+```tsx
+// AVANT — selected potentiellement null
+const handleAddNote = async (type: string = 'note') => {
+  await addNote(selected.id, content, type); // ⚠️ selected peut être null
+};
+
+// APRÈS — TypeScript sait qu'après la garde, selected est Report
+const handleAddNote = async (type: string = 'note') => {
+  if (!selected) return; // guard — empêche l'appel si aucun signalement sélectionné
+  await addNote(selected.id, content, type); // ✅ sûr
+};
+```
+
+**Règle générale :** toujours ajouter `if (!x) return;` en début de fonction quand `x` est potentiellement `null` ou `undefined` et est utilisé dans le corps. C'est du **narrowing TypeScript** : après la ligne de guard, le compilateur sait que `x` est non-null.
 
 ---
 
