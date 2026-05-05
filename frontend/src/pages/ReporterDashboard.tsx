@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
@@ -123,20 +123,24 @@ export default function ReporterDashboard() {
     (step === 1 && !type) ||
     (step === 2 && (!description || !frequency));
 
-  const whoOptions = user?.role === 'teacher'
-    ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
-    : [{ value: t('reporter.step1.staff'), label: t('reporter.step1.staff') }];
+  const whoOptions = useMemo(
+    () => user?.role === 'teacher'
+      ? [{ value: t('reporter.step1.teacher'), label: t('reporter.step1.teacher') }]
+      : [{ value: t('reporter.step1.staff'), label: t('reporter.step1.staff') }],
+    [t, user?.role]
+  );
 
-  const typeOptions = [
-    { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
-    { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
-    { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
-    { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
-    { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
-    { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
-  ];
-
-  // ✅ Les returns conditionnels sont maintenant APRÈS tous les hooks
+  const typeOptions = useMemo(
+    () => [
+      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
+      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
+      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
+      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
+      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
+      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
+    ],
+    [t]
+  );
 
 useEffect(() => {
     if (viewSection === 'quiz') {
@@ -416,7 +420,7 @@ useEffect(() => {
 					] as const).map(row => (
 					<div key={row.label} className="flex gap-2">
 						<dt className="font-semibold text-gray-700 min-w-[120px]">{row.label} :</dt>
-						<dd className="text-gray-600">{row.value}</dd>
+						<dd className="text-gray-600 break-words min-w-0">{row.value}</dd>
 					</div>
 					))}
 				</dl>
