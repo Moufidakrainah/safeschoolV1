@@ -39,8 +39,8 @@ export default function Input({
 }: InputProps) {
 
   const labelClass = theme === 'light'
-    ? 'text-white text-sm font-medium mb-1 block'
-    : 'text-gray-700 text-sm font-medium mb-1 block';
+    ? 'text-white text-sm font-medium mb-1 block mt-5'
+    : 'text-gray-700 text-sm font-medium mb-1 block mt-5';
 
   return (
     <div className="flex flex-col gap-1 w-full">
