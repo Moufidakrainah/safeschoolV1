@@ -10,6 +10,9 @@ import Autocomplete from '../components/Autocomplete';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 import type { UserSearchResult } from '../types';
 
+import { useSearchParams } from 'react-router-dom';
+
+
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
@@ -31,7 +34,14 @@ export default function ReporterDashboard() {
   const [victimInput, setVictimInput] = useState('');
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'workshop' | 'quiz'>('report');
+  // const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('report');
+
+  const [searchParams] = useSearchParams();
+
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>(
+    (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
+  );
+
   const [staffProfile, setStaffProfile] = useState<any>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
@@ -197,7 +207,7 @@ useEffect(() => {
                   <>
                     <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
                     <div className="flex flex-wrap gap-2">
-                      {staffProfile.classes.map((c: any) => (
+                      {staffProfile.classes.map((c: id) => (
                         <span key={c.id} className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full">
                           {c.level} {c.section}
                         </span>

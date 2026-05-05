@@ -22,7 +22,6 @@ export default function ReporterHeader({
   const navItems: { key: ReporterSection; label: string }[] = [
 	{ key: 'profile'  as const, label: t('reporter.nav.profile') },
     { key: 'report',   label: t('reporter.nav.report') },
-    // { key: 'workshop', label: t('reporter.nav.workshop') },
     { key: 'quiz',     label: t('reporter.nav.quiz') },
   ];
 
