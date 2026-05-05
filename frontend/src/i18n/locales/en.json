@@ -174,7 +174,9 @@
 		"firstName": "First name",
 		"lastName": "Last name",
 		"email": "Email",
-		"role": "Role"
+    "role": "Occupation",
+    "subject": "Subject",
+    "subjectUnknown": "Unknown"
 	},
     "roles": {
       "teacher": "Teacher",

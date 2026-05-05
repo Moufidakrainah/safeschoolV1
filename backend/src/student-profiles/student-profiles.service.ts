@@ -11,7 +11,11 @@ export class StudentProfilesService {
   ) {}
 
   async create(schoolClass: string, dateOfBirth: string, userId: string): Promise<StudentProfile> {
-    const profile = this.studentProfilesRepository.create({ schoolClass, dateOfBirth, user: { id: userId } });
+    const profile = this.studentProfilesRepository.create({
+      schoolClass,
+      dateOfBirth,
+      user: { id: userId },
+    });
     return this.studentProfilesRepository.save(profile);
   }
 
@@ -20,7 +24,10 @@ export class StudentProfilesService {
   }
 
   async findByUserId(userId: string): Promise<StudentProfile> {
-    const profile = await this.studentProfilesRepository.findOne({ where: { user: { id: userId } }, relations: ['user'] });
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'parents'],
+    });
     if (!profile) throw new NotFoundException('Profil introuvable');
     return profile;
   }
@@ -30,5 +37,14 @@ export class StudentProfilesService {
     if (updates.schoolClass) profile.schoolClass = updates.schoolClass;
     if (updates.dateOfBirth) profile.dateOfBirth = updates.dateOfBirth;
     return this.studentProfilesRepository.save(profile);
+  }
+
+  async getParents(userId: string): Promise<any[]> {
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['parents'],
+    });
+    if (!profile) throw new NotFoundException('Profil introuvable');
+    return profile.parents ?? [];
   }
 }
