@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Badge from '../components/Badge';
 import Button from '../components/Button';
 import Card from '../components/Card';
-import Footer from '../components/Footer';
+import { Footer } from '../components/Footer';
 import Input from '../components/Input';
 import NoteBlock from '../components/NoteBlock';
 import Pagination from '../components/Pagination';
