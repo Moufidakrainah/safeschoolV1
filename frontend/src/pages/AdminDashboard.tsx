@@ -12,6 +12,7 @@ import Badge, { type BadgeVariant } from '../components/Badge';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
 import Select from '../components/Select';
+import Input from '../components/Input';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
@@ -222,6 +223,11 @@ export default function AdminDashboard() {
   };
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
+const updateField = (field: string, value: string) => {
+  setUserForm(prev => ({ ...prev, [field]: value }));
+};
+
+
 
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
@@ -612,36 +618,42 @@ export default function AdminDashboard() {
                 <h3 className="text-gray-800 font-bold mb-4">
                   {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
                 </h3>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <input
-                    placeholder={t('admin.users.firstName')}
+              <div className="rounded-lg bg-primary p-4">
+    
+
+
+                  <Input
+                    label={t('admin.users.firstName')}
                     value={userForm.firstName}
-                    onChange={e => setUserForm({ ...userForm, firstName: e.target.value })}
-                    aria-label={t('admin.users.firstName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    onChange={e => updateField('firstName', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.lastName')}
+
+                  <Input
+                    label={t('admin.users.lastName')}
                     value={userForm.lastName}
-                    onChange={e => setUserForm({ ...userForm, lastName: e.target.value })}
-                    aria-label={t('admin.users.lastName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    onChange={e => updateField('lastName', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.email')}
+
+                  <Input
+                    label={t('admin.users.email')}
                     value={userForm.email}
-                    onChange={e => setUserForm({ ...userForm, email: e.target.value })}
-                    aria-label={t('admin.users.email')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    onChange={e => updateField('email', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.password')}
+
+                  <Input
+                    label={t('admin.users.password')}
                     type="password"
                     value={userForm.password}
-                    onChange={e => setUserForm({ ...userForm, password: e.target.value })}
-                    aria-label={t('admin.users.password')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    onChange={e => updateField('password', e.target.value)}
+                    theme="light"
                   />
+
+
+
+<br></br>
                   <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
                     <option value="student">{t('admin.users.roles.student')}</option>
                     <option value="teacher">{t('admin.users.roles.teacher')}</option>
