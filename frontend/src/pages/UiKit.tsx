@@ -12,7 +12,6 @@ import StatCard from '../components/StatCard';
 import StepBar from '../components/StepBar';
 import Autocomplete from '../components/Autocomplete';
 import Header from '../components/Header';
-import ReporterHeader from '../components/Jeter-ReporterHeader';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report } from '../types';
 
@@ -262,20 +261,6 @@ export default function UiKit() {
           <Section title="Header (générique)">
             <div className="overflow-hidden rounded-xl border border-gray-200">
               <Header user={sampleUser} logoutUser={() => {}} t={(k) => k} />
-            </div>
-          </Section>
-
-          {/* ReporterHeader */}
-          <Section title="ReporterHeader">
-            <div className="flex flex-col gap-4">
-              <p className="text-xs text-gray-400">Mode normal</p>
-              <div className="overflow-hidden rounded-xl border border-gray-200">
-                <ReporterHeader user={sampleUser} logoutUser={() => {}} t={(k) => k} />
-              </div>
-              <p className="text-xs text-gray-400">Mode formulaire (showCancel)</p>
-              <div className="overflow-hidden rounded-xl border border-gray-200">
-                <ReporterHeader user={sampleUser} logoutUser={() => {}} showCancel onCancel={() => {}} t={(k) => k} />
-              </div>
             </div>
           </Section>
 

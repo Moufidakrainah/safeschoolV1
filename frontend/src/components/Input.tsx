@@ -52,7 +52,7 @@ export default function Input({
         placeholder={placeholder}
         required={required}
         aria-label={ariaLabel}
-        className="w-full px-4 py-3 rounded-full bg-white text-gray-800 text-sm outline-none focus:ring-2 focus:ring-primary border-none"
+        className="w-full px-4 py-3 rounded-full bg-white text-gray-800 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border-none"
       />
     </div>
   );

@@ -256,7 +256,7 @@ useEffect(() => {
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
               placeholder="Enter room id"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary"
             />
             <button type="submit" disabled={!connected} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
               Submit
