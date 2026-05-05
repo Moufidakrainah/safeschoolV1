@@ -207,7 +207,7 @@ useEffect(() => {
                   <>
                     <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
                     <div className="flex flex-wrap gap-2">
-                      {staffProfile.classes.map((c: any) => (
+                      {staffProfile.classes.map((c: id) => (
                         <span key={c.id} className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full">
                           {c.level} {c.section}
                         </span>

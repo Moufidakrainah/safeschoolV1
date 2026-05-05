@@ -4,7 +4,10 @@
     "labelPassword": "Passwort",
     "submit": "Anmelden",
     "loading": "Anmeldung läuft...",
-    "error": "Benutzername oder Passwort falsch"
+	"errorRequired": "Bitte füllen Sie alle Felder aus.",
+	"errorEmailFormat": "Ungültiges E-Mail-Format.",
+	"errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
+	"error": "Falsche Anmeldeinformationen."
   },
   "nav": {
     "logout": "Abmelden"

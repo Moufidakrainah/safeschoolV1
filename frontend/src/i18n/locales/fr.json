@@ -4,7 +4,10 @@
     "labelPassword": "Mot de passe",
     "submit": "Se connecter",
     "loading": "Connexion...",
-    "error": "Identifiant ou mot de passe incorrect"
+	"errorRequired": "Veuillez remplir tous les champs.",
+	"errorEmailFormat": "Format d'email invalide.",
+	"errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
+	"error": "Identifiants incorrects."
   },
   "nav": {
     "logout": "Se déconnecter"
