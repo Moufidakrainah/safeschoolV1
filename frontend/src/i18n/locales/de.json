@@ -130,7 +130,9 @@
         "staff": "Personal",
         "admin": "Admin",
         "director": "Direktor"
-      }
+      }, 
+	  "errorEmailFormat": "Ungültiges E-Mail-Format.",
+	  "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten."
     }
   },
   "badge": {
@@ -312,8 +314,14 @@
       "anonymous": "Anonyme Meldung",
       "anonymousDesc": "mein Name wird nicht sichtbar sein"
     },
-    "submitting": "Wird gesendet...",
-    "submit": "Meldung absenden"
+    "submitting":  "Wird gesendet...",
+    "submit":      "Meldung absenden",
+    "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen.",
+    "validation": {
+      "typeRequired":        "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
+      "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
+      "frequencyRequired":   "Bitte die Häufigkeit angeben, um fortzufahren."
+    }
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",

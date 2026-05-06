@@ -172,6 +172,10 @@ export class UsersService {
   // ── Supprimer un utilisateur (par un admin) ───────────────────────────────
   // On supprime d'abord toutes les données liées pour éviter les erreurs de clé étrangère
   // On empêche un admin de supprimer son propre compte
+
+
+
+
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
     // Empêcher de supprimer son propre compte
     if (id === currentUserId) throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
@@ -180,11 +184,27 @@ export class UsersService {
     if (!user) throw new NotFoundException('Utilisateur introuvable');
 
     // Supprimer toutes les données liées avant de supprimer le user
-    await this.usersRepository.query(`DELETE FROM notifications WHERE "userId" = $1`, [id]);
-    await this.usersRepository.query(`DELETE FROM report_suspects WHERE "userId" = $1`, [id]);
-    await this.usersRepository.query(`DELETE FROM report_notes WHERE "authorId" = $1`, [id]);
-    await this.usersRepository.query(`DELETE FROM reports WHERE "studentId" = $1`, [id]);
-    await this.usersRepository.query(`DELETE FROM student_profiles WHERE "userId" = $1`, [id]);
+    // await this.usersRepository.query(`DELETE FROM notifications WHERE "userId" = $1`, [id]);
+    // await this.usersRepository.query(`DELETE FROM report_suspects WHERE "userId" = $1`, [id]);
+    // await this.usersRepository.query(`DELETE FROM report_notes WHERE "authorId" = $1`, [id]);
+    // await this.usersRepository.query(`DELETE FROM reports WHERE "studentId" = $1`, [id]);
+    // await this.usersRepository.query(`DELETE FROM student_profiles WHERE "userId" = $1`, [id]);
     await this.usersRepository.remove(user);
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
