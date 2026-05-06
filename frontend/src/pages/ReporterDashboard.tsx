@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next';
 
 // Contexts & hooks
 import { useAuth } from '../context/AuthContext';
+import { useReportForm } from '../hooks/useReportForm';
 
 // API services
-import { createReport, searchUsers, getStaffProfile } from '../services/api';
+import { getStaffProfile } from '../services/api';
 
 // UI components
 import Button from '../components/Button';
@@ -47,41 +48,36 @@ export default function ReporterDashboard() {
     (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
   );
 
-  // --- État du formulaire multi-étapes ---
-  const [step, setStep] = useState(1);  // step contrôle quelle étape du formulaire est affichée (1 à 5, puis 6 = succès)
-  const defaultWho = user?.role === 'teacher' ? t('reporter.step1.teacher') : t('reporter.step1.staff'); // defaultWho est calculé une fois au montage selon le rôle de l'utilisateur
-  const [whoSignals, setWhoSignals] = useState(defaultWho);   // étape 1 : qui signale
-  const [type, setType] = useState('');                       // étape 1 : type de harcèlement
-  const [description, setDescription] = useState('');         // étape 2 : description des faits
-  const [frequency, setFrequency] = useState('');             // étape 2 : fréquence
-  const [isAnonymous, setIsAnonymous] = useState(false);      // étape 5 : signalement anonyme
-  const [loading, setLoading] = useState(false);              // soumission en cours
-  const [submitError, setSubmitError] = useState<string | null>(null);  // message d'erreur affiché à l'utilisateur si l'envoi echoue. null = pas d'erreur. Non-null = bandeau rouge visible à l'étape 5.
-  // showErrors : true quand l'utilisateur a tenté d'avancer sans remplir les champs requis.
-  // Déclenche l'affichage des messages d'erreur inline sous les champs concernés.
-  // Remis à false dès qu'on avance à l'étape suivante ou qu'on revient en arrière.
-  const [showErrors, setShowErrors] = useState(false);
-
-
-  // --- État de la recherche de suspects ---
-  // suspects : liste finale des suspects ajoutés au signalement
-  // suspectInput : valeur en temps réel du champ de recherche
-  // suspectSuggestions : résultats retournés par l'API pour l'autocomplétion
-  // searchingUsers : booléen de chargement, conditionne l'affichage du bouton "texte libre"
-  const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
-  const [suspectInput, setSuspectInput] = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
-  const [searchingUsers, setSearchingUsers] = useState(false);
-
-  // --- État de la recherche de victime ---
-  // victimName : nom final de la victime (texte libre ou issu de la sélection)
-  // victimInput : valeur en temps réel du champ de recherche
-  // victimSuggestions : résultats API pour l'autocomplétion
-  // selectedVictim : objet complet si la victime a été sélectionnée dans la liste
-  const [victimName, setVictimName] = useState('');
-  const [victimInput, setVictimInput] = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
-  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
+  // --- État du formulaire et logique métier ---
+  // Tout l'état du formulaire (champs, suspects, victime, validation…) et les
+  // handlers asynchrones sont délégués au hook useReportForm.
+  // Le composant ne conserve que ce qui concerne la navigation et le profil.
+  const {
+    step, setStep,
+    whoSignals, setWhoSignals,
+    type, setType,
+    description, setDescription,
+    frequency, setFrequency,
+    isAnonymous, setIsAnonymous,
+    loading,
+    submitError,
+    showErrors, setShowErrors,
+    isNextDisabled,
+    suspects,
+    suspectInput,
+    suspectSuggestions,
+    searchingUsers,
+    victimName, setVictimName,
+    victimInput, setVictimInput,
+    victimSuggestions, setVictimSuggestions,
+    selectedVictim, setSelectedVictim,
+    handleSubmit,
+    handleSuspectSearch,
+    handleVictimSearch,
+    addSuspect,
+    removeSuspect,
+    resetForm,
+  } = useReportForm(user?.role, t);
 
   // --- État du profil professionnel (section 'profile') ---
   const [staffProfile, setStaffProfile] = useState<any>(null);
@@ -102,98 +98,6 @@ export default function ReporterDashboard() {
     }
   }, [user?.id]);
 
-  // --- Handlers métier ---
-
-  // Soumet le signalement à l'API.
-  // Guard en début de fonction : les trois champs obligatoires doivent être remplis
-  // (double sécurité — le bouton Suivant est déjà désactivé via isNextDisabled).
-  // La victime est encodée dans la description pour compatibilité avec le backend actuel.
-  const handleSubmit = async () => {
-    if (!type || !description || !frequency) return;
-
-    setLoading(true);
-    // Reset any previous error before each new attempt
-    setSubmitError(null);
-    try {
-      const title = `${type} - ${whoSignals}`;
-      const victimInfo = victimName ? ` | Victime : ${victimName}` : '';
-      const fullDescription = `${description} (Fréquence: ${frequency})${victimInfo}`;
-      const suspectsData = suspects.map(s => ({
-        userId: s.id || undefined,
-        freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
-      }));
-      await createReport(title, fullDescription, isAnonymous, suspectsData, frequency, '');
-      setStep(6);
-    } catch (err) {
-      // Show a visible error banner — console.error alone is not enough for the user
-      console.error('Report submission failed', err);
-      setSubmitError(t('reporter.submitError'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Recherche de suspects : appel API à chaque frappe.
-  // searchingUsers est mis à true pendant le chargement pour masquer
-  // le bouton "ajouter en texte libre" le temps d'avoir les résultats.
-  const handleSuspectSearch = async (value: string) => {
-    setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
-    setSearchingUsers(true);
-    try {
-      setSuspectSuggestions(await searchUsers(value));
-    } catch {
-      setSuspectSuggestions([]);
-    } finally {
-      setSearchingUsers(false);
-    }
-  };
-
-  // Recherche de victime : appel API à chaque frappe.
-  // Pas de searchingUsers car la victime n'a pas de bouton "texte libre" —
-  // l'utilisateur peut directement taper un nom libre dans l'input.
-  const handleVictimSearch = async (value: string) => {
-    setVictimInput(value);
-    setSelectedVictim(null);
-    setVictimName(value);
-    if (value.length < 2) { setVictimSuggestions([]); return; }
-    try {
-      setVictimSuggestions(await searchUsers(value));
-    } catch {
-      setVictimSuggestions([]);
-    }
-  };
-
-  // Ajoute un suspect à la liste en évitant les doublons (comparaison prénom+nom).
-  // Accepte aussi bien un objet issu de l'API (avec id) qu'un texte libre (sans id).
-  const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
-    if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
-      setSuspects([...suspects, suspect]);
-    }
-    setSuspectInput('');
-    setSuspectSuggestions([]);
-  };
-
-  // Supprime un suspect par son index dans le tableau.
-  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
-
-  // Réinitialise tous les champs du formulaire et revient à l'étape 1.
-  // Appelé après un envoi réussi (bouton "Nouveau signalement" sur l'écran de succès).
-  const resetForm = () => {
-    setStep(1);
-    setType('');
-    setDescription('');
-    setFrequency('');
-    setWhoSignals(defaultWho);
-    setVictimName('');
-    setVictimInput('');
-    setSelectedVictim(null);
-    setSuspects([]);
-    setIsAnonymous(false);
-    setSubmitError(null);
-    setShowErrors(false);
-  };
-
   // --- Données dérivées ---
 
   // headerProps regroupe les props partagées par le header dans toutes les vues.
@@ -208,12 +112,6 @@ export default function ReporterDashboard() {
     t('reporter.steps.evidence'),
     t('reporter.steps.validate'),
   ];
-
-  // Désactive le bouton "Suivant" si les champs obligatoires de l'étape courante
-  // ne sont pas remplis. Validation légère côté client avant soumission.
-  const isNextDisabled =
-    (step === 1 && !type) ||
-    (step === 2 && (!description || !frequency));
 
   // whoOptions et typeOptions sont mémoïsés avec useMemo : ils ne sont recalculés
   // que si la langue (t) ou le rôle changent, pas à chaque re-render du composant.
