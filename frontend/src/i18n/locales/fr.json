@@ -133,9 +133,9 @@
 	  "errorEmailFormat": "Format d'email invalide.",
 	  "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.", 
 	"deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
-	"deleteWarning": "Cette action est irréversible.",
 	"deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
-	"deleteError": "Une erreur est survenue lors de la suppression."
+	"deleteError": "Une erreur est survenue lors de la suppression.",
+  "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
     }
   },
   "badge": {
@@ -167,7 +167,8 @@
     "loading": "Chargement...",
     "previous": "Précédent",
     "next": "Suivant",
-    "error": "Une erreur est survenue"
+    "error": "Une erreur est survenue",
+    "close": "Fermer"
   },
   "reporter": {
     "nav": {

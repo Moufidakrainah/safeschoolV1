@@ -314,6 +314,11 @@ curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006
     }
     return this.usersService.deleteByAdmin(id, req.user.id);
   }
-
+@Get(':id/can-delete')
+async canDelete(@Request() req, @Param('id') id: string) {
+  validateUUID(id);
+  if (req.user.role !== 'admin') throw new ForbiddenException();
+  return this.usersService.canDelete(id);
+}
 
 }

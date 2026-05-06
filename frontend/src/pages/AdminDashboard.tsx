@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, createUser, updateUser, deleteUser,
+  getAllUsers, createUser, updateUser, deleteUser,checkCanDeleteUser
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -257,10 +257,25 @@ const stats = useMemo(() => {
   };
 
 
-const handleDeleteUser = (id: string) => {
-	 console.log("Delete requested for:", id);
-  setDeleteTarget(id); // ouvre la modal
+
+  
+const handleDeleteUser = async (id: string) => {
+  // Vérifier si c'est son propre compte
+  if (id === user?.id) {
+    setDeleteTarget(id);
+    setIsBlocked(true);
+    setDeleteError(t('admin.users.deleteSelf'));
+    return;
+  }
+
+  const { deletable } = await checkCanDeleteUser(id);
+  setDeleteTarget(id);
+  setIsBlocked(!deletable);
+  setDeleteError('');
 };
+
+
+
 const confirmDelete = async () => {
   if (!deleteTarget) return;
 
@@ -275,12 +290,12 @@ const confirmDelete = async () => {
   } catch (err: any) {
     console.error("Erreur suppression utilisateur:", err);
 
-    const msg = err?.message ?? "";
-
+   const msg = err?.response?.data?.message ?? err?.message ?? "";
+  
     // 🔥 Cas : utilisateur lié à un signalement
     if (msg === "USER_HAS_REPORTS") {
       setIsBlocked(true); // active le mode "bloqué"
-      setDeleteError(t('admin.users.deleteBlocked')); 
+      // setDeleteError(t('admin.users.deleteBlocked')); 
     } else {
       // 🔥 Autre erreur
       setDeleteError(t('admin.users.deleteError'));
@@ -885,24 +900,18 @@ const isFormValid =
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
 
-      <h3 className="text-lg font-semibold mb-4">
-        {isBlocked
-          ? t('admin.users.deleteBlockedTitle') // ex: "Suppression impossible"
-          : t('admin.users.deleteConfirm')}
-      </h3>
-
       <p className="text-sm text-gray-600 mb-4">
         {isBlocked
           ? t('admin.users.deleteBlocked') // ex: "Cet utilisateur est lié à un signalement…"
-          : t('admin.users.deleteWarning')}
+          : t('admin.users.deleteConfirm')}
       </p>
 
       {/* Message d’erreur */}
-      {deleteError && (
-        <p className="text-red-600 text-sm mb-4">
-          {deleteError}
+      <p className="text-red-600 text-sm mb-4">
+      {deleteError ? 
+        deleteError : '' }
         </p>
-      )}
+        
 
       <div className="flex justify-end gap-3">
 

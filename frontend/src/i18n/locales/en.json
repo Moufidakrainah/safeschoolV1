@@ -119,7 +119,6 @@
       "email": "Email",
       "password": "Password",
       "save": "Save",
-      "deleteConfirm": "Delete this user?",
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
@@ -132,8 +131,12 @@
         "director": "Director"
       }, 
 	  "errorEmailFormat": "Invalid email format.",
-	  "errorPasswordLength": "The password must contain at least 6 characters."
-    }
+	  "errorPasswordLength": "The password must contain at least 6 characters.",
+   	"deleteConfirm": "Do you really want to delete this user?",
+	"deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
+	"deleteError": "An error occurred during deletion.",
+  "deleteSelf": "You cannot delete your own account"
+     }
   },
   "badge": {
     "critical":    "🔴 Critical",
@@ -164,7 +167,8 @@
     "loading": "Loading...",
     "previous": "Previous",
     "next": "Next",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "close": "Close"
   },
   "reporter": {
 	"nav": {

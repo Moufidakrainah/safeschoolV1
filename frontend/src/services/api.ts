@@ -74,3 +74,8 @@ export const getStaffProfile = async (userId: string) =>
   (await api.get(`/staff-profiles/by-user/${userId}`)).data;
 
 export default api;
+
+export const checkCanDeleteUser = async (id: string) => {
+  const res = await api.get(`/users/${id}/can-delete`);
+  return res.data;
+};
