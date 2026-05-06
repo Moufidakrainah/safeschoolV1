@@ -279,7 +279,45 @@
       "anonymousDesc": "my name will not be visible"
     },
     "submitting": "Sending...",
-    "submit": "Submit report"
+    "submit": "Submit report",
+    "submitError": "Submission failed. Check your connection and try again.",
+    "validation": {
+      "typeRequired":        "Please select a type of bullying to continue.",
+      "descriptionRequired": "Please describe the facts to continue.",
+      "frequencyRequired":   "Please indicate the frequency to continue."
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    }
+  },
+  "student": {
+    "nav": {
+      "ariaLabel": "Student navigation",
+      "profile":   "My profile",
+      "report":    "Make a report",
+      "workshop":  "Workshops",
+      "quiz":      "Quiz"
+    },
+    "profile": {
+      "title":     "My profile",
+      "firstName": "First name",
+      "lastName":  "Last name",
+      "email":     "Email",
+      "role":      "Role"
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    }
   },
   "privacy": {
     "updated": "Last updated: April 2026",
