@@ -17,6 +17,7 @@ import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
+import { useMemo } from 'react';
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -97,11 +98,13 @@ export default function AdminDashboard() {
   };
 
   // ── Filtrage
-  const filtered = reports.filter((r: Report) => {
+const filtered = useMemo(() => {
+  return reports.filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
     if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+
     if (filterSuspect) {
       const q = filterSuspect.toLowerCase();
       const match = r.suspects?.some(s => {
@@ -110,32 +113,61 @@ export default function AdminDashboard() {
       });
       if (!match) return false;
     }
+
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+
     if (filterDateTo) {
       const to = new Date(filterDateTo);
       to.setHours(23, 59, 59, 999);
       if (new Date(r.createdAt) > to) return false;
     }
+
     if (search) {
       const q = search.toLowerCase();
       const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (!name.includes(q) && !(r.title ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q))
-        return false;
+      if (
+        !name.includes(q) &&
+        !(r.title ?? '').toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) return false;
     }
+
     return true;
   });
+}, [
+  reports,
+  filterGrade,
+  filterStatus,
+  filterClass,
+  filterStudent,
+  filterSuspect,
+  filterDateFrom,
+  filterDateTo,
+  search
+]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+
+const totalPages = useMemo(() => {
+  return Math.ceil(filtered.length / itemsPerPage);
+}, [filtered, itemsPerPage]);
+const paginated = useMemo(() => {
+  const start = (currentPage - 1) * itemsPerPage;
+  return filtered.slice(start, start + itemsPerPage);
+}, [filtered, currentPage, itemsPerPage]);
 
   // ── Compteurs pour les StatCards
-  const stats = {
-    total:     reports.length,
+const stats = useMemo(() => {
+  return {
+    total: reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
     escalated: reports.filter(r => r.status === 'escalated').length,
   };
+}, [reports]);
+
 
   const handleReset = () => {
     setFilterGrade('all');
@@ -223,9 +255,53 @@ export default function AdminDashboard() {
   };
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
+// const updateField = (field: string, value: string) => {
+//   setUserForm(prev => ({ ...prev, [field]: value }));
+// };
+
+
+const [errors, setErrors] = useState({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+});
+
+const validateField = (field: string, value: string) => {
+  let message = '';
+
+  if (!value.trim() && field !== 'password') {
+    message = t('admin.users.errorRequired');
+  } else if (field === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      message = t('admin.users.errorEmailFormat');
+    }
+  } else if (field === 'password')
+	{
+		if (value.length > 0 && value.length < 6) {
+    message = t('admin.users.errorPasswordLength');
+  }
+}
+
+  setErrors(prev => ({ ...prev, [field]: message }));
+};
+
+
 const updateField = (field: string, value: string) => {
   setUserForm(prev => ({ ...prev, [field]: value }));
+  validateField(field, value);
 };
+
+const isFormValid =
+  userForm.firstName.trim() &&
+  userForm.lastName.trim() &&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
+  !errors.firstName &&
+  !errors.lastName &&
+  !errors.email &&
+  !errors.password;
+
 
 
 
@@ -618,7 +694,7 @@ const updateField = (field: string, value: string) => {
                 <h3 className="text-gray-800 font-bold mb-4">
                   {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
                 </h3>
-              <div className="rounded-lg bg-primary p-4">
+              <div className="rounded-lg bg-primary p-4 mb-5">
     
 
 
@@ -628,6 +704,12 @@ const updateField = (field: string, value: string) => {
                     onChange={e => updateField('firstName', e.target.value)}
                     theme="light"
                   />
+				  <div className="min-h-5 w-full">
+					{errors.firstName && (
+						<p className="text-red-300 text-xs">{errors.firstName}</p>
+					)}
+					</div>
+
 
                   <Input
                     label={t('admin.users.lastName')}
@@ -635,6 +717,12 @@ const updateField = (field: string, value: string) => {
                     onChange={e => updateField('lastName', e.target.value)}
                     theme="light"
                   />
+				  <div className="min-h-5 w-full">
+				{errors.lastName && (
+					<p className="text-red-300 text-xs">{errors.lastName}</p>
+				)}
+				</div>
+
 
                   <Input
                     label={t('admin.users.email')}
@@ -642,6 +730,12 @@ const updateField = (field: string, value: string) => {
                     onChange={e => updateField('email', e.target.value)}
                     theme="light"
                   />
+				  <div className="min-h-5 w-full">
+					{errors.email && (
+						<p className="text-red-300 text-xs">{errors.email}</p>
+					)}
+					</div>
+
 
                   <Input
                     label={t('admin.users.password')}
@@ -650,10 +744,13 @@ const updateField = (field: string, value: string) => {
                     onChange={e => updateField('password', e.target.value)}
                     theme="light"
                   />
+					<div className="min-h-5 w-full">
+					{errors.password && (
+						<p className="text-red-300 text-xs">{errors.password}</p>
+					)}
+					</div>
 
-
-
-<br></br>
+				<div className="text-center">
                   <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
                     <option value="student">{t('admin.users.roles.student')}</option>
                     <option value="teacher">{t('admin.users.roles.teacher')}</option>
@@ -670,9 +767,11 @@ const updateField = (field: string, value: string) => {
                       <option value="3eme">3ème</option>
                     </Select>
                   )}
+				  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="success" onClick={handleSaveUser}>💾 {t('admin.users.save')}</Button>
+                <div className="flex gap-3 place-content-end">
+				  <Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button>
+
                   <Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>
                     {t('common.cancel')}
                   </Button>
