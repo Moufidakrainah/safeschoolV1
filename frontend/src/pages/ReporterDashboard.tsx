@@ -57,6 +57,10 @@ export default function ReporterDashboard() {
   const [isAnonymous, setIsAnonymous] = useState(false);      // étape 5 : signalement anonyme
   const [loading, setLoading] = useState(false);              // soumission en cours
   const [submitError, setSubmitError] = useState<string | null>(null);  // message d'erreur affiché à l'utilisateur si l'envoi echoue. null = pas d'erreur. Non-null = bandeau rouge visible à l'étape 5.
+  // showErrors : true quand l'utilisateur a tenté d'avancer sans remplir les champs requis.
+  // Déclenche l'affichage des messages d'erreur inline sous les champs concernés.
+  // Remis à false dès qu'on avance à l'étape suivante ou qu'on revient en arrière.
+  const [showErrors, setShowErrors] = useState(false);
 
 
   // --- État de la recherche de suspects ---
@@ -187,6 +191,7 @@ export default function ReporterDashboard() {
     setSuspects([]);
     setIsAnonymous(false);
     setSubmitError(null);
+    setShowErrors(false);
   };
 
   // --- Données dérivées ---
@@ -382,6 +387,10 @@ export default function ReporterDashboard() {
 					</button>
 					))}
 				</div>
+				{/* Message d'erreur si l'utilisateur essaie d'avancer sans choisir de type */}
+				{showErrors && !type && (
+					<p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
+				)}
 				</fieldset>
 			)}
 
@@ -400,9 +409,13 @@ export default function ReporterDashboard() {
 					placeholder={t('reporter.step3.descriptionPlaceholder')}
 					rows={5}
 					aria-required="true"
-					className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-5"
+					className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
 				/>
-				<label className="block mb-2 text-sm font-semibold text-gray-700" htmlFor="frequency">
+				{/* Message d'erreur si description vide */}
+				{showErrors && !description && (
+					<p role="alert" className="mb-4 text-sm text-red-600">⚠️ {t('reporter.validation.descriptionRequired')}</p>
+				)}
+				<label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
 					{t('reporter.step3.frequencyLabel')}
 				</label>
 				<select
@@ -418,6 +431,10 @@ export default function ReporterDashboard() {
 					<option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
 					<option value="Tous les jours">{t('reporter.step3.freq4')}</option>
 				</select>
+				{/* Message d'erreur si fréquence non sélectionnée */}
+				{showErrors && !frequency && (
+					<p role="alert" className="mt-2 text-sm text-red-600">⚠️ {t('reporter.validation.frequencyRequired')}</p>
+				)}
 				</div>
 			)}
 
@@ -516,7 +533,7 @@ export default function ReporterDashboard() {
 					] as const).map(row => (
 					<div key={row.label} className="flex gap-2">
 						<dt className="font-semibold text-gray-700 min-w-[120px]">{row.label} :</dt>
-						<dd className="text-gray-600 break-words min-w-0">{row.value}</dd>
+						<dd className="text-gray-600 wrap-break-word min-w-0">{row.value}</dd>
 					</div>
 					))}
 				</dl>
@@ -549,13 +566,19 @@ export default function ReporterDashboard() {
 			<div className="flex justify-between mt-8">
 				<Button
 				variant="ghost"
-				onClick={() => setStep(s => s - 1)}
+				onClick={() => { setShowErrors(false); setStep(s => s - 1); }}
 				disabled={step === 1}
 				>
 				← {t('common.previous')}
 				</Button>
 				{step < 5 ? (
-				<Button onClick={() => setStep(s => s + 1)} disabled={isNextDisabled}>
+				<Button onClick={() => {
+					// Si les champs requis de cette étape sont vides, afficher les erreurs inline
+					// sans avancer. L'utilisateur voit ce qui manque et peut corriger.
+					if (isNextDisabled) { setShowErrors(true); return; }
+					setShowErrors(false);
+					setStep(s => s + 1);
+				}}>
 					{t('common.next')} →
 				</Button>
 				) : (

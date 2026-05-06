@@ -278,9 +278,8 @@
       "anonymous": "Anonymous report",
       "anonymousDesc": "my name will not be visible"
     },
-    "submitting":  "Sending...",
-    "submit":      "Submit report",
-    "submitError": "Submission failed. Please check your connection and try again."
+    "submitting": "Sending...",
+    "submit": "Submit report"
   },
   "privacy": {
     "updated": "Last updated: April 2026",

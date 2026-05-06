@@ -314,7 +314,12 @@
     },
     "submitting":  "Wird gesendet...",
     "submit":      "Meldung absenden",
-    "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen."
+    "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen.",
+    "validation": {
+      "typeRequired":        "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
+      "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
+      "frequencyRequired":   "Bitte die Häufigkeit angeben, um fortzufahren."
+    }
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",
