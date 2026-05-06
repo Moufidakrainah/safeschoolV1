@@ -17,6 +17,7 @@ import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
+import { useMemo } from 'react';
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -97,11 +98,13 @@ export default function AdminDashboard() {
   };
 
   // ── Filtrage
-  const filtered = reports.filter((r: Report) => {
+const filtered = useMemo(() => {
+  return reports.filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
     if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+
     if (filterSuspect) {
       const q = filterSuspect.toLowerCase();
       const match = r.suspects?.some(s => {
@@ -110,32 +113,61 @@ export default function AdminDashboard() {
       });
       if (!match) return false;
     }
+
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+
     if (filterDateTo) {
       const to = new Date(filterDateTo);
       to.setHours(23, 59, 59, 999);
       if (new Date(r.createdAt) > to) return false;
     }
+
     if (search) {
       const q = search.toLowerCase();
       const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (!name.includes(q) && !(r.title ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q))
-        return false;
+      if (
+        !name.includes(q) &&
+        !(r.title ?? '').toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) return false;
     }
+
     return true;
   });
+}, [
+  reports,
+  filterGrade,
+  filterStatus,
+  filterClass,
+  filterStudent,
+  filterSuspect,
+  filterDateFrom,
+  filterDateTo,
+  search
+]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+
+const totalPages = useMemo(() => {
+  return Math.ceil(filtered.length / itemsPerPage);
+}, [filtered, itemsPerPage]);
+const paginated = useMemo(() => {
+  const start = (currentPage - 1) * itemsPerPage;
+  return filtered.slice(start, start + itemsPerPage);
+}, [filtered, currentPage, itemsPerPage]);
 
   // ── Compteurs pour les StatCards
-  const stats = {
-    total:     reports.length,
+const stats = useMemo(() => {
+  return {
+    total: reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
     escalated: reports.filter(r => r.status === 'escalated').length,
   };
+}, [reports]);
+
 
   const handleReset = () => {
     setFilterGrade('all');
