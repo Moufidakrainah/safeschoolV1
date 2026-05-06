@@ -69,6 +69,13 @@ export default function AdminDashboard() {
 const [isDeleting, setIsDeleting] = useState(false);
 
 
+
+const [deleteError, setDeleteError] = useState('');
+const [globalDeleteError, setGlobalDeleteError] = useState('');
+
+const [isBlocked, setIsBlocked] = useState(false);
+
+
   const itemsPerPage = 5;
 
   // ── Chargement initial
@@ -254,30 +261,36 @@ const handleDeleteUser = (id: string) => {
 	 console.log("Delete requested for:", id);
   setDeleteTarget(id); // ouvre la modal
 };
-
-
 const confirmDelete = async () => {
   if (!deleteTarget) return;
 
   setIsDeleting(true);
   setDeleteError('');
+  setIsBlocked(false);
 
   try {
     await deleteUser(deleteTarget);
     await fetchUsers();
-	setDeleteTarget(null); // ferme la modal
-	} catch (err: any) {
-		console.error("Erreur suppression utilisateur:", err);
+    setDeleteTarget(null); // suppression OK → fermer la popup
+  } catch (err: any) {
+    console.error("Erreur suppression utilisateur:", err);
 
-		if (err.message?.includes('report') || err.message?.includes('constraint')) {
-		setDeleteError(t('admin.users.deleteBlocked')); 
-		} else {
-		setDeleteError(t('admin.users.deleteError'));
-		}
-	} finally {
-		setIsDeleting(false);
-	}
+    const msg = err?.message ?? "";
+
+    // 🔥 Cas : utilisateur lié à un signalement
+    if (msg === "USER_HAS_REPORTS") {
+      setIsBlocked(true); // active le mode "bloqué"
+      setDeleteError(t('admin.users.deleteBlocked')); 
+    } else {
+      // 🔥 Autre erreur
+      setDeleteError(t('admin.users.deleteError'));
+    }
+  } finally {
+    setIsDeleting(false);
+  }
 };
+
+
 
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
@@ -324,6 +337,7 @@ const isFormValid =
   !errors.lastName &&
   !errors.email &&
   !errors.password;
+
 
 
 
@@ -512,6 +526,7 @@ const isFormValid =
 
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
+	<>
     <div className="flex-1 bg-white font-sans">
       <AdminHeader {...headerProps} />
 
@@ -853,42 +868,71 @@ const isFormValid =
 				</Card>
 			</li>
 			))}
+
+
+
+
+
+
 		</ul>
+
 		)}
 
 
 
-		{/* 🔥🔥🔥 MODAL DE CONFIRMATION 🔥🔥🔥 */}
-		{deleteTarget && (
-		<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-			<div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-			<h3 className="text-lg font-semibold mb-4">
-				{t('admin.users.deleteConfirm')}
-			</h3>
 
-			<p className="text-sm text-gray-600 mb-6">
-				{t('admin.users.deleteWarning')}
-			</p>
+{deleteTarget && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
 
-			<div className="flex justify-end gap-3">
-				<button
-				onClick={() => setDeleteTarget(null)}
-				className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
-				>
-				{t('common.cancel')}
-				</button>
+      <h3 className="text-lg font-semibold mb-4">
+        {isBlocked
+          ? t('admin.users.deleteBlockedTitle') // ex: "Suppression impossible"
+          : t('admin.users.deleteConfirm')}
+      </h3>
 
-				<button
-				onClick={confirmDelete}
-				disabled={isDeleting}
-				className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-				>
-				{isDeleting ? t('common.loading') : t('common.delete')}
-				</button>
-			</div>
-			</div>
-		</div>
-		)} 
+      <p className="text-sm text-gray-600 mb-4">
+        {isBlocked
+          ? t('admin.users.deleteBlocked') // ex: "Cet utilisateur est lié à un signalement…"
+          : t('admin.users.deleteWarning')}
+      </p>
+
+      {/* Message d’erreur */}
+      {deleteError && (
+        <p className="text-red-600 text-sm mb-4">
+          {deleteError}
+        </p>
+      )}
+
+      <div className="flex justify-end gap-3">
+
+        {/* Bouton Annuler / Fermer */}
+        <button
+          onClick={() => {
+            setDeleteTarget(null);
+            setIsBlocked(false);
+          }}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          {isBlocked ? t('common.close') : t('common.cancel')}
+        </button>
+
+        {/* Bouton Supprimer → seulement si NON bloqué */}
+        {!isBlocked && (
+          <button
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isDeleting ? t('common.loading') : t('common.delete')}
+          </button>
+        )}
+
+      </div>
+
+    </div>
+  </div>
+)}
 
 
 
@@ -904,5 +948,7 @@ const isFormValid =
 
       </div>
     </div>
+  </>
+
   );
 }

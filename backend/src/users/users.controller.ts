@@ -314,13 +314,6 @@ curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006
     }
     return this.usersService.deleteByAdmin(id, req.user.id);
   }
-  /*# Token directeur
-curl -X POST "http://localhost:5000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "directeur@safeschool.com", "password": "directeur123"}'
 
-# Token lotfi (élève)
-curl -X POST "http://localhost:5000/auth/login" \
-  -H "Content-Type: application/json" \
-  -d '{"email": "lotfi@safeschool.com", "password": "eleve123"}' */
+
 }
