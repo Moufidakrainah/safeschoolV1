@@ -137,7 +137,10 @@ export default function Quiz() {
 
       socket.on('quiz:join:ignored', (data) => {
         if (data.reason === 'quiz-already-started') {
-          setSocketError('quiz-already-started');
+          setSocketError('The quiz has already started.');
+        }
+        else if (data.reason === 'room-is-full') {
+          setSocketError('This room is already full.');
         }
       });
 
@@ -179,13 +182,13 @@ export default function Quiz() {
     event.preventDefault();
     const trimmed = roomCode.trim();
 
-    if (!trimmed) {
-      setSocketError('Please enter a room code.');
+    if (!connected) {
+      setSocketError('Socket is not connected.');
       return;
     }
 
-    if (!connected) {
-      setSocketError('Socket is not connected.');
+    if (!trimmed || trimmed.length < 3 || trimmed.length > 10) {
+      setSocketError('Please enter a room code between 3 and 10 characters.');
       return;
     }
 
@@ -193,6 +196,13 @@ export default function Quiz() {
   }
 
   function handleLeaveRoom() {
+    if (gamePhase === 'over') {
+      setRoomCode('');
+      setJoinedRoom(null);
+      setQuestionState(null);
+      setTimeLeftMs(0);
+      setGamePhase('lobby');
+    }
     if (!joinedRoom) return;
 
     if (!connected) {
@@ -232,20 +242,20 @@ export default function Quiz() {
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
-          <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-          {socketError ? <p>Socket error: {socketError}</p> : null}
+          {socketError ? <p className="text-red-500">{socketError}</p> : null}
           <form onSubmit={handleJoinRoom}>
             <label htmlFor="room-code" className="text-sm font-medium text-gray-700">Room code</label>
             <input
               id="room-code"
               type="text"
+              maxLength={10}
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
               placeholder="Enter room id"
               className="w-full rounded-lg border border-gray-200 px-4 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
             />
             <button type="submit" disabled={!connected} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
-              Submit
+              Join
             </button>
           </form>
         </div>
@@ -261,8 +271,7 @@ export default function Quiz() {
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
           <p>Room: {joinedRoom}</p>
-          <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-          {socketError ? <p>Socket error: {socketError}</p> : null}
+          {socketError ? <p className="text-red-500">{socketError}</p> : null}
           {gamePhase === 'over' ? <h2>Game over</h2> : null}
           {questionState ? (
             <>
@@ -270,13 +279,13 @@ export default function Quiz() {
               <p>Time left: {secondsLeft}s</p>
               <h2>{questionState.question.text}</h2>
               {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
-              <ul>
+              <ul className="grid grid-cols-2 gap-4">
                 {questionState.question.options.map((opt, i) => (
                   <li key={i}>
                     <button
                       onClick={() => handleAnswer(i)}
                       disabled={questionState.hasAnswered || timeLeftMs <= 0}
-                      className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
+                      className="w-full mt-2 rounded-full bg-primary px-16 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
                     >
                       {opt}
                     </button>
@@ -287,7 +296,8 @@ export default function Quiz() {
               {!questionState.hasAnswered && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
             </>
           ) : (
-            <p>{gamePhase === 'over' ? 'Thanks for playing.' : 'Waiting for question...'}</p>
+            <p>{gamePhase === 'over' ? 'Thanks for playing.' : 'Waiting for question...'}</p>,
+            <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave</button>
           )}
         </div>
       </div>
@@ -297,13 +307,12 @@ export default function Quiz() {
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
-        <p>Room: {joinedRoom}</p>
-        <p>Socket: {connected ? 'connected' : 'disconnected'}</p>
-        {socketError ? <p>Socket error: {socketError}</p> : null}
-        <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave room</button>
+        <h1 className="text-center text-2xl font-black">Room: {joinedRoom}</h1>
+        {socketError ? <p className="text-red-500">{socketError}</p> : null}
         <button onClick={handleStartGame} disabled={!isHost} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
-          Start the quiz?
+          Start the quiz ?
         </button>
+        <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave room</button>
       </div>
     </div>
   );

@@ -99,7 +99,7 @@ type SubmitAnswerResult =
 	  };
 
 type JoinRoomResult = {
-	status: 'joined' | 'already-joined' | 'quiz-already-started';
+	status: 'joined' | 'already-joined' | 'quiz-already-started' | 'roomcode-bad-format' | 'room-is-full';
 	snapshot: RoomSnapshot;
 };
 
@@ -121,6 +121,13 @@ export class QuizRealtimeService {
 	}
 
 	joinRoom({ roomId, clientId, playerName }: JoinRoomInput): JoinRoomResult {
+		if (roomId.length < 3 || roomId.length > 10) {
+			return {
+				status : "roomcode-bad-format",
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
 		let room = this.rooms.get(roomId);
 
 		if (!room) {
@@ -148,6 +155,13 @@ export class QuizRealtimeService {
 				status: 'already-joined',
 				snapshot: this.getRoomSnapshot(roomId),
 			};
+		}
+
+		if (room.players.size >= 32) {
+			return {
+				status: 'room-is-full',
+				snapshot: this.getRoomSnapshot(roomId),
+			}
 		}
 
 		room.players.set(clientId, {

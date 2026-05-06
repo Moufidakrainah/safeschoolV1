@@ -97,11 +97,25 @@ export class QuizRealtimeGateway
 			playerName: payload.playerName,
 		});
 
+		if (result.status === 'roomcode-bad-format') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'code-bad-format', snapshot: result.snapshot },
+			}
+		}
+
 		if (result.status === 'quiz-already-started') {
 			return {
 				event: 'quiz:join:ignored',
 				data: { roomId: payload.roomId, reason: 'quiz-already-started', snapshot: result.snapshot },
 			};
+		}
+
+		if (result.status === 'room-is-full') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'room-is-full', snapshot: result.snapshot },
+			}
 		}
 
 		if (result.status === 'joined') {
