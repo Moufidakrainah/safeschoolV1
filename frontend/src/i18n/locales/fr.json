@@ -130,7 +130,9 @@
         "staff": "Personnel",
         "admin": "Admin",
         "director": "Directeur"
-      }
+      }, 
+	  "errorEmailFormat": "Format d'email invalide.",
+	  "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères."
     }
   },
   "badge": {

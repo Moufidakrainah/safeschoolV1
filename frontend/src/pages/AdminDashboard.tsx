@@ -65,6 +65,10 @@ export default function AdminDashboard() {
     password: '', role: 'student', schoolClass: '',
   });
 
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+const [isDeleting, setIsDeleting] = useState(false);
+
+
   const itemsPerPage = 5;
 
   // ── Chargement initial
@@ -220,6 +224,7 @@ const stats = useMemo(() => {
 
   // ── Utilisateurs
   const fetchUsers = async () => {
+	console.log("Users after deletion:", users);
     setLoadingUsers(true);
     try {
       const data = await getAllUsers();
@@ -244,20 +249,38 @@ const stats = useMemo(() => {
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm(t('admin.users.deleteConfirm'))) return;
-    try {
-      await deleteUser(id);
-      await fetchUsers();
-    } catch {
-      console.error('Erreur suppression utilisateur');
-    }
-  };
+
+const handleDeleteUser = (id: string) => {
+	 console.log("Delete requested for:", id);
+  setDeleteTarget(id); // ouvre la modal
+};
+
+
+const confirmDelete = async () => {
+  if (!deleteTarget) return;
+
+  setIsDeleting(true);
+  setDeleteError('');
+
+  try {
+    await deleteUser(deleteTarget);
+    await fetchUsers();
+	setDeleteTarget(null); // ferme la modal
+	} catch (err: any) {
+		console.error("Erreur suppression utilisateur:", err);
+
+		if (err.message?.includes('report') || err.message?.includes('constraint')) {
+		setDeleteError(t('admin.users.deleteBlocked')); 
+		} else {
+		setDeleteError(t('admin.users.deleteError'));
+		}
+	} finally {
+		setIsDeleting(false);
+	}
+};
+
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
-// const updateField = (field: string, value: string) => {
-//   setUserForm(prev => ({ ...prev, [field]: value }));
-// };
 
 
 const [errors, setErrors] = useState({
@@ -732,10 +755,9 @@ const isFormValid =
                   />
 				  <div className="min-h-5 w-full">
 					{errors.email && (
-						<p className="text-red-300 text-xs">{errors.email}</p>
+						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
 					)}
 					</div>
-
 
                   <Input
                     label={t('admin.users.password')}
@@ -746,7 +768,7 @@ const isFormValid =
                   />
 					<div className="min-h-5 w-full">
 					{errors.password && (
-						<p className="text-red-300 text-xs">{errors.password}</p>
+						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
 					)}
 					</div>
 
@@ -779,52 +801,99 @@ const isFormValid =
               </Card>
             )}
 
-            {loadingUsers ? (
-              <p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {users.map(u => (
-                  <li key={u.id}>
-                    <Card className="flex justify-between items-center">
-                      <div>
-                        <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
-                        <span className="ml-2 text-xs text-gray-400">{u.email}</span>
-                        <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
-                        {u.studentProfile?.schoolClass && (
-                          <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
-                            {u.studentProfile.schoolClass}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingUser(u);
-                            setUserForm({
-                              firstName: u.firstName, lastName: u.lastName,
-                              email: u.email, password: '',
-                              role: u.role, schoolClass: u.studentProfile?.schoolClass || '',
-                            });
-                            setShowUserForm(true);
-                          }}
-                          aria-label={`${t('admin.users.edit')} ${u.firstName} ${u.lastName}`}
-                        >
-                          ✏️ {t('admin.users.edit')}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDeleteUser(u.id)}
-                          aria-label={`${t('admin.users.delete')} ${u.firstName} ${u.lastName}`}
-                        >
-                          🗑️ {t('admin.users.delete')}
-                        </Button>
-                      </div>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            )}
+            
+
+
+
+
+		{loadingUsers ? (
+		<p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
+		) : (
+		<ul className="flex flex-col gap-3">
+			{users.map(u => (
+			<li key={u.id}>
+				<Card className="flex justify-between items-center">
+				<div>
+					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+					<span className="ml-2 text-xs text-gray-400">{u.email}</span>
+					<span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
+					{u.studentProfile?.schoolClass && (
+					<span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
+						{u.studentProfile.schoolClass}
+					</span>
+					)}
+				</div>
+
+				<div className="flex gap-2">
+					<Button
+					variant="outline"
+					onClick={() => {
+						setEditingUser(u);
+						setUserForm({
+						firstName: u.firstName,
+						lastName: u.lastName,
+						email: u.email,
+						password: '',
+						role: u.role,
+						schoolClass: u.studentProfile?.schoolClass || '',
+						});
+						setShowUserForm(true);
+					}}
+					>
+					✏️ {t('admin.users.edit')}
+					</Button>
+
+					<Button
+					variant="danger"
+					onClick={() => handleDeleteUser(u.id)}
+					>
+					🗑️ {t('admin.users.delete')}
+					</Button>
+				</div>
+				</Card>
+			</li>
+			))}
+		</ul>
+		)}
+
+
+
+		{/* 🔥🔥🔥 MODAL DE CONFIRMATION 🔥🔥🔥 */}
+		{deleteTarget && (
+		<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+			<div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+			<h3 className="text-lg font-semibold mb-4">
+				{t('admin.users.deleteConfirm')}
+			</h3>
+
+			<p className="text-sm text-gray-600 mb-6">
+				{t('admin.users.deleteWarning')}
+			</p>
+
+			<div className="flex justify-end gap-3">
+				<button
+				onClick={() => setDeleteTarget(null)}
+				className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+				>
+				{t('common.cancel')}
+				</button>
+
+				<button
+				onClick={confirmDelete}
+				disabled={isDeleting}
+				className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+				>
+				{isDeleting ? t('common.loading') : t('common.delete')}
+				</button>
+			</div>
+			</div>
+		</div>
+		)} 
+
+
+
+
+
           </section>
         )}
 
