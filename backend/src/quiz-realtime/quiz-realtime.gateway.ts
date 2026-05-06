@@ -40,6 +40,10 @@ export class QuizRealtimeGateway
 	server: Server;
 
 	afterInit() {
+		this.quizRealtimeService.setOnQuestionRevealed((payload) => {
+			this.server.to(payload.roomId).emit('quiz:question:reveal', payload);
+		});
+
 		this.quizRealtimeService.setOnQuestionTimedOut(
 			({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
 				this.server.to(roomId).emit('quiz:score:update', roomSnapshot);
@@ -238,14 +242,8 @@ export class QuizRealtimeGateway
 			this.server.to(payload.roomId).emit('quiz:score:update', result.roomSnapshot);
 		}
 
-		if (result.questionAdvanced) {
-			const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(payload.roomId);
-			if (questionSnapshot) {
-				this.server.to(payload.roomId).emit('quiz:question', questionSnapshot);
-			} else {
-				this.server.to(payload.roomId).emit('quiz:game:over', result.roomSnapshot);
-				void this.server.in(payload.roomId).socketsLeave(payload.roomId);
-			}
+		if (result.revealPayload) {
+			this.server.to(payload.roomId).emit('quiz:question:reveal', result.revealPayload);
 		}
 
 		return {

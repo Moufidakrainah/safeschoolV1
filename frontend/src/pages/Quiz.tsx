@@ -21,6 +21,14 @@ type AnswerResultPayload = {
   isCorrect: boolean;
 };
 
+type RevealPayload = {
+  roomId: string;
+  questionId: number;
+  correctIndex: number;
+  revealEndsAt: number;
+  revealDurationMs: number;
+};
+
 type GamePhase = 'lobby' | 'playing' | 'over';
 
 type QuestionState = {
@@ -29,6 +37,9 @@ type QuestionState = {
   totalQuestions: number;
   endsAt: number | null;
   hasAnswered: boolean;
+  selectedIndex: number | null;
+  correctIndex: number | null;
+  revealEndsAt: number | null;
   answerResult: string;
 } | null;
 
@@ -118,9 +129,20 @@ export default function Quiz() {
           totalQuestions: data.totalQuestions,
           endsAt: data.endsAt,
           hasAnswered: false,
+          selectedIndex: null,
+          correctIndex: null,
+          revealEndsAt: null,
           answerResult: '',
         });
         setTimeLeftMs(data.endsAt ? Math.max(0, data.endsAt - Date.now()) : data.timeLimitMs);
+      });
+
+      socket.on('quiz:question:reveal', (data: RevealPayload) => {
+        setQuestionState((prev) =>
+          prev && prev.question.id === data.questionId
+            ? { ...prev, correctIndex: data.correctIndex, revealEndsAt: data.revealEndsAt }
+            : prev
+        );
       });
 
       socket.on('quiz:game:over', () => {
@@ -158,16 +180,18 @@ export default function Quiz() {
     };
   }, []);
 
+  const revealEndsAt = questionState?.revealEndsAt ?? null;
   const endsAt = questionState?.endsAt ?? null;
+  const activeDeadline = revealEndsAt ?? endsAt;
 
   useEffect(() => {
-    if (!endsAt || gamePhase !== 'playing') {
+    if (!activeDeadline || gamePhase !== 'playing') {
       setTimeLeftMs(0);
       return;
     }
 
     const tick = () => {
-      setTimeLeftMs(Math.max(0, endsAt - Date.now()));
+      setTimeLeftMs(Math.max(0, activeDeadline - Date.now()));
     };
 
     tick();
@@ -176,7 +200,7 @@ export default function Quiz() {
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [endsAt, gamePhase]);
+  }, [activeDeadline, gamePhase]);
 
   function handleJoinRoom(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -227,6 +251,7 @@ export default function Quiz() {
   function handleAnswer(selectedIndex: number) {
     if (!joinedRoom || !questionState) return;
     if (questionState.hasAnswered || timeLeftMs <= 0) return;
+    if (questionState.revealEndsAt !== null) return;
 
     socketRef.current?.emit('quiz:answer', {
       roomId: joinedRoom,
@@ -234,7 +259,7 @@ export default function Quiz() {
       selectedIndex,
     });
 
-    setQuestionState((prev) => prev ? { ...prev, hasAnswered: true } : prev);
+    setQuestionState((prev) => prev ? { ...prev, hasAnswered: true, selectedIndex } : prev);
   }
 
   if (!joinedRoom) {
@@ -265,6 +290,7 @@ export default function Quiz() {
 
   if (gamePhase === 'playing' || gamePhase === 'over') {
     const secondsLeft = Math.ceil(timeLeftMs / 1000);
+    const isRevealing = questionState?.revealEndsAt !== null && questionState?.revealEndsAt !== undefined;
 
     return (
       <div className="flex items-center justify-center h-screen">
@@ -276,24 +302,38 @@ export default function Quiz() {
           {questionState ? (
             <>
               <p>{questionState.questionNumber} / {questionState.totalQuestions}</p>
-              <p>Time left: {secondsLeft}s</p>
+              <p>{isRevealing ? `Next question in: ${secondsLeft}s` : `Time left: ${secondsLeft}s`}</p>
               <h2>{questionState.question.text}</h2>
               {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
               <ul className="grid grid-cols-2 gap-4">
-                {questionState.question.options.map((opt, i) => (
-                  <li key={i}>
-                    <button
-                      onClick={() => handleAnswer(i)}
-                      disabled={questionState.hasAnswered || timeLeftMs <= 0}
-                      className="w-full mt-2 rounded-full bg-primary px-16 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
-                    >
-                      {opt}
-                    </button>
-                  </li>
-                ))}
+                {questionState.question.options.map((opt, i) => {
+                  let optionClass = 'w-full mt-2 rounded-full px-16 py-3 text-white font-semibold disabled:opacity-50 ';
+                  if (isRevealing) {
+                    if (i === questionState.correctIndex) {
+                      optionClass += 'bg-green-500';
+                    } else if (i === questionState.selectedIndex) {
+                      optionClass += 'bg-red-500';
+                    } else {
+                      optionClass += 'bg-gray-400';
+                    }
+                  } else {
+                    optionClass += 'bg-primary hover:bg-primary-hover';
+                  }
+                  return (
+                    <li key={i}>
+                      <button
+                        onClick={() => handleAnswer(i)}
+                        disabled={questionState.hasAnswered || timeLeftMs <= 0 || isRevealing}
+                        className={optionClass}
+                      >
+                        {opt}
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
-              {questionState.hasAnswered ? <p>Answer submitted. Waiting for other players...</p> : null}
-              {!questionState.hasAnswered && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
+              {!isRevealing && questionState.hasAnswered ? <p>Answer submitted. Waiting for other players...</p> : null}
+              {!isRevealing && !questionState.hasAnswered && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
             </>
           ) : (
             <p>{gamePhase === 'over' ? 'Thanks for playing.' : 'Waiting for question...'}</p>,
