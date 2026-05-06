@@ -228,7 +228,7 @@
       "staff":    "Je signale en tant que personnel du collège"
     },
     "step2": {
-      "title":        "Quel type de harcèlement ?",
+      "title":        "De quel type de harcèlement es-tu témoin ?",
       "subtitle":     "Sélectionne le type qui correspond le mieux",
       "physical":     "Physique",
       "physicalSub":  "Coups, bousculades",
@@ -284,8 +284,14 @@
       "anonymous":     "Signalement anonyme",
       "anonymousDesc": "mon nom ne sera pas visible"
     },
-    "submitting": "Envoi...",
-    "submit":     "Envoyer le signalement"
+    "submitting":   "Envoi...",
+    "submit":       "Envoyer le signalement",
+    "submitError":  "L'envoi a échoué. Vérifie ta connexion et réessaie.",
+    "validation": {
+      "typeRequired":        "Choisis un type de harcèlement pour continuer.",
+      "descriptionRequired": "Décris les faits pour continuer.",
+      "frequencyRequired":   "Indique la fréquence pour continuer."
+    }
   },
   "privacy": {
     "updated": "Dernière mise à jour : avril 2026",

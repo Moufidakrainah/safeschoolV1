@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import StudentDashboard from './pages/StudentDashboard';
@@ -14,7 +14,8 @@ import Quiz from './pages/Quiz';
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
-  if (roles && user && !roles.includes(user.role)) return <Navigate to="/login" />;
+  // In dev mode (VITE_DEVBAR=true), skip role check to allow DevBar navigation across all pages
+  if (import.meta.env.VITE_DEVBAR !== 'true' && roles && user && !roles.includes(user.role)) return <Navigate to="/login" />;
   return children;
 }
 
@@ -27,33 +28,69 @@ function HomeRedirect() {
   return <Navigate to="/login" />;
 }
 
-// DevBar — visible uniquement quand VITE_DEVBAR=true
+// DevBar — navigation rapide + simulation de rôle (VITE_DEVBAR=true uniquement)
+// La simulation appelle loginUser() : réécrit localStorage + re-render toute l'app,
 function DevBar() {
   const location = useLocation();
+  const navigate  = useNavigate();
+  const { user, token, loginUser } = useAuth();
   if (import.meta.env.VITE_DEVBAR !== 'true') return null;
+
+  const pages = [
+    { to: '/ui-kit', label: 'UIkit' },
+    { to: '/login',  label: 'login'  },
+  ];
+
+  type SimRole = 'admin' | 'director' | 'student' | 'teacher' | 'staff';
+  const roles: { role: SimRole; page: string }[] = [
+    { role: 'admin',    page: '/dashboard' },
+    { role: 'director', page: '/dashboard' },
+    { role: 'student',  page: '/student'   },
+    { role: 'teacher',  page: '/reporter'  },
+    { role: 'staff',    page: '/reporter'  },
+  ];
+
+  function simulateRole(role: SimRole, page: string) {
+    if (!user || !token) return;
+    loginUser(token, { ...user, role });
+    navigate(page);
+  }
+
+  const itemStyle = (active: boolean): React.CSSProperties => ({
+    color: active ? '#0097b2' : '#aaa',
+    textDecoration: 'none',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    background: active ? 'rgba(0,151,178,0.15)' : 'transparent',
+    fontWeight: active ? 700 : 400,
+    cursor: 'pointer',
+    border: 'none',
+    fontSize: '11px',
+    fontFamily: 'monospace',
+  });
+
   return (
     <div style={{
       position: 'fixed', bottom: '72px', right: '16px', zIndex: 9999,
-      display: 'flex', gap: '8px', alignItems: 'center',
+      display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end',
       background: '#1a1a2e', borderRadius: '12px', padding: '8px 12px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.4)', fontSize: '12px', fontFamily: 'monospace',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.4)', fontFamily: 'monospace',
     }}>
-      <span style={{ color: '#fff', marginRight: '4px' }}>devbar</span>
-      {[
-        { to: '/ui-kit',    label: '🎨 UI kit' },
-        { to: '/login',     label: '🔑 login' },
-        { to: '/dashboard', label: '🛡️ admin' },
-        { to: '/student',   label: '🎒 student' },
-        { to: '/reporter',  label: '📋 reporter' },
-        { to: '/quiz',      label: '🧠 quiz' },
-      ].map(({ to, label }) => (
-        <Link key={to} to={to} style={{
-          color: location.pathname === to ? '#0097b2' : '#aaa',
-          textDecoration: 'none', padding: '4px 8px', borderRadius: '6px',
-          background: location.pathname === to ? 'rgba(0,151,178,0.15)' : 'transparent',
-          fontWeight: location.pathname === to ? 700 : 400,
-        }}>{label}</Link>
-      ))}
+
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        {pages.map(({ to, label }) => (
+          <Link key={to} to={to} style={itemStyle(location.pathname === to)}>{label}</Link>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+        {roles.map(({ role, page }) => (
+          <button key={role} onClick={() => simulateRole(role, page)} style={itemStyle(user?.role === role)}>
+            {role}
+          </button>
+        ))}
+      </div>
+
     </div>
   );
 }
