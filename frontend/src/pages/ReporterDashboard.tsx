@@ -20,6 +20,7 @@ import { useAuth } from '../context/AuthContext';
 
 // API services
 import { getStaffProfile } from '../services/api';
+import type { StaffProfile } from '../types';
 
 // UI components
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
@@ -38,7 +39,7 @@ export default function ReporterDashboard() {
   );
 
   // Profil professionnel — chargé une seule fois à l'arrivée sur la page
-  const [staffProfile, setStaffProfile] = useState<any>(null);
+  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
   useEffect(() => {
