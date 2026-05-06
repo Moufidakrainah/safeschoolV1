@@ -19,6 +19,7 @@ import { useAuth } from '../context/AuthContext';
 
 // API services
 import { getStudentParents } from '../services/api';
+import type { Parent } from '../types';
 
 // UI components
 import StudentHeader from '../components/layout/StudentHeader/StudentHeader';
@@ -38,7 +39,7 @@ export default function StudentDashboard() {
   );
 
   // Parents — chargés une seule fois à l'arrivée sur la page
-  const [parents, setParents] = useState<any[]>([]);
+  const [parents, setParents] = useState<Parent[]>([]);
   const [loadingParents, setLoadingParents] = useState(false);
 
   useEffect(() => {
