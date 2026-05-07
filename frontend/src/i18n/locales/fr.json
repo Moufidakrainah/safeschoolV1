@@ -130,7 +130,12 @@
         "staff": "Personnel",
         "admin": "Admin",
         "director": "Directeur"
-      }
+      },
+      "errorEmailFormat":    "Format d'email invalide.",
+      "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
+      "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
+      "deleteError":   "Une erreur est survenue lors de la suppression.",
+      "deleteSelf":    "Vous ne pouvez pas supprimer votre propre compte."
     }
   },
   "badge": {
@@ -188,6 +193,10 @@
     "quiz": {
       "title": "Quiz",
       "soon":  "Cette section sera disponible prochainement."
+    },
+    "title": {
+      "createAReport": "Créer un signalement",
+      "reportCreated": "Signalement créé"
     },
     "roles": {
       "teacher": "Professeur",

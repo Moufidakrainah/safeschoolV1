@@ -10,7 +10,7 @@
  * Reçoit uniquement `user` en prop (pour le rôle et les options de traduction).
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
 import Button from '../Button';
@@ -82,10 +82,20 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     [t]
   );
 
+  const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  useEffect(() => {
+    const index = typeOptions.findIndex(o => o.label === type);
+    if (index >= 0) {
+      cardRefs.current[index]?.focus();
+    }
+  }, [type, typeOptions]);
+
   // ── Écran de confirmation (step 6) ──────────────────────────────────────
   if (step === 6) {
     return (
       <main className="bg-gray-50 font-sans">
+        <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card className="max-w-md w-full mx-5 text-center">
@@ -105,6 +115,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
   // ── Formulaire multi-étapes (steps 1 à 5) ───────────────────────────────
   return (
     <main className="bg-gray-50 font-sans">
+      <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card>
@@ -114,18 +125,40 @@ export default function ReporterForm({ user }: ReporterFormProps) {
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
-              <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                {typeOptions.map(opt => (
+              <div
+                role="radiogroup"
+                aria-label={t('reporter.step2.title')}
+                className="grid grid-cols-2 gap-3"
+              >
+                {typeOptions.map((opt, index) => (
                   <button
                     key={opt.label}
+                    ref={el => { cardRefs.current[index] = el; }}
                     role="radio"
                     aria-checked={type === opt.label}
+                    tabIndex={type === opt.label ? 0 : -1}
                     onClick={() => setType(opt.label)}
-                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 ${
+                    onKeyDown={e => {
+                      const current = typeOptions.findIndex(o => o.label === type);
+                      const fallback = current === -1 ? 0 : current;
+                      if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        setType(opt.label);
+                      }
+                      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setType(typeOptions[(fallback + 1) % typeOptions.length].label);
+                      }
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setType(typeOptions[(fallback - 1 + typeOptions.length) % typeOptions.length].label);
+                      }
+                    }}
+                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none focus-visible:ring-2 focus-visible:ring-primary ${
                       type === opt.label ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
                     }`}
                   >
-                    <div className="text-2xl mb-1" role="img" aria-hidden="true">{opt.icon}</div>
+                    <div className="text-2xl mb-1" aria-hidden="true">{opt.icon}</div>
                     <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
                     <div className="text-xs text-gray-400">{opt.sub}</div>
                   </button>

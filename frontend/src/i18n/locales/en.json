@@ -130,7 +130,12 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-      }
+      },
+      "errorEmailFormat":    "Invalid email format.",
+      "errorPasswordLength": "The password must contain at least 6 characters.",
+      "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports.",
+      "deleteError":   "An error occurred during deletion.",
+      "deleteSelf":    "You cannot delete your own account."
     }
   },
   "badge": {
@@ -293,6 +298,10 @@
     "quiz": {
       "title": "Quiz",
       "soon":  "This section will be available soon."
+    },
+    "title": {
+      "createAReport": "Create a report",
+      "reportCreated": "Report submitted"
     }
   },
   "student": {
