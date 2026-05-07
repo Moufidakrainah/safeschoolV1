@@ -41,3 +41,5 @@
 [Jeu](https://www.mae.fr/actualite/labyrinthe-de-nina-jeu-immersif)
 
 [10 conseils contre le harcelement](https://www.saint-pierre-en-auge.fr/lutte-contre-le-harcelement-scolaire/)
+
+[Violences dans le periscolaire, comment mieux proteger les enfants ?](https://podcasts.lemonde.fr/lheure-du-monde/202605040200-violences-dans-le-periscolaire-comment-mieux-proteger-les-en)

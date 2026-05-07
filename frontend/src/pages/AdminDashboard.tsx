@@ -363,6 +363,10 @@ const isFormValid =
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
     return (
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
+
       <div className="flex-1 bg-gray-50 font-sans">
         <AdminHeader {...headerProps} />
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
@@ -536,12 +540,17 @@ const isFormValid =
 
         </div>
       </div>
+	  </main>
     );
   }
 
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
 	<>
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.allReports')}</h1>
+
     <div className="flex-1 bg-white font-sans">
       <AdminHeader {...headerProps} />
 
@@ -900,18 +909,6 @@ const isFormValid =
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
 
-      {/* <p className="text-sm text-gray-600 mb-4">
-        {isBlocked
-          ? t('admin.users.deleteBlocked') // ex: "Cet utilisateur est lié à un signalement…"
-          : t('admin.users.deleteConfirm')}
-      </p> */}
-
-      {/* Message d’erreur */}
-      {/* <p className="text-red-600 text-sm mb-4">
-      {deleteError ? 
-        deleteError : '' }
-        </p> */}
-        
 		 <p className="text-sm text-gray-600 mb-4">
         {deleteError
           ? deleteError
@@ -964,6 +961,7 @@ const isFormValid =
 
       </div>
     </div>
+	</main>
   </>
 
   );

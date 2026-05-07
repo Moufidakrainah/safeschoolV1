@@ -136,7 +136,12 @@
 	"deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
 	"deleteError": "Une erreur est survenue lors de la suppression.",
   "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
-    }
+    },
+	"title":{
+		"oneReport": "Details d'un signalement",
+		"allReports": "Tous les signalements"
+
+	}
   },
   "badge": {
     "critical":    "🔴 Critique",
@@ -297,7 +302,12 @@
       "typeRequired":        "Choisis un type de harcèlement pour continuer.",
       "descriptionRequired": "Décris les faits pour continuer.",
       "frequencyRequired":   "Indique la fréquence pour continuer."
-    }
+    }, 
+	"title": {
+		"myProfile":"Mon profil", 
+		"createAReport":"Créér un signalement", 
+		"reportCreated":"Signalement créé"
+	}
   },
   "privacy": {
     "updated": "Dernière mise à jour : avril 2026",

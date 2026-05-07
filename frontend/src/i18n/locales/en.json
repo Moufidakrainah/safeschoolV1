@@ -136,7 +136,13 @@
 	"deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
 	"deleteError": "An error occurred during deletion.",
   "deleteSelf": "You cannot delete your own account"
-     }
+     },
+	"title":{
+		"oneReport": "Details of a report",
+		"allReports": "All reports"
+
+
+	}
   },
   "badge": {
     "critical":    "🔴 Critical",
@@ -285,7 +291,13 @@
       "anonymousDesc": "my name will not be visible"
     },
     "submitting": "Sending...",
-    "submit": "Submit report"
+    "submit": "Submit report", 
+	"title": {
+		"myProfile":"My profile", 
+		"createAReport":"Create a report", 
+		"reportCreated":"Report created"
+	}
+
   },
   "privacy": {
     "updated": "Last updated: April 2026",

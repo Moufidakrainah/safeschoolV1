@@ -10,7 +10,8 @@
  * Reçoit uniquement `user` en prop (pour le rôle et les options de traduction).
  */
 
-import { useMemo } from 'react';
+
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
 import Button from '../Button';
@@ -27,9 +28,26 @@ interface ReportFormProps {
 
 // ─── Composant ──────────────────────────────────────────────────────────────
 
+
+
 export default function ReportForm({ user }: ReportFormProps) {
   const { t } = useTranslation();
 
+
+
+
+const typeOptions = [
+      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'), },
+      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),     },
+      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),      },
+      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'),  },
+      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    },
+      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     },
+];
+
+
+const [typeInput, setTypeInput] = useState("");
+const [filteredTypes, setFilteredTypes] = useState(typeOptions);
   // Tout l'état et les handlers du formulaire viennent du hook personnalisé.
   const {
     step, setStep,
@@ -67,24 +85,40 @@ export default function ReportForm({ user }: ReportFormProps) {
     t('reporter.steps.validate'),
   ];
 
-  // typeOptions : les 6 types de harcèlement avec icône et sous-titre.
-  // Mémoïsés pour éviter un recalcul à chaque re-render.
-  const typeOptions = useMemo(
-    () => [
-      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
-      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
-      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
-      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
-      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
-      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
-    ],
-    [t]
+
+
+
+
+
+const handleTypeSearch = (value: string) => {
+  setTypeInput(value);
+  setFilteredTypes(
+    typeOptions.filter(opt =>
+      opt.label.toLowerCase().includes(value.toLowerCase())
+    )
   );
+};
+
+
+
+const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+useEffect(() => {
+  const index = typeOptions.findIndex(o => o.label === type);
+  if (index >= 0) {
+    cardRefs.current[index]?.focus();
+  }
+}, [type]);
+
+
 
   // ── Écran de confirmation (step 6) ──────────────────────────────────────
   if (step === 6) {
     return (
       <main className="bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
+
+
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card className="max-w-md w-full mx-5 text-center">
@@ -104,12 +138,15 @@ export default function ReportForm({ user }: ReportFormProps) {
   // ── Formulaire multi-étapes (steps 1 à 5) ───────────────────────────────
   return (
     <main className="bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
+
+
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card>
 
           {/* Étape 1 : Type de harcèlement */}
-          {step === 1 && (
+          {/* {step === 1 && (
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
@@ -130,12 +167,150 @@ export default function ReportForm({ user }: ReportFormProps) {
                   </button>
                 ))}
               </div>
-              {/* Erreur si l'utilisateur tente d'avancer sans choisir */}
               {showErrors && !type && (
                 <p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
               )}
             </fieldset>
-          )}
+          )} */}
+
+	
+
+
+{step === 1 && (
+  <fieldset>
+    <legend className="text-gray-800 font-bold text-lg mb-2">
+      {t('reporter.step2.title')}
+    </legend>
+
+    <p className="text-gray-500 text-sm mb-6">
+      {t('reporter.step2.subtitle')}
+    </p>
+
+    {/* <div
+      role="radiogroup"
+      aria-label={t('reporter.step2.title')}
+      className="grid grid-cols-2 gap-3"
+    >
+      {typeOptions.map((opt, index) => (
+        <div
+          key={opt.label}
+          role="radio"
+          aria-checked={type === opt.label}
+          tabIndex={type === opt.label ? 0 : -1}
+          onClick={() => setType(opt.label)}
+			onKeyDown={(e) => {
+  const currentIndex = typeOptions.findIndex(o => o.label === type);
+  const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
+
+  // ✔ Valider la carte focusée
+  if (e.key === " " || e.key === "Enter") {
+    e.preventDefault();
+    setType(opt.label);
+  }
+
+  // ✔ Aller à la carte suivante
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+    e.preventDefault();
+    const next = (fallbackIndex + 1) % typeOptions.length;
+    setType(typeOptions[next].label);
+  }
+
+  // ✔ Aller à la carte précédente
+  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+    e.preventDefault();
+    const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
+    setType(typeOptions[prev].label);
+  }
+}}
+
+
+          className={`
+            px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
+            ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
+            focus-visible:ring-2 focus-visible:ring-primary
+          `}
+        >
+          <div className="text-2xl mb-1" aria-hidden="true">
+            {opt.icon}
+          </div>
+          <div className="text-sm font-semibold text-gray-800">
+            {opt.label}
+          </div>
+          <div className="text-xs text-gray-400">
+            {opt.sub}
+          </div>
+        </div>
+      ))}
+    </div> */}
+
+<div
+  role="radiogroup"
+  aria-label={t('reporter.step2.title')}
+  className="grid grid-cols-2 gap-3"
+>
+  {typeOptions.map((opt, index) => (
+    <div
+      key={opt.label}
+      ref={el => (cardRefs.current[index] = el)}
+      role="radio"
+      aria-checked={type === opt.label}
+      tabIndex={type === opt.label ? 0 : -1}
+      onClick={() => setType(opt.label)}
+      onKeyDown={(e) => {
+        const currentIndex = typeOptions.findIndex(o => o.label === type);
+        const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
+
+        // ✔ Valider la carte focusée
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          setType(opt.label);
+        }
+
+        // ✔ Aller à la carte suivante
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = (fallbackIndex + 1) % typeOptions.length;
+          setType(typeOptions[next].label);
+        }
+
+        // ✔ Aller à la carte précédente
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
+          setType(typeOptions[prev].label);
+        }
+      }}
+      className={`
+        px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
+        ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
+        focus-visible:ring-2 focus-visible:ring-primary
+      `}
+    >
+      <div className="text-2xl mb-1" aria-hidden="true">
+        {opt.icon}
+      </div>
+
+      <div className="text-sm font-semibold text-gray-800">
+        {opt.label}
+      </div>
+
+      <div className="text-xs text-gray-400">
+        {opt.sub}
+      </div>
+    </div>
+  ))}
+</div>
+
+    {showErrors && !type && (
+      <p role="alert" className="mt-3 text-sm text-red-600">
+        ⚠️ {t('reporter.validation.typeRequired')}
+      </p>
+    )}
+  </fieldset>
+)}
+
+
+
 
           {/* Étape 2 : Description des faits + fréquence */}
           {step === 2 && (
