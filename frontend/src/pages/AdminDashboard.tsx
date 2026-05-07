@@ -900,18 +900,25 @@ const isFormValid =
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
     <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
 
-      <p className="text-sm text-gray-600 mb-4">
+      {/* <p className="text-sm text-gray-600 mb-4">
         {isBlocked
           ? t('admin.users.deleteBlocked') // ex: "Cet utilisateur est lié à un signalement…"
           : t('admin.users.deleteConfirm')}
-      </p>
+      </p> */}
 
       {/* Message d’erreur */}
-      <p className="text-red-600 text-sm mb-4">
+      {/* <p className="text-red-600 text-sm mb-4">
       {deleteError ? 
         deleteError : '' }
-        </p>
+        </p> */}
         
+		 <p className="text-sm text-gray-600 mb-4">
+        {deleteError
+          ? deleteError
+          : isBlocked
+            ? t('admin.users.deleteBlocked')
+            : t('admin.users.deleteConfirm')}
+      </p>
 
       <div className="flex justify-end gap-3">
 
