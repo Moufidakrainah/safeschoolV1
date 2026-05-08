@@ -10,8 +10,12 @@ export class StudentProfilesService {
     private studentProfilesRepository: Repository<StudentProfile>,
   ) {}
 
-  async create(parentEmail: string, parentPhone: string, schoolClass: string, dateOfBirth: string, userId: string): Promise<StudentProfile> {
-    const profile = this.studentProfilesRepository.create({ parentEmail, parentPhone, schoolClass, dateOfBirth, user: { id: userId } });
+  async create(schoolClass: string, dateOfBirth: string, userId: string): Promise<StudentProfile> {
+    const profile = this.studentProfilesRepository.create({
+      schoolClass,
+      dateOfBirth,
+      user: { id: userId },
+    });
     return this.studentProfilesRepository.save(profile);
   }
 
@@ -20,17 +24,27 @@ export class StudentProfilesService {
   }
 
   async findByUserId(userId: string): Promise<StudentProfile> {
-    const profile = await this.studentProfilesRepository.findOne({ where: { user: { id: userId } }, relations: ['user'] });
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'parents'],
+    });
     if (!profile) throw new NotFoundException('Profil introuvable');
     return profile;
   }
 
-  async update(userId: string, updates: { parentEmail?: string; parentPhone?: string; schoolClass?: string; dateOfBirth?: string }): Promise<StudentProfile> {
+  async update(userId: string, updates: { schoolClass?: string; dateOfBirth?: string }): Promise<StudentProfile> {
     const profile = await this.findByUserId(userId);
-    if (updates.parentEmail) profile.parentEmail = updates.parentEmail;
-    if (updates.parentPhone) profile.parentPhone = updates.parentPhone;
     if (updates.schoolClass) profile.schoolClass = updates.schoolClass;
     if (updates.dateOfBirth) profile.dateOfBirth = updates.dateOfBirth;
     return this.studentProfilesRepository.save(profile);
+  }
+
+  async getParents(userId: string): Promise<any[]> {
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['parents'],
+    });
+    if (!profile) throw new NotFoundException('Profil introuvable');
+    return profile.parents ?? [];
   }
 }

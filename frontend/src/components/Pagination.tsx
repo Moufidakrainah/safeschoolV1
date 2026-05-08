@@ -1,26 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-// ============================================================
-// PAGINATION
-//
-// Barre de pagination avec boutons précédent / page / suivant.
-// Ne s'affiche pas si totalPages <= 1.
-//
-// Props :
-//   currentPage  : numéro de la page courante (1-indexé)
-//   totalPages   : nombre total de pages
-//   totalItems   : nombre total d'éléments (affiché à gauche)
-//   onPageChange : callback appelé avec le numéro de la nouvelle page
-//
-// Utilisation :
-//   <Pagination
-//     currentPage={currentPage}
-//     totalPages={totalPages}
-//     totalItems={filtered.length}
-//     onPageChange={setCurrentPage}
-//   />
-// ============================================================
-
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -41,7 +20,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
           aria-label={t('pagination.prev')}
-          className="px-3 py-1 rounded border border-gray-200 bg-white disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer"
+          className="px-3 py-1 rounded border border-gray-200 bg-white disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span aria-hidden="true">«</span>
         </button>
@@ -51,7 +30,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
             onClick={() => onPageChange(page)}
             aria-label={t('pagination.page', { n: page })}
             aria-current={currentPage === page ? 'page' : undefined}
-            className={`px-3 py-1 rounded cursor-pointer font-medium ${
+            className={`px-3 py-1 rounded cursor-pointer font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               currentPage === page
                 ? 'bg-primary text-white border-none'
                 : 'bg-white border border-gray-200 text-gray-700'
@@ -64,7 +43,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
           aria-label={t('pagination.next')}
-          className="px-3 py-1 rounded border border-gray-200 bg-white disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer"
+          className="px-3 py-1 rounded border border-gray-200 bg-white disabled:text-gray-300 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <span aria-hidden="true">»</span>
         </button>

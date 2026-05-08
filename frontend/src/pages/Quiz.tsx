@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
+import { useAuth } from '../context/AuthContext';
+import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 
 type QuestionPayload = {
   roomId: string;
@@ -49,6 +52,19 @@ const SOCKET_URL =
   'http://localhost:5000';
 
 export default function Quiz() {
+  const { user, logoutUser } = useAuth();
+  const navigate = useNavigate();
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
+
+useEffect(() => {
+    if (viewSection === 'profile') {
+      navigate('/reporter?section=profile');
+    }
+    if (viewSection === 'report') {
+      navigate('/reporter?section=report');
+    }
+  }, [viewSection, navigate]);
+
   const socketRef = useRef<Socket | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [roomCode, setRoomCode] = useState('');
@@ -261,9 +277,12 @@ export default function Quiz() {
 
     setQuestionState((prev) => prev ? { ...prev, hasAnswered: true, selectedIndex } : prev);
   }
+  const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   if (!joinedRoom) {
     return (
+		<>
+	<ReporterHeader {...headerProps} />
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -277,7 +296,7 @@ export default function Quiz() {
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
               placeholder="Enter room id"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary"
             />
             <button type="submit" disabled={!connected} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
               Join
@@ -285,6 +304,7 @@ export default function Quiz() {
           </form>
         </div>
       </div>
+	  </>
     );
   }
 
@@ -293,6 +313,8 @@ export default function Quiz() {
     const isRevealing = questionState?.revealEndsAt !== null && questionState?.revealEndsAt !== undefined;
 
     return (
+<>
+	<ReporterHeader {...headerProps} />
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -341,10 +363,14 @@ export default function Quiz() {
           )}
         </div>
       </div>
+	  </>
     );
   }
 
   return (
+
+<>
+	<ReporterHeader {...headerProps} />
     <div className="flex items-center justify-center h-screen">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
         <h1 className="text-center text-2xl font-black">Room: {joinedRoom}</h1>
@@ -355,5 +381,6 @@ export default function Quiz() {
         <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave room</button>
       </div>
     </div>
+	</>
   );
 }

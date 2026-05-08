@@ -5,7 +5,7 @@
   /* Couleurs principales */
   --color-primary:      #006278;   /* bleu canard foncé — navbar, footer, boutons — ratio 5.0:1 blanc (WCAG AA) */
   --color-primary-hover: #004f62;   /* bleu canard très foncé — hover bouton primary — ratio 7.1:1 blanc (WCAG AA) */
-  --color-surface:      #ebfcff;   /* bleu clair — fond pages */
+  --color-surface:      #ebfcff;   /* bleu clair — fond pages (surface) */
 
   /* Report severity */
   --color-critical:     #cc0000;   /* dark red */

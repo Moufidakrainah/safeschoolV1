@@ -1,12 +1,19 @@
+import { useTranslation } from 'react-i18next';
+
 import Badge from '../components/Badge';
 import Button from '../components/Button';
 import Card from '../components/Card';
-import Footer from '../components/Footer';
+import { Footer } from '../components/Footer';
 import Input from '../components/Input';
 import NoteBlock from '../components/NoteBlock';
 import Pagination from '../components/Pagination';
 import Select from '../components/Select';
 import StatCard from '../components/StatCard';
+import StepBar from '../components/StepBar';
+import Autocomplete from '../components/Autocomplete';
+import Header from '../components/Header';
+import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
+import type { Report } from '../types';
 
 const colors = [
   { name: 'Primaire',        hex: '#006278', bg: 'bg-primary',      tailwind: 'bg-primary / text-primary / border-primary' },
@@ -20,6 +27,19 @@ const colors = [
 
 const sampleNote   = { id: '1', content: 'Note administrative exemple', type: 'note',        createdAt: new Date().toISOString(), author: { firstName: 'Admin', lastName: 'Dupont' } };
 const sampleConvoc = { id: '2', content: 'Vous etes convoque le 5 mai a 14h', type: 'convocation', createdAt: new Date().toISOString(), author: { firstName: 'Admin', lastName: 'Dupont' } };
+
+const sampleUser = {
+  id: '1',
+  email: 'alice@safeschool.fr',
+  firstName: 'Alice',
+  lastName: 'Martin',
+  role: 'teacher' as const,
+};
+
+const sampleAutocompleteSuggestions = [
+  { id: '1', firstName: 'Alice', lastName: 'Martin', role: 'teacher' as const },
+  { id: '2', firstName: 'Bob',   lastName: 'Dupont', role: 'student' as const },
+];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -56,7 +76,7 @@ function Category({
       };
 
   return (
-    <section className={`rounded-[2rem] border px-5 py-5 shadow-sm ${toneClasses.shell}`}>
+    <section className={`rounded-4xl border px-5 py-5 shadow-sm ${toneClasses.shell}`}>
       <div className="mb-8">
         <p className={`text-xs font-bold uppercase tracking-[0.25em] ${toneClasses.eyebrow}`}>{eyebrow}</p>
         <div className={`mt-3 h-px w-full ${toneClasses.divider}`} />
@@ -189,6 +209,72 @@ export default function UiKit() {
           <Section title="Footer">
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
               <Footer />
+            </div>
+          </Section>
+
+          {/* StepBar */}
+          <Section title="StepBar">
+            <div className="flex flex-col gap-4">
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <StepBar steps={['Signalement', 'Suspects', 'Récapitulatif']} currentStep={1} />
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <StepBar steps={['Signalement', 'Suspects', 'Récapitulatif']} currentStep={2} />
+              </div>
+              <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                <StepBar steps={['Signalement', 'Suspects', 'Récapitulatif']} currentStep={3} />
+              </div>
+            </div>
+          </Section>
+
+          {/* Autocomplete */}
+          <Section title="Autocomplete">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 flex flex-col gap-4">
+              <p className="text-xs text-gray-400">Sans suggestions</p>
+              <Autocomplete
+                value=""
+                onChange={() => {}}
+                suggestions={[]}
+                onSelect={() => {}}
+                placeholder="Rechercher un utilisateur..."
+                label="Recherche utilisateur"
+              />
+              <p className="text-xs text-gray-400">Avec suggestions</p>
+              <Autocomplete
+                value="ali"
+                onChange={() => {}}
+                suggestions={sampleAutocompleteSuggestions}
+                onSelect={() => {}}
+                placeholder="Rechercher un utilisateur..."
+                label="Recherche utilisateur"
+              />
+            </div>
+          </Section>
+        </Category>
+
+        <Category
+          eyebrow="Niveau 1 — Navigation"
+          title="Headers"
+          description="Composants de navigation spécifiques à chaque rôle. Non réutilisables directement, mais listés ici pour référence visuelle."
+        >
+          {/* Header (générique) */}
+          <Section title="Header (générique)">
+            <div className="overflow-hidden rounded-xl border border-gray-200">
+              <Header user={sampleUser} logoutUser={() => {}} t={(k) => k} />
+            </div>
+          </Section>
+
+          {/* AdminHeader */}
+          <Section title="AdminHeader">
+            <div className="overflow-hidden rounded-xl border border-gray-200">
+              <AdminHeader
+                user={sampleUser}
+                logoutUser={() => {}}
+                viewSection="reports"
+                setViewSection={() => {}}
+                setSelected={(_: Report | null) => {}}
+                fetchUsers={() => {}}
+              />
             </div>
           </Section>
         </Category>
