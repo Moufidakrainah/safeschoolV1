@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
+// FIX: ReactNode must be imported as a type because verbatimModuleSyntax is enabled.
+import type { ReactNode } from 'react';
 
 interface User {
   id: string;

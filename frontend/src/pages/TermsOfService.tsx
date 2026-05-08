@@ -1,0 +1,65 @@
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+
+export default function TermsOfService()
+{
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex-1 flex flex-col bg-surface font-sans">
+    {/* flex-1 flex flex-col : s'étire dans le layout App (div.flex-1.flex.flex-col) — pas de min-h-screen ici, App gère la hauteur */}
+      {/* flex-1 : grandit pour pousser le Footer en bas — fonctionne car le parent est flex-col */}
+      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+
+        <Link
+          to="/login"
+          className="text-primary hover:underline text-sm inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+        >
+          ← {t('footer.backToApp')}
+        </Link>
+
+        <header className="mb-10">
+          <h1 className="text-3xl font-bold text-primary">{t('footer.terms')}</h1>
+          <p className="text-gray-500 mt-2 text-sm">{t('terms.updated')}</p>
+        </header>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s1.title')}</h2>
+          <p className="text-gray-700 leading-relaxed">{t('terms.s1.body')}</p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s2.title')}</h2>
+          <p className="text-gray-700 leading-relaxed">{t('terms.s2.body')}</p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s3.title')}</h2>
+          <p className="text-gray-700 leading-relaxed mb-3">{t('terms.s3.intro')}</p>
+          <ul className="list-disc list-inside text-gray-700 space-y-1">
+            {(t('terms.s3.items', { returnObjects: true }) as string[]).map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s4.title')}</h2>
+          <p className="text-gray-700 leading-relaxed">{t('terms.s4.body')}</p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s5.title')}</h2>
+          <p className="text-gray-700 leading-relaxed">{t('terms.s5.body')}</p>
+        </section>
+
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-primary mb-3">{t('terms.s6.title')}</h2>
+          <p className="text-gray-700 leading-relaxed">{t('terms.s6.body')}</p>
+        </section>
+
+      </main>
+
+    </div>
+  );
+}

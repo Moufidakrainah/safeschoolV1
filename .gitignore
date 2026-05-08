@@ -10,3 +10,4 @@ backups/
 # Documentation générée (PDF et Word)
 *.pdf
 *.docx
+.env.local
