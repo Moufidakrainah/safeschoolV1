@@ -129,7 +129,6 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-<<<<<<< HEAD
       }, 
 	  "errorEmailFormat": "Invalid email format.",
 	  "errorPasswordLength": "The password must contain at least 6 characters.",
@@ -144,15 +143,6 @@
 
 
 	}
-=======
-      },
-      "errorEmailFormat":    "Invalid email format.",
-      "errorPasswordLength": "The password must contain at least 6 characters.",
-      "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports.",
-      "deleteError":   "An error occurred during deletion.",
-      "deleteSelf":    "You cannot delete your own account."
-    }
->>>>>>> origin/frontend/main
   },
   "badge": {
     "critical":    "🔴 Critical",
