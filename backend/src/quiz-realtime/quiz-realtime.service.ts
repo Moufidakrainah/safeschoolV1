@@ -29,6 +29,7 @@ const QUESTIONS: QuestionInternal[] = [
 ];
 
 const QUESTION_TIME_LIMIT_MS = 30_000;
+const REVEAL_TIME_MS = 5_000;
 
 type GameStatus = 'waiting' | 'in-progress' | 'finished';
 
@@ -48,12 +49,23 @@ interface QuizRoom {
 	startedAt: number | null;
 	questionEndsAt: number | null;
 	questionTimer: NodeJS.Timeout | null;
+	revealEndsAt: number | null;
+	revealTimer: NodeJS.Timeout | null;
 }
 
 interface TimeoutAdvancePayload {
 	roomId: string;
 	roomSnapshot: RoomSnapshot;
 	nextQuestionSnapshot: ReturnType<QuizRealtimeService['getQuestionSnapshot']>;
+}
+
+interface QuestionRevealPayload {
+	roomId: string;
+	questionId: number;
+	correctIndex: number;
+	roomSnapshot: RoomSnapshot;
+	revealEndsAt: number;
+	revealDurationMs: number;
 }
 
 interface JoinRoomInput {
@@ -85,7 +97,7 @@ type SubmitAnswerResult =
 				questionId: number;
 				isCorrect: boolean;
 			};
-			questionAdvanced: boolean;
+			revealPayload: QuestionRevealPayload | null;
 	  }
 	| {
 			status:
@@ -99,7 +111,7 @@ type SubmitAnswerResult =
 	  };
 
 type JoinRoomResult = {
-	status: 'joined' | 'already-joined' | 'quiz-already-started';
+	status: 'joined' | 'already-joined' | 'quiz-already-started' | 'roomcode-bad-format' | 'room-is-full';
 	snapshot: RoomSnapshot;
 };
 
@@ -112,6 +124,7 @@ type LeaveRoomResult =
 export class QuizRealtimeService {
 	private readonly rooms = new Map<string, QuizRoom>();
 	private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
+	private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
 
 	createPongMessage(payload: string | undefined, clientId: string) {
 		return {
@@ -121,6 +134,13 @@ export class QuizRealtimeService {
 	}
 
 	joinRoom({ roomId, clientId, playerName }: JoinRoomInput): JoinRoomResult {
+		if (roomId.length < 3 || roomId.length > 10) {
+			return {
+				status : "roomcode-bad-format",
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
 		let room = this.rooms.get(roomId);
 
 		if (!room) {
@@ -134,6 +154,8 @@ export class QuizRealtimeService {
 				startedAt: null,
 				questionEndsAt: null,
 				questionTimer: null,
+				revealEndsAt: null,
+				revealTimer: null,
 			};
 			this.rooms.set(roomId, room);
 		} else if (room.status === 'in-progress') {
@@ -148,6 +170,13 @@ export class QuizRealtimeService {
 				status: 'already-joined',
 				snapshot: this.getRoomSnapshot(roomId),
 			};
+		}
+
+		if (room.players.size >= 32) {
+			return {
+				status: 'room-is-full',
+				snapshot: this.getRoomSnapshot(roomId),
+			}
 		}
 
 		room.players.set(clientId, {
@@ -179,6 +208,7 @@ export class QuizRealtimeService {
 
 		if (room.players.size === 0) {
 			this.clearQuestionTimer(room);
+			this.clearRevealTimer(room);
 			this.rooms.delete(roomId);
 			return { status: 'room-closed', snapshot: null };
 		}
@@ -226,6 +256,10 @@ export class QuizRealtimeService {
 			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
+		if (room.revealEndsAt !== null) {
+			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
+		}
+
 		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
 		if (!currentQuestion) {
 			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
@@ -247,22 +281,25 @@ export class QuizRealtimeService {
 		room.answeredPlayerIds.add(clientId);
 
 		const allAnswered = [...room.players.keys()].every((id) => room.answeredPlayerIds.has(id));
-		let questionAdvanced = false;
+		let revealPayload: QuestionRevealPayload | null = null;
 		if (allAnswered) {
-			this.advanceToNextQuestion(room);
-			questionAdvanced = true;
+			revealPayload = this.enterRevealPhase(room);
 		}
 
 		return {
 			status: 'accepted',
 			roomSnapshot: this.getRoomSnapshot(roomId),
 			answerResult: { roomId, playerId: clientId, questionId, isCorrect },
-			questionAdvanced,
+			revealPayload,
 		};
 	}
 
 	setOnQuestionTimedOut(handler: ((payload: TimeoutAdvancePayload) => void) | undefined) {
 		this.onQuestionTimedOut = handler;
+	}
+
+	setOnQuestionRevealed(handler: ((payload: QuestionRevealPayload) => void) | undefined) {
+		this.onQuestionRevealed = handler;
 	}
 
 	removeClientFromAllRooms(clientId: string) {
@@ -330,30 +367,69 @@ export class QuizRealtimeService {
 
 		room.questionEndsAt = Date.now() + QUESTION_TIME_LIMIT_MS;
 		room.questionTimer = setTimeout(() => {
-			const timeoutResult = this.advanceQuestionFromTimeout(room.roomId);
-			if (!timeoutResult || !this.onQuestionTimedOut) {
+			const targetRoom = this.rooms.get(room.roomId);
+			if (!targetRoom || targetRoom.status !== 'in-progress') {
+				return;
+			}
+
+			const revealPayload = this.enterRevealPhase(targetRoom);
+			if (revealPayload && this.onQuestionRevealed) {
+				this.onQuestionRevealed(revealPayload);
+			}
+		}, QUESTION_TIME_LIMIT_MS);
+	}
+
+	private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
+		if (room.status !== 'in-progress') return null;
+
+		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+		if (!currentQuestion) return null;
+
+		this.clearQuestionTimer(room);
+		this.clearRevealTimer(room);
+
+		room.revealEndsAt = Date.now() + REVEAL_TIME_MS;
+		room.revealTimer = setTimeout(() => {
+			const advanceResult = this.advanceFromReveal(room.roomId);
+			if (!advanceResult || !this.onQuestionTimedOut) {
 				return;
 			}
 
 			this.onQuestionTimedOut({
 				roomId: room.roomId,
-				roomSnapshot: timeoutResult.roomSnapshot,
-				nextQuestionSnapshot: timeoutResult.nextQuestionSnapshot,
+				roomSnapshot: advanceResult.roomSnapshot,
+				nextQuestionSnapshot: advanceResult.nextQuestionSnapshot,
 			});
-		}, QUESTION_TIME_LIMIT_MS);
+		}, REVEAL_TIME_MS);
+
+		return {
+			roomId: room.roomId,
+			questionId: currentQuestion.id,
+			correctIndex: currentQuestion.correctIndex,
+			roomSnapshot: this.getRoomSnapshot(room.roomId),
+			revealEndsAt: room.revealEndsAt,
+			revealDurationMs: REVEAL_TIME_MS,
+		};
 	}
 
-	private advanceQuestionFromTimeout(roomId: string) {
+	private advanceFromReveal(roomId: string) {
 		const room = this.rooms.get(roomId);
-		if (!room || room.status !== 'in-progress') {
-			return null;
-		}
-
+		if (!room) return null;
+		this.clearRevealTimer(room);
 		return this.advanceToNextQuestion(room);
+	}
+
+	private clearRevealTimer(room: QuizRoom) {
+		if (room.revealTimer) {
+			clearTimeout(room.revealTimer);
+			room.revealTimer = null;
+		}
+		room.revealEndsAt = null;
 	}
 
 	private advanceToNextQuestion(room: QuizRoom) {
 		this.clearQuestionTimer(room);
+		this.clearRevealTimer(room);
 		room.currentQuestionIndex += 1;
 		room.answeredPlayerIds.clear();
 
