@@ -12,15 +12,27 @@ req = {
   body: {...},
   query: {...}
 } */
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request, ForbiddenException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { UsersService } from './users.service';
-import { validateUUID } from '../utils/validate-uuid';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { UsersService } from "./users.service";
+import { validateUUID } from "../utils/validate-uuid";
 
 // Toutes les routes commencent par /users
 // Toutes protégées par JWT — impossible d'accéder sans token valide
-@Controller('users')
-@UseGuards(AuthGuard('jwt'))
+@Controller("users")
+@UseGuards(AuthGuard("jwt"))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -39,8 +51,8 @@ export class UsersController {
   # Recherche trop courte → retourne []
   curl -X GET "http://localhost:5000/users/search?q=l" \
   -H "Authorization: Bearer TON_TOKEN" */
-  @Get('search')
-  async search(@Query('q') q: string) {
+  @Get("search")
+  async search(@Query("q") q: string) {
     if (!q || q.length < 2) return [];
     return this.usersService.search(q);
   }
@@ -78,14 +90,14 @@ export class UsersController {
   @Get()
   async findAll(
     @Request() req,
-    @Query('role') role?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query("role") role?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
   ) {
-    if (req.user.role !== 'admin' && req.user.role !== 'director') {
-      throw new ForbiddenException('Accès refusé');
+    if (req.user.role !== "admin" && req.user.role !== "director") {
+      throw new ForbiddenException("Accès refusé");
     }
-    const pageNum  = page  ? parseInt(page)  : 1;
+    const pageNum = page ? parseInt(page) : 1;
     const limitNum = limit ? parseInt(limit) : 10;
     return this.usersService.findAll(role, pageNum, limitNum);
   }
@@ -105,11 +117,15 @@ export class UsersController {
   # UUID invalide → erreur 400
   curl -X GET "http://localhost:5000/users/invalid-id" \
     -H "Authorization: Bearer TON_TOKEN" */
-  @Get(':id')
-  async findOne(@Param('id') id: string, @Request() req) {
+  @Get(":id")
+  async findOne(@Param("id") id: string, @Request() req) {
     validateUUID(id);
-    if (req.user.role !== 'admin' && req.user.role !== 'director' && req.user.id !== id) {
-      throw new ForbiddenException('Accès refusé');
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "director" &&
+      req.user.id !== id
+    ) {
+      throw new ForbiddenException("Accès refusé");
     }
     return this.usersService.findById(id);
   }
@@ -169,7 +185,8 @@ export class UsersController {
   @Post()
   async createUser(
     @Request() req,
-    @Body() dto: {
+    @Body()
+    dto: {
       email: string;
       password: string;
       firstName: string;
@@ -178,8 +195,8 @@ export class UsersController {
       schoolClass?: string;
     },
   ) {
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Seul l\'admin peut créer des utilisateurs');
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("Seul l'admin peut créer des utilisateurs");
     }
     return this.usersService.createByAdmin(dto);
   }
@@ -229,11 +246,12 @@ curl -X PATCH "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006"
   -H "Authorization: Bearer TOKEN_DIRECTEUR" \
   -H "Content-Type: application/json" \
   -d '{"firstName": "Test"}' */
-  @Patch(':id')
+  @Patch(":id")
   async updateUser(
     @Request() req,
-    @Param('id') id: string,
-    @Body() dto: {
+    @Param("id") id: string,
+    @Body()
+    dto: {
       email?: string;
       firstName?: string;
       lastName?: string;
@@ -242,8 +260,10 @@ curl -X PATCH "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006"
     },
   ) {
     validateUUID(id);
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Seul l\'admin peut modifier des utilisateurs');
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException(
+        "Seul l'admin peut modifier des utilisateurs",
+      );
     }
     return this.usersService.updateByAdmin(id, dto);
   }
@@ -275,15 +295,15 @@ curl -X PATCH "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000007/
   -H "Authorization: Bearer TOKEN_LOTFI" \
   -H "Content-Type: application/json" \
   -d '{"password": "hackedPassword"}' */
-  @Patch(':id/password')
+  @Patch(":id/password")
   async changePassword(
     @Request() req,
-    @Param('id') id: string,
+    @Param("id") id: string,
     @Body() dto: { password: string },
   ) {
     validateUUID(id);
-    if (req.user.role !== 'admin' && req.user.id !== id) {
-      throw new ForbiddenException('Accès refusé');
+    if (req.user.role !== "admin" && req.user.id !== id) {
+      throw new ForbiddenException("Accès refusé");
     }
     return this.usersService.changePassword(id, dto.password);
   }
@@ -306,11 +326,13 @@ curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006
 
 # Test sans token → erreur 401
 curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006" */
-  @Delete(':id')
-  async deleteUser(@Request() req, @Param('id') id: string) {
+  @Delete(":id")
+  async deleteUser(@Request() req, @Param("id") id: string) {
     validateUUID(id);
-    if (req.user.role !== 'admin') {
-      throw new ForbiddenException('Seul l\'admin peut supprimer des utilisateurs');
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException(
+        "Seul l'admin peut supprimer des utilisateurs",
+      );
     }
     return this.usersService.deleteByAdmin(id, req.user.id);
   }

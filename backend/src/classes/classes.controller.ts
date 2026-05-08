@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, ForbiddenException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ClassesService } from './classes.service';
-import { validateUUID } from '../utils/validate-uuid';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { ClassesService } from "./classes.service";
+import { validateUUID } from "../utils/validate-uuid";
 
 class CreateClassDto {
   level: string;
@@ -13,14 +24,15 @@ class UpdateClassDto {
   section?: string;
 }
 
-@Controller('classes')
-@UseGuards(AuthGuard('jwt'))
+@Controller("classes")
+@UseGuards(AuthGuard("jwt"))
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
   async create(@Body() dto: CreateClassDto, @Request() req) {
-    if (req.user.role !== 'admin') throw new ForbiddenException('Accès réservé à l\'admin');
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
     return this.classesService.create(dto.level, dto.section);
   }
 
@@ -29,23 +41,29 @@ export class ClassesController {
     return this.classesService.findAll();
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @Get(":id")
+  async findOne(@Param("id") id: string) {
     validateUUID(id);
     return this.classesService.findOne(id);
   }
 
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateClassDto, @Request() req) {
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateClassDto,
+    @Request() req,
+  ) {
     validateUUID(id);
-    if (req.user.role !== 'admin') throw new ForbiddenException('Accès réservé à l\'admin');
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
     return this.classesService.update(id, dto);
   }
 
-  @Delete(':id')
-  async remove(@Param('id') id: string, @Request() req) {
+  @Delete(":id")
+  async remove(@Param("id") id: string, @Request() req) {
     validateUUID(id);
-    if (req.user.role !== 'admin') throw new ForbiddenException('Accès réservé à l\'admin');
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
     return this.classesService.remove(id);
   }
 }

@@ -1,0 +1,124 @@
+import { Controller, Post, Body } from '@nestjs/common';
+import { AuthService } from './auth.service';
+
+export class LoginDto {
+  email: string;
+  password: string;
+}
+
+export class RegisterDto {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+}
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('login')
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post('register')
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto.email, dto.password, dto.firstName, dto.lastName);
+  }
+}
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { UsersModule } from '../users/users.module';
+import { JwtStrategy } from './jwt.strategy';
+
+@Module({
+  imports: [
+    UsersModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'supersecret',
+      signOptions: { expiresIn: '24h' },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
+})
+export class AuthModule {}
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
+
+  async login(email: string, password: string) {
+    const user = await this.usersService.findByEmailWithProfile(email);
+    if (!user) throw new UnauthorizedException('Email ou mot de passe incorrect');
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new UnauthorizedException('Email ou mot de passe incorrect');
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        studentProfile: user.studentProfile || null,
+      },
+    };
+  }
+
+  async register(email: string, password: string, firstName: string, lastName: string) {
+    const existing = await this.usersService.findByEmail(email);
+    if (existing) throw new UnauthorizedException('Cet email est déjà utilisé');
+    const user = await this.usersService.create(email, password, firstName, lastName);
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        studentProfile: null,
+      },
+    };
+  }
+}
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {}
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UsersService } from '../users/users.service';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private usersService: UsersService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: process.env.JWT_SECRET || 'supersecret',
+    });
+  }
+
+  async validate(payload: { sub: string; email: string; role: string }) {
+    return this.usersService.findById(payload.sub);
+  }
+}
