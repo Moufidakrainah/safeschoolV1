@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, createUser, updateUser, deleteUser,
+  getAllUsers, createUser, updateUser, deleteUser,checkCanDeleteUser
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -64,6 +64,17 @@ export default function AdminDashboard() {
     firstName: '', lastName: '', email: '',
     password: '', role: 'student', schoolClass: '',
   });
+
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+const [isDeleting, setIsDeleting] = useState(false);
+
+
+
+const [deleteError, setDeleteError] = useState('');
+const [globalDeleteError, setGlobalDeleteError] = useState('');
+
+const [isBlocked, setIsBlocked] = useState(false);
+
 
   const itemsPerPage = 5;
 
@@ -220,6 +231,7 @@ const stats = useMemo(() => {
 
   // ── Utilisateurs
   const fetchUsers = async () => {
+	console.log("Users after deletion:", users);
     setLoadingUsers(true);
     try {
       const data = await getAllUsers();
@@ -244,20 +256,59 @@ const stats = useMemo(() => {
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm(t('admin.users.deleteConfirm'))) return;
-    try {
-      await deleteUser(id);
-      await fetchUsers();
-    } catch {
-      console.error('Erreur suppression utilisateur');
+
+
+  
+const handleDeleteUser = async (id: string) => {
+  // Vérifier si c'est son propre compte
+  if (id === user?.id) {
+    setDeleteTarget(id);
+    setIsBlocked(true);
+    setDeleteError(t('admin.users.deleteSelf'));
+    return;
+  }
+
+  const { deletable } = await checkCanDeleteUser(id);
+  setDeleteTarget(id);
+  setIsBlocked(!deletable);
+  setDeleteError('');
+};
+
+
+
+const confirmDelete = async () => {
+  if (!deleteTarget) return;
+
+  setIsDeleting(true);
+  setDeleteError('');
+  setIsBlocked(false);
+
+  try {
+    await deleteUser(deleteTarget);
+    await fetchUsers();
+    setDeleteTarget(null); // suppression OK → fermer la popup
+  } catch (err: any) {
+    console.error("Erreur suppression utilisateur:", err);
+
+   const msg = err?.response?.data?.message ?? err?.message ?? "";
+  
+    // 🔥 Cas : utilisateur lié à un signalement
+    if (msg === "USER_HAS_REPORTS") {
+      setIsBlocked(true); // active le mode "bloqué"
+      // setDeleteError(t('admin.users.deleteBlocked')); 
+    } else {
+      // 🔥 Autre erreur
+      setDeleteError(t('admin.users.deleteError'));
     }
-  };
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+
+
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
-// const updateField = (field: string, value: string) => {
-//   setUserForm(prev => ({ ...prev, [field]: value }));
-// };
 
 
 const [errors, setErrors] = useState({
@@ -305,12 +356,17 @@ const isFormValid =
 
 
 
+
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
     return (
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
+
       <div className="flex-1 bg-gray-50 font-sans">
         <AdminHeader {...headerProps} />
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
@@ -484,11 +540,17 @@ const isFormValid =
 
         </div>
       </div>
+	  </main>
     );
   }
 
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
+	<>
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.allReports')}</h1>
+
     <div className="flex-1 bg-white font-sans">
       <AdminHeader {...headerProps} />
 
@@ -732,10 +794,9 @@ const isFormValid =
                   />
 				  <div className="min-h-5 w-full">
 					{errors.email && (
-						<p className="text-red-300 text-xs">{errors.email}</p>
+						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
 					)}
 					</div>
-
 
                   <Input
                     label={t('admin.users.password')}
@@ -746,7 +807,7 @@ const isFormValid =
                   />
 					<div className="min-h-5 w-full">
 					{errors.password && (
-						<p className="text-red-300 text-xs">{errors.password}</p>
+						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
 					)}
 					</div>
 
@@ -779,52 +840,117 @@ const isFormValid =
               </Card>
             )}
 
-            {loadingUsers ? (
-              <p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {users.map(u => (
-                  <li key={u.id}>
-                    <Card className="flex justify-between items-center">
-                      <div>
-                        <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
-                        <span className="ml-2 text-xs text-gray-400">{u.email}</span>
-                        <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
-                        {u.studentProfile?.schoolClass && (
-                          <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
-                            {u.studentProfile.schoolClass}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingUser(u);
-                            setUserForm({
-                              firstName: u.firstName, lastName: u.lastName,
-                              email: u.email, password: '',
-                              role: u.role, schoolClass: u.studentProfile?.schoolClass || '',
-                            });
-                            setShowUserForm(true);
-                          }}
-                          aria-label={`${t('admin.users.edit')} ${u.firstName} ${u.lastName}`}
-                        >
-                          ✏️ {t('admin.users.edit')}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDeleteUser(u.id)}
-                          aria-label={`${t('admin.users.delete')} ${u.firstName} ${u.lastName}`}
-                        >
-                          🗑️ {t('admin.users.delete')}
-                        </Button>
-                      </div>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            )}
+            
+
+
+
+
+		{loadingUsers ? (
+		<p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
+		) : (
+		<ul className="flex flex-col gap-3">
+			{users.map(u => (
+			<li key={u.id}>
+				<Card className="flex justify-between items-center">
+				<div>
+					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+					<span className="ml-2 text-xs text-gray-400">{u.email}</span>
+					<span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
+					{u.studentProfile?.schoolClass && (
+					<span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
+						{u.studentProfile.schoolClass}
+					</span>
+					)}
+				</div>
+
+				<div className="flex gap-2">
+					<Button
+					variant="outline"
+					onClick={() => {
+						setEditingUser(u);
+						setUserForm({
+						firstName: u.firstName,
+						lastName: u.lastName,
+						email: u.email,
+						password: '',
+						role: u.role,
+						schoolClass: u.studentProfile?.schoolClass || '',
+						});
+						setShowUserForm(true);
+					}}
+					>
+					✏️ {t('admin.users.edit')}
+					</Button>
+
+					<Button
+					variant="danger"
+					onClick={() => handleDeleteUser(u.id)}
+					>
+					🗑️ {t('admin.users.delete')}
+					</Button>
+				</div>
+				</Card>
+			</li>
+			))}
+
+
+
+
+
+
+		</ul>
+
+		)}
+
+
+
+
+{deleteTarget && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+
+		 <p className="text-sm text-gray-600 mb-4">
+        {deleteError
+          ? deleteError
+          : isBlocked
+            ? t('admin.users.deleteBlocked')
+            : t('admin.users.deleteConfirm')}
+      </p>
+
+      <div className="flex justify-end gap-3">
+
+        {/* Bouton Annuler / Fermer */}
+        <button
+          onClick={() => {
+            setDeleteTarget(null);
+            setIsBlocked(false);
+          }}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          {isBlocked ? t('common.close') : t('common.cancel')}
+        </button>
+
+        {/* Bouton Supprimer → seulement si NON bloqué */}
+        {!isBlocked && (
+          <button
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isDeleting ? t('common.loading') : t('common.delete')}
+          </button>
+        )}
+
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+
+
+
           </section>
         )}
 
@@ -835,5 +961,8 @@ const isFormValid =
 
       </div>
     </div>
+	</main>
+  </>
+
   );
 }

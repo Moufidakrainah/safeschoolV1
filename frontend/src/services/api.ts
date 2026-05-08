@@ -50,7 +50,21 @@ export const createUser = async (dto: Record<string, string>) => (await api.post
 
 export const updateUser = async (id: string, dto: Record<string, string>) => (await api.patch(`/users/${id}`, dto)).data;
 
-export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`)).data;
+// export const deleteUser = async (id: string) => (await api.delete(`/users/${id}`)).data;
+
+
+export const deleteUser = async (id: string) => {
+  try {
+    const res = await api.delete(`/users/${id}`);
+    return res.data;
+  } catch (err: any) {
+    const message = err.response?.data?.message || "DELETE_FAILED";
+    throw new Error(message);
+  }
+};
+
+
+
 
 // Récupère les parents liés à un élève
 export const getStudentParents = async (userId: string) =>
@@ -60,3 +74,8 @@ export const getStaffProfile = async (userId: string) =>
   (await api.get(`/staff-profiles/by-user/${userId}`)).data;
 
 export default api;
+
+export const checkCanDeleteUser = async (id: string) => {
+  const res = await api.get(`/users/${id}/can-delete`);
+  return res.data;
+};

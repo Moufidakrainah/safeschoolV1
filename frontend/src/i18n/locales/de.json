@@ -119,7 +119,6 @@
       "email": "E-Mail",
       "password": "Passwort",
       "save": "Speichern",
-      "deleteConfirm": "Diesen Benutzer löschen?",
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "selectClass": "Klasse auswählen",
@@ -130,8 +129,20 @@
         "staff": "Personal",
         "admin": "Admin",
         "director": "Direktor"
-      }
-    }
+      }, 
+	  "errorEmailFormat": "Ungültiges E-Mail-Format.",
+	  "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
+       	"deleteConfirm": "Möchten Sie diesen Benutzer wirklich löschen?",
+	"deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist..",
+	"deleteError": "Beim Löschen ist ein Fehler aufgetreten..",
+  "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
+    },
+	"title":{
+		"oneReport": "Einzelheiten eines Berichts", 
+		"allReports": "Alle Berichte"
+
+
+	}
   },
   "badge": {
     "critical":    "🔴 Kritisch",
@@ -162,7 +173,8 @@
     "loading": "Laden...",
     "previous": "Zurück",
     "next": "Weiter",
-    "error": "Ein Fehler ist aufgetreten"
+    "error": "Ein Fehler ist aufgetreten",
+    "close": "Schließen"
   },
   "privacy": {
     "updated": "Letzte Aktualisierung: April 2026",
@@ -319,7 +331,12 @@
       "typeRequired":        "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
       "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
       "frequencyRequired":   "Bitte die Häufigkeit angeben, um fortzufahren."
-    }
+    }, 
+	"title": {
+		"myProfile":"Mein Profil", 
+		"createAReport":"Einen Bericht erstellen", 
+		"reportCreated":"Bericht erstellt"
+	}
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",

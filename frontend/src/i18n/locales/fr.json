@@ -119,7 +119,6 @@
       "email": "Email",
       "password": "Mot de passe",
       "save": "Enregistrer",
-      "deleteConfirm": "Supprimer cet utilisateur ?",
       "edit": "Modifier",
       "delete": "Supprimer",
       "selectClass": "Sélectionner une classe",
@@ -131,12 +130,18 @@
         "admin": "Admin",
         "director": "Directeur"
       },
-      "errorEmailFormat":    "Format d'email invalide.",
-      "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-      "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
-      "deleteError":   "Une erreur est survenue lors de la suppression.",
-      "deleteSelf":    "Vous ne pouvez pas supprimer votre propre compte."
-    }
+	  "errorEmailFormat": "Format d'email invalide.",
+	  "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.", 
+	"deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
+	"deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
+	"deleteError": "Une erreur est survenue lors de la suppression.",
+  "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
+    },
+	"title":{
+		"oneReport": "Details d'un signalement",
+		"allReports": "Tous les signalements"
+
+	}
   },
   "badge": {
     "critical":    "🔴 Critique",
@@ -167,7 +172,8 @@
     "loading": "Chargement...",
     "previous": "Précédent",
     "next": "Suivant",
-    "error": "Une erreur est survenue"
+    "error": "Une erreur est survenue",
+    "close": "Fermer"
   },
   "reporter": {
     "nav": {
@@ -431,7 +437,12 @@
       "typeRequired":        "Choisis un type de harcèlement pour continuer.",
       "descriptionRequired": "Décris les faits pour continuer.",
       "frequencyRequired":   "Indique la fréquence pour continuer."
-    }
+    }, 
+	"title": {
+		"myProfile":"Mon profil", 
+		"createAReport":"Créér un signalement", 
+		"reportCreated":"Signalement créé"
+	}
   },
   "privacy": {
     "updated": "Dernière mise à jour : avril 2026",

@@ -39,6 +39,8 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
   return (
     <main className="p-8 max-w-xl mx-auto">
+    <h1 className="sr-only">{t('reporter.title.myProfile')}</h1>
+
       <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
 
       {/* Informations personnelles */}
