@@ -1,10 +1,10 @@
 /**
  * ReporterDashboard — page principale pour les utilisateurs de rôle 'teacher' ou 'staff'.
  *
- * Orchestrateur léger : gère uniquement la navigation entre sections et le chargement
- * du profil professionnel. Délègue le rendu à des composants spécialisés :
+ * Gère uniquement la navigation entre sections et le chargement du profil.
+ * Délègue le rendu à des composants spécialisés :
  *   - ReporterProfile : section profil (infos perso + profil pro)
- *   - ReportForm      : formulaire multi-étapes de signalement (état via useReportForm)
+ *   - ReporterForm    : formulaire multi-étapes de signalement (état via useReportForm)
  *
  * La section 'quiz' est gérée par une redirection via useEffect.
  * L'état de navigation est initialisé depuis le query param ?section= (deeplinks).
@@ -20,27 +20,26 @@ import { useAuth } from '../context/AuthContext';
 
 // API services
 import { getStaffProfile } from '../services/api';
+import type { StaffProfile } from '../types';
 
 // UI components
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 import ReporterProfile from '../components/reporter/ReporterProfile';
-import ReportForm from '../components/reporter/ReportForm';
-
-
+import ReporterForm from '../components/reporter/ReporterForm';
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Lecture du query param ?section= pour supporter les liens directs
+  // Lecture du query param ?section= pour la prise en charge des liens directs
   const [searchParams] = useSearchParams();
   const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>(
     (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
   );
 
   // Profil professionnel — chargé une seule fois à l'arrivée sur la page
-  const [staffProfile, setStaffProfile] = useState<any>(null);
+  const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
   useEffect(() => {
@@ -69,7 +68,7 @@ export default function ReporterDashboard() {
           loadingProfile={loadingProfile}
         />
       )}
-      {viewSection === 'report' && <ReportForm user={user} />}
+      {viewSection === 'report' && <ReporterForm user={user} />}
     </>
   );
 }

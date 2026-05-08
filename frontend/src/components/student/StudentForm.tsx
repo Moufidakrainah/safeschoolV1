@@ -1,7 +1,7 @@
 /**
- * ReportForm — formulaire multi-étapes de signalement.
+ * StudentForm — formulaire multi-étapes de signalement.
  *
- * Gère en autonomie :
+ * Gère :
  *   - L'état et la logique du formulaire (via le hook useReportForm)
  *   - Les 5 étapes du formulaire + l'écran de confirmation (step 6)
  *   - La navigation entre étapes (Précédent / Suivant / Envoyer)
@@ -22,15 +22,14 @@ import type { AuthUser } from '../../types';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface ReportFormProps {
+
+interface StudentFormProps {
   user: AuthUser | null;
 }
 
 // ─── Composant ──────────────────────────────────────────────────────────────
 
-
-
-export default function ReportForm({ user }: ReportFormProps) {
+export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
 
 
@@ -492,12 +491,14 @@ useEffect(() => {
               ← {t('common.previous')}
             </Button>
             {step < 5 ? (
-              <Button onClick={() => {
-                // Si les champs requis sont vides, afficher les erreurs sans avancer.
-                if (isNextDisabled) { setShowErrors(true); return; }
-                setShowErrors(false);
-                setStep(s => s + 1);
-              }}>
+              <Button
+                onClick={() => {
+                  if (isNextDisabled) { setShowErrors(true); return; }
+                  setShowErrors(false);
+                  setStep(s => s + 1);
+                }}
+                disabled={isNextDisabled}
+              >
                 {t('common.next')} →
               </Button>
             ) : (

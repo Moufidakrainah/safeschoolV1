@@ -63,6 +63,23 @@ export interface Note {
   author?: { firstName: string; lastName: string };
 }
 
+// ─── Profil professionnel (staff/teacher) ─────────────────────────────────────
+export interface StaffProfile {
+  id: string;
+  profession: string;
+  subject: string | null;
+}
+
+// ─── Parent d'un élève ────────────────────────────────────────────────────────
+export interface Parent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+}
+
 // ─── Signalement ─────────────────────────────────────────────────────────────
 export interface Report {
   id: string;
