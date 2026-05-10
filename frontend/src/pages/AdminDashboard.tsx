@@ -174,11 +174,10 @@ const stats = useMemo(() => {
     total: reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
-    pending:   reports.filter(r => r.status === 'pending').length,
-    escalated: reports.filter(r => r.status === 'escalated').length,
+    medium:   reports.filter(r => severityFromApiGrade(r.grade) === 'medium').length,
+    low: 	  reports.filter(r => severityFromApiGrade(r.grade) === 'low').length,
   };
 }, [reports]);
-
 
   const handleReset = () => {
     setFilterGrade('all');
@@ -572,29 +571,29 @@ const isFormValid =
                 label={t('admin.stats.critical')}
                 value={stats.critical}
                 color={SEVERITY_COLORS.critical}
-                active={filterGrade === 'critique'}
-                onClick={() => { setFilterGrade('critique'); setFilterStatus('all'); setCurrentPage(1); }}
+                active={filterGrade === 'critical'}
+                onClick={() => { setFilterGrade('critical'); setFilterStatus('all'); setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.high')}
                 value={stats.high}
                 color={SEVERITY_COLORS.high}
-                active={filterGrade === 'grave'}
-                onClick={() => { setFilterGrade('grave'); setFilterStatus('all'); setCurrentPage(1); }}
+                active={filterGrade === 'high'}
+                onClick={() => { setFilterGrade('high'); setFilterStatus('all'); setCurrentPage(1); }}
               />
               <StatCard
-                label={t('admin.stats.pending')}
-                value={stats.pending}
-                color="#eab308"
-                active={filterStatus === 'pending'}
-                onClick={() => { setFilterStatus('pending'); setFilterGrade('all'); setCurrentPage(1); }}
+                label={t('admin.stats.medium')}
+                value={stats.medium}
+                color={SEVERITY_COLORS.medium}
+                active={filterStatus === 'medium'}
+                onClick={() => { setFilterGrade('medium'); setFilterStatus('all'); setCurrentPage(1); }}
               />
               <StatCard
-                label={t('admin.stats.escalated')}
-                value={stats.escalated}
-                color="#7c3aed"
-                active={filterStatus === 'escalated'}
-                onClick={() => { setFilterStatus('escalated'); setFilterGrade('all'); setCurrentPage(1); }}
+                label={t('admin.stats.low')}
+                value={stats.low}
+                color={SEVERITY_COLORS.low}
+                active={filterStatus === 'low'}
+                onClick={() => { setFilterGrade('low'); setFilterStatus('all'); setCurrentPage(1); }}
               />
             </div>
 

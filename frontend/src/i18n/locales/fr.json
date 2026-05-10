@@ -46,6 +46,8 @@
       "total": "Total",
       "critical": "Critique",
       "high": "Grave",
+      "medium": "Moyen",
+      "low": "Faible",
       "pending": "En attente",
       "escalated": "Escaladés"
     },

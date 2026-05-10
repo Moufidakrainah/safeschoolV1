@@ -13,11 +13,11 @@
 //
 // Utilisation :
 //   <StatCard
-//     label="Critique"
+//     label="Critical"
 //     value={stats.critical}
 //     color={SEVERITY_COLORS.critical}
-//     active={filterGrade === 'critique'}
-//     onClick={() => { setFilterGrade('critique'); setCurrentPage(1); }}
+//     active={filterGrade === 'critical'}
+//     onClick={() => { setFilterGrade('critical'); setCurrentPage(1); }}
 //   />
 // ============================================================
 

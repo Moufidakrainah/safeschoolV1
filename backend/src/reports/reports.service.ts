@@ -95,7 +95,7 @@ export class ReportsService {
   }): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade && updates.grade !== report.grade) {
-      const grades = [ReportGrade.FAIBLE, ReportGrade.MOYEN, ReportGrade.GRAVE, ReportGrade.CRITIQUE];
+      const grades = [ReportGrade.LOW, ReportGrade.MEDIUM, ReportGrade.HIGH, ReportGrade.CRITICAL];
       const oldIndex = grades.indexOf(report.grade);
       const newIndex = grades.indexOf(updates.grade);
       if (newIndex < oldIndex && !updates.gradeModificationReason) {

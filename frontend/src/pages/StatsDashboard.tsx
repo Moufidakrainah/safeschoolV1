@@ -44,8 +44,8 @@ export default function StatsDashboard({ reports }: Props) {
   return classes.map(c => ({
     classe: c,
     total:    filtered.filter(r => r.student?.studentProfile?.schoolClass === c).length,
-    critical: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critique').length,
-    high:     filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'grave').length,
+    critical: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critical').length,
+    high:     filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'high').length,
   }));
   }, [reports, filtered]);
 

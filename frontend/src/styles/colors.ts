@@ -4,17 +4,17 @@ export const colors = {
   darkBlue:  '#0097b2',
 
   // Gravité
-  critique: {
+  critical: {
     dark:  '#cc0000',
     light: '#ff3131',
   },
-  grave: {
+  high: {
     main: '#ff914d',
   },
-  moyen: {
+  medium: {
     main: '#ffde59',
   },
-  faible: {
+  low: {
     main: '#74cc00',
   },
 } as const;
