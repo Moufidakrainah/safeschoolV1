@@ -113,7 +113,14 @@ const filtered = useMemo(() => {
   return reports.filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-    if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
+	    if (filterClass !== 'all') {
+      const cls = r.student?.studentProfile?.class;
+      if (!cls) return false;
+
+      const fullClass = `${cls.level}${cls.section}`;
+      if (fullClass !== filterClass) return false;
+    }
+
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
 
     if (filterSuspect) {
@@ -352,7 +359,28 @@ const isFormValid =
   !errors.email &&
   !errors.password;
 
+const classOptions = Array.from(
+  new Set(
+    reports
+      .map(r => {
+        const cls = r.student?.studentProfile?.class;
+        return cls ? `${cls.level}${cls.section}` : null;
+      })
+      .filter(Boolean)
+  )
+).sort((a, b) => {
+  const order = ['6eme', '5eme', '4eme', '3eme'];
 
+  const levelA = a.slice(0, -1);
+  const levelB = b.slice(0, -1);
+  const sectionA = a.slice(-1);
+  const sectionB = b.slice(-1);
+
+  const diff = order.indexOf(levelA) - order.indexOf(levelB);
+  if (diff !== 0) return diff;
+
+  return sectionA.localeCompare(sectionB);
+});
 
 
 
@@ -585,14 +613,14 @@ const isFormValid =
                 label={t('admin.stats.medium')}
                 value={stats.medium}
                 color={SEVERITY_COLORS.medium}
-                active={filterStatus === 'medium'}
+                active={filterGrade === 'medium'}
                 onClick={() => { setFilterGrade('medium'); setFilterStatus('all'); setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.low')}
                 value={stats.low}
                 color={SEVERITY_COLORS.low}
-                active={filterStatus === 'low'}
+                active={filterGrade === 'low'}
                 onClick={() => { setFilterGrade('low'); setFilterStatus('all'); setCurrentPage(1); }}
               />
             </div>
@@ -610,35 +638,67 @@ const isFormValid =
             </div>
 
             {/* Filtres */}
-            <div className="flex gap-2 mb-5 flex-wrap items-center" role="group" aria-label={t('admin.filters.groupLabel')}>
-              <Select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allStatuses')}>
-                <option value="all">{t('admin.filters.allStatuses')}</option>
-                <option value="pending">{t('admin.status.pending')}</option>
-                <option value="in_progress">{t('admin.status.in_progress')}</option>
-                <option value="escalated">{t('admin.status.escalated')}</option>
-                <option value="closed">{t('admin.status.closed')}</option>
-                <option value="rejected">{t('admin.status.rejected')}</option>
-              </Select>
+            {/* <div className="flex mb-5 flex-wrap items-center gap-0" role="group" aria-label={t('admin.filters.groupLabel')}> */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
 
-              <Select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allClasses')}>
-                <option value="all">{t('admin.filters.allClasses')}</option>
-                {[...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </Select>
+              <Button variant="ghost" onClick={handleReset}>{t('admin.filters.reset')}</Button>
+		
 
-              <Select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allReporters')}>
-                <option value="all">{t('admin.filters.allReporters')}</option>
-                {[...new Map(
-                  reports
-                    .filter(r => r.student && !r.isAnonymous)
-                    .map(r => [r.student!.id, r.student!])
-                ).values()].map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName} ({s.role})
-                  </option>
-                ))}
-              </Select>
+		<Select
+
+			value={filterClass}
+			onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }}
+			aria-label={t('admin.filters.allClasses')}
+			>
+			<option value="all">{t('admin.filters.allClasses')}</option>
+
+			{classOptions.map(cls => (
+				<option key={cls} value={cls}>
+				{cls}
+				</option>
+			))}
+		</Select>
+
+
+
+
+
+
+		<Select
+
+			value={filterStudent}
+			onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
+			aria-label={t('admin.filters.allReporters')}
+			>
+			<option value="all">{t('admin.filters.allReporters')}</option>
+
+			{[...new Map(
+				reports
+				.filter(r => r.student && !r.isAnonymous)
+				.map(r => [r.student!.id, r.student!])
+			).values()].map(s => {
+
+				// 👉 C’est ICI qu’on log l’utilisateur
+				console.log("USER OPTION:", s);
+
+				return (
+				<option key={s.id} value={s.id}>
+					{s.firstName} {s.lastName} (
+					{s.role === 'student' && s.studentProfile?.class
+						? `${s.studentProfile.class.level}${s.studentProfile.class.section}`
+						: s.role === 'teacher' && s.staffProfile?.subject
+						? s.staffProfile.subject
+						: s.role}
+					)
+				</option>
+				);
+			})}
+			</Select>
+
+
+
+
+
 
               <input
                 type="search"
@@ -646,17 +706,20 @@ const isFormValid =
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               />
 
-              <div className="flex items-center gap-1" role="group" aria-label={t('admin.filters.dateRange')}>
+			<div className="w-full text-sm flex items-center justify-end gap-2 mt-2 font-sans">
+            
+
+			<span aria-hidden="true" className="text-gray-600">Dates : </span>
                 <input
                   key={`from-${resetKey}`}
                   type="date"
                   value={filterDateFrom}
                   onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateFrom')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
                 <span aria-hidden="true" className="text-gray-400">→</span>
                 <input
@@ -665,12 +728,11 @@ const isFormValid =
                   value={filterDateTo}
                   onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateTo')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
-              </div>
+				</div>
 
-              <Button variant="ghost" onClick={handleReset}>{t('admin.filters.reset')}</Button>
-            </div>
+   </div>         
 
             {/* Liste des signalements */}
             {loading ? (

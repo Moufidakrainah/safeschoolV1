@@ -67,7 +67,7 @@ export class ReportsService {
 
   async findAll(): Promise<Report[]> {
     return this.reportsRepository.find({
-      relations: ['student', 'student.studentProfile', 'suspects', 'suspects.user'],
+      relations: ['student', 'student.studentProfile', 'student.studentProfile.class', 'student.staffProfile', 'suspects', 'suspects.user'],
     });
   }
 
@@ -81,7 +81,10 @@ export class ReportsService {
   async findOne(id: string): Promise<Report> {
     const report = await this.reportsRepository.findOne({
       where: { id },
-      relations: ['student', 'suspects', 'suspects.user'],
+      relations: ['student', 
+      'student.studentProfile',
+      'student.studentProfile.class',
+      'student.staffProfile',  'suspects', 'suspects.user'],
     });
     if (!report) throw new NotFoundException('Signalement introuvable');
     return report;
