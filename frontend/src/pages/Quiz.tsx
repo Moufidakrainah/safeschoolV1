@@ -25,6 +25,11 @@ type RevealPayload = {
   roomId: string;
   questionId: number;
   correctIndex: number;
+  answerStatistics: {
+    index: number;
+    count: number;
+    percentage: number;
+  }[];
   revealEndsAt: number;
   revealDurationMs: number;
 };
@@ -40,6 +45,7 @@ type QuestionState = {
   selectedIndex: number | null;
   correctIndex: number | null;
   revealEndsAt: number | null;
+  answerStatistics: RevealPayload['answerStatistics'];
   answerResult: string;
 } | null;
 
@@ -132,6 +138,7 @@ export default function Quiz() {
           selectedIndex: null,
           correctIndex: null,
           revealEndsAt: null,
+          answerStatistics: [],
           answerResult: '',
         });
         setTimeLeftMs(data.endsAt ? Math.max(0, data.endsAt - Date.now()) : data.timeLimitMs);
@@ -140,7 +147,12 @@ export default function Quiz() {
       socket.on('quiz:question:reveal', (data: RevealPayload) => {
         setQuestionState((prev) =>
           prev && prev.question.id === data.questionId
-            ? { ...prev, correctIndex: data.correctIndex, revealEndsAt: data.revealEndsAt }
+            ? {
+                ...prev,
+                correctIndex: data.correctIndex,
+                revealEndsAt: data.revealEndsAt,
+                answerStatistics: data.answerStatistics,
+              }
             : prev
         );
       });
@@ -332,6 +344,29 @@ export default function Quiz() {
                   );
                 })}
               </ul>
+              {isRevealing ? (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700">Answer results  </h3>
+                  <ul className="space-y-2">
+                    {questionState.answerStatistics.map((stat) => (
+                      <li key={stat.index} className="space-y-1">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>{questionState.question.options[stat.index]}</span>
+                          <span className="font-semibold">
+                            {stat.count} ({stat.percentage}%)
+                          </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary"
+                            style={{ width: `${stat.percentage}%` }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               {!isRevealing && questionState.hasAnswered ? <p>Answer submitted. Waiting for other players...</p> : null}
               {!isRevealing && !questionState.hasAnswered && timeLeftMs <= 0 ? <p>Time is up. Waiting for next question...</p> : null}
             </>
