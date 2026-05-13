@@ -11,10 +11,13 @@ interface User {
   studentProfile?: {
     id: string;
     schoolClass: string;
-    parentEmail: string;
-    parentPhone: string;
     dateOfBirth: string;
   } | null;
+  staffProfile?: {
+    id: string;
+    role: string;
+    subject?:string;
+  }
 }
 
 interface AuthContextType {

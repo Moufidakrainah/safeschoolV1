@@ -32,7 +32,7 @@ export default function Select({ value, onChange, children, className = '', 'ari
       onChange={onChange}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none cursor-pointer bg-white text-gray-700 focus:border-primary transition-all ${className}`}
+      className={`m-2 px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary cursor-pointer bg-white text-gray-700 focus:border-primary transition-all ${className}`}
     >
       {children}
     </select>

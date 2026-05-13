@@ -58,7 +58,7 @@ Exemples : `feat: add student dashboard layout`, `docs: update meeting minutes`
     - Titre clair, description des changements.
     - Assigner un membre de l'équipe pour la review.
 
-6. **Après le merge** : supprimer la branche sur GitHub (bouton "Delete branch") et en local :
+6. **Après le merge** : supprimer la branche sur GitHub (bouton "Delete branch") et en local  ?
     ```bash
     git checkout main
     git branch -d feat/nom-de-ma-feature

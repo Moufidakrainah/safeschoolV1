@@ -4,7 +4,10 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "error": "Incorrect username or password"
+	"errorRequired": "Please fill in all fields.",
+	"errorEmailFormat": "Invalid email format.",
+	"errorPasswordLength": "The password must contain at least 6 characters.",
+	"error": "Incorrect credentials."
   },
   "nav": {
     "logout": "Log out"
@@ -13,7 +16,14 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "backToApp": "Back to app",
-    "languageSwitcher": "Choose language"
+    "languageSwitcher": "Choose language",
+    "legalNav": "Legal links",
+    "changeLanguage": "Switch to {{language}}"
+  },
+  "languages": {
+    "french": "French",
+    "english": "English",
+    "german": "German"
   },
   "admin": {
     "prev": "Previous",
@@ -109,7 +119,6 @@
       "email": "Email",
       "password": "Password",
       "save": "Save",
-      "deleteConfirm": "Delete this user?",
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
@@ -120,8 +129,20 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-      }
-    }
+      }, 
+	  "errorEmailFormat": "Invalid email format.",
+	  "errorPasswordLength": "The password must contain at least 6 characters.",
+   	"deleteConfirm": "Do you really want to delete this user?",
+	"deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
+	"deleteError": "An error occurred during deletion.",
+  "deleteSelf": "You cannot delete your own account"
+     },
+	"title":{
+		"oneReport": "Details of a report",
+		"allReports": "All reports"
+
+
+	}
   },
   "badge": {
     "critical":    "🔴 Critical",
@@ -150,7 +171,169 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "loading": "Loading...",
-    "error": "An error occurred"
+    "previous": "Previous",
+    "next": "Next",
+    "error": "An error occurred",
+    "close": "Close"
+  },
+  "reporter": {
+	"nav": {
+		"ariaLabel": "Reporter navigation",
+		"profile": "My profile",
+		"report":   "Make a report",
+		"workshop": "Workshops",
+		"quiz":     "Quiz"
+	},
+	"profile": {
+		"title": "My profile",
+		"firstName": "First name",
+		"lastName": "Last name",
+		"email": "Email",
+    "role": "Occupation",
+    "subject": "Subject",
+    "subjectUnknown": "Unknown"
+	},
+    "roles": {
+      "teacher": "Teacher",
+      "staff": "School staff"
+    },
+    "header": {
+      "brand1": "Report",
+      "brand2": "School"
+    },
+    "home": {
+      "school": "Jeanne d'Arc School — Anti-bullying system",
+      "title": "Witnessing a bullying situation?",
+      "subtitle": "Report it in 5 minutes. Anonymous option available. Our team responds within 24h.",
+      "cta": "Make a report",
+      "statsLabel": "Key indicators",
+      "stat1": "Response time",
+      "stat2": "Confidentiality guaranteed",
+      "stat3value": "Anonymous",
+      "stat3": "Option available"
+    },
+    "success": {
+      "iconLabel": "Success",
+      "title": "Report submitted",
+      "message": "Your report has been received. The management team will be informed as soon as possible.",
+      "notice": "✉️ A receipt has been sent to you. You do not have access to case follow-up — it is handled directly by the administration.",
+      "back": "Back to home"
+    },
+    "steps": {
+      "who": "Reporter",
+      "type": "Type",
+      "facts": "Facts",
+      "people": "People",
+      "evidence": "Evidence",
+      "validate": "Review"
+    },
+    "step1": {
+      "title": "Who is reporting?",
+      "subtitle": "Select your situation",
+      "teacher": "I am reporting as a teacher",
+      "staff": "I am reporting as school staff"
+    },
+    "step2": {
+      "title": "What type of bullying?",
+      "subtitle": "Select the most appropriate type",
+      "physical": "Physical",
+      "physicalSub": "Hitting, pushing",
+      "verbal": "Verbal",
+      "verbalSub": "Insults, mockery",
+      "cyber": "Cyber",
+      "cyberSub": "Social media, SMS",
+      "exclusion": "Social exclusion",
+      "exclusionSub": "Being left out",
+      "sexual": "Sexual",
+      "sexualSub": "Gestures, remarks",
+      "other": "Other",
+      "otherSub": "Describe below"
+    },
+    "step3": {
+      "title": "Describe the facts",
+      "subtitle": "Explain what you observed",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe what happened, when, where and who was involved...",
+      "frequencyLabel": "Frequency of acts",
+      "frequencyPlaceholder": "Select...",
+      "freq1": "Once",
+      "freq2": "Twice",
+      "freq3": "Three times or more",
+      "freq4": "Every day"
+    },
+    "step4": {
+      "title": "People involved",
+      "subtitle": "Indicate the victim and suspected persons — this information is confidential",
+      "victimLabel": "Victim's name",
+      "suspectsLabel": "Suspect(s)",
+      "searchPlaceholder": "Search by name...",
+      "selected": "selected",
+      "addFreeText": "Add",
+      "suspectsAdded": "Suspects added",
+      "removeSuspect": "Remove",
+      "noSuspect": "No suspect added — you can skip this step"
+    },
+    "step5": {
+      "title": "Evidence",
+      "subtitle": "Photos, screenshots, etc.",
+      "soon": "This feature will be available soon"
+    },
+    "step6": {
+      "title": "Review",
+      "subtitle": "Check and submit your report",
+      "who": "Reporter",
+      "type": "Type",
+      "description": "Description",
+      "frequency": "Frequency",
+      "victim": "Victim",
+      "suspects": "Suspects",
+      "anonymous": "Anonymous report",
+      "anonymousDesc": "my name will not be visible"
+    },
+    "submitting": "Sending...",
+    "submit": "Submit report",
+    "submitError": "Submission failed. Check your connection and try again.",
+    "validation": {
+      "typeRequired":        "Please select a type of bullying to continue.",
+      "descriptionRequired": "Please describe the facts to continue.",
+      "frequencyRequired":   "Please indicate the frequency to continue."
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    },
+    "title": {
+      "createAReport": "Create a report",
+      "reportCreated": "Report submitted"
+    }
+  },
+  "student": {
+    "nav": {
+      "ariaLabel": "Student navigation",
+      "profile":   "My profile",
+      "report":    "Make a report",
+      "workshop":  "Workshops",
+      "quiz":      "Quiz"
+    },
+    "profile": {
+      "title":     "My profile",
+      "firstName": "First name",
+      "lastName":  "Last name",
+      "email":     "Email",
+      "role":      "Role"
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    }
   },
   "privacy": {
     "updated": "Last updated: April 2026",
