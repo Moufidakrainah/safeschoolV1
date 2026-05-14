@@ -33,10 +33,10 @@ export default function AdminHeader({
       <Header user={user} logoutUser={logoutUser} />
 
       <nav
-        className="bg-primary px-8 py-4 flex items-center gap-8"
+        className="bg-primary px-8 py-0 flex items-center gap-8"
         aria-label={t('admin.nav.ariaLabel')}
       >
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-8" />
+        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-16"/>
         {navItems.map(item => (
           <button
             key={item.key}

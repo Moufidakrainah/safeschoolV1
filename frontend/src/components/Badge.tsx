@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 // Utilisation :
 //   <Badge variant="pending" />
 //   <Badge variant={report.status as BadgeVariant} />
-//   <Badge variant="critical" label="Très critique" />
+//   <Badge variant="critical" label="Critique" />
 // ============================================================
 
 export type BadgeVariant =

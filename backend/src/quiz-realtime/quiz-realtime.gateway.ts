@@ -40,6 +40,10 @@ export class QuizRealtimeGateway
 	server: Server;
 
 	afterInit() {
+		this.quizRealtimeService.setOnQuestionRevealed((payload) => {
+			this.server.to(payload.roomId).emit('quiz:question:reveal', payload);
+		});
+
 		this.quizRealtimeService.setOnQuestionTimedOut(
 			({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
 				this.server.to(roomId).emit('quiz:score:update', roomSnapshot);
@@ -97,11 +101,25 @@ export class QuizRealtimeGateway
 			playerName: payload.playerName,
 		});
 
+		if (result.status === 'roomcode-bad-format') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'code-bad-format', snapshot: result.snapshot },
+			}
+		}
+
 		if (result.status === 'quiz-already-started') {
 			return {
 				event: 'quiz:join:ignored',
 				data: { roomId: payload.roomId, reason: 'quiz-already-started', snapshot: result.snapshot },
 			};
+		}
+
+		if (result.status === 'room-is-full') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'room-is-full', snapshot: result.snapshot },
+			}
 		}
 
 		if (result.status === 'joined') {
@@ -224,14 +242,8 @@ export class QuizRealtimeGateway
 			this.server.to(payload.roomId).emit('quiz:score:update', result.roomSnapshot);
 		}
 
-		if (result.questionAdvanced) {
-			const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(payload.roomId);
-			if (questionSnapshot) {
-				this.server.to(payload.roomId).emit('quiz:question', questionSnapshot);
-			} else {
-				this.server.to(payload.roomId).emit('quiz:game:over', result.roomSnapshot);
-				void this.server.in(payload.roomId).socketsLeave(payload.roomId);
-			}
+		if (result.revealPayload) {
+			this.server.to(payload.roomId).emit('quiz:question:reveal', result.revealPayload);
 		}
 
 		return {

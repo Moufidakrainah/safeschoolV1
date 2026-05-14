@@ -38,14 +38,14 @@ INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdA
   ('a0b1c2d3-0000-0000-0000-000000000012', 'sara@safeschool.com',      '$2b$10$8Ajlev4sZJzadv1FU7SAFujVsTl9ht0GKoS7TFu.qSpOBPv3KLGv6', 'Sara',    'Moulin',   'student',  NOW());
 
 -- PROFILS ÉLÈVES
-INSERT INTO student_profiles (id, class,"dateOfBirth", "userId") VALUES
-  ('b0c1d2e3-0000-0000-0000-000000000001', '5eme', '2012-03-15', 'a0b1c2d3-0000-0000-0000-000000000006'),
-  ('b0c1d2e3-0000-0000-0000-000000000002', '4eme', '2013-06-20', 'a0b1c2d3-0000-0000-0000-000000000007'),
-  ('b0c1d2e3-0000-0000-0000-000000000003', '3eme', '2014-09-10', 'a0b1c2d3-0000-0000-0000-000000000008'),
-  ('b0c1d2e3-0000-0000-0000-000000000004', '6eme', '2015-01-05', 'a0b1c2d3-0000-0000-0000-000000000009'),
-  ('b0c1d2e3-0000-0000-0000-000000000005', '5eme', '2012-11-25', 'a0b1c2d3-0000-0000-0000-000000000010'),
-  ('b0c1d2e3-0000-0000-0000-000000000006', '4eme', '2013-04-18', 'a0b1c2d3-0000-0000-0000-000000000011'),
-  ('b0c1d2e3-0000-0000-0000-000000000007', '6eme', '2015-07-30', 'a0b1c2d3-0000-0000-0000-000000000012');
+INSERT INTO student_profiles (id, "classId","dateOfBirth", "userId") VALUES
+  ('b0c1d2e3-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000003', '2012-03-15', 'a0b1c2d3-0000-0000-0000-000000000006'),
+  ('b0c1d2e3-0000-0000-0000-000000000002', 'f0a1b2c3-0000-0000-0000-000000000004', '2013-06-20', 'a0b1c2d3-0000-0000-0000-000000000007'),
+  ('b0c1d2e3-0000-0000-0000-000000000003', 'f0a1b2c3-0000-0000-0000-000000000001', '2014-09-10', 'a0b1c2d3-0000-0000-0000-000000000008'),
+  ('b0c1d2e3-0000-0000-0000-000000000004', 'f0a1b2c3-0000-0000-0000-000000000004', '2015-01-05', 'a0b1c2d3-0000-0000-0000-000000000009'),
+  ('b0c1d2e3-0000-0000-0000-000000000005', 'f0a1b2c3-0000-0000-0000-000000000005', '2012-11-25', 'a0b1c2d3-0000-0000-0000-000000000010'),
+  ('b0c1d2e3-0000-0000-0000-000000000006', 'f0a1b2c3-0000-0000-0000-000000000001', '2013-04-18', 'a0b1c2d3-0000-0000-0000-000000000011'),
+  ('b0c1d2e3-0000-0000-0000-000000000007', 'f0a1b2c3-0000-0000-0000-000000000001', '2015-07-30', 'a0b1c2d3-0000-0000-0000-000000000012');
 
 -- PROFILS STAFF (employés du collège)
 INSERT INTO staff_profiles (id, profession, subject, "userId") VALUES
@@ -83,43 +83,43 @@ INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "ai
   ('c0d1e2f3-0000-0000-0000-000000000001',
    'Physique - Je suis victime',
    'Je me fais frapper tous les jours dans le couloir par un groupe d élèves. Ils me poussent contre les murs et me menacent de me frapper encore plus fort si je le dis à un adulte. J ai très peur d aller à l école. (Fréquence: Tous les jours)',
-   'critique', '#2026-001', 85, 'Menace physique et intimidation détectées', false, NULL, 'in_progress', NULL, false,
+   'critical', '#2026-001', 85, 'Menace physique et intimidation détectées', false, NULL, 'in_progress', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '10 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000002',
    'Cyber - Je suis victime',
    'Des élèves ont créé un faux profil avec ma photo sur Instagram et publient des choses humiliantes. Tout le monde se moque de moi à l école depuis. Je ne veux plus venir en cours. (Fréquence: Tous les jours)',
-   'grave', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', false, NULL, 'pending', NULL, false,
+   'high', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', false, NULL, 'pending', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000007', NOW() - INTERVAL '7 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000003',
    'Verbal - Je suis victime',
    'Des élèves se moquent de moi en classe à cause de mes vêtements. Ils rigolent quand je réponds aux questions du professeur et m appellent par des surnoms humiliants. (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-003', 38, 'Harcèlement verbal répété détecté', false, NULL, 'pending', NULL, false,
+   'medium', '#2026-003', 38, 'Harcèlement verbal répété détecté', false, NULL, 'pending', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000008', NOW() - INTERVAL '5 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000004',
    'Physique - Je suis témoin',
    'J ai vu un élève se faire frapper dans les toilettes par deux autres élèves. La victime pleurait et avait l air très apeurée. Les agresseurs l ont menacé de recommencer s il parlait. | Victime : Lucas Bernard (Fréquence: Deux fois)',
-   'critique', '#2026-004', 78, 'Violence physique grave avec menaces détectée', false, NULL, 'pending', NULL, false,
+   'critical', '#2026-004', 78, 'Violence physique grave avec menaces détectée', false, NULL, 'pending', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '3 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000005',
    'Exclusion sociale - Je suis victime',
    'Mes camarades refusent de s asseoir à côté de moi en cours et ne m invitent jamais dans leurs groupes de travail. Je mange seule à la cantine depuis le début de l année. (Fréquence: Tous les jours)',
-   'moyen', '#2026-005', 32, 'Exclusion sociale persistante détectée', false, NULL, 'closed', 'Dossier traité après médiation entre élèves le 05/04/2026', false,
+   'medium', '#2026-005', 32, 'Exclusion sociale persistante détectée', false, NULL, 'closed', 'Dossier traité après médiation entre élèves le 05/04/2026', false,
    'a0b1c2d3-0000-0000-0000-000000000010', NOW() - INTERVAL '15 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000006',
    'Sexuel - Je suis victime',
    'Un élève me fait des remarques déplacées sur mon corps tous les jours et a essayé de me toucher dans le couloir. Je me sens très mal à l aise et j ai honte d en parler. (Fréquence: Tous les jours)',
-   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', false, NULL, 'escalated', NULL, false,
+   'critical', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', false, NULL, 'pending', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000012', NOW() - INTERVAL '2 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000007',
    'Verbal - Je suis professeur',
    'J ai observé en classe qu un élève est systématiquement moqué par ses camarades quand il prend la parole. Les autres élèves l imitent et rient de lui. Cela se passe depuis plusieurs semaines. | Victime : Emma Petit (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-007', 35, 'Harcèlement verbal en classe signalé par enseignant', false, NULL, 'in_progress', NULL, false,
+   'medium', '#2026-007', 35, 'Harcèlement verbal en classe signalé par enseignant', false, NULL, 'in_progress', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000003', NOW() - INTERVAL '6 days');
 
 -- SOUPÇONNÉS

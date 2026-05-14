@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StaffProfile } from './staff-profile.entity';
 import { StaffProfilesService } from './staff-profiles.service';
 import { StaffProfilesController } from './staff-profiles.controller';
-import { SchoolClass } from '../classes/school-class.entity';
+import { SchoolClass } from '../classes/class.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([StaffProfile, SchoolClass])],

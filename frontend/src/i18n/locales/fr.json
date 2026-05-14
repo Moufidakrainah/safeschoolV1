@@ -46,6 +46,8 @@
       "total": "Total",
       "critical": "Critique",
       "high": "Grave",
+      "medium": "Moyen",
+      "low": "Faible",
       "pending": "En attente",
       "escalated": "Escaladés"
     },
@@ -55,8 +57,8 @@
     "filters": {
       "groupLabel": "Filtres",
       "allStatuses": "Tous les statuts",
-      "allClasses": "Toutes les classes",
-      "allReporters": "Tous les signalants",
+      "allClasses": "Classe de la victime",
+      "allReporters": "Liste des alerteurs",
       "suspectPlaceholder": "Filtrer par soupçonné...",
       "dateRange": "Plage de dates",
       "dateFrom": "Date de début",
