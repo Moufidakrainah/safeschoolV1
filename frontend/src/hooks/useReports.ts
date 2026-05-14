@@ -14,6 +14,8 @@ import type { Report, Note } from '../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+
+// a quoi ca sert ? 
 export interface ReportStats {
   total: number;
   critical: number;
@@ -233,6 +235,8 @@ export function useReports(): UseReportsReturn {
     return filtered.slice(start, start + ITEMS_PER_PAGE);
   }, [filtered, currentPage]);
 
+
+  // a modifier
   const stats = useMemo<ReportStats>(() => ({
     total:     reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,

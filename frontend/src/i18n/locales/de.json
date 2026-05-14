@@ -64,11 +64,11 @@
       "reset": "Zurücksetzen"
     },
     "status": {
-      "pending": "Ausstehend",
-      "in_progress": "In Bearbeitung",
-      "escalated": "Eskaliert",
-      "closed": "Geschlossen",
-      "rejected": "Abgelehnt"
+      "new": "Neu",
+      "in_progress": "Im Gange",
+      "pending": "In der Warteschleife",
+      "resolved": "Gelöst",
+      "false_report": "Falschmeldung"
     },
     "detail": {
       "info": "Meldungsinformationen",
@@ -149,11 +149,11 @@
     "high":        "🟠 Ernst",
     "medium":      "🟡 Mäßig",
     "low":         "🟢 Gering",
-    "pending":     "⏳ Ausstehend",
-    "in_progress": "🔄 In Bearbeitung",
-    "escalated":   "🚨 Eskaliert",
-    "closed":      "✅ Geschlossen",
-    "rejected":    "❌ Abgelehnt"
+    "new":   	   "📄 Neu",
+    "in_progress": "📂 Im Gange",
+    "pending":     "⏳ In der Warteschleife",
+    "resolved":    "✅ Gelöst",
+    "false_report":"❌ Falschmeldung"
   },
   "noteblock": {
     "note":        "📝 Notiz",

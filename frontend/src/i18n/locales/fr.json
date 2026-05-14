@@ -26,8 +26,8 @@
     "german": "Deutsch"
   },
   "admin": {
-    "prev": "Précédent",
-    "next": "Suivant",
+    "prev": "Signalement précédent",
+    "next": "Signalement suivant",
     "reportLabel": "Signalement {{number}}",
     "loading": "Chargement...",
     "noReports": "Aucun signalement trouvé",
@@ -63,14 +63,14 @@
       "dateRange": "Plage de dates",
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser tous les filtres"
     },
     "status": {
-      "pending": "En attente",
+      "new": "Nouveau",
       "in_progress": "En cours",
-      "escalated": "Escaladé",
-      "closed": "Clôturé",
-      "rejected": "Rejeté"
+      "pending": "En attente",
+      "resolved": "Resolu",
+      "false_report": "Faux signalement"
     },
     "detail": {
       "info": "Informations du signalement",
@@ -150,11 +150,11 @@
     "high":        "🟠 Grave",
     "medium":      "🟡 Moyen",
     "low":         "🟢 Faible",
+    "new":   	   "📄 Nouveau",
+    "in_progress": "📂 En cours",
     "pending":     "⏳ En attente",
-    "in_progress": "🔄 En cours",
-    "escalated":   "🚨 Escaladé",
-    "closed":      "✅ Clôturé",
-    "rejected":    "❌ Rejeté"
+    "resolved":    "✅ Resolu",
+    "false_report":"❌ Faux signalement"
   },
   "noteblock": {
     "note":        "📝 Note",

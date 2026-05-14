@@ -65,60 +65,63 @@ export default function AdminDashboard() {
     password: '', role: 'student', schoolClass: '',
   });
 
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-const [isDeleting, setIsDeleting] = useState(false);
+	const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 
 
-const [deleteError, setDeleteError] = useState('');
-const [globalDeleteError, setGlobalDeleteError] = useState('');
+	const [deleteError, setDeleteError] = useState('');
+	const [globalDeleteError, setGlobalDeleteError] = useState('');
 
-const [isBlocked, setIsBlocked] = useState(false);
+	const [isBlocked, setIsBlocked] = useState(false);
 
 
-  const itemsPerPage = 5;
+	const itemsPerPage = 5;
 
-  // ── Chargement initial
-  useEffect(() => { fetchReports(); }, []);
+	// ── Chargement initial
+	useEffect(() => { fetchReports(); }, []);
 
-  const fetchReports = async () => {
-    try {
-      const data = await getAllReports();
-      setReports(data);
-    } catch {
-      console.error('Erreur chargement signalements');
-    } finally {
-      setLoading(false);
-    }
-  };
+	const fetchReports = async () => {
+	try {
+		const data = await getAllReports();
+		setReports(data);
+	} catch {
+		console.error('Erreur chargement signalements');
+	} finally {
+		setLoading(false);
+	}
+	};
 
-  // ── Mise à jour statut
-  const handleUpdateStatus = async (id: string, status: string) => {
-    setSaving(true);
-    try {
-      await updateReport(id, { status, adminNote });
-      await fetchReports();
-      setAdminNote('');
-      setView('list');
-      setSelected(null);
-    } catch {
-      console.error('Erreur mise à jour statut');
-    } finally {
-      setSaving(false);
-    }
-  };
+	// ── Mise à jour statut
+	const handleUpdateStatus = async (id: string, status: string) => {
+	setSaving(true);
+	try {
+		await updateReport(id, { status, adminNote });
+		await fetchReports();
+		setAdminNote('');
+		setView('list');
+		setSelected(null);
+	} catch {
+		console.error('Erreur mise à jour statut');
+	} finally {
+		setSaving(false);
+	}
+	};
 
   // ── Filtrage
 const filtered = useMemo(() => {
-  return reports.filter((r: Report) => {
+  return reports
+    .slice() // évite de modifier l’array original
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-	    if (filterClass !== 'all') {
-      const cls = r.student?.studentProfile?.class;
-      if (!cls) return false;
+	if (filterClass !== 'all') {
+		const cls = r.student?.studentProfile?.class;
+			if (!cls) return false;
 
-      const fullClass = `${cls.level}${cls.section}`;
-      if (fullClass !== filterClass) return false;
+		const fullClass = `${cls.level}${cls.section}`;
+			if (fullClass !== filterClass) return false;
     }
 
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
@@ -408,6 +411,8 @@ const classOptions = Array.from(
             >
               ← {t('admin.prev')}
             </Button>
+
+
             <span className="font-bold text-primary">
               {t('admin.reportLabel', { number: selected.caseNumber })}
             </span>
@@ -421,29 +426,14 @@ const classOptions = Array.from(
             </Button>
           </div>
 
-          {/* Statut + boutons d'action */}
-          <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-            <Badge variant={selected.status as BadgeVariant} />
-            {isAdmin && (
-              <div className="flex gap-2 flex-wrap" role="group" aria-label={t('admin.actions.groupLabel')}>
-                {([
-                  { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
-                  { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
-                  { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
-                  { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
-                ] as const).map(btn => (
-                  <Button
-                    key={btn.status}
-                    variant={btn.variant}
-                    disabled={saving}
-                    onClick={() => handleUpdateStatus(selected.id, btn.status)}
-                  >
-                    {btn.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
+
+
+
+
+
+
+
+
 
           {/* Informations + personnes impliquées */}
           <div className="grid grid-cols-2 gap-6 mb-6">
@@ -574,7 +564,6 @@ const classOptions = Array.from(
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
 	<>
-
   <main className="min-h-screen bg-gray-50 font-sans">
     <h1 className="sr-only">{t('admin.title.allReports')}</h1>
 
@@ -586,42 +575,46 @@ const classOptions = Array.from(
         {/* ── Section signalements ── */}
         {viewSection === 'reports' && (
           <>
+
+
+
+
             {/* StatCards — les 3 premières filtrent par grade, les 2 dernières par statut */}
             <div className="grid grid-cols-5 gap-4 mb-8" role="group" aria-label={t('admin.stats.groupLabel')}>
               <StatCard
                 label={t('admin.stats.total')}
                 value={stats.total}
                 color="#1a1a2e"
-                active={filterGrade === 'all' && filterStatus === 'all'}
-                onClick={() => { setFilterGrade('all'); setFilterStatus('all'); setCurrentPage(1); }}
+                active={filterGrade === 'all'}
+                onClick={() => { setFilterGrade('all');  setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.critical')}
                 value={stats.critical}
                 color={SEVERITY_COLORS.critical}
                 active={filterGrade === 'critical'}
-                onClick={() => { setFilterGrade('critical'); setFilterStatus('all'); setCurrentPage(1); }}
+                onClick={() => { setFilterGrade('critical');  setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.high')}
                 value={stats.high}
                 color={SEVERITY_COLORS.high}
                 active={filterGrade === 'high'}
-                onClick={() => { setFilterGrade('high'); setFilterStatus('all'); setCurrentPage(1); }}
+                onClick={() => { setFilterGrade('high'); setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.medium')}
                 value={stats.medium}
                 color={SEVERITY_COLORS.medium}
                 active={filterGrade === 'medium'}
-                onClick={() => { setFilterGrade('medium'); setFilterStatus('all'); setCurrentPage(1); }}
+                onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }}
               />
               <StatCard
                 label={t('admin.stats.low')}
                 value={stats.low}
                 color={SEVERITY_COLORS.low}
                 active={filterGrade === 'low'}
-                onClick={() => { setFilterGrade('low'); setFilterStatus('all'); setCurrentPage(1); }}
+                onClick={() => { setFilterGrade('low');  setCurrentPage(1); }}
               />
             </div>
 
@@ -639,10 +632,8 @@ const classOptions = Array.from(
 
             {/* Filtres */}
             {/* <div className="flex mb-5 flex-wrap items-center gap-0" role="group" aria-label={t('admin.filters.groupLabel')}> */}
-        <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
 
-              <Button variant="ghost" onClick={handleReset}>{t('admin.filters.reset')}</Button>
-		
 
 		<Select
 
@@ -709,7 +700,7 @@ const classOptions = Array.from(
                 className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               />
 
-			<div className="w-full text-sm flex items-center justify-end gap-2 mt-2 font-sans">
+			<div className="w-full text-sm flex items-center justify-center gap-2 mt-2 font-sans">
             
 
 			<span aria-hidden="true" className="text-gray-600">Dates : </span>
@@ -730,9 +721,56 @@ const classOptions = Array.from(
                   aria-label={t('admin.filters.dateTo')}
                   className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
-				</div>
+			</div>
 
-   </div>         
+		</div>   
+
+
+
+		    <div className="flex justify-center space-x-8 gap-1 mb-4" role="group" aria-label={t('admin.stats.groupLabel')}>
+                <Badge 
+					variant={'new' as BadgeVariant}
+					onClick={() => {
+						setFilterStatus('new');
+						setCurrentPage(1);
+					}}
+				/>
+              <Badge
+				variant='in_progress' 
+                onClick={() => { 
+					setFilterStatus('in_progress'); 
+					setCurrentPage(1); }}
+              />
+              <Badge
+				variant='pending' 
+                onClick={() => { 
+					setFilterStatus('pending'); 
+					setCurrentPage(1); }}
+              />
+              <Badge
+				variant='resolved' 
+                onClick={() => { 
+					setFilterStatus('resolved'); 
+					setCurrentPage(1); }}
+              />
+              <Badge
+				variant='false_report' 
+                onClick={() => { 
+					setFilterStatus('false_report'); 
+					setCurrentPage(1); }}
+              />
+
+
+            </div>
+		    <div className="flex justify-center mb-4" aria-label={t('admin.stats.groupLabel')}>
+
+
+		<Button variant="primary" onClick={handleReset}>{t('admin.filters.reset')}</Button>
+			  
+            </div>
+
+
+      
 
             {/* Liste des signalements */}
             {loading ? (
@@ -780,7 +818,17 @@ const classOptions = Array.from(
                           <span>{report.caseNumber}</span>
                         </div>
                       </div>
+
+
+
+
+
                       <Badge variant={report.status as BadgeVariant} className="ml-4" />
+
+
+
+
+
                     </div>
                   </li>
                 ))}

@@ -64,11 +64,11 @@
       "reset": "Reset"
     },
     "status": {
-      "pending": "Pending",
+      "new": "New",
       "in_progress": "In progress",
-      "escalated": "Escalated",
-      "closed": "Closed",
-      "rejected": "Rejected"
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "false_report": "False report"
     },
     "detail": {
       "info": "Report information",
@@ -149,11 +149,11 @@
     "high":        "🟠 Serious",
     "medium":      "🟡 Moderate",
     "low":         "🟢 Minor",
+    "new":   	   "📄 New",
+    "in_progress": "📂 In progress",
     "pending":     "⏳ Pending",
-    "in_progress": "🔄 In progress",
-    "escalated":   "🚨 Escalated",
-    "closed":      "✅ Closed",
-    "rejected":    "❌ Rejected"
+    "resolved":    "✅ Resolved",
+    "false_report":"❌ False report"
   },
   "noteblock": {
     "note":        "📝 Note",

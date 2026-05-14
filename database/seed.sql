@@ -89,7 +89,7 @@ INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "ai
   ('c0d1e2f3-0000-0000-0000-000000000002',
    'Cyber - Je suis victime',
    'Des élèves ont créé un faux profil avec ma photo sur Instagram et publient des choses humiliantes. Tout le monde se moque de moi à l école depuis. Je ne veux plus venir en cours. (Fréquence: Tous les jours)',
-   'high', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', false, NULL, 'pending', NULL, false,
+   'high', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', false, NULL, 'new', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000007', NOW() - INTERVAL '7 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000003',
@@ -107,13 +107,13 @@ INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "ai
   ('c0d1e2f3-0000-0000-0000-000000000005',
    'Exclusion sociale - Je suis victime',
    'Mes camarades refusent de s asseoir à côté de moi en cours et ne m invitent jamais dans leurs groupes de travail. Je mange seule à la cantine depuis le début de l année. (Fréquence: Tous les jours)',
-   'medium', '#2026-005', 32, 'Exclusion sociale persistante détectée', false, NULL, 'closed', 'Dossier traité après médiation entre élèves le 05/04/2026', false,
+   'medium', '#2026-005', 32, 'Exclusion sociale persistante détectée', false, NULL, 'resolved', 'Dossier traité après médiation entre élèves le 05/04/2026', false,
    'a0b1c2d3-0000-0000-0000-000000000010', NOW() - INTERVAL '15 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000006',
    'Sexuel - Je suis victime',
    'Un élève me fait des remarques déplacées sur mon corps tous les jours et a essayé de me toucher dans le couloir. Je me sens très mal à l aise et j ai honte d en parler. (Fréquence: Tous les jours)',
-   'critical', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', false, NULL, 'pending', NULL, false,
+   'critical', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', false, NULL, 'false_report', NULL, false,
    'a0b1c2d3-0000-0000-0000-000000000012', NOW() - INTERVAL '2 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000007',
