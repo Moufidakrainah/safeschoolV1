@@ -339,9 +339,9 @@ useEffect(() => {
               <p>{isRevealing ? `Next question in: ${secondsLeft}s` : `Time left: ${secondsLeft}s`}</p>
               <h2>{questionState.question.text}</h2>
               {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
-              <ul className="grid grid-cols-2 gap-4">
+              <ul className="grid grid-cols-2 gap-4 items-stretch">
                 {questionState.question.options.map((opt, i) => {
-                  let optionClass = 'w-full mt-2 rounded-full px-16 py-3 text-white font-semibold disabled:opacity-50 ';
+                  let optionClass = 'w-full rounded-full px-4 py-3 text-white font-semibold disabled:opacity-50 text-center flex items-center justify-center h-full ';
                   if (isRevealing) {
                     if (i === questionState.correctIndex) {
                       optionClass += 'bg-green-500';
@@ -354,13 +354,13 @@ useEffect(() => {
                     optionClass += 'bg-primary hover:bg-primary-hover';
                   }
                   return (
-                    <li key={i}>
+                    <li key={i} className="flex">
                       <button
                         onClick={() => handleAnswer(i)}
                         disabled={questionState.hasAnswered || timeLeftMs <= 0 || isRevealing}
                         className={optionClass}
                       >
-                        {opt}
+                        <span className="whitespace-normal break-words text-base">{opt}</span>
                       </button>
                     </li>
                   );
@@ -373,7 +373,7 @@ useEffect(() => {
                     {questionState.answerStatistics.map((stat) => (
                       <li key={stat.index} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span>{questionState.question.options[stat.index]}</span>
+                          <span className="whitespace-pre-wrap break-words">{questionState.question.options[stat.index]}</span>
                           <span className="font-semibold">
                             {stat.count} ({stat.percentage}%)
                           </span>
