@@ -155,12 +155,12 @@ export default function UiKit() {
               </div>
               <p className="text-xs text-gray-400 mb-3">Statut</p>
               <div className="flex flex-wrap gap-2">
-                <Badge variant="pending" />
+                <Badge variant="new" />
                 <Badge variant="in_progress" />
-                <Badge variant="escalated" />
-                <Badge variant="closed" />
-                <Badge variant="rejected" />
-                <Badge variant="default" />
+                <Badge variant="pending" />
+                <Badge variant="resolved" />
+                <Badge variant="false_report" />
+                {/* <Badge variant="default" /> */}
               </div>
             </div>
           </Section>

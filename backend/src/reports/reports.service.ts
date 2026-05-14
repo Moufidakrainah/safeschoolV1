@@ -46,7 +46,7 @@ export class ReportsService {
 
     const report = this.reportsRepository.create({
       title, description, grade, aiScore: finalScore, aiReason,
-      caseNumber, isAnonymous, student, status: ReportStatus.PENDING,
+      caseNumber, isAnonymous, student, status: ReportStatus.NEW,
     });
     const savedReport = await this.reportsRepository.save(report);
 
@@ -115,7 +115,7 @@ export class ReportsService {
 
   async escalate(id: string): Promise<Report> {
     const report = await this.findOne(id);
-    report.status = ReportStatus.ESCALATED;
+    report.status = ReportStatus.NEW;
     return this.reportsRepository.save(report);
   }
 

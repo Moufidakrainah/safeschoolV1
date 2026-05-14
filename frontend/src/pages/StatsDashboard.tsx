@@ -65,11 +65,11 @@ export default function StatsDashboard({ reports }: Props) {
 
 const statusData = useMemo(() => {
   const statuses = [
-    { name: 'En attente', key: 'pending',     color: '#eab308' },
-    { name: 'En cours',   key: 'in_progress', color: '#0f3460' },
-    { name: 'Escaladé',   key: 'escalated',   color: '#7c3aed' },
-    { name: 'Clôturé',    key: 'closed',      color: '#22c55e' },
-    { name: 'Rejeté',     key: 'rejected',    color: '#dc2626' },
+    { name: 'nouveau', key: 'new',     color: '#eab308' },
+    { name: 'en cours',   key: 'in_progress', color: '#0f3460' },
+    { name: 'en attente',   key: 'pending',   color: '#7c3aed' },
+    { name: 'resolu',    key: 'resolved',      color: '#22c55e' },
+    { name: 'faux signalement',     key: 'false report',    color: '#dc2626' },
   ];
 
   return statuses
