@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { memo } from 'react';
 
 const LANGUAGES = [
   { code: 'fr', label: 'FR' },
@@ -7,13 +8,11 @@ const LANGUAGES = [
   { code: 'de', label: 'DE' },
 ];
 
-export default function Footer()
-{
+export const Footer = memo(function Footer() {
   const { t, i18n } = useTranslation();
 
   return (
     <footer className="bg-primary text-white py-4 px-6 flex flex-wrap items-center justify-between gap-4 text-sm font-sans">
-
       <nav aria-label="Liens légaux">
         <ul className="flex gap-6 list-none p-0 m-0">
           <li>
@@ -34,7 +33,6 @@ export default function Footer()
           </li>
         </ul>
       </nav>
-
       <div role="group" aria-label={t('footer.languageSwitcher')} className="flex gap-1">
         {LANGUAGES.map(({ code, label }) => (
           <button
@@ -51,7 +49,6 @@ export default function Footer()
           </button>
         ))}
       </div>
-
     </footer>
   );
-}
+});

@@ -2,27 +2,27 @@ import { useTranslation } from 'react-i18next';
 import Header from '../Header/Header';
 import type { AuthUser } from '../../../types';
 
-type ReporterSection = 'profile' | 'report' | 'quiz';
+type StudentSection = 'profile' | 'report' | 'quiz';
 
-interface ReporterHeaderProps {
+interface StudentHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
-  viewSection: ReporterSection;
-  setViewSection: (s: ReporterSection) => void;
+  viewSection: StudentSection;
+  setViewSection: (s: StudentSection) => void;
 }
 
-export default function ReporterHeader({
+export default function StudentHeader({
   user,
   logoutUser,
   viewSection,
   setViewSection,
-}: ReporterHeaderProps) {
+}: StudentHeaderProps) {
   const { t } = useTranslation();
 
-  const navItems: { key: ReporterSection; label: string }[] = [
-	{ key: 'profile'  as const, label: t('reporter.nav.profile') },
-    { key: 'report',   label: t('reporter.nav.report') },
-    { key: 'quiz',     label: t('reporter.nav.quiz') },
+  const navItems: { key: StudentSection; label: string }[] = [
+    { key: 'profile'  as const, label: t('student.nav.profile') },
+    { key: 'report',   label: t('student.nav.report') },
+    { key: 'quiz',     label: t('student.nav.quiz') },
   ];
 
   return (
@@ -31,7 +31,7 @@ export default function ReporterHeader({
 
       <nav
         className="bg-primary px-8 py-4 flex items-center gap-8"
-        aria-label={t('reporter.nav.ariaLabel')}
+        aria-label={t('student.nav.ariaLabel')}
       >
         <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-8" />
         {navItems.map(item => (

@@ -15,6 +15,11 @@ export interface AuthUser {
     id: string;
     schoolClass: string;
     dateOfBirth: string;
+  } | null;  
+  staffProfile?: {
+    id: string;
+    role: string;
+    subject: string;
   } | null;
 }
 
@@ -56,6 +61,23 @@ export interface Note {
   content: string;
   createdAt: string;
   author?: { firstName: string; lastName: string };
+}
+
+// ─── Profil professionnel (staff/teacher) ─────────────────────────────────────
+export interface StaffProfile {
+  id: string;
+  profession: string;
+  subject: string | null;
+}
+
+// ─── Parent d'un élève ────────────────────────────────────────────────────────
+export interface Parent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
 }
 
 // ─── Signalement ─────────────────────────────────────────────────────────────

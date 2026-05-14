@@ -39,8 +39,8 @@ export default function Input({
 }: InputProps) {
 
   const labelClass = theme === 'light'
-    ? 'text-white text-sm font-medium mb-1 block'
-    : 'text-gray-700 text-sm font-medium mb-1 block';
+    ? 'text-white text-sm font-medium mb-1 block mt-2'
+    : 'text-gray-700 text-sm font-medium mb-1 block mt-2';
 
   return (
     <div className="flex flex-col gap-1 w-full">
@@ -52,7 +52,7 @@ export default function Input({
         placeholder={placeholder}
         required={required}
         aria-label={ariaLabel}
-        className="w-full px-4 py-3 rounded-full bg-white text-gray-800 text-sm outline-none focus:ring-2 focus:ring-primary border-none"
+        className="w-full px-4 py-3 rounded-full bg-white text-gray-800 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary border-none"
       />
     </div>
   );

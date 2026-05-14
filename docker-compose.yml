@@ -122,7 +122,6 @@ volumes:
   pgdata:
   esdata:
   kibanadata:
-  logstash_data:
   frontend_node_modules:
   backend_node_modules:
 

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, createUser, updateUser, deleteUser,
+  getAllUsers, createUser, updateUser, deleteUser,checkCanDeleteUser
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -12,10 +12,12 @@ import Badge, { type BadgeVariant } from '../components/Badge';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
 import Select from '../components/Select';
+import Input from '../components/Input';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
+import { useMemo } from 'react';
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -63,6 +65,17 @@ export default function AdminDashboard() {
     password: '', role: 'student', schoolClass: '',
   });
 
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+const [isDeleting, setIsDeleting] = useState(false);
+
+
+
+const [deleteError, setDeleteError] = useState('');
+const [globalDeleteError, setGlobalDeleteError] = useState('');
+
+const [isBlocked, setIsBlocked] = useState(false);
+
+
   const itemsPerPage = 5;
 
   // ── Chargement initial
@@ -96,11 +109,13 @@ export default function AdminDashboard() {
   };
 
   // ── Filtrage
-  const filtered = reports.filter((r: Report) => {
+const filtered = useMemo(() => {
+  return reports.filter((r: Report) => {
     if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
     if (filterStatus !== 'all' && r.status !== filterStatus) return false;
     if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
     if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+
     if (filterSuspect) {
       const q = filterSuspect.toLowerCase();
       const match = r.suspects?.some(s => {
@@ -109,32 +124,61 @@ export default function AdminDashboard() {
       });
       if (!match) return false;
     }
+
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+
     if (filterDateTo) {
       const to = new Date(filterDateTo);
       to.setHours(23, 59, 59, 999);
       if (new Date(r.createdAt) > to) return false;
     }
+
     if (search) {
       const q = search.toLowerCase();
       const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (!name.includes(q) && !(r.title ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q))
-        return false;
+      if (
+        !name.includes(q) &&
+        !(r.title ?? '').toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) return false;
     }
+
     return true;
   });
+}, [
+  reports,
+  filterGrade,
+  filterStatus,
+  filterClass,
+  filterStudent,
+  filterSuspect,
+  filterDateFrom,
+  filterDateTo,
+  search
+]);
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+
+
+const totalPages = useMemo(() => {
+  return Math.ceil(filtered.length / itemsPerPage);
+}, [filtered, itemsPerPage]);
+const paginated = useMemo(() => {
+  const start = (currentPage - 1) * itemsPerPage;
+  return filtered.slice(start, start + itemsPerPage);
+}, [filtered, currentPage, itemsPerPage]);
 
   // ── Compteurs pour les StatCards
-  const stats = {
-    total:     reports.length,
+const stats = useMemo(() => {
+  return {
+    total: reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
     escalated: reports.filter(r => r.status === 'escalated').length,
   };
+}, [reports]);
+
 
   const handleReset = () => {
     setFilterGrade('all');
@@ -159,7 +203,13 @@ export default function AdminDashboard() {
     }
   };
 
+  const goTo = (report: typeof selected) => {
+    setSelected(report);
+    if (report) loadNotes(report.id);
+  };
+
   const handleAddNote = async (type: string = 'note') => {
+    if (!selected) return;
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     // Si convocation avec date, on préfixe le message avec la date choisie
@@ -181,6 +231,7 @@ export default function AdminDashboard() {
 
   // ── Utilisateurs
   const fetchUsers = async () => {
+	console.log("Users after deletion:", users);
     setLoadingUsers(true);
     try {
       const data = await getAllUsers();
@@ -205,17 +256,106 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteUser = async (id: string) => {
-    if (!confirm(t('admin.users.deleteConfirm'))) return;
-    try {
-      await deleteUser(id);
-      await fetchUsers();
-    } catch {
-      console.error('Erreur suppression utilisateur');
+
+
+  
+const handleDeleteUser = async (id: string) => {
+  // Vérifier si c'est son propre compte
+  if (id === user?.id) {
+    setDeleteTarget(id);
+    setIsBlocked(true);
+    setDeleteError(t('admin.users.deleteSelf'));
+    return;
+  }
+
+  const { deletable } = await checkCanDeleteUser(id);
+  setDeleteTarget(id);
+  setIsBlocked(!deletable);
+  setDeleteError('');
+};
+
+
+
+const confirmDelete = async () => {
+  if (!deleteTarget) return;
+
+  setIsDeleting(true);
+  setDeleteError('');
+  setIsBlocked(false);
+
+  try {
+    await deleteUser(deleteTarget);
+    await fetchUsers();
+    setDeleteTarget(null); // suppression OK → fermer la popup
+  } catch (err: any) {
+    console.error("Erreur suppression utilisateur:", err);
+
+   const msg = err?.response?.data?.message ?? err?.message ?? "";
+  
+    // 🔥 Cas : utilisateur lié à un signalement
+    if (msg === "USER_HAS_REPORTS") {
+      setIsBlocked(true); // active le mode "bloqué"
+      // setDeleteError(t('admin.users.deleteBlocked')); 
+    } else {
+      // 🔥 Autre erreur
+      setDeleteError(t('admin.users.deleteError'));
     }
-  };
+  } finally {
+    setIsDeleting(false);
+  }
+};
+
+
+
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
+
+
+const [errors, setErrors] = useState({
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+});
+
+const validateField = (field: string, value: string) => {
+  let message = '';
+
+  if (!value.trim() && field !== 'password') {
+    message = t('admin.users.errorRequired');
+  } else if (field === 'email') {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) {
+      message = t('admin.users.errorEmailFormat');
+    }
+  } else if (field === 'password')
+	{
+		if (value.length > 0 && value.length < 6) {
+    message = t('admin.users.errorPasswordLength');
+  }
+}
+
+  setErrors(prev => ({ ...prev, [field]: message }));
+};
+
+
+const updateField = (field: string, value: string) => {
+  setUserForm(prev => ({ ...prev, [field]: value }));
+  validateField(field, value);
+};
+
+const isFormValid =
+  userForm.firstName.trim() &&
+  userForm.lastName.trim() &&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
+  !errors.firstName &&
+  !errors.lastName &&
+  !errors.email &&
+  !errors.password;
+
+
+
+
 
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
@@ -223,6 +363,10 @@ export default function AdminDashboard() {
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
     return (
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
+
       <div className="flex-1 bg-gray-50 font-sans">
         <AdminHeader {...headerProps} />
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
@@ -231,7 +375,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center mb-6">
             <Button
               variant="ghost"
-              onClick={() => setSelected(filtered[idx - 1])}
+              onClick={() => goTo(filtered[idx - 1])}
               disabled={idx === 0}
               aria-label={t('admin.prev')}
             >
@@ -242,7 +386,7 @@ export default function AdminDashboard() {
             </span>
             <Button
               variant="ghost"
-              onClick={() => setSelected(filtered[idx + 1])}
+              onClick={() => goTo(filtered[idx + 1])}
               disabled={idx === filtered.length - 1}
               aria-label={t('admin.next')}
             >
@@ -357,7 +501,7 @@ export default function AdminDashboard() {
                   rows={3}
                   placeholder={t('admin.notes.placeholder')}
                   aria-label={t('admin.notes.placeholder')}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y mb-3 font-[inherit] box-border"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
                 />
                 <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
               </>
@@ -377,7 +521,7 @@ export default function AdminDashboard() {
                   type="datetime-local"
                   value={convocationDate}
                   onChange={e => setConvocationDate(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none text-gray-700"
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
                 />
               </div>
               <textarea
@@ -386,7 +530,7 @@ export default function AdminDashboard() {
                 rows={3}
                 placeholder={t('admin.convocation.placeholder')}
                 aria-label={t('admin.convocation.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none resize-y mb-3 font-[inherit] box-border"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
               />
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
@@ -396,11 +540,17 @@ export default function AdminDashboard() {
 
         </div>
       </div>
+	  </main>
     );
   }
 
   // ── Vue liste ───────────────────────────────────────────────────────────────
   return (
+	<>
+
+  <main className="min-h-screen bg-gray-50 font-sans">
+    <h1 className="sr-only">{t('admin.title.allReports')}</h1>
+
     <div className="flex-1 bg-white font-sans">
       <AdminHeader {...headerProps} />
 
@@ -456,7 +606,7 @@ export default function AdminDashboard() {
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.search.placeholder')}
                 aria-label={t('admin.search.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
 
@@ -497,7 +647,7 @@ export default function AdminDashboard() {
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               />
 
               <div className="flex items-center gap-1" role="group" aria-label={t('admin.filters.dateRange')}>
@@ -507,7 +657,7 @@ export default function AdminDashboard() {
                   value={filterDateFrom}
                   onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateFrom')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
                 <span aria-hidden="true" className="text-gray-400">→</span>
                 <input
@@ -516,7 +666,7 @@ export default function AdminDashboard() {
                   value={filterDateTo}
                   onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateTo')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm outline-none bg-white text-gray-700"
+                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
                 />
               </div>
 
@@ -606,36 +756,62 @@ export default function AdminDashboard() {
                 <h3 className="text-gray-800 font-bold mb-4">
                   {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
                 </h3>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <input
-                    placeholder={t('admin.users.firstName')}
+              <div className="rounded-lg bg-primary p-4 mb-5">
+    
+
+
+                  <Input
+                    label={t('admin.users.firstName')}
                     value={userForm.firstName}
-                    onChange={e => setUserForm({ ...userForm, firstName: e.target.value })}
-                    aria-label={t('admin.users.firstName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    onChange={e => updateField('firstName', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.lastName')}
+				  <div className="min-h-5 w-full">
+					{errors.firstName && (
+						<p className="text-red-300 text-xs">{errors.firstName}</p>
+					)}
+					</div>
+
+
+                  <Input
+                    label={t('admin.users.lastName')}
                     value={userForm.lastName}
-                    onChange={e => setUserForm({ ...userForm, lastName: e.target.value })}
-                    aria-label={t('admin.users.lastName')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    onChange={e => updateField('lastName', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.email')}
+				  <div className="min-h-5 w-full">
+				{errors.lastName && (
+					<p className="text-red-300 text-xs">{errors.lastName}</p>
+				)}
+				</div>
+
+
+                  <Input
+                    label={t('admin.users.email')}
                     value={userForm.email}
-                    onChange={e => setUserForm({ ...userForm, email: e.target.value })}
-                    aria-label={t('admin.users.email')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    onChange={e => updateField('email', e.target.value)}
+                    theme="light"
                   />
-                  <input
-                    placeholder={t('admin.users.password')}
+				  <div className="min-h-5 w-full">
+					{errors.email && (
+						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
+					)}
+					</div>
+
+                  <Input
+                    label={t('admin.users.password')}
                     type="password"
                     value={userForm.password}
-                    onChange={e => setUserForm({ ...userForm, password: e.target.value })}
-                    aria-label={t('admin.users.password')}
-                    className="px-4 py-3 border-2 border-gray-200 rounded-lg text-sm outline-none"
+                    onChange={e => updateField('password', e.target.value)}
+                    theme="light"
                   />
+					<div className="min-h-5 w-full">
+					{errors.password && (
+						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
+					)}
+					</div>
+
+				<div className="text-center">
                   <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
                     <option value="student">{t('admin.users.roles.student')}</option>
                     <option value="teacher">{t('admin.users.roles.teacher')}</option>
@@ -652,9 +828,11 @@ export default function AdminDashboard() {
                       <option value="3eme">3ème</option>
                     </Select>
                   )}
+				  </div>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="success" onClick={handleSaveUser}>💾 {t('admin.users.save')}</Button>
+                <div className="flex gap-3 place-content-end">
+				  <Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button>
+
                   <Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>
                     {t('common.cancel')}
                   </Button>
@@ -662,52 +840,117 @@ export default function AdminDashboard() {
               </Card>
             )}
 
-            {loadingUsers ? (
-              <p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {users.map(u => (
-                  <li key={u.id}>
-                    <Card className="flex justify-between items-center">
-                      <div>
-                        <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
-                        <span className="ml-2 text-xs text-gray-400">{u.email}</span>
-                        <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
-                        {u.studentProfile?.schoolClass && (
-                          <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
-                            {u.studentProfile.schoolClass}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setEditingUser(u);
-                            setUserForm({
-                              firstName: u.firstName, lastName: u.lastName,
-                              email: u.email, password: '',
-                              role: u.role, schoolClass: u.studentProfile?.schoolClass || '',
-                            });
-                            setShowUserForm(true);
-                          }}
-                          aria-label={`${t('admin.users.edit')} ${u.firstName} ${u.lastName}`}
-                        >
-                          ✏️ {t('admin.users.edit')}
-                        </Button>
-                        <Button
-                          variant="danger"
-                          onClick={() => handleDeleteUser(u.id)}
-                          aria-label={`${t('admin.users.delete')} ${u.firstName} ${u.lastName}`}
-                        >
-                          🗑️ {t('admin.users.delete')}
-                        </Button>
-                      </div>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            )}
+            
+
+
+
+
+		{loadingUsers ? (
+		<p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
+		) : (
+		<ul className="flex flex-col gap-3">
+			{users.map(u => (
+			<li key={u.id}>
+				<Card className="flex justify-between items-center">
+				<div>
+					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+					<span className="ml-2 text-xs text-gray-400">{u.email}</span>
+					<span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
+					{u.studentProfile?.schoolClass && (
+					<span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
+						{u.studentProfile.schoolClass}
+					</span>
+					)}
+				</div>
+
+				<div className="flex gap-2">
+					<Button
+					variant="outline"
+					onClick={() => {
+						setEditingUser(u);
+						setUserForm({
+						firstName: u.firstName,
+						lastName: u.lastName,
+						email: u.email,
+						password: '',
+						role: u.role,
+						schoolClass: u.studentProfile?.schoolClass || '',
+						});
+						setShowUserForm(true);
+					}}
+					>
+					✏️ {t('admin.users.edit')}
+					</Button>
+
+					<Button
+					variant="danger"
+					onClick={() => handleDeleteUser(u.id)}
+					>
+					🗑️ {t('admin.users.delete')}
+					</Button>
+				</div>
+				</Card>
+			</li>
+			))}
+
+
+
+
+
+
+		</ul>
+
+		)}
+
+
+
+
+{deleteTarget && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+
+		 <p className="text-sm text-gray-600 mb-4">
+        {deleteError
+          ? deleteError
+          : isBlocked
+            ? t('admin.users.deleteBlocked')
+            : t('admin.users.deleteConfirm')}
+      </p>
+
+      <div className="flex justify-end gap-3">
+
+        {/* Bouton Annuler / Fermer */}
+        <button
+          onClick={() => {
+            setDeleteTarget(null);
+            setIsBlocked(false);
+          }}
+          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
+        >
+          {isBlocked ? t('common.close') : t('common.cancel')}
+        </button>
+
+        {/* Bouton Supprimer → seulement si NON bloqué */}
+        {!isBlocked && (
+          <button
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {isDeleting ? t('common.loading') : t('common.delete')}
+          </button>
+        )}
+
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+
+
+
           </section>
         )}
 
@@ -718,5 +961,8 @@ export default function AdminDashboard() {
 
       </div>
     </div>
+	</main>
+  </>
+
   );
 }

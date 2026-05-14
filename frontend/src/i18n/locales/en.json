@@ -4,7 +4,10 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "error": "Incorrect username or password"
+	"errorRequired": "Please fill in all fields.",
+	"errorEmailFormat": "Invalid email format.",
+	"errorPasswordLength": "The password must contain at least 6 characters.",
+	"error": "Incorrect credentials."
   },
   "nav": {
     "logout": "Log out"
@@ -116,7 +119,6 @@
       "email": "Email",
       "password": "Password",
       "save": "Save",
-      "deleteConfirm": "Delete this user?",
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
@@ -127,8 +129,20 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-      }
-    }
+      }, 
+	  "errorEmailFormat": "Invalid email format.",
+	  "errorPasswordLength": "The password must contain at least 6 characters.",
+   	"deleteConfirm": "Do you really want to delete this user?",
+	"deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
+	"deleteError": "An error occurred during deletion.",
+  "deleteSelf": "You cannot delete your own account"
+     },
+	"title":{
+		"oneReport": "Details of a report",
+		"allReports": "All reports"
+
+
+	}
   },
   "badge": {
     "critical":    "🔴 Critical",
@@ -159,7 +173,8 @@
     "loading": "Loading...",
     "previous": "Previous",
     "next": "Next",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "close": "Close"
   },
   "reporter": {
 	"nav": {
@@ -174,7 +189,9 @@
 		"firstName": "First name",
 		"lastName": "Last name",
 		"email": "Email",
-		"role": "Role"
+    "role": "Occupation",
+    "subject": "Subject",
+    "subjectUnknown": "Unknown"
 	},
     "roles": {
       "teacher": "Teacher",
@@ -274,7 +291,49 @@
       "anonymousDesc": "my name will not be visible"
     },
     "submitting": "Sending...",
-    "submit": "Submit report"
+    "submit": "Submit report",
+    "submitError": "Submission failed. Check your connection and try again.",
+    "validation": {
+      "typeRequired":        "Please select a type of bullying to continue.",
+      "descriptionRequired": "Please describe the facts to continue.",
+      "frequencyRequired":   "Please indicate the frequency to continue."
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    },
+    "title": {
+      "createAReport": "Create a report",
+      "reportCreated": "Report submitted"
+    }
+  },
+  "student": {
+    "nav": {
+      "ariaLabel": "Student navigation",
+      "profile":   "My profile",
+      "report":    "Make a report",
+      "workshop":  "Workshops",
+      "quiz":      "Quiz"
+    },
+    "profile": {
+      "title":     "My profile",
+      "firstName": "First name",
+      "lastName":  "Last name",
+      "email":     "Email",
+      "role":      "Role"
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon":  "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon":  "This section will be available soon."
+    }
   },
   "privacy": {
     "updated": "Last updated: April 2026",

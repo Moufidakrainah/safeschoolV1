@@ -14,7 +14,12 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 6. [Internationalisation — react-i18next](#6-internationalisation--react-i18next)
 7. [Tailwind CSS — le système de classes](#7-tailwind-css--le-système-de-classes)
 8. [Accessibilité — WCAG AA et ARIA](#8-accessibilité--wcag-aa-et-aria)
+8b. [Bugs corrigés — AdminDashboard (Phase 1)](#8b-bugs-corrigés--admindashboard-phase-1)
+8c. [Tester l'accessibilité](#8c-tester-laccessibilité)
+8d. [Optimisation React.memo](#8d-optimisation-reactmemo)
 9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
+10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
+11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
 
 ---
 
@@ -71,7 +76,7 @@ Avant d'expliquer les deux types de volumes, voici comment les différentes couc
 ┌─────────────────────────────────────────────────────────────┐
 │  TON DISQUE (le "host" — ta machine physique)               │
 │                                                             │
-│  /home/elodie/Documents/Transcendence/frontend/             │
+│  /home/user/Documents/Transcendence/frontend/               │
 │    src/                                                     │
 │    package.json                                             │
 │    package-lock.json                                        │
@@ -254,7 +259,7 @@ Un **bind mount** est un lien direct entre un chemin sur le système hôte (ta m
 ```
 SYSTÈME HÔTE                       CONTENEUR
 ────────────────                   ─────────────────────
-/home/elodie/.../frontend/   ←──→  /app/
+/home/user/.../frontend/     ←──→  /app/
 ```
 
 Toute écriture dans l'un est immédiatement visible dans l'autre, dans les deux sens, sans aucune commande supplémentaire.
@@ -469,6 +474,10 @@ C'est le système centralisé de logs :
 3. Logstash l'envoie à **Elasticsearch** qui la stocke et l'indexe
 4. **Kibana** (port 5601) permet de visualiser et requêter les logs via une interface web
 
+### Pourquoi NestJS et pas Express
+
+Express est minimaliste : il gère les routes HTTP et rien d'autre. Toute l'architecture (structure des fichiers, injection de dépendances, validation, authentification) est à inventer. NestJS impose une architecture — modules, controllers, services, guards, pipes, interceptors — ce qui est un avantage pour une équipe multiple : tout le monde sait où mettre le code. L'injection de dépendances intégrée rend les services testables unitairement sans couplage fort.
+
 ---
 
 ## 3. L'authentification JWT
@@ -521,7 +530,15 @@ Le `JwtAuthGuard` est appliqué à toutes les routes qui nécessitent une authen
 
 ### Pourquoi React, Tailwind et cet écosystème
 
-La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
+#### Pourquoi React et pas Vue ou Svelte
+
+Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour trois raisons : l'écosystème TypeScript est mature (types officiels, excellent support dans les outils), la courbe d'apprentissage est compatible avec le niveau de l'équipe en début de projet, et la documentation officielle (`react.dev`) est de haute qualité.
+
+#### Pourquoi Tailwind et pas Bootstrap
+
+Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles — ce qui annule son intérêt. Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
+
+#### La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
 
 #### Avant les frameworks — comment ça se dégradait
 
@@ -1308,7 +1325,7 @@ components/
 
 ### Principe
 
-Tout l'UI est construit à partir de composants réutilisables dans `frontend/src/components/`. Chaque composant embarque ses propres styles Tailwind, sa gestion d'accessibilité ARIA et ses labels via `useTranslation`. La collègue qui code un nouvel écran n'a pas à penser à l'accessibilité : elle est contenue dans le composant.
+Tout l'UI est construit à partir de composants réutilisables dans `frontend/src/components/`. Chaque composant embarque ses propres styles Tailwind, sa gestion d'accessibilité ARIA et ses labels via `useTranslation`. Le développeur qui code un nouvel écran n'a pas à penser à l'accessibilité : elle est contenue dans le composant.
 
 **Règle fondamentale :** jamais de couleur inline (`style={{ color: '#006278' }}`). Toujours les tokens Tailwind (`text-primary`, `bg-critical`…).
 
@@ -2037,7 +2054,7 @@ Annonce un message d'état non urgent (chargement, confirmation). Équivalent de
 
 ### Les composants comme "legos ARIA"
 
-Chaque composant du design system embarque son propre comportement ARIA. La collègue qui utilise `<Pagination>` n'a pas à y penser : le `<nav aria-label>`, les `aria-current="page"`, et les aria-labels sur `«`/`»` sont déjà là.
+Chaque composant du design system embarque son propre comportement ARIA. Le développeur qui utilise `<Pagination>` n'a pas à y penser : le `<nav aria-label>`, les `aria-current="page"`, et les aria-labels sur `«`/`»` sont déjà là.
 
 **Contrat à respecter côté utilisateur du composant :**
 
@@ -2090,6 +2107,43 @@ className="focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 
 
 Toujours utiliser `focus:ring-offset-{couleur}` avec la couleur du fond de l'élément parent pour garantir le contraste du focus ring.
 
+#### `focus-visible` vs `focus` — règle de la maison (WCAG 2.4.7)
+
+**Problème :** `outline-none` seul supprime complètement le focus ring. Un utilisateur qui navigue au clavier (Tab) ne voit plus où il se trouve sur la page. C'est une violation de WCAG 2.4.7 Focus Visible (AA).
+
+**Règle :** ne jamais utiliser `outline-none` seul. Toujours le combiner avec des classes `focus-visible:`.
+
+```tsx
+// ❌ INTERDIT — supprime le focus ring pour tout le monde
+className="... outline-none"
+
+// ✅ CORRECT — supprime l'outline natif et le remplace par un ring
+// visible uniquement à la navigation clavier (pas au clic souris)
+className="... focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+```
+
+**Pourquoi `focus-visible` plutôt que `focus` ?**
+
+| Classe | S'affiche au clic souris | S'affiche au clavier |
+|--------|--------------------------|----------------------|
+| `focus:ring-2` | ✅ oui | ✅ oui |
+| `focus-visible:ring-2` | ❌ non | ✅ oui |
+
+`focus-visible` correspond à la pseudo-classe CSS `:focus-visible` du navigateur : elle s'active uniquement quand le navigateur juge que l'indicateur est nécessaire (navigation clavier, pas clic souris). C'est le comportement attendu par les utilisateurs et le standard WCAG.
+
+**Variante pour les boutons (avec offset) :**
+
+```tsx
+// Button.tsx — focus ring avec espace entre le bouton et l'anneau
+className="... focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+```
+
+`ring-offset-2` ajoute un espace blanc de 2px entre le bouton et l'anneau, améliorant la lisibilité sur fonds colorés.
+
+**Fichiers corrigés (commit `fix/a1-a2-focus-rings`) :**
+- `components/Input.tsx`, `Button.tsx`, `Pagination.tsx`, `Select.tsx`, `Autocomplete.tsx` — composants du design system
+- `pages/AdminDashboard.tsx`, `ReporterDashboard.tsx`, `StudentDashboard.tsx`, `Quiz.tsx` — pages avec `<input>`, `<textarea>`, `<select>` natifs
+
 ---
 
 ### Ratios de contraste
@@ -2121,6 +2175,350 @@ Le token `--color-primary-hover` dans `index.css` passe de `#007a91` à `#004f62
 #### Outil de vérification
 
 [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) — saisir les deux valeurs hexadécimales pour obtenir le ratio calculé et la conformité WCAG AA / AAA.
+
+---
+
+## 8b. Bugs corrigés — AdminDashboard (Phase 1)
+
+### Bug navigation Prev/Next — notes non rechargées (P1-3)
+
+**Problème :** les boutons « Précédent » et « Suivant » dans la vue détail d'un signalement appelaient `setSelected(report)` mais pas `loadNotes(report.id)`. En naviguant d'un signalement à l'autre, les notes affichées restaient celles du signalement précédent.
+
+**Correction :** création d'une fonction `goTo` qui regroupe les deux appels :
+
+```tsx
+// AVANT — notes non rechargées
+onClick={() => setSelected(filtered[idx - 1])}
+
+// APRÈS — setSelected + loadNotes atomiquement
+const goTo = (report: typeof selected) => {
+  setSelected(report);
+  if (report) loadNotes(report.id);
+};
+
+onClick={() => goTo(filtered[idx - 1])}
+onClick={() => goTo(filtered[idx + 1])}
+```
+
+**Règle générale :** dès que `setSelected` est appelé sur un objet qui a des données associées chargées de manière asynchrone (notes, commentaires, pièces jointes…), il faut recharger ces données en même temps.
+
+---
+
+### Narrowing TypeScript sur `selected` (P1-4)
+
+**Problème :** `selected` est typé `Report | null`. Dans `handleAddNote`, la valeur était utilisée directement (`selected.id`) sans vérifier qu'elle n'est pas `null`. TypeScript peut signaler une erreur, et un appel API avec `undefined` comme ID causerait une requête invalide.
+
+**Correction :** guard explicite avec early return en début de fonction :
+
+```tsx
+// AVANT — selected potentiellement null
+const handleAddNote = async (type: string = 'note') => {
+  await addNote(selected.id, content, type); // ⚠️ selected peut être null
+};
+
+// APRÈS — TypeScript sait qu'après la garde, selected est Report
+const handleAddNote = async (type: string = 'note') => {
+  if (!selected) return; // guard — empêche l'appel si aucun signalement sélectionné
+  await addNote(selected.id, content, type); // ✅ sûr
+};
+```
+
+**Règle générale :** toujours ajouter `if (!x) return;` en début de fonction quand `x` est potentiellement `null` ou `undefined` et est utilisé dans le corps. C'est du **narrowing TypeScript** : après la ligne de guard, le compilateur sait que `x` est non-null.
+
+---
+
+## 8c. Tester l'accessibilité
+
+Cette section décrit comment vérifier concrètement que l'application respecte les exigences WCAG AA. Trois méthodes complémentaires sont à combiner : l'extension axe DevTools, la navigation clavier, et la vérification manuelle des contrastes.
+
+---
+
+### Méthode 1 — WAVE (WebAIM) et IBM Equal Access Checker
+
+Deux extensions **100 % gratuites** pour auditer l'accessibilité. Axe DevTools (anciennement recommandé) a placé la majorité de ses règles derrière un abonnement payant — éviter.
+
+#### WAVE — WebAIM (recommandé en premier)
+
+WAVE inspecte la page et affiche les erreurs directement en superposition sur la page, ce qui est très lisible.
+
+**Installation :**
+- Chrome : [WAVE Evaluation Tool](https://chrome.google.com/webstore/detail/wave-evaluation-tool/jbbplnpkjmmeebjpijfedlgcdilocofh)
+- Firefox : [WAVE Evaluation Tool](https://addons.mozilla.org/en-US/firefox/addon/wave-accessibility-tool/)
+
+**Utilisation :**
+1. Ouvrir l'application dans le navigateur (`http://localhost:5173`)
+2. Cliquer sur l'icône WAVE dans la barre d'extensions
+3. La page affiche des icônes colorées en superposition :
+   - 🔴 **Errors** : violations WCAG réelles à corriger
+   - 🟡 **Alerts** : problèmes potentiels à vérifier manuellement
+   - 🟢 **Features** : éléments d'accessibilité détectés (aria, labels…)
+4. Cliquer sur une icône pour voir le détail et la règle concernée
+
+#### IBM Equal Access Checker (complément)
+
+Couvre davantage de règles WCAG, notamment les règles dynamiques (ARIA states, live regions).
+
+**Installation :**
+- Chrome / Edge : [IBM Equal Access Checker](https://chrome.google.com/webstore/detail/ibm-equal-access-accessib/lkcagbfjnkomcinoddgooolagloogehp)
+
+**Utilisation :**
+1. Ouvrir les DevTools (`F12`)
+2. Aller dans l'onglet **Accessibility Checker**
+3. Cliquer sur **Scan**
+4. Lire les violations classées par niveau WCAG (A, AA)
+
+**Ce que ces outils détectent automatiquement :**
+- `outline-none` sans remplacement (`focus:ring`) → violation WCAG 2.4.7
+- Boutons ou liens sans nom accessible (`aria-label` manquant)
+- Images sans `alt`
+- Ratios de contraste insuffisants
+- Structure de titres incorrecte (saut de niveau `h1` → `h3`)
+- Éléments interactifs non atteignables au clavier
+
+**Ce qu'ils ne détectent pas (à vérifier manuellement) :**
+- Ordre logique de la navigation au clavier
+- Labels présents mais trompeurs ou mal formulés
+- Comportement des messages d'erreur dynamiques (`role="alert"`)
+
+---
+
+### Méthode 2 — Navigation clavier
+
+La navigation clavier est le test le plus direct : si tu peux utiliser toute l'application sans souris, elle est accessible.
+
+**Touches à connaître :**
+
+| Touche | Action |
+|--------|--------|
+| `Tab` | Aller à l'élément interactif suivant |
+| `Shift + Tab` | Aller à l'élément interactif précédent |
+| `Enter` | Activer un bouton ou un lien |
+| `Espace` | Cocher une case, activer un bouton |
+| `Flèches` | Naviguer dans un groupe de radio, une liste |
+| `Esc` | Fermer une modale, annuler |
+
+**Checklist de test :**
+
+```
+□ Appuyer Tab depuis le haut de la page — tous les éléments interactifs sont-ils atteints dans un ordre logique ?
+□ Le focus ring (anneau bleu) est-il visible à chaque étape ?
+□ Les boutons désactivés (disabled) sont-ils ignorés par Tab ?
+□ Les liens du header et du footer sont-ils accessibles ?
+□ Le formulaire de login peut-il être soumis entièrement au clavier ?
+□ Les filtres de AdminDashboard sont-ils navigables ?
+□ Les lignes de signalements (li role="button") s'activent-elles avec Enter ?
+□ La pagination est-elle utilisable (Précédent / Suivant / numéros de page) ?
+```
+
+**Signe d'une bonne accessibilité clavier :** à aucun moment le focus ne « disparaît » ou ne se retrouve sur un élément invisible. Si tu perds de vue où tu es, c'est un bug.
+
+---
+
+### Méthode 3 — Contraste des couleurs
+
+Utiliser [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) pour vérifier que chaque combinaison texte/fond respecte les ratios WCAG AA.
+
+**Rappel des ratios minimum :**
+
+| Contexte | Ratio minimum |
+|----------|---------------|
+| Texte normal (< 18px) | 4.5:1 |
+| Texte large (≥ 18px ou ≥ 14px gras) | 3:1 |
+| Composants UI (bordures, icônes) | 3:1 |
+
+**Palette du projet — valeurs à vérifier :**
+
+| Combinaison | Ratio | Statut |
+|-------------|-------|--------|
+| `#006278` (primary) sur blanc `#ffffff` | 5.0:1 | ✅ AA |
+| `#ffffff` sur `#006278` (primary) | 5.0:1 | ✅ AA |
+| `#cc0000` (critical) sur blanc | 5.9:1 | ✅ AA |
+| `#ff914d` (high) sur noir `#000000` | 4.6:1 | ✅ AA |
+| `#ffde59` (medium) sur noir | 11.5:1 | ✅ AA |
+
+**Astuce Chrome :** dans les DevTools, inspecter un élément texte → onglet **Styles** → cliquer sur le carré de couleur → Chrome affiche le ratio de contraste directement dans le sélecteur de couleur.
+
+---
+
+### Méthode 4 — Lecteur d'écran (test avancé)
+
+Pour une vérification complète, tester avec un lecteur d'écran réel. Ce test est optionnel pour la soutenance mais recommandé.
+
+| OS | Lecteur d'écran | Gratuit |
+|----|----------------|--------|
+| Linux | Orca (`orca` dans le terminal) | ✅ |
+| macOS | VoiceOver (natif, `Cmd + F5`) | ✅ |
+| Windows | NVDA ([nvaccess.org](https://www.nvaccess.org/)) | ✅ |
+| Windows | Narrator (natif) | ✅ |
+
+**Sur Linux avec Orca :**
+```bash
+orca &   # lance Orca en arrière-plan
+# naviguer dans le navigateur avec Tab, les flèches
+# Orca lit les aria-label, les rôles, les états
+```
+
+**Ce qu'on attend :** Orca (ou VoiceOver) doit annoncer correctement :
+- Le nom de chaque bouton (pas juste « bouton »)
+- Le titre de chaque section
+- Les messages d'erreur au moment où ils apparaissent (`role="alert"`)
+- L'état des filtres (actif/inactif via `aria-pressed`)
+
+---
+
+### Lighthouse — est-ce suffisant ?
+
+**Non.** Lighthouse (intégré dans les DevTools Chrome, onglet "Lighthouse") est pratique mais largement insuffisant pour un audit WCAG AA sérieux.
+
+**Ce que Lighthouse détecte :** les violations mécaniquement vérifiables — ratios de contraste, images sans `alt`, éléments sans label, formulaires sans association `label/input`. Il couvre environ **30 à 40 % des critères WCAG AA**.
+
+**Ce que Lighthouse ne détecte pas :**
+- Navigation clavier incomplète ou dans le mauvais ordre
+- `aria-label` présents mais incorrects ou trompeurs
+- Messages d'erreur dynamiques (`role="alert"`) qui ne s'annoncent pas
+- Titres qui existent mais dont la hiérarchie est incohérente sémantiquement
+- Cibles tactiles trop petites (WCAG 2.5.5)
+
+**WAVE vs Lighthouse :**
+
+| Outil | Couverture WCAG AA | Gratuit | Manuel requis |
+|-------|--------------------|---------|---------------|
+| Lighthouse | ~30–40 % | ✅ | oui |
+| WAVE | ~50–60 % | ✅ | oui |
+| IBM Equal Access | ~57 % | ✅ | oui |
+| WAVE + IBM + Tab + contraste | ~80 % | ✅ | oui |
+| + screen reader | ~95 % | ✅ | peu |
+
+**Règle du projet :** utiliser **WAVE** comme outil principal, **IBM Equal Access** en complément. Lighthouse reste utile pour les performances et le SEO — pas pour l'accessibilité fine.
+
+---
+
+### Résumé — ordre recommandé pour auditer une page
+
+1. **WAVE + IBM Equal Access** → scan automatique, corriger toutes les violations signalées
+2. **Navigation Tab** → vérifier l'ordre et la visibilité du focus
+3. **Contraste** → vérifier toute nouvelle couleur introduite avec WebAIM Contrast Checker
+4. **Lecteur d'écran** → test final si le temps le permet
+
+Une page est « prête » quand axe ne signale aucune violation AA et que la navigation Tab est fluide de bout en bout.
+
+---
+
+## 8d. Optimisation React.memo
+
+### Utilisation de React.memo pour les composants statiques
+
+Certains composants du projet, comme le Footer, sont rendus sur toutes les pages mais ne changent quasiment jamais. Pour éviter des recalculs inutiles à chaque re-render du parent, on utilise `React.memo` :
+
+```tsx
+import { memo } from 'react';
+
+export const Footer = memo(function Footer() {
+  // ...
+});
+```
+
+**Fonctionnement** : si les props du composant ne changent pas, React réutilise le rendu précédent sans réexécuter la fonction. Cela améliore les performances, surtout pour les composants globaux ou statiques.
+
+**À retenir** : utiliser `memo` sur les composants qui :
+- n'ont pas de props dynamiques,
+- ou dont les props changent rarement,
+- ou qui sont affichés sur toutes les pages (header, footer, etc.).
+
+Voir l'implémentation dans `components/Footer.tsx` et `components/layout/Footer/Footer.tsx`.
+
+---
+
+## 8e. Fonctions métier asynchrones — séparation JSX / logique
+
+### Qu'est-ce qu'une fonction métier asynchrone ?
+
+Une **fonction métier** est une fonction qui contient de la logique applicative : appel API, transformation de données, mise à jour d'état. Elle est dite **asynchrone** quand elle utilise `async/await` — c'est-à-dire quand elle attend la réponse d'une opération qui prend du temps (réseau, base de données).
+
+```tsx
+// Exemple — fonction métier asynchrone
+const handleSuspectSearch = async (value: string) => {
+  setSuspectInput(value);
+  if (value.length < 1) { setSuspectSuggestions([]); return; }
+  try {
+    setSuspectSuggestions(await searchUsers(value)); // appel réseau
+  } catch {
+    setSuspectSuggestions([]); // gestion d'erreur explicite
+  }
+};
+```
+
+### Pourquoi ne pas écrire cette logique directement dans le JSX ?
+
+Le JSX a un seul rôle : **décrire la structure visuelle** de l'interface. Dès qu'on y insère de la logique (conditions, appels API, `async/await`), deux problèmes apparaissent :
+
+1. **Lisibilité** — quelqu'un qui lit le JSX pour comprendre la mise en page doit s'arrêter sur une fonction de 5 lignes cachée dans un prop. Le signal/bruit est mauvais.
+2. **Gestion d'erreur absente** — une fonction anonyme inline invite à ignorer le `try/catch`. Si l'appel réseau échoue, l'état n'est jamais remis à zéro et l'interface peut rester dans un état incohérent (liste figée, spinner infini).
+
+```tsx
+// ❌ À éviter — logique métier inline dans le JSX
+<Autocomplete
+  onChange={async val => {
+    setInput(val);
+    if (val.length >= 2) setSuggestions(await searchUsers(val)); // pas de try/catch
+    else setSuggestions([]);
+  }}
+/>
+
+// ✅ Correct — handler nommé, déclaré avant le return
+const handleSearch = async (value: string) => {
+  setInput(value);
+  if (value.length < 2) { setSuggestions([]); return; }
+  try {
+    setSuggestions(await searchUsers(value));
+  } catch {
+    setSuggestions([]);
+  }
+};
+
+// Dans le JSX — une seule ligne, lisible
+<Autocomplete onChange={handleSearch} />
+```
+
+### Règles à respecter
+
+| Règle | Raison |
+|-------|--------|
+| Toujours nommer la fonction (`handleXxx`) | Lisibilité, débogage (nom visible dans la stack trace) |
+| Toujours entourer l'appel API d'un `try/catch` | Évite les états incohérents si le réseau échoue |
+| Remettre les suggestions à `[]` dans le `catch` | L'utilisateur ne voit pas de liste obsolète |
+| Déclarer le handler avant le `return` du composant | Le handler est ainsi disponible et nommé dans la portée du composant |
+
+### Application dans ce projet
+
+L'`Autocomplete` de la victime dans `ReporterDashboard` avait sa logique inline. Le suspect avait déjà été extrait. La correction extrait `handleVictimSearch` pour rendre les deux cohérents :
+
+```tsx
+// AVANT — logique inline, pas de try/catch
+onChange={async val => {
+  setVictimInput(val);
+  setSelectedVictim(null);
+  setVictimName(val);
+  if (val.length >= 2) setVictimSuggestions(await searchUsers(val));
+  else setVictimSuggestions([]);
+}}
+
+// APRÈS — handler nommé, try/catch présent
+const handleVictimSearch = async (value: string) => {
+  setVictimInput(value);
+  setSelectedVictim(null);
+  setVictimName(value);
+  if (value.length < 2) { setVictimSuggestions([]); return; }
+  try {
+    setVictimSuggestions(await searchUsers(value));
+  } catch {
+    setVictimSuggestions([]);
+  }
+};
+
+// JSX
+<Autocomplete onChange={handleVictimSearch} />
+```
 
 ---
 
@@ -2364,3 +2762,129 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 | Pourquoi TypeORM avec `synchronize: true` en dev et pas en prod ? | En dev, TypeORM met à jour automatiquement le schéma SQL à partir des entities — pratique pour itérer vite. En production, c'est dangereux : une modification d'entity pourrait supprimer ou altérer des colonnes avec des vraies données. |
 | Quelle est la différence entre `PATCH` et `PUT` en HTTP ? | `PUT` remplace la ressource entière. `PATCH` modifie partiellement — seuls les champs envoyés sont mis à jour. Pour un formulaire d'édition partielle, `PATCH` est plus approprié. |
 | Pourquoi ELK dans ce projet ? | Centraliser les logs de toutes les requêtes HTTP dans Elasticsearch, les transformer via Logstash, et les visualiser dans Kibana. Permet de monitorer l'activité, détecter des anomalies et déboguer sans accès aux conteneurs. |
+
+### React
+
+https://react.dev/reference/react
+
+Référence officielle maintenue par l'équipe React (Meta). Liste exhaustive de tous les hooks, API et composants built-in avec exemples interactifs. 
+
+---
+
+### Tailwind CSS
+
+https://tailwindcss.com/docs
+
+Documentation officielle v4. Couvre les nouvelles directives `@theme`, `@utility`, la configuration via CSS uniquement, et les changements de nommage des utilitaires.
+
+---
+
+## 10. WebSockets — le module Quiz temps réel
+
+### HTTP vs WebSocket — la différence fondamentale
+
+HTTP est un protocole **requête-réponse** : le client demande, le serveur répond, la connexion se ferme. Si le serveur a une nouvelle information, il ne peut pas la pousser vers le client — il faut que le client re-demande.
+
+WebSocket est un protocole **bidirectionnel persistant** : une seule connexion reste ouverte, et chacune des deux parties peut envoyer un message à l'autre à n'importe quel moment. C'est indispensable pour un quiz en temps réel où le serveur doit pousser les questions à tous les joueurs simultanément.
+
+```
+[Quiz.tsx — navigateur A]              [QuizRealtimeGateway — NestJS]
+        │                                          │
+        │  connect (handshake HTTP → upgrade WS)   │
+        │ ─────────────────────────────────────── >│
+        │ < ──────────────────────────────────────  │  connexion établie
+        │                                          │
+        │  emit('joinRoom', { roomId, user })       │
+        │ ─────────────────────────────────────── >│
+        │                                          │  room.add(socketA)
+        │                                          │
+[Quiz.tsx — navigateur B]                         │
+        │  emit('joinRoom', { roomId, user })       │
+        │ ─────────────────────────────────────── >│  room.add(socketB)
+        │                                          │
+        │                    emit('question', q) ──>│  broadcast vers la room
+        │ < ──────────────────────────────────────  │
+        │ < ──────────────────────────────────────  │  (reçu par A et B)
+        │                                          │
+        │  emit('answer', { choice })              │
+        │ ─────────────────────────────────────── >│
+        │                                          │  calcule score
+        │ < ──────────────────────────────────────  │  emit('leaderboard', ...)
+```
+
+### Architecture dans le projet
+
+**Côté backend** — `backend/src/quiz-realtime/` :
+
+- **`quiz-realtime.gateway.ts`** : le point d'entrée WebSocket. Décoré avec `@WebSocketGateway()`, il écoute les événements émis par les clients (`@SubscribeMessage('joinRoom')`, etc.) et peut émettre vers une room ou vers tous les clients connectés.
+- **`quiz-realtime.service.ts`** : la logique métier du quiz — gestion des rooms, suivi des scores, envoi des questions dans l'ordre.
+- **`quiz-realtime.module.ts`** : module NestJS qui déclare et relie les deux.
+
+**Côté frontend** — `frontend/src/pages/Quiz.tsx` :
+
+- Connexion au gateway via `socket.io-client` : `const socket = io(SOCKET_URL)`.
+- La référence au socket est stockée dans un `useRef` (pas un `useState`) pour éviter les re-renders à chaque message reçu.
+- Les événements entrants (`question`, `leaderboard`, `gameEnd`) déclenchent des mises à jour d'état React.
+
+### Points d'attention actuels
+
+| Problème | Impact | Référence |
+|---|---|---|
+| `SOCKET_URL` codé en dur (`http://localhost:5000`) | La connexion échoue hors de la machine de développement — le sujet exige HTTPS | `Quiz.tsx` ligne ~8 |
+| Bug room cleanup | La room n'est pas nettoyée correctement quand un quiz se termine | Documenté dans le dernier commit de `feat/quiz` |
+
+### Socket.io vs WebSocket natif
+
+Socket.io est une bibliothèque construite au-dessus des WebSockets natifs. Elle ajoute : reconnexion automatique, rooms (groupes de clients), namespaces, et un système d'événements nommés (`emit('question', data)`) plus lisible que les messages bruts. NestJS intègre nativement Socket.io via `@WebSocketGateway()`.
+
+---
+
+## 11. Next.js, NestJS, Node.js
+
+Ces trois noms se ressemblent visuellement et sont souvent mentionnés ensemble dans l'écosystème JavaScript. Ils opèrent à des niveaux complètement différents.
+
+### Les trois en une phrase
+
+| Nom | Catégorie | Rôle |
+|---|---|---|
+| **Node.js** | Environnement d'exécution | Exécute du JavaScript en dehors du navigateur, côté serveur. C'est le moteur. |
+| **NestJS** | Framework backend | S'exécute sur Node.js. Impose une architecture (modules, controllers, services) pour construire des APIs REST. |
+| **Next.js** | Framework fullstack | S'exécute aussi sur Node.js. Permet de faire du rendu côté serveur (SSR) et des React Server Components. C'est un concurrent de l'approche React + backend séparé. |
+
+### Pourquoi ce projet n'utilise pas Next.js
+
+Ce n'est pas un défaut de conception — c'est un choix d'architecture dicté par le sujet.
+
+Le sujet ft_transcendence v21.1 exige un **framework frontend** (React) et un **framework backend** séparés, communiquant via une API. C'est l'architecture SPA + API REST. Ce modèle est la norme dans les équipes qui séparent les responsabilités front/back — c'est ce que le sujet teste.
+
+Next.js est un framework **fullstack** — il fusionne le frontend et le backend dans un seul projet. Adopter Next.js aurait nécessité de réécrire le backend NestJS en API Routes Next.js, ce qui est hors scope.
+
+### React Server Components — ce que c'est et pourquoi ça ne s'applique pas ici
+
+Les **React Server Components (RSC)** sont une fonctionnalité qui permet à certains composants React de s'exécuter côté serveur — ils accèdent directement à la base de données, ne s'envoient jamais au client, et n'augmentent pas la taille du bundle JavaScript.
+
+```
+// Composant serveur (Next.js uniquement) — accès direct à la base
+async function ReportList() {
+  const reports = await db.query('SELECT * FROM reports'); // côté serveur
+  return <ul>{reports.map(r => <li>{r.title}</li>)}</ul>;
+  // le HTML est rendu sur le serveur, le client reçoit du HTML, pas du JS
+}
+```
+
+**Pourquoi RSC ne s'applique pas à ce projet :**
+
+Vite compile et sert des fichiers statiques. Le frontend n'a pas de processus serveur Node.js — il n'existe que dans le navigateur après le chargement initial. Les RSC nécessitent un serveur qui exécute React au moment de la requête, ce que seul Next.js (ou Remix) fournit nativement.
+
+Dans l'architecture SafeSchool, l'équivalent fonctionnel est simplement un `useEffect` qui appelle l'API NestJS — le résultat est le même (données chargées et affichées), mais le rendu se fait dans le navigateur plutôt que sur le serveur.
+
+### Tableau récapitulatif — qui fait quoi dans ce projet
+
+| Ce qui tourne | Où | Technologie |
+|---|---|---|
+| Interface utilisateur | Navigateur | React 18 + TypeScript (compilé par Vite) |
+| Serveur de fichiers statiques | Conteneur Docker frontend | Vite (dev) / fichiers statiques (prod) |
+| API REST | Conteneur Docker backend | NestJS sur Node.js |
+| Base de données | Conteneur Docker database | PostgreSQL |
+| Logs | Conteneurs ELK | Elasticsearch + Logstash + Kibana |
+
