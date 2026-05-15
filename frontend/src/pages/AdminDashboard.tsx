@@ -425,26 +425,34 @@ const classOptions = Array.from(
               {t('admin.next')} →
             </Button>
           </div>
+          <div className="text-center">
 
 
 
 
+          {/* Victimes */}
+            <Card borderColor={severityColor} title={t('admin.detail.victim')}>
+              {selected.description?.includes('') && (
+                  <p className="text-sm text-gray-700 mb-4">
+                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
+					{selected.student?.studentProfile?.schoolClass}
+                  </p>
+              )}
+            </Card>
 
+{/* 
+ici /hooks/useReportForm';
+il faut separer l'enregistrement de la description et de l'identite de la victime
+ */}
 
-
-
-
-
-          {/* Informations + personnes impliquées */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <Card borderColor={severityColor}>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
+          {/* Analyse IA */}
+			<Card borderColor={severityColor} title={t('admin.detail.iaAnalysis')}>
               <table className="w-full text-sm border-collapse">
                 <tbody>
                   {([
                     { label: t('admin.detail.titleField'), value: selected.title },
                     { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
-                    { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
+                    // { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
                     { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
                     { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
                     { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
@@ -458,8 +466,9 @@ const classOptions = Array.from(
               </table>
             </Card>
 
-            <Card>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
+
+          {/* Signale par */}
+            <Card borderColor={severityColor} title={t('admin.detail.people')}>
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
               <p className="text-sm text-gray-700 mb-4">
                 {selected.isAnonymous
@@ -469,14 +478,17 @@ const classOptions = Array.from(
                   <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
                 )}
               </p>
-              {selected.description?.includes('| Victime :') && (
-                <>
-                  <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
-                  </p>
-                </>
-              )}
+
+            </Card>
+
+
+
+
+
+
+
+          {/* Suspects */}
+            <Card borderColor={severityColor} title={t('admin.detail.people')}>
               <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
               {selected.suspects?.length > 0 ? (
                 <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
@@ -490,8 +502,10 @@ const classOptions = Array.from(
                 <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
               )}
             </Card>
-          </div>
 
+
+
+			</div>
           {/* Description */}
           <Card borderColor={severityColor} className="mb-6">
             <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>

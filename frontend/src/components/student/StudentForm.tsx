@@ -11,7 +11,7 @@
  */
 
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
 import Button from '../Button';
@@ -32,9 +32,6 @@ interface StudentFormProps {
 export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
 
-
-
-
 const typeOptions = [
       { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'), },
       { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),     },
@@ -43,7 +40,6 @@ const typeOptions = [
       { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    },
       { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     },
 ];
-
 
 const [typeInput, setTypeInput] = useState("");
 const [filteredTypes, setFilteredTypes] = useState(typeOptions);
@@ -185,62 +181,6 @@ useEffect(() => {
       {t('reporter.step2.subtitle')}
     </p>
 
-    {/* <div
-      role="radiogroup"
-      aria-label={t('reporter.step2.title')}
-      className="grid grid-cols-2 gap-3"
-    >
-      {typeOptions.map((opt, index) => (
-        <div
-          key={opt.label}
-          role="radio"
-          aria-checked={type === opt.label}
-          tabIndex={type === opt.label ? 0 : -1}
-          onClick={() => setType(opt.label)}
-			onKeyDown={(e) => {
-  const currentIndex = typeOptions.findIndex(o => o.label === type);
-  const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
-
-  // ✔ Valider la carte focusée
-  if (e.key === " " || e.key === "Enter") {
-    e.preventDefault();
-    setType(opt.label);
-  }
-
-  // ✔ Aller à la carte suivante
-  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-    e.preventDefault();
-    const next = (fallbackIndex + 1) % typeOptions.length;
-    setType(typeOptions[next].label);
-  }
-
-  // ✔ Aller à la carte précédente
-  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-    e.preventDefault();
-    const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
-    setType(typeOptions[prev].label);
-  }
-}}
-
-
-          className={`
-            px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
-            ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
-            focus-visible:ring-2 focus-visible:ring-primary
-          `}
-        >
-          <div className="text-2xl mb-1" aria-hidden="true">
-            {opt.icon}
-          </div>
-          <div className="text-sm font-semibold text-gray-800">
-            {opt.label}
-          </div>
-          <div className="text-xs text-gray-400">
-            {opt.sub}
-          </div>
-        </div>
-      ))}
-    </div> */}
 
 <div
   role="radiogroup"

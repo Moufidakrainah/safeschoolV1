@@ -73,7 +73,7 @@
       "false_report": "Faux signalement"
     },
     "detail": {
-      "info": "Informations du signalement",
+      "iaAnalysis": "Analyse IA",
       "titleField": "Titre",
       "date": "Date",
       "class": "Classe",
@@ -86,7 +86,7 @@
       "reportedBy": "Signalé par",
       "anonymousLabel": "Anonyme",
       "victim": "Victime",
-      "suspects": "Soupçonné(s)",
+      "suspects": "Suspect(s)",
       "noSuspect": "Aucun soupçonné indiqué",
       "gradeModified": "Grade modifié",
       "suspectsCount": "coupable(s)"

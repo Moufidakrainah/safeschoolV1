@@ -21,14 +21,17 @@ interface CardProps {
   children: React.ReactNode;
   borderColor?: string;
   className?: string;
+  title?: string;
 }
 
-export default function Card({ children, borderColor, className = '' }: CardProps) {
+export default function Card({ children, borderColor, className = '', title }: CardProps) {
   return (
     <div
       style={borderColor ? { borderLeft: `5px solid ${borderColor}` } : {}}
-      className={`bg-white p-6 shadow-sm ${className}`}
+      className={`mb-8 bg-white p-6 shadow-sm ${className}`}
     >
+		<h3 className="text-primary text-sm font-bold mb-4">{title}</h3>
+		
       {children}
     </div>
   );
