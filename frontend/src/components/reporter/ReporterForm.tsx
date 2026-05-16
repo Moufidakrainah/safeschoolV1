@@ -14,7 +14,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
 import { Button } from '../ui/button';
-import Card from '../Card';
+import { Card } from '../ui/card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
@@ -96,7 +96,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
         <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-          <Card className="max-w-md w-full mx-5 text-center">
+          <Card className="max-w-md w-full mx-5 text-center p-6 shadow-sm">
             <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
             <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
@@ -116,7 +116,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
+        <Card className="p-6 shadow-sm">
 
           {/* Étape 1 : Type de harcèlement */}
           {step === 1 && (

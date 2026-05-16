@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { login } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
-import Input  from '../components/Input';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 
 export default function Login()
 {
@@ -87,23 +88,25 @@ export default function Login()
 
         <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full max-w-sm">
 
-		<Input
-		label={t('login.labelEmail')}
-		type="email"
-		value={email}
-		onChange={(e) => {
-			const value = e.target.value;
-			setEmail(value);
+		<div className="flex flex-col gap-1 w-full">
+		  <Label className="text-white text-sm font-medium">{t('login.labelEmail')}</Label>
+		  <Input
+			type="email"
+			value={email}
+			onChange={(e) => {
+				const value = e.target.value;
+				setEmail(value);
 
-			if (!emailRegex.test(value)) {
-			setEmailError(t('login.errorEmailFormat'));
-			} else {
-			setEmailError('');
-			}
-		}}
-		required
-		theme="light"
-		/>
+				if (!emailRegex.test(value)) {
+				setEmailError(t('login.errorEmailFormat'));
+				} else {
+				setEmailError('');
+				}
+			}}
+			required
+			className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+		  />
+		</div>
 		<div className="min-h-5 w-full">
 		{emailError && (
 			<p className="text-red-300 text-xs w-full text-left">
@@ -114,23 +117,25 @@ export default function Login()
 
 
 
-        <Input
-		label={t('login.labelPassword')}
-		type="password"
-		value={password}
-		onChange={(e) => {
-			const value = e.target.value;
-			setPassword(value);
+		<div className="flex flex-col gap-1 w-full">
+		  <Label className="text-white text-sm font-medium">{t('login.labelPassword')}</Label>
+		  <Input
+			type="password"
+			value={password}
+			onChange={(e) => {
+				const value = e.target.value;
+				setPassword(value);
 
-			if (value.length < 6) {
-			setPasswordError(t('login.errorPasswordLength'));
-			} else {
-			setPasswordError('');
-			}
-		}}
-		required
-		theme="light"
-		/>
+				if (value.length < 6) {
+				setPasswordError(t('login.errorPasswordLength'));
+				} else {
+				setPasswordError('');
+				}
+			}}
+			required
+			className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+		  />
+		</div>
 		<div className="min-h-5 w-full">
 		{passwordError && (
 			<p className="text-red-300 text-xs w-full text-left">

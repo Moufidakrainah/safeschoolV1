@@ -29,8 +29,6 @@ import {
 
 // Composants app custom
 import AppBadge    from '../components/Badge';
-import AppCard     from '../components/Card';
-import AppInput    from '../components/Input';
 import AppSelect   from '../components/Select';
 import StatCard    from '../components/StatCard';
 import NoteBlock   from '../components/NoteBlock';
@@ -225,12 +223,18 @@ export default function UiKit() {
               </PreviewBox>
             </KitSection>
 
-            <KitSection label="AppInput">
+            <KitSection label="Input (shadcn)">
               <PreviewBox className="flex flex-col gap-4 max-w-sm">
-                <AppInput label="Avec label" type="text" value="" onChange={() => {}} />
-                <AppInput type="text" value="" onChange={() => {}} placeholder="Sans label" />
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="kit-text">Avec label</Label>
+                  <ShadInput id="kit-text" type="text" placeholder="Texte libre" />
+                </div>
+                <ShadInput type="text" placeholder="Sans label" />
                 <div className="rounded-lg bg-primary p-4">
-                  <AppInput label="Sur fond coloré (theme light)" type="password" value="" onChange={() => {}} theme="light" />
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="kit-pwd" className="text-white text-sm font-medium">Sur fond coloré</Label>
+                    <ShadInput id="kit-pwd" type="password" placeholder="••••••••" className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm" />
+                  </div>
                 </div>
               </PreviewBox>
             </KitSection>
@@ -268,17 +272,17 @@ export default function UiKit() {
               </PreviewBox>
             </KitSection>
 
-            <KitSection label="AppCard">
+            <KitSection label="Card (shadcn)">
               <div className="flex flex-col gap-3">
-                <AppCard>
+                <ShadCard className="p-6 shadow-sm">
                   <p className="text-sm text-gray-700">Carte simple (sans bordure)</p>
-                </AppCard>
-                <AppCard borderColor="#CC0000">
+                </ShadCard>
+                <ShadCard className="p-6 shadow-sm" style={{ borderLeft: '5px solid #CC0000' }}>
                   <p className="text-sm text-gray-700">Bordure gauche — critique</p>
-                </AppCard>
-                <AppCard borderColor="#FF914D">
+                </ShadCard>
+                <ShadCard className="p-6 shadow-sm" style={{ borderLeft: '5px solid #FF914D' }}>
                   <p className="text-sm text-gray-700">Bordure gauche — grave</p>
-                </AppCard>
+                </ShadCard>
               </div>
             </KitSection>
 

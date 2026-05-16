@@ -9,10 +9,11 @@ import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
-import Card from '../components/Card';
+import { Card } from '../components/ui/card';
 import StatCard from '../components/StatCard';
 import Select from '../components/Select';
-import Input from '../components/Input';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
@@ -437,7 +438,7 @@ const classOptions = Array.from(
 
           {/* Informations + personnes impliquées */}
           <div className="grid grid-cols-2 gap-6 mb-6">
-            <Card borderColor={severityColor}>
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
               <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
               <table className="w-full text-sm border-collapse">
                 <tbody>
@@ -458,7 +459,7 @@ const classOptions = Array.from(
               </table>
             </Card>
 
-            <Card>
+            <Card className="p-6 shadow-sm">
               <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
               <p className="text-sm text-gray-700 mb-4">
@@ -493,7 +494,7 @@ const classOptions = Array.from(
           </div>
 
           {/* Description */}
-          <Card borderColor={severityColor} className="mb-6">
+          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
             <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
             <p className="text-sm text-gray-700 leading-7">
               {selected.description?.split('|')[0]?.trim()}
@@ -501,7 +502,7 @@ const classOptions = Array.from(
           </Card>
 
           {/* Notes administratives */}
-          <Card borderColor={severityColor} className="mb-6">
+          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
             <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
             {notes.length > 0 ? (
               <div className="flex flex-col gap-3 mb-5">
@@ -527,7 +528,7 @@ const classOptions = Array.from(
 
           {/* Convocation */}
           {isAdmin && (
-            <Card borderColor={severityColor}>
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
               <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
               <div className="mb-4">
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
@@ -861,7 +862,7 @@ const classOptions = Array.from(
             </div>
 
             {showUserForm && (
-              <Card className="mb-5">
+              <Card className="mb-5 p-6 shadow-sm">
                 <h3 className="text-gray-800 font-bold mb-4">
                   {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
                 </h3>
@@ -869,12 +870,14 @@ const classOptions = Array.from(
     
 
 
-                  <Input
-                    label={t('admin.users.firstName')}
-                    value={userForm.firstName}
-                    onChange={e => updateField('firstName', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.firstName')}</Label>
+                    <Input
+                      value={userForm.firstName}
+                      onChange={e => updateField('firstName', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 					{errors.firstName && (
 						<p className="text-red-300 text-xs">{errors.firstName}</p>
@@ -882,12 +885,14 @@ const classOptions = Array.from(
 					</div>
 
 
-                  <Input
-                    label={t('admin.users.lastName')}
-                    value={userForm.lastName}
-                    onChange={e => updateField('lastName', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.lastName')}</Label>
+                    <Input
+                      value={userForm.lastName}
+                      onChange={e => updateField('lastName', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 				{errors.lastName && (
 					<p className="text-red-300 text-xs">{errors.lastName}</p>
@@ -895,25 +900,29 @@ const classOptions = Array.from(
 				</div>
 
 
-                  <Input
-                    label={t('admin.users.email')}
-                    value={userForm.email}
-                    onChange={e => updateField('email', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.email')}</Label>
+                    <Input
+                      value={userForm.email}
+                      onChange={e => updateField('email', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 					{errors.email && (
 						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
 					)}
 					</div>
 
-                  <Input
-                    label={t('admin.users.password')}
-                    type="password"
-                    value={userForm.password}
-                    onChange={e => updateField('password', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.password')}</Label>
+                    <Input
+                      type="password"
+                      value={userForm.password}
+                      onChange={e => updateField('password', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 					<div className="min-h-5 w-full">
 					{errors.password && (
 						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
@@ -960,7 +969,7 @@ const classOptions = Array.from(
 		<ul className="flex flex-col gap-3">
 			{users.map(u => (
 			<li key={u.id}>
-				<Card className="flex justify-between items-center">
+				<Card className="flex justify-between items-center p-6 shadow-sm">
 				<div>
 					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
 					<span className="ml-2 text-xs text-gray-400">{u.email}</span>

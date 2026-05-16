@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from './ui/button';
 import Badge, { type BadgeVariant } from './Badge';
-import Card from './Card';
+import { Card } from './ui/card';
 import NoteBlock from './NoteBlock';
 import type { Report, Note } from '../types';
 
@@ -108,7 +108,7 @@ export default function ReportDetail({
 
       {/* Informations + personnes impliquées */}
       <div className="grid grid-cols-2 gap-6 mb-6">
-        <Card borderColor={severityColor}>
+        <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
           <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
           <table className="w-full text-sm border-collapse">
             <tbody>
@@ -164,7 +164,7 @@ export default function ReportDetail({
       </div>
 
       {/* Description */}
-      <Card borderColor={severityColor} className="mb-6">
+      <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
         <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
         <p className="text-sm text-gray-700 leading-7">
           {selected.description?.split('|')[0]?.trim()}
@@ -172,7 +172,7 @@ export default function ReportDetail({
       </Card>
 
       {/* Notes administratives */}
-      <Card borderColor={severityColor} className="mb-6">
+      <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
         <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
@@ -198,7 +198,7 @@ export default function ReportDetail({
 
       {/* Convocation */}
       {isAdmin && (
-        <Card borderColor={severityColor}>
+        <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
           <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
