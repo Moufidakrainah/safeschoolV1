@@ -20,6 +20,7 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
 10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
 11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
+12. [shadcn/ui — ajouter et migrer des composants](#12-shadcnui--ajouter-et-migrer-des-composants)
 
 ---
 
@@ -2877,6 +2878,117 @@ async function ReportList() {
 Vite compile et sert des fichiers statiques. Le frontend n'a pas de processus serveur Node.js — il n'existe que dans le navigateur après le chargement initial. Les RSC nécessitent un serveur qui exécute React au moment de la requête, ce que seul Next.js (ou Remix) fournit nativement.
 
 Dans l'architecture SafeSchool, l'équivalent fonctionnel est simplement un `useEffect` qui appelle l'API NestJS — le résultat est le même (données chargées et affichées), mais le rendu se fait dans le navigateur plutôt que sur le serveur.
+
+---
+
+## 12. shadcn/ui — ajouter et migrer des composants
+
+### Ce qu'est shadcn
+
+shadcn/ui n'est pas une librairie installée comme dépendance (pas de `node_modules/shadcn`). C'est un **générateur de code** : il copie le code source du composant directement dans ton projet sous `src/components/ui/`. Tu possèdes le code, tu peux le modifier.
+
+Le projet utilise la variante **Base UI** (configurée dans `components.json` : `"style": "base-nova"`), qui s'appuie sur `@base-ui/react` — plus accessible et plus moderne que l'ancienne variante Radix UI.
+
+### Vérifier si un composant existe déjà
+
+Avant toute chose, regarder ce qui est déjà installé :
+
+```
+src/components/ui/
+├── avatar.tsx
+├── badge.tsx
+├── button.tsx
+├── card.tsx
+├── input.tsx
+├── label.tsx
+├── select.tsx
+├── separator.tsx
+└── tabs.tsx
+```
+
+Si le composant est là → passer directement à la migration d'imports.
+
+### Installer un nouveau composant via le CLI
+
+Le CLI doit être exécuté **dans le conteneur frontend** (pas sur la machine hôte) car les dépendances npm s'installent là où tourne le projet.
+
+```bash
+# Entrer dans le conteneur frontend
+docker exec -it transcendence-frontend-1 sh
+
+# Installer le composant (exemple : dialog)
+pnpm dlx shadcn@latest add dialog
+
+# Quitter le conteneur
+exit
+```
+
+Le CLI va :
+1. Créer `src/components/ui/dialog.tsx`
+2. Installer les dépendances npm nécessaires dans le conteneur
+3. Respecter la config de `components.json` (style Base UI, chemins d'alias, etc.)
+
+> **Ne jamais copier-coller du code depuis le site web shadcn** — le CLI garantit la cohérence avec la config du projet.
+
+### Migrer un composant maison vers shadcn
+
+**Règle générale** : on ne jette pas le JSX, on change uniquement les imports et on adapte les props si nécessaire.
+
+**Étape 1 — Trouver tous les fichiers qui importent l'ancien composant :**
+
+En cherchant dans VS Code (Ctrl+Shift+F) ou via grep : `import Card from '.*Card'`
+
+**Étape 2 — Comparer les props des deux versions :**
+
+| Prop maison | Equivalent shadcn |
+|---|---|
+| `variant="primary"` | `variant="default"` (ou alias ajouté dans `ui/button.tsx`) |
+| `className="..."` | identique, shadcn accepte toujours `className` |
+| `fullWidth` | remplacer par `className="w-full"` |
+| prop spécifique (ex: `borderColor`) | passer via `style={{ borderLeft: ... }}` |
+
+**Étape 3 — Changer les imports :**
+
+```tsx
+// Avant (composant maison)
+import Button from '../Button';
+
+// Après (shadcn — export nommé, pas default)
+import { Button } from '../ui/button';
+```
+
+**Étape 4 — Corriger les props incompatibles** dans le JSX si nécessaire.
+
+### Ajouter une variante personnalisée à un composant shadcn
+
+Dans `src/components/ui/button.tsx`, dans le bloc `cva(...)` :
+
+```tsx
+variant: {
+  default: "bg-primary ...",
+  // Ajouter ici :
+  success: "bg-success text-success-foreground hover:bg-success/90",
+}
+```
+
+Pour que la couleur soit dans le design system (et pas hardcodée) :
+1. Ajouter la variable CSS dans `src/index.css` dans `:root` et `.dark`
+2. L'exposer dans `@theme inline` pour Tailwind
+3. L'utiliser dans le composant via `bg-success`
+
+### Règle de nommage
+
+Les composants shadcn dans `/ui/` sont des **exports nommés** (avec accolades) :
+```tsx
+import { Button } from '../ui/button';       // ✅
+import { Card, CardHeader, CardContent } from '../ui/card';  // ✅
+import Button from '../ui/button';            // ❌ ne fonctionne pas
+```
+
+Les composants maison dans `/components/` sont des **exports default** :
+```tsx
+import Badge from '../components/Badge';     // ✅ (composant métier, pas shadcn)
+```
 
 ### Tableau récapitulatif — qui fait quoi dans ce projet
 
