@@ -5,7 +5,6 @@ import {
   Patch,
   Param,
   Body,
-  Query,
   Request,
   UseGuards,
   ForbiddenException,
@@ -62,27 +61,6 @@ export class ReportsController {
     }
     return this.reportsService.findAll();
   }
-
-    @Get("victims/search")
-  async searchByVictim(@Query("name") name: string, @Request() req) {
-    if (req.user.role !== "admin" && req.user.role !== "director") {
-      throw new ForbiddenException("Access denied");
-    }
-    if (!name || name.trim().length < 2) {
-      return [];
-    }
-    return this.reportsService.findByVictimName(name.trim());
-  }
-
-    @Get("victims/stats")
-  async victimStats(@Request() req) {
-    if (req.user.role !== "admin" && req.user.role !== "director") {
-      throw new ForbiddenException("Access denied");
-    }
-    return this.reportsService.countByVictim();
-  }
-
-
 
   @Get(":id")
   async findOne(@Param("id") id: string, @Request() req) {
