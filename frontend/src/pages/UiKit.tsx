@@ -29,7 +29,6 @@ import {
 
 // Composants app custom
 import AppBadge    from '../components/Badge';
-import AppButton   from '../components/Button';
 import AppCard     from '../components/Card';
 import AppInput    from '../components/Input';
 import AppSelect   from '../components/Select';
@@ -212,15 +211,17 @@ export default function UiKit() {
           {/* ── Onglet 2 : Composants app ── */}
           <TabsContent value="app" className="flex flex-col gap-8">
 
-            <KitSection label="AppButton">
+            <KitSection label="Button — variantes projet">
               <PreviewBox className="flex flex-wrap gap-3">
-                <AppButton variant="primary">Primaire</AppButton>
-                <AppButton variant="outline">Contour</AppButton>
-                <AppButton variant="ghost">Fantôme</AppButton>
-                <AppButton variant="danger">Danger</AppButton>
-                <AppButton variant="warning">Avertissement</AppButton>
-                <AppButton variant="success">Succès</AppButton>
-                <AppButton variant="primary" disabled>Désactivé</AppButton>
+                <ShadButton variant="default">Default / Primary</ShadButton>
+                <ShadButton variant="outline">Outline</ShadButton>
+                <ShadButton variant="ghost">Ghost</ShadButton>
+                <ShadButton variant="destructive">Destructive</ShadButton>
+                <ShadButton variant="danger">Danger</ShadButton>
+                <ShadButton variant="warning">Warning</ShadButton>
+                <ShadButton variant="success">Success</ShadButton>
+                <ShadButton variant="login">Login</ShadButton>
+                <ShadButton variant="default" disabled>Désactivé</ShadButton>
               </PreviewBox>
             </KitSection>
 
