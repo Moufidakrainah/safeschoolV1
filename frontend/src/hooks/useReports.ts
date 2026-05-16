@@ -56,6 +56,8 @@ export interface UseReportsReturn {
   setFilterStudent: React.Dispatch<React.SetStateAction<string>>;
   filterSuspect:    string;
   setFilterSuspect: React.Dispatch<React.SetStateAction<string>>;
+  filterVictim:    string;
+  setFilterVictim: React.Dispatch<React.SetStateAction<string>>;
   filterDateFrom:   string;
   setFilterDateFrom:React.Dispatch<React.SetStateAction<string>>;
   filterDateTo:     string;
@@ -104,6 +106,7 @@ export function useReports(): UseReportsReturn {
   const [filterClass,     setFilterClass]     = useState('all');
   const [filterStudent,   setFilterStudent]   = useState('all');
   const [filterSuspect,   setFilterSuspect]   = useState('');
+  const [filterVictim,   setFilterVictim]   = useState('');
   const [filterDateFrom,  setFilterDateFrom]  = useState('');
   const [filterDateTo,    setFilterDateTo]    = useState('');
   const [currentPage,     setCurrentPage]     = useState(1);
@@ -189,6 +192,7 @@ export function useReports(): UseReportsReturn {
     setFilterDateFrom('');
     setFilterDateTo('');
     setFilterSuspect('');
+	setFilterVictim('');
     setSearch('');
     setCurrentPage(1);
     setResetKey(k => k + 1);
@@ -209,6 +213,30 @@ export function useReports(): UseReportsReturn {
         });
         if (!match) return false;
       }
+	   if (filterVictim) {
+        const q = filterVictim.toLowerCase();
+        const match = r.reports?.some(s => {
+          const name = `${s.reports?.description ?? ''} ${s.user?.lastName ?? ''}`.toLowerCase();
+          return name.includes(q) || (s.freeText?.toLowerCase() ?? '').includes(q);
+        });
+        if (!match) return false;
+      }
+
+
+
+
+ if (search) {
+      const q = search.toLowerCase();
+      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
+      if (
+        !name.includes(q) &&
+        !(r.title ?? '').toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) return false;
+    }
+
+
+
       if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
       if (filterDateTo) {
         const to = new Date(filterDateTo);
@@ -226,7 +254,7 @@ export function useReports(): UseReportsReturn {
       }
       return true;
     });
-  }, [reports, filterGrade, filterStatus, filterClass, filterStudent, filterSuspect, filterDateFrom, filterDateTo, search]);
+  }, [reports, filterGrade, filterStatus, filterClass, filterStudent, filterSuspect, filterVictim, filterDateFrom, filterDateTo, search]);
 
   const totalPages = useMemo(() => Math.ceil(filtered.length / ITEMS_PER_PAGE), [filtered]);
 

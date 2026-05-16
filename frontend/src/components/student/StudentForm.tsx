@@ -13,7 +13,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useReportForm } from '../../hooks/useReportForm';
+import { useReportForm } from '../../hooks/useStudentReportForm';
 import Button from '../Button';
 import Card from '../Card';
 import StepBar from '../StepBar';
@@ -49,7 +49,7 @@ const [filteredTypes, setFilteredTypes] = useState(typeOptions);
     type, setType,
     description, setDescription,
     frequency, setFrequency,
-    whoSignals,
+    whoSignals, setWhoSignals,
     isAnonymous, setIsAnonymous,
     loading,
     submitError,
@@ -73,6 +73,7 @@ const [filteredTypes, setFilteredTypes] = useState(typeOptions);
 
   // Labels des étapes affichés dans la StepBar.
   const steps = [
+    t('reporter.steps.who'),
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -171,82 +172,102 @@ useEffect(() => {
 	
 
 
-{step === 1 && (
-  <fieldset>
-    <legend className="text-gray-800 font-bold text-lg mb-2">
-      {t('reporter.step2.title')}
-    </legend>
+			 {step === 0 && (
+				<div>
+				<h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
+				<p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+					{['Je suis victime', 'Je suis témoin',].map(option => (
+					<div key={option} onClick={() => setWhoSignals(option)} style={{
+						padding: '16px', borderRadius: '8px', cursor: 'pointer',
+						border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
+						background: whoSignals === option ? '#f0f4ff' : 'white',
+						fontSize: '14px', fontWeight: whoSignals === option ? 600 : 400,
+					}}>
+						{option}
+					</div>
+					))}
+				</div>
+				</div>
+			)}
 
-    <p className="text-gray-500 text-sm mb-6">
-      {t('reporter.step2.subtitle')}
-    </p>
+
+			{step === 1 && (
+			<fieldset>
+				<legend className="text-gray-800 font-bold text-lg mb-2">
+				{t('reporter.step2.title')}
+				</legend>
+
+				<p className="text-gray-500 text-sm mb-6">
+				{t('reporter.step2.subtitle')}
+				</p>
 
 
-<div
-  role="radiogroup"
-  aria-label={t('reporter.step2.title')}
-  className="grid grid-cols-2 gap-3"
->
-  {typeOptions.map((opt, index) => (
-    <div
-      key={opt.label}
-      ref={el => (cardRefs.current[index] = el)}
-      role="radio"
-      aria-checked={type === opt.label}
-      tabIndex={type === opt.label ? 0 : -1}
-      onClick={() => setType(opt.label)}
-      onKeyDown={(e) => {
-        const currentIndex = typeOptions.findIndex(o => o.label === type);
-        const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
+			<div
+			role="radiogroup"
+			aria-label={t('reporter.step2.title')}
+			className="grid grid-cols-2 gap-3"
+			>
+			{typeOptions.map((opt, index) => (
+				<div
+				key={opt.label}
+				ref={el => (cardRefs.current[index] = el)}
+				role="radio"
+				aria-checked={type === opt.label}
+				tabIndex={type === opt.label ? 0 : -1}
+				onClick={() => setType(opt.label)}
+				onKeyDown={(e) => {
+					const currentIndex = typeOptions.findIndex(o => o.label === type);
+					const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
 
-        // ✔ Valider la carte focusée
-        if (e.key === " " || e.key === "Enter") {
-          e.preventDefault();
-          setType(opt.label);
-        }
+					// ✔ Valider la carte focusée
+					if (e.key === " " || e.key === "Enter") {
+					e.preventDefault();
+					setType(opt.label);
+					}
 
-        // ✔ Aller à la carte suivante
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-          e.preventDefault();
-          const next = (fallbackIndex + 1) % typeOptions.length;
-          setType(typeOptions[next].label);
-        }
+					// ✔ Aller à la carte suivante
+					if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+					e.preventDefault();
+					const next = (fallbackIndex + 1) % typeOptions.length;
+					setType(typeOptions[next].label);
+					}
 
-        // ✔ Aller à la carte précédente
-        if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-          e.preventDefault();
-          const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
-          setType(typeOptions[prev].label);
-        }
-      }}
-      className={`
-        px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
-        ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
-        focus-visible:ring-2 focus-visible:ring-primary
-      `}
-    >
-      <div className="text-2xl mb-1" aria-hidden="true">
-        {opt.icon}
-      </div>
+					// ✔ Aller à la carte précédente
+					if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+					e.preventDefault();
+					const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
+					setType(typeOptions[prev].label);
+					}
+				}}
+				className={`
+					px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
+					${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
+					focus-visible:ring-2 focus-visible:ring-primary
+				`}
+				>
+				<div className="text-2xl mb-1" aria-hidden="true">
+					{opt.icon}
+				</div>
 
-      <div className="text-sm font-semibold text-gray-800">
-        {opt.label}
-      </div>
+				<div className="text-sm font-semibold text-gray-800">
+					{opt.label}
+				</div>
 
-      <div className="text-xs text-gray-400">
-        {opt.sub}
-      </div>
-    </div>
-  ))}
-</div>
+				<div className="text-xs text-gray-400">
+					{opt.sub}
+				</div>
+				</div>
+			))}
+			</div>
 
-    {showErrors && !type && (
-      <p role="alert" className="mt-3 text-sm text-red-600">
-        ⚠️ {t('reporter.validation.typeRequired')}
-      </p>
-    )}
-  </fieldset>
-)}
+				{showErrors && !type && (
+				<p role="alert" className="mt-3 text-sm text-red-600">
+					⚠️ {t('reporter.validation.typeRequired')}
+				</p>
+				)}
+			</fieldset>
+			)}
 
 
 
