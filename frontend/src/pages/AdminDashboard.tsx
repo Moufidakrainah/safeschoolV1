@@ -20,6 +20,7 @@ import {
 } from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
@@ -519,13 +520,13 @@ const classOptions = Array.from(
             )}
             {isAdmin && (
               <>
-                <textarea
+                <Textarea
                   value={newNote}
                   onChange={e => setNewNote(e.target.value)}
                   rows={3}
                   placeholder={t('admin.notes.placeholder')}
                   aria-label={t('admin.notes.placeholder')}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                  className="resize-y mb-3"
                 />
                 <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
               </>
@@ -540,21 +541,20 @@ const classOptions = Array.from(
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
                   {t('admin.convocation.dateLabel')}
                 </label>
-                <input
+                <Input
                   id="convocation-date"
                   type="datetime-local"
                   value={convocationDate}
                   onChange={e => setConvocationDate(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
                 />
               </div>
-              <textarea
+              <Textarea
                 value={convocationMessage}
                 onChange={e => setConvocationMessage(e.target.value)}
                 rows={3}
                 placeholder={t('admin.convocation.placeholder')}
                 aria-label={t('admin.convocation.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                className="resize-y mb-3"
               />
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
@@ -627,13 +627,12 @@ const classOptions = Array.from(
 
             {/* Recherche */}
             <div className="mb-5">
-              <input
+              <Input
                 type="search"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.search.placeholder')}
                 aria-label={t('admin.search.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
 
@@ -688,35 +687,35 @@ const classOptions = Array.from(
 
 
 
-              <input
+              <Input
                 type="search"
                 value={filterSuspect}
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                className="px-1 py-2"
               />
 
 			<div className="w-full text-sm flex items-center justify-center gap-2 mt-2 font-sans">
             
 
 			<span aria-hidden="true" className="text-gray-600">Dates : </span>
-                <input
+                <Input
                   key={`from-${resetKey}`}
                   type="date"
                   value={filterDateFrom}
                   onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateFrom')}
-                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2"
                 />
                 <span aria-hidden="true" className="text-gray-400">→</span>
-                <input
+                <Input
                   key={`to-${resetKey}`}
                   type="date"
                   value={filterDateTo}
                   onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateTo')}
-                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2"
                 />
 			</div>
 

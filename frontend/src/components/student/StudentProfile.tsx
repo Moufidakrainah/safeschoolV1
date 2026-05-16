@@ -10,6 +10,7 @@
  */
 
 import type { AuthUser } from '../../types';
+import { Card } from '../ui/card';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -36,7 +37,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mon profil</h2>
 
       {/* Informations personnelles */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
+      <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
         <table className="w-full text-sm">
           <tbody>
@@ -54,10 +55,10 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* Parents / Responsables légaux */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card className="p-6 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👨‍👩‍👧 Parents / Responsables légaux</h3>
         {loadingParents ? (
           <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>
@@ -88,7 +89,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </main>
   );
 }

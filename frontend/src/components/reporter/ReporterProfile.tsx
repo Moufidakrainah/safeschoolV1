@@ -11,6 +11,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { AuthUser } from '../../types';
+import { Card } from '../ui/card';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
       <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
 
       {/* Informations personnelles */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
+      <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
         <table className="w-full text-sm">
           <tbody>
@@ -60,10 +61,10 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {/* Profil professionnel */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card className="p-6 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">🏫 Profil professionnel</h3>
 
         {loadingProfile ? (
@@ -101,7 +102,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             )}
           </>
         )}
-      </div>
+      </Card>
     </main>
   );
 }
