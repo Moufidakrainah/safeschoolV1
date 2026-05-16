@@ -110,7 +110,7 @@ export function useReportForm(
   // Utilisé à la fois pour bloquer la navigation et pour déclencher showErrors.
   const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description || !frequency));
+    (step === 2 && (!description.trim() || !frequency));
 
   // ── Suspects ────────────────────────────────────────────────────────────
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
