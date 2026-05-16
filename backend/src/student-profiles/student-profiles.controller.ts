@@ -62,7 +62,7 @@ export class StudentProfilesController {
 async getParents(@Param('userId') userId: string, @Request() req) {
     validateUUID(userId);
     if (req.user.role === 'student' && req.user.id !== userId) throw new ForbiddenException('Accès refusé');
-    return this.studentProFofilesService.getParents(userId);
+    return this.studentProfilesService.getParents(userId);
   }
 
   @Patch(':userId')

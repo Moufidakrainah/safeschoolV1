@@ -24,7 +24,7 @@ export class StudentProfilesService {
   }
 
   async findByUserId(userId: string): Promise<StudentProfile> {
-    const profile = await this.studentProfilesRFoepository.findOne({
+    const profile = await this.studentProfilesRepository.findOne({
       where: { user: { id: userId } },
       relations: ['user', 'parents'],
     });
