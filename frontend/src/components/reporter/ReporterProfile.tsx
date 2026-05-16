@@ -12,6 +12,7 @@
 import { useTranslation } from 'react-i18next';
 import type { AuthUser } from '../../types';
 import { Card } from '../ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,6 +44,17 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
     <h1 className="sr-only">{t('reporter.title.myProfile')}</h1>
 
       <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
+
+
+      <div className="flex justify-center mb-6">
+        <Avatar className="size-28">
+          <AvatarImage src={user?.avatarUrl ?? '/teacher.png'} alt={`${user?.firstName} ${user?.lastName}`} />
+          <AvatarFallback>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
 
       {/* Informations personnelles */}
       <Card className="p-6 mb-4 shadow-sm">

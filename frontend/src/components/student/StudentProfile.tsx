@@ -11,6 +11,8 @@
 
 import type { AuthUser } from '../../types';
 import { Card } from '../ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,6 +37,15 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
   return (
     <main className="max-w-xl mx-auto mt-8 px-5 pb-10">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mon profil</h2>
+
+      <div className="flex justify-center mb-6">
+        <Avatar className="size-28">
+          <AvatarImage src={user?.avatarUrl ?? '/sample_student.webp'} alt={`${user?.firstName} ${user?.lastName}`} />
+          <AvatarFallback>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </AvatarFallback>
+        </Avatar>
+      </div>
 
       {/* Informations personnelles */}
       <Card className="p-6 mb-4 shadow-sm">
