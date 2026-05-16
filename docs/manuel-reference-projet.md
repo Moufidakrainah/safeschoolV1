@@ -21,6 +21,8 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
 11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
 12. [shadcn/ui — ajouter et migrer des composants](#12-shadcnui--ajouter-et-migrer-des-composants)
+13. [CORS — autoriser le frontend à parler au backend](#13-cors--autoriser-le-frontend-à-parler-au-backend)
+14. [Validation des formulaires côté frontend](#14-validation-des-formulaires-côté-frontend)
 
 ---
 
@@ -2999,4 +3001,125 @@ import Badge from '../components/Badge';     // ✅ (composant métier, pas shad
 | API REST | Conteneur Docker backend | NestJS sur Node.js |
 | Base de données | Conteneur Docker database | PostgreSQL |
 | Logs | Conteneurs ELK | Elasticsearch + Logstash + Kibana |
+
+---
+
+## 13. CORS — autoriser le frontend à parler au backend
+
+### Le problème
+
+Le navigateur applique la **Same-Origin Policy** : une page chargée depuis une origine (domaine + port) ne peut pas faire de requêtes vers une autre origine sans autorisation explicite.
+
+Dans SafeSchool :
+- Frontend : `http://localhost:5173` (Vite)
+- Backend : `http://localhost:3000` (NestJS, exposé en :5000 côté hôte)
+
+Ce sont **deux origines différentes** (le port change). Sans CORS configuré, le navigateur bloque toutes les réponses avec l'erreur :
+
+```
+Access to fetch at 'http://localhost:3000/reports' from origin
+'http://localhost:5173' has been blocked by CORS policy.
+```
+
+> Important : ce n'est pas le backend qui est bloqué. La requête arrive bien au backend — mais le **navigateur** refuse de donner la réponse au JavaScript de la page.
+
+### La solution : `enableCors()` dans NestJS
+
+**Fichier** : `backend/src/main.ts`
+
+```ts
+app.enableCors({
+  origin: 'http://localhost:5173',   // seul le frontend est autorisé
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+```
+
+Cela demande à NestJS d'ajouter les headers CORS à chaque réponse HTTP.
+
+### Ce qui se passe concrètement
+
+Pour les requêtes avec headers personnalisés (comme `Authorization`), le navigateur envoie d'abord une **preflight request** (méthode `OPTIONS`) pour demander la permission :
+
+```
+# 1. Preflight automatique du navigateur
+OPTIONS /reports HTTP/1.1
+Origin: http://localhost:5173
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Authorization
+
+# 2. Réponse du backend avec l'autorisation
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: http://localhost:5173
+Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+
+# 3. Le navigateur autorise la vraie requête GET /reports
+```
+
+### Pourquoi `Authorization` est dans `allowedHeaders`
+
+Le header `Authorization` porte le token JWT (`Bearer <token>`). Sans lui dans la liste, le navigateur refuserait la preflight et les requêtes authentifiées seraient toutes bloquées.
+
+### En production
+
+`origin: 'http://localhost:5173'` est codé en dur. En production il faudra remplacer par l'URL réelle du frontend ou utiliser une variable d'environnement :
+
+```ts
+app.enableCors({
+  origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+```
+
+---
+
+## 14. Validation des formulaires côté frontend
+
+### État actuel : validation custom, sans librairie
+
+Les formulaires de SafeSchool (`ReporterForm`, `StudentForm`) utilisent une **validation manuelle** — pas de react-hook-form, pas de Zod, pas de Yup. La logique est simple et suffisante pour le projet.
+
+### Comment ça fonctionne
+
+Chaque formulaire maintient un état `showErrors` (booléen). Les messages d'erreur sont affichés conditionnellement quand `showErrors === true` et que le champ est vide.
+
+```tsx
+// État
+const [showErrors, setShowErrors] = useState(false);
+
+// Bouton "Suivant" ou "Envoyer"
+if (isNextDisabled) {
+  setShowErrors(true);   // déclenche l'affichage des erreurs
+  return;
+}
+setShowErrors(false);    // reset si tout est valide
+```
+
+```tsx
+{/* Message d'erreur conditionnel */}
+{showErrors && !description && (
+  <p role="alert" className="text-sm text-red-600">
+    ⚠️ {t('reporter.validation.descriptionRequired')}
+  </p>
+)}
+```
+
+### Champs validés
+
+| Formulaire | Champs obligatoires |
+|---|---|
+| `ReporterForm` | Type d'incident, Description, Fréquence |
+| `StudentForm` | Type d'incident, Description, Fréquence |
+
+### Accessibilité
+
+- Les champs obligatoires portent `aria-required="true"`
+- Les messages d'erreur utilisent `role="alert"` (annoncés par les lecteurs d'écran)
+- Les erreurs sont traduites via `react-i18next` (clés dans `reporter.validation.*`)
+
+### Ce qu'on n'a pas (et pourquoi c'est OK)
+
+**react-hook-form + Zod** est la solution standard en production — elle gère la validation en temps réel, les types TypeScript automatiques depuis le schéma, le `watch`, etc. Pour SafeSchool, les formulaires sont simples (3-4 champs) et la validation au clic suffit. C'est un choix délibéré de ne pas sur-ingénier.
 
