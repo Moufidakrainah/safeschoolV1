@@ -29,7 +29,6 @@ import {
 
 // Composants app custom
 import AppBadge    from '../components/Badge';
-import AppSelect   from '../components/Select';
 import StatCard    from '../components/StatCard';
 import NoteBlock   from '../components/NoteBlock';
 
@@ -239,16 +238,25 @@ export default function UiKit() {
               </PreviewBox>
             </KitSection>
 
-            <KitSection label="AppSelect">
+            <KitSection label="Select (shadcn)">
               <PreviewBox className="flex flex-col gap-3 max-w-xs">
-                <AppSelect value="" onChange={() => {}}>
-                  <option value="">Tous les statuts</option>
-                  <option value="pending">En attente</option>
-                  <option value="closed">Clôturé</option>
-                </AppSelect>
-                <AppSelect value="" onChange={() => {}} disabled>
-                  <option>Désactivé</option>
-                </AppSelect>
+                <ShadSelect>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="closed">Clôturé</SelectItem>
+                  </SelectContent>
+                </ShadSelect>
+                <ShadSelect disabled>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Désactivé" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="x">Option</SelectItem>
+                  </SelectContent>
+                </ShadSelect>
               </PreviewBox>
             </KitSection>
 

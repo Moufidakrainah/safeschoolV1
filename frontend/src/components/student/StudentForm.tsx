@@ -36,12 +36,12 @@ export default function StudentForm({ user }: StudentFormProps) {
 
 
 const typeOptions = [
-      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'), },
-      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),     },
-      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),      },
-      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'),  },
-      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    },
-      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     },
+      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
+      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
+      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
+      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
+      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
+      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
 ];
 
 

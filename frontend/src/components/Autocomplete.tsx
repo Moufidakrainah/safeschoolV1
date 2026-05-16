@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import type { UserSearchResult } from "../types";
 
 interface AutocompleteProps {
@@ -20,7 +20,8 @@ export default function Autocomplete({
 }: AutocompleteProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const listboxId = "autocomplete-listbox";
+  const uid = useId();
+  const listboxId = `autocomplete-listbox-${uid}`;
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Ouvrir la liste quand il y a des suggestions
@@ -73,6 +74,8 @@ export default function Autocomplete({
         aria-label={label}
         role="combobox"
         aria-expanded={isOpen}
+        aria-haspopup="listbox"
+        aria-autocomplete="list"
         aria-controls={listboxId}
         aria-activedescendant={
           activeIndex >= 0 ? `${listboxId}-item-${activeIndex}` : undefined

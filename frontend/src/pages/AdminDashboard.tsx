@@ -11,7 +11,13 @@ import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
 import { Card } from '../components/ui/card';
 import StatCard from '../components/StatCard';
-import Select from '../components/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import Pagination from '../components/Pagination';
@@ -636,19 +642,16 @@ const classOptions = Array.from(
         <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
 
 
-		<Select
-
-			value={filterClass}
-			onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }}
-			aria-label={t('admin.filters.allClasses')}
-			>
-			<option value="all">{t('admin.filters.allClasses')}</option>
-
-			{classOptions.map(cls => (
-				<option key={cls} value={cls}>
-				{cls}
-				</option>
-			))}
+		<Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
+			<SelectTrigger aria-label={t('admin.filters.allClasses')}>
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>
+				{classOptions.map(cls => (
+					<SelectItem key={cls} value={cls}>{cls}</SelectItem>
+				))}
+			</SelectContent>
 		</Select>
 
 
@@ -656,36 +659,29 @@ const classOptions = Array.from(
 
 
 
-		<Select
-
-			value={filterStudent}
-			onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
-			aria-label={t('admin.filters.allReporters')}
-			>
-			<option value="all">{t('admin.filters.allReporters')}</option>
-
-			{[...new Map(
-				reports
-				.filter(r => r.student && !r.isAnonymous)
-				.map(r => [r.student!.id, r.student!])
-			).values()].map(s => {
-
-				// 👉 C’est ICI qu’on log l’utilisateur
-				console.log("USER OPTION:", s);
-
-				return (
-				<option key={s.id} value={s.id}>
-					{s.firstName} {s.lastName} (
-					{s.role === 'student' && s.studentProfile?.class
-						? `${s.studentProfile.class.level}${s.studentProfile.class.section}`
-						: s.role === 'teacher' && s.staffProfile?.subject
-						? s.staffProfile.subject
-						: s.role}
-					)
-				</option>
-				);
-			})}
-			</Select>
+		<Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
+			<SelectTrigger aria-label={t('admin.filters.allReporters')}>
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>
+				{[...new Map(
+					reports
+					.filter(r => r.student && !r.isAnonymous)
+					.map(r => [r.student!.id, r.student!])
+				).values()].map(s => (
+					<SelectItem key={s.id} value={s.id}>
+						{s.firstName} {s.lastName} (
+						{s.role === 'student' && s.studentProfile?.class
+							? `${s.studentProfile.class.level}${s.studentProfile.class.section}`
+							: s.role === 'teacher' && s.staffProfile?.subject
+							? s.staffProfile.subject
+							: s.role}
+						)
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 
 
 
@@ -930,20 +926,29 @@ const classOptions = Array.from(
 					</div>
 
 				<div className="text-center">
-                  <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
-                    <option value="student">{t('admin.users.roles.student')}</option>
-                    <option value="teacher">{t('admin.users.roles.teacher')}</option>
-                    <option value="staff">{t('admin.users.roles.staff')}</option>
-                    <option value="admin">{t('admin.users.roles.admin')}</option>
-                    <option value="director">{t('admin.users.roles.director')}</option>
+                  <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v })}>
+                    <SelectTrigger aria-label={t('admin.users.roles.label')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
+                      <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
+                      <SelectItem value="staff">{t('admin.users.roles.staff')}</SelectItem>
+                      <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+                      <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
+                    </SelectContent>
                   </Select>
                   {userForm.role === 'student' && (
-                    <Select value={userForm.schoolClass} onChange={e => setUserForm({ ...userForm, schoolClass: e.target.value })} aria-label={t('admin.users.selectClass')}>
-                      <option value="">{t('admin.users.selectClass')}</option>
-                      <option value="6eme">6ème</option>
-                      <option value="5eme">5ème</option>
-                      <option value="4eme">4ème</option>
-                      <option value="3eme">3ème</option>
+                    <Select value={userForm.schoolClass} onValueChange={v => setUserForm({ ...userForm, schoolClass: v })}>
+                      <SelectTrigger aria-label={t('admin.users.selectClass')}>
+                        <SelectValue placeholder={t('admin.users.selectClass')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6eme">6ème</SelectItem>
+                        <SelectItem value="5eme">5ème</SelectItem>
+                        <SelectItem value="4eme">4ème</SelectItem>
+                        <SelectItem value="3eme">3ème</SelectItem>
+                      </SelectContent>
                     </Select>
                   )}
 				  </div>
