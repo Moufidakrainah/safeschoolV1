@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
-import Button from '../Button';
+import { Button } from '../ui/button';
 import Card from '../Card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
@@ -68,8 +68,6 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     t('reporter.steps.validate'),
   ];
 
-  // typeOptions : les 6 types de harcèlement avec icône et sous-titre.
-  // Mémoïsés pour éviter un recalcul à chaque re-render.
   const typeOptions = useMemo(
     () => [
       { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
@@ -362,7 +360,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 {t('common.next')} →
               </Button>
             ) : (
-              <Button variant="success" onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} className="bg-green-500 hover:bg-green-600 text-white" disabled={loading}>
                 {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
               </Button>
             )}

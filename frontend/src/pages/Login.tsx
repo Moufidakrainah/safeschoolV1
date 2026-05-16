@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import Button from '../components/Button';
+import { Button } from '../components/ui/button';
 import Input  from '../components/Input';
 
 export default function Login()

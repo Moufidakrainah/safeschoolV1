@@ -7,7 +7,7 @@ import {
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import Button from '../components/Button';
+import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';

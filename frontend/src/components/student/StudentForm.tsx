@@ -14,7 +14,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
-import Button from '../Button';
+import { Button } from '../ui/button';
 import Card from '../Card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';

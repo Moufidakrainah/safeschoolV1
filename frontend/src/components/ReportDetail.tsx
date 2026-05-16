@@ -10,7 +10,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import Button from './Button';
+import { Button } from './ui/button';
 import Badge, { type BadgeVariant } from './Badge';
 import Card from './Card';
 import NoteBlock from './NoteBlock';

@@ -1,4 +1,4 @@
-import Button from './Button';
+import { Button } from './ui/button';
 import type { AuthUser } from '../types';
 
 interface HeaderProps {
