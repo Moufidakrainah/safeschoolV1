@@ -15,6 +15,8 @@ import Badge, { type BadgeVariant } from './Badge';
 import { Card } from './ui/card';
 import NoteBlock from './NoteBlock';
 import type { Report, Note } from '../types';
+import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -189,7 +191,7 @@ export default function ReportDetail({
               rows={3}
               placeholder={t('admin.notes.placeholder')}
               aria-label={t('admin.notes.placeholder')}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+              className="resize-y mb-3"
             />
             <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
           </>
@@ -209,7 +211,6 @@ export default function ReportDetail({
               type="datetime-local"
               value={convocationDate}
               onChange={e => setConvocationDate(e.target.value)}
-              className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
             />
           </div>
           <textarea
@@ -218,7 +219,7 @@ export default function ReportDetail({
             rows={3}
             placeholder={t('admin.convocation.placeholder')}
             aria-label={t('admin.convocation.placeholder')}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+            className="resize-y mb-3"
           />
           <Button onClick={() => handleAddNote('convocation')}>
             {t('admin.convocation.send')}
