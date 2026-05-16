@@ -109,9 +109,10 @@ export default function ReportDetail({
       </div>
 
       {/* Informations + personnes impliquées */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
           <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <tbody>
               {([
@@ -129,6 +130,7 @@ export default function ReportDetail({
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
 
         <Card>
@@ -185,7 +187,7 @@ export default function ReportDetail({
         )}
         {isAdmin && (
           <>
-            <textarea
+            <Textarea
               value={newNote}
               onChange={e => setNewNote(e.target.value)}
               rows={3}
@@ -206,14 +208,14 @@ export default function ReportDetail({
             <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
               {t('admin.convocation.dateLabel')}
             </label>
-            <input
+            <Input
               id="convocation-date"
               type="datetime-local"
               value={convocationDate}
               onChange={e => setConvocationDate(e.target.value)}
             />
           </div>
-          <textarea
+          <Textarea
             value={convocationMessage}
             onChange={e => setConvocationMessage(e.target.value)}
             rows={3}

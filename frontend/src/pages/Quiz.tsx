@@ -328,7 +328,7 @@ useEffect(() => {
               <p>{isRevealing ? `Next question in: ${secondsLeft}s` : `Time left: ${secondsLeft}s`}</p>
               <h2>{questionState.question.text}</h2>
               {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
-              <ul className="grid grid-cols-2 gap-4">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {questionState.question.options.map((opt, i) => {
                   let variant: 'default' | 'success' | 'destructive' | 'secondary' = 'default';
                   if (isRevealing) {

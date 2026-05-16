@@ -181,3 +181,73 @@ text-muted-foreground  /* texte secondaire */
 
 **Ne jamais utiliser de couleurs hardcodées** (`bg-green-500`, `#1a1a2e`, etc.).
 Toujours chercher d'abord si un token existe.
+
+---
+
+## Comprendre la différence : `textarea` vs `Textarea`
+
+`textarea` (minuscule) = balise HTML brute. Le navigateur l'affiche avec son style par défaut :
+bordures système, taille, couleur de focus — rien qui correspond au reste de l'interface.
+
+`Textarea` (majuscule) = composant React shadcn. En interne c'est toujours une `<textarea>` HTML,
+mais avec les classes du design system déjà appliquées automatiquement (bordures, focus ring,
+couleurs). On l'utilise exactement pareil — mêmes props, même comportement — mais elle est
+habillée automatiquement.
+
+L'infobulle VS Code qui dit :
+```
+(alias) function Textarea({ className, ...props }: React.ComponentProps<"textarea">): any
+```
+signifie exactement ça : la fonction accepte les mêmes props qu'une `<textarea>` HTML standard.
+Pas de magie, juste un wrapper stylisé.
+
+**C'est le principe de tous les composants shadcn** : `Input`, `Button`, `Select`… Ce sont des
+fonctions React qui wrappent leur équivalent HTML natif avec les styles du projet.
+
+```tsx
+// ❌ Avant — HTML brut, style incohérent
+<textarea className="px-4 py-2 border rounded-lg..." rows={4} />
+
+// ✅ Après — design system appliqué automatiquement
+import { Textarea } from '../components/ui/textarea';
+<Textarea rows={4} />
+```
+
+---
+
+## Tailwind CSS et le responsive — comprendre `sm:` et `md:`
+
+Tailwind fonctionne en **mobile-first** : sans préfixe, une classe s'applique à tous les écrans,
+du plus petit au plus grand. Les préfixes ajoutent une condition "seulement à partir de cette
+largeur" :
+
+| Préfixe | Déclenché à partir de | Usage typique |
+|---|---|---|
+| _(aucun)_ | tous les écrans (mobile inclus) | valeur par défaut |
+| `sm:` | 640px | petites tablettes |
+| `md:` | 768px | tablettes / desktop |
+| `lg:` | 1024px | grands écrans |
+
+**Exemple concret :**
+
+```tsx
+// ❌ Avant — 2 colonnes partout, illisible sur mobile (375px)
+<div className="grid grid-cols-2 gap-4">
+
+// ✅ Après — 1 colonne sur mobile, 2 colonnes à partir de 768px
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+```
+
+**`overflow-x-auto`** : classe Tailwind qui autorise le défilement horizontal si le contenu
+dépasse le conteneur. Les tableaux HTML ont une largeur intrinsèque qui dépasse facilement
+un écran de 375px. Plutôt que de casser le layout, on enveloppe le tableau :
+
+```tsx
+<div className="overflow-x-auto">
+  <table className="w-full text-sm">
+    ...
+  </table>
+</div>
+```
+L'utilisateur peut faire défiler latéralement à l'intérieur de la div sans que le reste de la
+page ne soit affecté.

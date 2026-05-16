@@ -160,7 +160,7 @@ useEffect(() => {
 <div
   role="radiogroup"
   aria-label={t('reporter.step2.title')}
-  className="grid grid-cols-2 gap-3"
+  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
 >
   {typeOptions.map((opt, index) => (
     <div

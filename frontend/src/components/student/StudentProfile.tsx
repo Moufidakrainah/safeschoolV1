@@ -50,6 +50,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
       {/* Informations personnelles */}
       <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -66,6 +67,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {/* Parents / Responsables légaux */}
@@ -82,6 +84,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
                 <p className="font-semibold text-gray-800 mb-2">
                   Parent {i + 1} — {parent.firstName} {parent.lastName}
                 </p>
+                <div className="overflow-x-auto">
                 <table className="w-full table-fixed text-sm">
                   <tbody>
                     {[
@@ -96,6 +99,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             ))}
           </div>

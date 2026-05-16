@@ -59,6 +59,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
       {/* Informations personnelles */}
       <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -73,6 +74,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             ))}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {/* Profil professionnel */}
@@ -85,6 +87,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
           <p className="text-gray-400 text-sm text-center py-4">Aucun profil professionnel enregistré</p>
         ) : (
           <>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm mb-4">
               <tbody>
                 <tr className="border-b border-gray-100">
@@ -99,8 +102,9 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
                 )}
               </tbody>
             </table>
+            </div>
 
-            {staffProfile.classes && staffProfile.classes.length > 0 && (
+            {staffProfile.classes.length > 0 && (
               <>
                 <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
                 <div className="flex flex-wrap gap-2">

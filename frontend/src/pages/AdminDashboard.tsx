@@ -444,7 +444,7 @@ const classOptions = Array.from(
 
 
           {/* Informations + personnes impliquées */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
               <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
               <table className="w-full text-sm border-collapse">
