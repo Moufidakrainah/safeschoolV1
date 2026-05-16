@@ -2,8 +2,6 @@
 - Profil
 - Signalements
 - Quiz
-- Ateliers
-- Messagerie
 
 ## Selected Modules
 
