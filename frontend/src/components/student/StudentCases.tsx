@@ -15,7 +15,7 @@
         ) : (
           <div className="flex flex-col gap-3">
             {myReports
-              .filter((report: any) => !report.title.includes('Je suis témoin'))
+              .filter((report: any) => report.reporter !== 'temoin')
               .map((report: any) => {
                 const severity = severityFromApiGrade(report.grade);
                 return (
@@ -32,7 +32,7 @@
                             {SEVERITY_BADGES[severity]}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-700 font-semibold mb-1">{report.title}</div>
+                        <div className="text-sm text-gray-700 font-semibold mb-1">{report.type} — {report.reporter === 'victime' ? 'Je suis victime' : 'Je suis témoin'}</div>
                         <div className="text-xs text-gray-400">📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</div>
                       </div>
                       <Badge variant={statusToBadgeVariant(report.status)} />

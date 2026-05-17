@@ -56,7 +56,7 @@ export default function StatsDashboard({ reports }: Props) {
   return types
     .map(t => ({
       type: t,
-      count: filtered.filter(r => r.title.includes(t)).length,
+      count: filtered.filter(r => r.type?.includes(t)).length,
     }))
     .filter(d => d.count > 0);
 }, [filtered]);

@@ -72,10 +72,21 @@ export interface Parent {
   address: string | null;
 }
 
+export interface ReportVictim {
+  id: string;
+  freeText: string;
+  resolvedUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | null;
+}
+
 export interface Report {
   id: string;
-  caseNumber: number;
-  title: string;
+  caseNumber: string;
+  type: string;
+  reporter: 'victime' | 'temoin';
   description: string;
   status: 'pending' | 'in_progress' | 'escalated' | 'closed' | 'rejected';
   grade: string;
@@ -91,4 +102,5 @@ export interface Report {
     studentProfile?: { schoolClass: { id: string; level: string; section: string } | null } | null;
   };
   suspects: ReportSuspect[];
+  victims: ReportVictim[];
 }

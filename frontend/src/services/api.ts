@@ -19,8 +19,8 @@ export const getReports = async () => (await api.get('/reports')).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
 
-export const createReport = async (title: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], frequency: string, schoolClass: string) =>
-  (await api.post('/reports', { title, description, isAnonymous, suspects, frequency, schoolClass })).data;
+export const createReport = async (type: string, reporter: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], victims: SuspectInput[], frequency: string) =>
+  (await api.post('/reports', { type, reporter, description, isAnonymous, suspects, victims, frequency })).data;
 
 export const updateReport = async (id: string, updates: object) =>
   (await api.patch(`/reports/${id}`, updates)).data;
@@ -83,3 +83,6 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
   (await api.patch(`/reports/suspects/${suspectId}/resolve`, { resolvedUserId })).data;
 
 export const getClasses = async () => (await api.get('/classes')).data;
+
+export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
+  (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;

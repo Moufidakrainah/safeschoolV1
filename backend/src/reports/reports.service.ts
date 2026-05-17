@@ -8,6 +8,7 @@ import { Repository } from "typeorm";
 import { Report, ReportGrade, ReportStatus } from "./report.entity";
 import { User } from "../users/user.entity";
 import { ReportSuspect } from "./report-suspect.entity";
+import { ReportVictim } from "./report-victim.entity";
 import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -16,25 +17,28 @@ import { NotificationsService } from "../notifications/notifications.service";
 export class ReportsService {
   constructor(
     @InjectRepository(Report) private reportsRepository: Repository<Report>,
-    @InjectRepository(ReportSuspect)
-    private suspectsRepository: Repository<ReportSuspect>,
+    @InjectRepository(ReportSuspect) private suspectsRepository: Repository<ReportSuspect>,
+    @InjectRepository(ReportVictim) private victimsRepository: Repository<ReportVictim>,
     private scoringService: ScoringService,
-    @InjectRepository(ReportNote)
-    private notesRepository: Repository<ReportNote>,
+    @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
     private notificationsService: NotificationsService,
   ) {}
 
   async create(
-    title: string,
+    type: string,
+    reporter: string,
     description: string,
     isAnonymous: boolean,
     student: User,
     suspects: { freeText: string }[] = [],
+    victims: { freeText: string }[] = [],
     frequency = "",
   ): Promise<Report> {
     const { finalScore, grade, aiScore, aiReason } =
       await this.scoringService.calculateScore(
-        title, description, frequency, (student as any).studentProfile?.schoolClass?.level ?? "", suspects,
+        type, description, frequency,
+        (student as any).studentProfile?.schoolClass?.level ?? "",
+        suspects,
       );
 
     const year = new Date().getFullYear();
@@ -51,42 +55,56 @@ export class ReportsService {
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
 
     const report = this.reportsRepository.create({
-      title, description, grade, aiScore: finalScore, aiReason,
-      caseNumber, isAnonymous, student, status: ReportStatus.PENDING,
+      type, reporter, description, grade,
+      aiScore: finalScore, aiReason,
+      caseNumber, isAnonymous, student,
+      status: ReportStatus.PENDING,
     });
     const savedReport = await this.reportsRepository.save(report);
 
     for (const suspect of suspects) {
-      const reportSuspect = this.suspectsRepository.create({
-        report: savedReport,
-        freeText: suspect.freeText,
-      });
-      await this.suspectsRepository.save(reportSuspect);
+      await this.suspectsRepository.save(
+        this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
+      );
+    }
+
+    for (const victim of victims) {
+      await this.victimsRepository.save(
+        this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })
+      );
     }
 
     return this.reportsRepository.findOne({
       where: { id: savedReport.id },
-      relations: ["suspects", "suspects.resolvedUser"],
+      relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
     }) as Promise<Report>;
   }
 
   async findAll(): Promise<Report[]> {
     return this.reportsRepository.find({
-      relations: ["student", "student.studentProfile", "suspects", "suspects.resolvedUser"],
+      relations: [
+        "student", "student.studentProfile", "student.studentProfile.schoolClass",
+        "suspects", "suspects.resolvedUser",
+        "victims", "victims.resolvedUser",
+      ],
     });
   }
 
   async findByStudent(studentId: string): Promise<Report[]> {
     return this.reportsRepository.find({
       where: { student: { id: studentId } },
-      relations: ["suspects", "suspects.resolvedUser"],
+      relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
     });
   }
 
   async findOne(id: string): Promise<Report> {
     const report = await this.reportsRepository.findOne({
       where: { id },
-      relations: ["student", "suspects", "suspects.resolvedUser"],
+      relations: [
+        "student", "student.studentProfile", "student.studentProfile.schoolClass",
+        "suspects", "suspects.resolvedUser",
+        "victims", "victims.resolvedUser",
+      ],
     });
     if (!report) throw new NotFoundException("Signalement introuvable");
     return report;
@@ -94,28 +112,11 @@ export class ReportsService {
 
   async update(
     id: string,
-    updates: {
-      status?: ReportStatus;
-      grade?: ReportGrade;
-      adminNote?: string;
-      gradeModificationReason?: string;
-    },
+    updates: { status?: ReportStatus; grade?: ReportGrade },
   ): Promise<Report> {
     const report = await this.findOne(id);
-    if (updates.grade && updates.grade !== report.grade) {
-      const grades = [ReportGrade.FAIBLE, ReportGrade.MOYEN, ReportGrade.GRAVE, ReportGrade.CRITIQUE];
-      const oldIndex = grades.indexOf(report.grade);
-      const newIndex = grades.indexOf(updates.grade);
-      if (newIndex < oldIndex && !updates.gradeModificationReason) {
-        throw new ForbiddenException("Une justification est obligatoire pour baisser le grade");
-      }
-      report.grade = updates.grade;
-      report.gradeModified = true;
-      if (updates.gradeModificationReason)
-        report.gradeModificationReason = updates.gradeModificationReason;
-    }
+    if (updates.grade) report.grade = updates.grade;
     if (updates.status) report.status = updates.status;
-    if (updates.adminNote) report.adminNote = updates.adminNote;
     return this.reportsRepository.save(report);
   }
 
@@ -157,13 +158,11 @@ export class ReportsService {
             report.student.id, reportId, `📅 Convocation : ${content}`,
           );
         }
-        if (report.suspects) {
-          for (const suspect of report.suspects) {
-            if (suspect.resolvedUser?.id) {
-              await this.notificationsService.create(
-                suspect.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
-              );
-            }
+        for (const suspect of report.suspects ?? []) {
+          if (suspect.resolvedUser?.id) {
+            await this.notificationsService.create(
+              suspect.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
+            );
           }
         }
       }
@@ -187,45 +186,49 @@ export class ReportsService {
     return this.suspectsRepository.save(suspect);
   }
 
+  async resolveVictim(victimId: string, resolvedUserId: string | null): Promise<ReportVictim> {
+    const victim = await this.victimsRepository.findOne({ where: { id: victimId } });
+    if (!victim) throw new NotFoundException("Victime introuvable");
+    victim.resolvedUser = resolvedUserId ? { id: resolvedUserId } as any : null;
+    return this.victimsRepository.save(victim);
+  }
+
   async findByVictimName(name: string): Promise<any[]> {
     const all = await this.reportsRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.student", "student")
-      .leftJoinAndSelect("report.suspects", "suspects")
-      .leftJoinAndSelect("suspects.resolvedUser", "resolvedUser")
+      .leftJoinAndSelect("report.victims", "victims")
+      .leftJoinAndSelect("victims.resolvedUser", "resolvedUser")
       .getMany();
 
     return all
       .filter((report) => {
-        const isVictim = report.title?.toLowerCase().includes("victime");
-        const isWitness = report.title?.toLowerCase().includes("témoin") ||
-                          report.title?.toLowerCase().includes("temoin");
-        if (isVictim && report.student) {
+        if (report.reporter === "victime" && report.student) {
           const fullName = `${report.student.firstName} ${report.student.lastName}`.toLowerCase();
           return fullName.includes(name.toLowerCase());
         }
-        if (isWitness && report.description) {
-          return report.description.toLowerCase().includes(`victime : ${name.toLowerCase()}`)
-            || report.description.toLowerCase().includes(name.toLowerCase());
+        if (report.reporter === "temoin" && report.victims) {
+          return report.victims.some(v =>
+            v.freeText.toLowerCase().includes(name.toLowerCase()) ||
+            (v.resolvedUser && `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`.toLowerCase().includes(name.toLowerCase()))
+          );
         }
         return false;
       })
       .map((report) => ({
-        id:          report.id,
-        caseNumber:  report.caseNumber,
-        title:       report.title,
-        grade:       report.grade,
-        status:      report.status,
-        createdAt:   report.createdAt,
-        signalePar:  report.student
+        id:         report.id,
+        caseNumber: report.caseNumber,
+        type:       report.type,
+        reporter:   report.reporter,
+        grade:      report.grade,
+        status:     report.status,
+        createdAt:  report.createdAt,
+        signalePar: report.student
           ? `${report.student.firstName} ${report.student.lastName}`
           : "Anonyme",
-        typeSignalement: report.title?.toLowerCase().includes("victime") ? "victime" : "temoin",
-        victime: report.title?.toLowerCase().includes("victime")
-          ? report.student
-            ? `${report.student.firstName} ${report.student.lastName}`
-            : "Anonyme"
-          : this.extractVictimFromDescription(report.description),
+        victimes: report.reporter === "victime"
+          ? [report.student ? `${report.student.firstName} ${report.student.lastName}` : "Anonyme"]
+          : report.victims.map(v => v.freeText),
       }));
   }
 
@@ -233,31 +236,22 @@ export class ReportsService {
     const all = await this.reportsRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.student", "student")
+      .leftJoinAndSelect("report.victims", "victims")
       .getMany();
 
     const counts: Record<string, number> = {};
     for (const report of all) {
-      let victimName: string | null = null;
-      const isVictim = report.title?.toLowerCase().includes("victime");
-      const isWitness = report.title?.toLowerCase().includes("témoin") ||
-                        report.title?.toLowerCase().includes("temoin");
-      if (isVictim && report.student) {
-        victimName = `${report.student.firstName} ${report.student.lastName}`;
-      } else if (isWitness && report.description) {
-        victimName = this.extractVictimFromDescription(report.description);
-      }
-      if (victimName) {
-        counts[victimName] = (counts[victimName] || 0) + 1;
+      if (report.reporter === "victime" && report.student) {
+        const name = `${report.student.firstName} ${report.student.lastName}`;
+        counts[name] = (counts[name] || 0) + 1;
+      } else if (report.reporter === "temoin") {
+        for (const victim of report.victims ?? []) {
+          counts[victim.freeText] = (counts[victim.freeText] || 0) + 1;
+        }
       }
     }
     return Object.entries(counts)
       .map(([victim, count]) => ({ victim, count }))
       .sort((a, b) => b.count - a.count);
-  }
-
-  private extractVictimFromDescription(description: string): string | null {
-    if (!description) return null;
-    const match = description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
-    return match ? match[1].trim() : null;
   }
 }

@@ -1,6 +1,7 @@
 -- Nettoyer les tables
 TRUNCATE TABLE notifications CASCADE;
 TRUNCATE TABLE report_notes CASCADE;
+TRUNCATE TABLE report_victims CASCADE;
 TRUNCATE TABLE report_suspects CASCADE;
 TRUNCATE TABLE reports CASCADE;
 TRUNCATE TABLE student_parents CASCADE;
@@ -79,60 +80,64 @@ INSERT INTO student_parents ("studentProfilesId", "parentsId") VALUES
   ('b0c1d2e3-0000-0000-0000-000000000007', 'd8e2a4b2-0000-0000-0000-000000000005');
 
 -- SIGNALEMENTS
-INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "aiReason", "gradeModified", "gradeModificationReason", status, "adminNote", "isAnonymous", "studentId", "createdAt") VALUES
+INSERT INTO reports (id, type, reporter, description, grade, "caseNumber", "aiScore", "aiReason", status, "isAnonymous", "studentId", "createdAt") VALUES
   ('c0d1e2f3-0000-0000-0000-000000000001',
-   'Physique - Je suis victime',
+   'physique', 'victime',
    'Je me fais frapper tous les jours dans le couloir par un groupe d élèves. Ils me poussent contre les murs et me menacent de me frapper encore plus fort si je le dis à un adulte. J ai très peur d aller à l école. (Fréquence: Tous les jours)',
-   'critique', '#2026-001', 85, 'Menace physique et intimidation détectées', false, NULL, 'in_progress', NULL, false,
+   'critique', '#2026-001', 85, 'Menace physique et intimidation détectées', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '10 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000002',
-   'Cyber - Je suis victime',
+   'cyber', 'victime',
    'Des élèves ont créé un faux profil avec ma photo sur Instagram et publient des choses humiliantes. Tout le monde se moque de moi à l école depuis. Je ne veux plus venir en cours. (Fréquence: Tous les jours)',
-   'grave', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', false, NULL, 'pending', NULL, false,
+   'grave', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000007', NOW() - INTERVAL '7 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000003',
-   'Verbal - Je suis victime',
+   'verbal', 'victime',
    'Des élèves se moquent de moi en classe à cause de mes vêtements. Ils rigolent quand je réponds aux questions du professeur et m appellent par des surnoms humiliants. (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-003', 38, 'Harcèlement verbal répété détecté', false, NULL, 'pending', NULL, false,
+   'moyen', '#2026-003', 38, 'Harcèlement verbal répété détecté', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000008', NOW() - INTERVAL '5 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000004',
-   'Physique - Je suis témoin',
-   'J ai vu un élève se faire frapper dans les toilettes par deux autres élèves. La victime pleurait et avait l air très apeurée. Les agresseurs l ont menacé de recommencer s il parlait. | Victime : Lucas Bernard (Fréquence: Deux fois)',
-   'critique', '#2026-004', 78, 'Violence physique grave avec menaces détectée', false, NULL, 'pending', NULL, false,
+   'physique', 'temoin',
+   'J ai vu un élève se faire frapper dans les toilettes par deux autres élèves. La victime pleurait et avait l air très apeurée. Les agresseurs l ont menacé de recommencer s il parlait. (Fréquence: Deux fois)',
+   'critique', '#2026-004', 78, 'Violence physique grave avec menaces détectée', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '3 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000005',
-   'Exclusion sociale - Je suis victime',
+   'exclusion', 'victime',
    'Mes camarades refusent de s asseoir à côté de moi en cours et ne m invitent jamais dans leurs groupes de travail. Je mange seule à la cantine depuis le début de l année. (Fréquence: Tous les jours)',
-   'moyen', '#2026-005', 32, 'Exclusion sociale persistante détectée', false, NULL, 'closed', 'Dossier traité après médiation entre élèves le 05/04/2026', false,
+   'moyen', '#2026-005', 32, 'Exclusion sociale persistante détectée', 'closed', false,
    'a0b1c2d3-0000-0000-0000-000000000010', NOW() - INTERVAL '15 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000006',
-   'Sexuel - Je suis victime',
+   'sexuel', 'victime',
    'Un élève me fait des remarques déplacées sur mon corps tous les jours et a essayé de me toucher dans le couloir. Je me sens très mal à l aise et j ai honte d en parler. (Fréquence: Tous les jours)',
-   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', false, NULL, 'escalated', NULL, false,
+   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', 'escalated', false,
    'a0b1c2d3-0000-0000-0000-000000000012', NOW() - INTERVAL '2 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000007',
-   'Verbal - Je suis professeur',
-   'J ai observé en classe qu un élève est systématiquement moqué par ses camarades quand il prend la parole. Les autres élèves l imitent et rient de lui. Cela se passe depuis plusieurs semaines. | Victime : Emma Petit (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-007', 35, 'Harcèlement verbal en classe signalé par enseignant', false, NULL, 'in_progress', NULL, false,
+   'verbal', 'temoin',
+   'J ai observé en classe qu un élève est systématiquement moqué par ses camarades quand il prend la parole. Les autres élèves l imitent et rient de lui. Cela se passe depuis plusieurs semaines. (Fréquence: Trois fois ou plus)',
+   'moyen', '#2026-007', 35, 'Harcèlement verbal en classe signalé par témoin', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000003', NOW() - INTERVAL '6 days');
 
--- SOUPÇONNÉS
--- freeText obligatoire (saisi par l'élève), resolvedUserId optionnel (lié par l'admin)
-INSERT INTO report_suspects (id, "reportId", "freeText", "resolvedUserId") VALUES
-  ('d0e1f2a3-0000-0000-0000-000000000001', 'c0d1e2f3-0000-0000-0000-000000000001', 'Kevin Thomas - 5eme',        'a0b1c2d3-0000-0000-0000-000000000011'),
-  ('d0e1f2a3-0000-0000-0000-000000000002', 'c0d1e2f3-0000-0000-0000-000000000001', 'Rayan Saidi - 5eme A',       NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000003', 'c0d1e2f3-0000-0000-0000-000000000002', 'Groupe inconnu Instagram',   NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000004', 'c0d1e2f3-0000-0000-0000-000000000003', 'Kevin Thomas - 4eme',        'a0b1c2d3-0000-0000-0000-000000000011'),
-  ('d0e1f2a3-0000-0000-0000-000000000005', 'c0d1e2f3-0000-0000-0000-000000000004', 'Mehdi Karim - 6eme B',       NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000006', 'c0d1e2f3-0000-0000-0000-000000000004', 'Axel Morin - 6eme B',        NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000007', 'c0d1e2f3-0000-0000-0000-000000000006', 'Thomas Girard - 4eme A',     NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000008', 'c0d1e2f3-0000-0000-0000-000000000007', 'Kevin Thomas - 4eme',        'a0b1c2d3-0000-0000-0000-000000000011');
+-- SUSPECTS
+INSERT INTO report_suspects (id, "freeText", "resolvedUserId", "reportId") VALUES
+  ('d0e1f2a3-0000-0000-0000-000000000001', 'Kevin Thomas - 5eme A',      'a0b1c2d3-0000-0000-0000-000000000011', 'c0d1e2f3-0000-0000-0000-000000000001'),
+  ('d0e1f2a3-0000-0000-0000-000000000002', 'Rayan Saidi - 5eme A',       NULL,                                   'c0d1e2f3-0000-0000-0000-000000000001'),
+  ('d0e1f2a3-0000-0000-0000-000000000003', 'Groupe inconnu Instagram',   NULL,                                   'c0d1e2f3-0000-0000-0000-000000000002'),
+  ('d0e1f2a3-0000-0000-0000-000000000004', 'Kevin Thomas - 4eme A',      'a0b1c2d3-0000-0000-0000-000000000011', 'c0d1e2f3-0000-0000-0000-000000000003'),
+  ('d0e1f2a3-0000-0000-0000-000000000005', 'Mehdi Karim - 6eme B',       NULL,                                   'c0d1e2f3-0000-0000-0000-000000000004'),
+  ('d0e1f2a3-0000-0000-0000-000000000006', 'Axel Morin - 6eme B',        NULL,                                   'c0d1e2f3-0000-0000-0000-000000000004'),
+  ('d0e1f2a3-0000-0000-0000-000000000007', 'Thomas Girard - 4eme A',     NULL,                                   'c0d1e2f3-0000-0000-0000-000000000006'),
+  ('d0e1f2a3-0000-0000-0000-000000000008', 'Kevin Thomas - 4eme A',      'a0b1c2d3-0000-0000-0000-000000000011', 'c0d1e2f3-0000-0000-0000-000000000007');
+
+-- VICTIMES (uniquement pour les signalements de témoins)
+INSERT INTO report_victims (id, "freeText", "resolvedUserId", "reportId") VALUES
+  ('a1b2c3d4-0000-0000-0000-000000000001', 'Lucas Bernard - 6eme A', 'a0b1c2d3-0000-0000-0000-000000000009', 'c0d1e2f3-0000-0000-0000-000000000004'),
+  ('a1b2c3d4-0000-0000-0000-000000000002', 'Emma Petit - 5eme A',    'a0b1c2d3-0000-0000-0000-000000000010', 'c0d1e2f3-0000-0000-0000-000000000007');
 
 -- NOTES
 INSERT INTO report_notes (id, content, type, "createdAt", "reportId", "authorId") VALUES

@@ -4,10 +4,10 @@
     "labelPassword": "Passwort",
     "submit": "Anmelden",
     "loading": "Anmeldung läuft...",
-	"errorRequired": "Bitte füllen Sie alle Felder aus.",
-	"errorEmailFormat": "Ungültiges E-Mail-Format.",
-	"errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
-	"error": "Falsche Anmeldeinformationen."
+    "errorRequired": "Bitte füllen Sie alle Felder aus.",
+    "errorEmailFormat": "Ungültiges E-Mail-Format.",
+    "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
+    "error": "Falsche Anmeldeinformationen."
   },
   "nav": {
     "logout": "Abmelden"
@@ -72,7 +72,6 @@
     },
     "detail": {
       "info": "Meldungsinformationen",
-      "titleField": "Titel",
       "date": "Datum",
       "class": "Klasse",
       "aiScore": "KI-Score",
@@ -86,8 +85,14 @@
       "victim": "Opfer",
       "suspects": "Verdächtige(r)",
       "noSuspect": "Kein Verdächtiger angegeben",
-      "gradeModified": "Note geändert",
-      "suspectsCount": "Verdächtige(r)"
+      "suspectsCount": "Verdächtige(r)",
+      "type": "Typ",
+      "reporter": "Gemeldet als",
+      "victims": "Opfer",
+      "noVictim": "Kein Opfer angegeben",
+      "victimLinked": "Verknüpft mit",
+      "reporterVictime": "Opfer",
+      "reporterTemoin": "Zeuge"
     },
     "actions": {
       "groupLabel": "Aktionen zur Meldung",
@@ -129,42 +134,40 @@
         "staff": "Personal",
         "admin": "Admin",
         "director": "Direktor"
-      }, 
-	  "errorEmailFormat": "Ungültiges E-Mail-Format.",
-	  "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
-       	"deleteConfirm": "Möchten Sie diesen Benutzer wirklich löschen?",
-	"deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist..",
-	"deleteError": "Beim Löschen ist ein Fehler aufgetreten..",
-  "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
+      },
+      "errorEmailFormat": "Ungültiges E-Mail-Format.",
+      "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
+      "deleteConfirm": "Möchten Sie diesen Benutzer wirklich löschen?",
+      "deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist..",
+      "deleteError": "Beim Löschen ist ein Fehler aufgetreten..",
+      "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
     },
-	"title":{
-		"oneReport": "Einzelheiten eines Berichts", 
-		"allReports": "Alle Berichte"
-
-
-	}
+    "title": {
+      "oneReport": "Einzelheiten eines Berichts",
+      "allReports": "Alle Berichte"
+    }
   },
   "badge": {
-    "critical":    "🔴 Kritisch",
-    "high":        "🟠 Ernst",
-    "medium":      "🟡 Mäßig",
-    "low":         "🟢 Gering",
-    "pending":     "⏳ Ausstehend",
+    "critical": "🔴 Kritisch",
+    "high": "🟠 Ernst",
+    "medium": "🟡 Mäßig",
+    "low": "🟢 Gering",
+    "pending": "⏳ Ausstehend",
     "in_progress": "🔄 In Bearbeitung",
-    "escalated":   "🚨 Eskaliert",
-    "closed":      "✅ Geschlossen",
-    "rejected":    "❌ Abgelehnt"
+    "escalated": "🚨 Eskaliert",
+    "closed": "✅ Geschlossen",
+    "rejected": "❌ Abgelehnt"
   },
   "noteblock": {
-    "note":        "📝 Notiz",
+    "note": "📝 Notiz",
     "convocation": "📅 Vorladung"
   },
   "pagination": {
-    "nav":     "Seitennavigation",
+    "nav": "Seitennavigation",
     "summary": "{{totalItems}} Ergebnisse · Seite {{currentPage}} von {{totalPages}}",
-    "prev":    "Vorherige Seite",
-    "next":    "Nächste Seite",
-    "page":    "Seite {{n}}"
+    "prev": "Vorherige Seite",
+    "next": "Nächste Seite",
+    "page": "Seite {{n}}"
   },
   "common": {
     "save": "Speichern",
@@ -211,22 +214,22 @@
     }
   },
   "reporter": {
-	"nav": {
-		"ariaLabel": "Reporter-Navigation",
-		"profile": "Mein Profil",
-		"report":   "Meldung erstellen",
-		"workshop": "Workshops",
-		"quiz":     "Quiz"
-	},
-	"profile": {
-		"title": "Mein Profil",
-		"firstName": "Vorname",
-		"lastName": "Nachname",
-		"email": "E-Mail",
-    "role": "Beruf",
-    "subject": "Fach",
-    "subjectUnknown": "Unbekannt"
-	},
+    "nav": {
+      "ariaLabel": "Reporter-Navigation",
+      "profile": "Mein Profil",
+      "report": "Meldung erstellen",
+      "workshop": "Workshops",
+      "quiz": "Quiz"
+    },
+    "profile": {
+      "title": "Mein Profil",
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "email": "E-Mail",
+      "role": "Beruf",
+      "subject": "Fach",
+      "subjectUnknown": "Unbekannt"
+    },
     "roles": {
       "teacher": "Lehrer",
       "staff": "Schulpersonal"
@@ -324,19 +327,19 @@
       "anonymous": "Anonyme Meldung",
       "anonymousDesc": "mein Name wird nicht sichtbar sein"
     },
-    "submitting":  "Wird gesendet...",
-    "submit":      "Meldung absenden",
+    "submitting": "Wird gesendet...",
+    "submit": "Meldung absenden",
     "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen.",
     "validation": {
-      "typeRequired":        "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
+      "typeRequired": "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
       "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
-      "frequencyRequired":   "Bitte die Häufigkeit angeben, um fortzufahren."
-    }, 
-	"title": {
-		"myProfile":"Mein Profil", 
-		"createAReport":"Einen Bericht erstellen", 
-		"reportCreated":"Bericht erstellt"
-	}
+      "frequencyRequired": "Bitte die Häufigkeit angeben, um fortzufahren."
+    },
+    "title": {
+      "myProfile": "Mein Profil",
+      "createAReport": "Einen Bericht erstellen",
+      "reportCreated": "Bericht erstellt"
+    }
   },
   "terms": {
     "updated": "Letzte Aktualisierung: April 2026",

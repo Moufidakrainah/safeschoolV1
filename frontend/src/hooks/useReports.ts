@@ -222,7 +222,7 @@ export function useReports(): UseReportsReturn {
         const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
         if (
           !name.includes(q) &&
-          !(r.title ?? '').toLowerCase().includes(q) &&
+          !(r.type ?? '').toLowerCase().includes(q) &&
           !(r.description ?? '').toLowerCase().includes(q)
         ) return false;
       }

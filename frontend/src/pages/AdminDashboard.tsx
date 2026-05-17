@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, getClasses,
+  searchUsers, resolveSuspect, resolveVictim, getClasses,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
       if (search) {
         const q = search.toLowerCase();
         const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-        if (!name.includes(q) && !(r.title ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q)) return false;
+        if (!name.includes(q) && !(r.type ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q)) return false;
       }
       return true;
     });
@@ -330,7 +330,8 @@ export default function AdminDashboard() {
                 <table className="w-full text-sm border-collapse">
                   <tbody>
                     {([
-                      { label: t('admin.detail.titleField'), value: selected.title },
+                      { label: t('admin.detail.type'), value: selected.type ?? '-' },
+                    { label: t('admin.detail.reporter'), value: selected.reporter ?? '-' },
                       { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
                       { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ? `${selected.student.studentProfile.schoolClass.level} ${selected.student.studentProfile.schoolClass.section}` : '-' },
                       { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
@@ -434,6 +435,81 @@ export default function AdminDashboard() {
                   </ul>
                 ) : (
                   <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
+                )}
+
+                {/* Victimes — uniquement pour les témoins */}
+                {selected.reporter === 'temoin' && (
+                  <>
+                    <p className="text-xs text-gray-400 font-semibold mb-2 mt-4">{t('admin.detail.victims')}</p>
+                    {selected.victims?.length > 0 ? (
+                      <ul className="flex flex-col gap-2">
+                        {selected.victims.map((v) => (
+                          <li key={v.id} className="bg-surface rounded-lg px-3 py-2 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-blue-500 font-medium">{v.freeText}</span>
+                              {isAdmin && (
+                                <button
+                                  className="text-xs text-blue-500 hover:underline shrink-0"
+                                  onClick={() => {
+                                    setActiveSuspect(activeSuspect === v.id ? null : v.id);
+                                    setSuspectSearch('');
+                                    setSuspectResults([]);
+                                  }}
+                                >
+                                  {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier à un élève'}
+                                </button>
+                              )}
+                            </div>
+                            {v.resolvedUser && (
+                              <div className="mt-1 flex items-center gap-2 text-xs text-green-600">
+                                <span>✅ {t('admin.detail.victimLinked')} :</span>
+                                <span className="font-semibold">{v.resolvedUser.firstName} {v.resolvedUser.lastName}</span>
+                              </div>
+                            )}
+                            {isAdmin && activeSuspect === v.id && (
+                              <div className="mt-2 border border-gray-200 rounded-lg p-2 bg-white">
+                                <input
+                                  type="text"
+                                  value={suspectSearch}
+                                  onChange={e => handleSuspectSearch(e.target.value)}
+                                  placeholder="Rechercher un élève..."
+                                  className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary mb-1"
+                                  autoFocus
+                                />
+                                {suspectResults.length > 0 && (
+                                  <ul className="flex flex-col gap-0.5 max-h-32 overflow-y-auto">
+                                    {suspectResults.map((u: any) => (
+                                      <li key={u.id}>
+                                        <button
+                                          className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
+                                          onClick={async () => {
+                                            await resolveVictim(v.id, u.id);
+                                            const updated = await getAllReports();
+                                            setReports(updated);
+                                            const upd = updated.find((r: any) => r.id === selected?.id);
+                                            if (upd) setSelected(upd);
+                                            setActiveSuspect(null);
+                                            setSuspectSearch('');
+                                            setSuspectResults([]);
+                                          }}
+                                          disabled={resolving}
+                                        >
+                                          {u.firstName} {u.lastName}
+                                          <span className="text-gray-400 ml-1">({u.role})</span>
+                                        </button>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-300">{t('admin.detail.noVictim')}</p>
+                    )}
+                  </>
                 )}
               </Card>
             </div>
@@ -578,12 +654,12 @@ export default function AdminDashboard() {
                         onClick={() => { setSelected(report); setAdminNote(report.adminNote || ''); setView('detail'); loadNotes(report.id); }}
                         role="button" tabIndex={0}
                         onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}
-                        aria-label={`${report.title} — ${report.caseNumber}`}
+                        aria-label={`${report.type} ${report.reporter} — ${report.caseNumber}`}
                       >
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-sm text-primary">{report.title}</span>
+                              <span className="font-bold text-sm text-primary">{report.type} — {report.reporter}</span>
                               {report.gradeModified && (
                                 <span className="bg-gray-100 text-gray-500 px-2 rounded-full text-xs">✏️ {t('admin.detail.gradeModified')}</span>
                               )}
