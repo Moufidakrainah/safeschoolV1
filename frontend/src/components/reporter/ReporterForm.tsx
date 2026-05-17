@@ -10,7 +10,7 @@
  * Reçoit uniquement `user` en prop (pour le rôle et les options de traduction).
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
 import Button from '../Button';
@@ -70,17 +70,14 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 
   // typeOptions : les 6 types de harcèlement avec icône et sous-titre.
   // Mémoïsés pour éviter un recalcul à chaque re-render.
-  const typeOptions = useMemo(
-    () => [
+  const typeOptions = [
       { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
       { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
       { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
       { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
       { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
       { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
-    ],
-    [t]
-  );
+    ];
 
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 

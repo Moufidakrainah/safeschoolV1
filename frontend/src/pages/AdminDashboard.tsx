@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [filterClass, setFilterClass] = useState('all');
   const [filterStudent, setFilterStudent] = useState('all');
   const [filterSuspect, setFilterSuspect] = useState('');
+  const [filterVictim, setFilterVictim] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -82,7 +83,7 @@ export default function AdminDashboard() {
 	useEffect(() => { fetchReports(); }, []);
 
 	const fetchReports = async () => {
-	try {
+	try {		
 		const data = await getAllReports();
 		setReports(data);
 	} catch {
@@ -107,6 +108,9 @@ export default function AdminDashboard() {
 		setSaving(false);
 	}
 	};
+
+
+
 
   // ── Filtrage
 const filtered = useMemo(() => {
@@ -135,22 +139,37 @@ const filtered = useMemo(() => {
       if (!match) return false;
     }
 
+
+	if (filterVictim && filterVictim !== "all") {
+		const title = r.title?.toLowerCase() ?? "";
+		const q = filterVictim.toLowerCase();
+
+		let victim: string | null = null;
+
+		// Cas 1 : le signaleur est la victime
+		if (title.includes("victime") && r.student) {
+			victim = `${r.student.firstName} ${r.student.lastName}`.toLowerCase();
+		}
+
+		// Cas 2 : la victime est dans la description
+		else if ((title.includes("témoin") || title.includes("temoin")) && r.description) {
+			const match = r.description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
+			victim = match ? match[1].trim().toLowerCase() : null;
+		}
+
+		if (!victim || !victim.includes(q)) return false;
+		}
+
+
+
+
+
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
 
     if (filterDateTo) {
       const to = new Date(filterDateTo);
       to.setHours(23, 59, 59, 999);
       if (new Date(r.createdAt) > to) return false;
-    }
-
-    if (search) {
-      const q = search.toLowerCase();
-      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (
-        !name.includes(q) &&
-        !(r.title ?? '').toLowerCase().includes(q) &&
-        !(r.description ?? '').toLowerCase().includes(q)
-      ) return false;
     }
 
     return true;
@@ -162,6 +181,7 @@ const filtered = useMemo(() => {
   filterClass,
   filterStudent,
   filterSuspect,
+  filterVictim, 
   filterDateFrom,
   filterDateTo,
   search
@@ -197,6 +217,7 @@ const stats = useMemo(() => {
     setFilterDateFrom('');
     setFilterDateTo('');
     setFilterSuspect('');
+    setFilterVictim('');
     setSearch('');
     setCurrentPage(1);
     setResetKey(k => k + 1);
@@ -387,6 +408,22 @@ const classOptions = Array.from(
 
 
 
+const handleVictimSearch = async (name: string) => {
+    setFilterVictim(name);
+    setCurrentPage(1);
+    if (!name || name.trim().length < 2) { setVictimReports(null); return; }
+    setLoadingVictim(true);
+    try {
+      const results = await searchReportsByVictim(name.trim());
+      setVictimReports(results);
+    } catch { console.error('Erreur recherche victime'); setVictimReports([]); }
+    finally { setLoadingVictim(false); }
+  };
+
+
+
+
+
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
@@ -425,26 +462,105 @@ const classOptions = Array.from(
               {t('admin.next')} →
             </Button>
           </div>
+          <div className="text-center">
+
+
+
+
+          {/* Victimes */}
+            <Card borderColor={severityColor} title={t('admin.detail.victim')}>
+              {selected.description?.includes('') && (
+				<>
+                  <p className="text-sm text-gray-700 mb-4">
+                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
+					
+				</p>
+				<p className="text-sm text-gray-700 mb-4">
+								{selected.student?.studentProfile?.class.level}
+
+							{selected.student?.studentProfile?.class.section}
+                  </p>
+				  </>
+              )}
+            </Card>
 
 
 
 
 
 
+			<Card borderColor={severityColor} title={t('admin.detail.reportDetails')}>
+             
+            
+                  {([
+                    { label: t('admin.detail.reported'), value: new Date(selected.createdAt).toLocaleDateString('fr-FR',
+						{
+							hour:'2-digit',
+							minute:'2-digit'
+						})
+					},
+                  ] as const).map(row => (
+					<p className="text-sm text-gray-700 mb-4">
+                      {row.value}
+					</p>
+                  ))}
+
+				  <p className="text-sm text-gray-700 leading-7">
+              {/* {selected.description?.split('|')[0]?.trim()} */}
+              {selected.description}
+            	</p>
+
+
+       
+			   <table className="w-full text-sm border-collapse">
 
 
 
 
-          {/* Informations + personnes impliquées */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <Card borderColor={severityColor}>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
+			<tr className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
+				<td className="py-2 text-gray-700">
+			{selected.title.split(" - ")[0]}</td>
+
+			</tr>
+<tr className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
+				<td className="py-2 text-gray-700">
+			{selected.title.split(" - ")[1]}</td>
+
+			</tr>
+
+
+			<tr className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.reportedBy')}</td>
+				<td className="py-2 text-gray-700">
+			{selected.student?.firstName} {selected.student?.lastName}</td>
+
+			</tr>
+
+			<tr className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.anonymousLabel')}</td>
+				<td className="py-2 text-gray-700">
+			{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') }</td>
+
+			</tr>
+
+			
+
+              </table>
+
+            </Card>
+       
+
+
+
+          {/* Analyse IA */}
+			<Card borderColor={severityColor} title={t('admin.detail.iaAnalysis')}>
               <table className="w-full text-sm border-collapse">
                 <tbody>
                   {([
                     { label: t('admin.detail.titleField'), value: selected.title },
-                    { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
-                    { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
+                    // { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
                     { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
                     { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
                     { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
@@ -458,8 +574,9 @@ const classOptions = Array.from(
               </table>
             </Card>
 
-            <Card>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
+
+          {/* Signale par */}
+            <Card borderColor={severityColor} title={t('admin.detail.people')}>
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
               <p className="text-sm text-gray-700 mb-4">
                 {selected.isAnonymous
@@ -469,14 +586,17 @@ const classOptions = Array.from(
                   <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
                 )}
               </p>
-              {selected.description?.includes('| Victime :') && (
-                <>
-                  <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
-                  </p>
-                </>
-              )}
+
+            </Card>
+
+
+
+
+
+
+
+          {/* Suspects */}
+            <Card borderColor={severityColor} title={t('admin.detail.people')}>
               <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
               {selected.suspects?.length > 0 ? (
                 <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
@@ -490,15 +610,11 @@ const classOptions = Array.from(
                 <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
               )}
             </Card>
-          </div>
 
-          {/* Description */}
-          <Card borderColor={severityColor} className="mb-6">
-            <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
-            <p className="text-sm text-gray-700 leading-7">
-              {selected.description?.split('|')[0]?.trim()}
-            </p>
-          </Card>
+
+
+			</div>
+
 
           {/* Notes administratives */}
           <Card borderColor={severityColor} className="mb-6">
@@ -699,6 +815,25 @@ const classOptions = Array.from(
                 aria-label={t('admin.filters.suspectPlaceholder')}
                 className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               />
+
+
+
+
+
+
+
+              <input
+                type="search"
+                value={filterVictim}
+                onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }}
+                placeholder={t('admin.filters.victimPlaceholder')}
+                aria-label={t('admin.filters.victimPlaceholder')}
+                className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+              />
+
+
+
+
 
 			<div className="w-full text-sm flex items-center justify-center gap-2 mt-2 font-sans">
             

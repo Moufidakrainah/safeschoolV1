@@ -60,6 +60,7 @@
       "allClasses": "Classe de la victime",
       "allReporters": "Liste des alerteurs",
       "suspectPlaceholder": "Filtrer par soupçonné...",
+      "victimPlaceholder": "Filtrer par victime...",
       "dateRange": "Plage de dates",
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
@@ -73,7 +74,9 @@
       "false_report": "Faux signalement"
     },
     "detail": {
-      "info": "Informations du signalement",
+	  "reportDetails": "Details du signalement",
+	  "reported":"Signale le ",
+      "iaAnalysis": "Analyse IA",
       "titleField": "Titre",
       "date": "Date",
       "class": "Classe",
@@ -86,7 +89,7 @@
       "reportedBy": "Signalé par",
       "anonymousLabel": "Anonyme",
       "victim": "Victime",
-      "suspects": "Soupçonné(s)",
+      "suspects": "Suspect(s)",
       "noSuspect": "Aucun soupçonné indiqué",
       "gradeModified": "Grade modifié",
       "suspectsCount": "coupable(s)"
