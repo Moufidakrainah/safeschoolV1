@@ -15,7 +15,7 @@ export class StudentProfile {
 
   @Column({ name: "class", nullable: true }) schoolClass: string;
 
-  @Column({ nullable: true }) dateOfBirth: string;
+  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date;
 
   @OneToOne(() => User, (user) => user.studentProfile)
   @JoinColumn()

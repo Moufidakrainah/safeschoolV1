@@ -38,7 +38,7 @@ export class StudentProfilesService {
   ): Promise<StudentProfile> {
     const profile = await this.findByUserId(userId);
     if (updates.schoolClass) profile.schoolClass = updates.schoolClass;
-    if (updates.dateOfBirth) profile.dateOfBirth = updates.dateOfBirth;
+    if (updates.dateOfBirth) profile.dateOfBirth = new Date(updates.dateOfBirth) as any;
     return this.studentProfilesRepository.save(profile);
   }
 
