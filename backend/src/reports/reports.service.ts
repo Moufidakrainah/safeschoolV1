@@ -29,7 +29,7 @@ export class ReportsService {
     description: string,
     isAnonymous: boolean,
     student: User,
-    suspects: { userId?: string; freeText?: string }[] = [],
+    suspects: { freeText: string }[] = [],
     frequency = "",
     schoolClass = "",
   ): Promise<Report> {
@@ -71,7 +71,6 @@ export class ReportsService {
     for (const suspect of suspects) {
       const reportSuspect = this.suspectsRepository.create({
         report: savedReport,
-        user: suspect.userId ? ({ id: suspect.userId } as User) : undefined,
         freeText: suspect.freeText,
       });
       await this.suspectsRepository.save(reportSuspect);
@@ -79,7 +78,7 @@ export class ReportsService {
 
     return this.reportsRepository.findOne({
       where: { id: savedReport.id },
-      relations: ["suspects", "suspects.user"],
+      relations: ["suspects", "suspects.resolvedUser"],
     }) as Promise<Report>;
   }
 
@@ -89,7 +88,7 @@ export class ReportsService {
         "student",
         "student.studentProfile",
         "suspects",
-        "suspects.user",
+        "suspects.resolvedUser",
       ],
     });
   }
@@ -97,14 +96,14 @@ export class ReportsService {
   async findByStudent(studentId: string): Promise<Report[]> {
     return this.reportsRepository.find({
       where: { student: { id: studentId } },
-      relations: ["suspects", "suspects.user"],
+      relations: ["suspects", "suspects.resolvedUser"],
     });
   }
 
   async findOne(id: string): Promise<Report> {
     const report = await this.reportsRepository.findOne({
       where: { id },
-      relations: ["student", "suspects", "suspects.user"],
+      relations: ["student", "suspects", "suspects.resolvedUser"],
     });
     if (!report) throw new NotFoundException("Signalement introuvable");
     return report;
@@ -173,9 +172,9 @@ export class ReportsService {
       } else if (targetRole?.startsWith("suspect_")) {
         const suspectIndex = parseInt(targetRole.split("_")[1]);
         const suspect = report.suspects?.[suspectIndex];
-        if (suspect?.user?.id) {
+        if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
-            suspect.user.id,
+            suspect.resolvedUser.id,
             reportId,
             `📅 Convocation : ${content}`,
           );
@@ -190,9 +189,9 @@ export class ReportsService {
         }
         if (report.suspects) {
           for (const suspect of report.suspects) {
-            if (suspect.user?.id) {
+            if (suspect.resolvedUser?.id) {
               await this.notificationsService.create(
-                suspect.user.id,
+                suspect.resolvedUser.id,
                 reportId,
                 `📅 Convocation : ${content}`,
               );

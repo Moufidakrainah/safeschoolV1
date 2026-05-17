@@ -19,7 +19,7 @@ class CreateReportDto {
   title: string;
   description: string;
   isAnonymous: boolean;
-  suspects?: { userId?: string; freeText?: string }[];
+  suspects?: { freeText: string }[];
   frequency?: string;
   schoolClass?: string;
 }

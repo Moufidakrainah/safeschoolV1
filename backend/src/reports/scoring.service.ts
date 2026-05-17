@@ -41,17 +41,13 @@ export class ScoringService {
   }
 
   private async scoreRecidive(
-    suspects: { userId?: string; freeText?: string }[],
+    suspects: { freeText: string }[],
   ): Promise<number> {
     if (!suspects || suspects.length === 0) return 0;
     let maxCount = 0;
     for (const suspect of suspects) {
       let count = 0;
-      if (suspect.userId) {
-        count = await this.suspectsRepository.count({
-          where: { user: { id: suspect.userId } },
-        });
-      } else if (suspect.freeText) {
+      if (suspect.freeText) {
         count = await this.suspectsRepository.count({
           where: { freeText: suspect.freeText },
         });
@@ -164,7 +160,7 @@ Signalement : "${description}"`,
     description: string,
     frequency: string,
     schoolClass: string,
-    suspects: { userId?: string; freeText?: string }[],
+    suspects: { freeText: string }[],
   ): Promise<{
     finalScore: number;
     grade: ReportGrade;
