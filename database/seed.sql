@@ -1,5 +1,6 @@
 -- TypeORM (synchronize: true) ne modifie pas les types ENUM PostgreSQL existants.
 -- Toute valeur ajoutée dans ReportStatus (report.entity.ts) doit être ajoutée ici.
+DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'new'          AND enumtypid = 'reports_status_enum'::regtype) THEN ALTER TYPE reports_status_enum ADD VALUE 'new';          END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'in_progress'  AND enumtypid = 'reports_status_enum'::regtype) THEN ALTER TYPE reports_status_enum ADD VALUE 'in_progress';  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'pending'      AND enumtypid = 'reports_status_enum'::regtype) THEN ALTER TYPE reports_status_enum ADD VALUE 'pending';      END IF;
