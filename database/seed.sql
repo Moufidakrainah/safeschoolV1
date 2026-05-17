@@ -38,7 +38,7 @@ INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdA
   ('a0b1c2d3-0000-0000-0000-000000000012', 'sara@safeschool.com',      '$2b$10$8Ajlev4sZJzadv1FU7SAFujVsTl9ht0GKoS7TFu.qSpOBPv3KLGv6', 'Sara',    'Moulin',   'student',  NOW());
 
 -- PROFILS ÉLÈVES
-INSERT INTO student_profiles (id, class,"dateOfBirth", "userId") VALUES
+INSERT INTO student_profiles (id, class, "dateOfBirth", "userId") VALUES
   ('b0c1d2e3-0000-0000-0000-000000000001', '5eme', '2012-03-15', 'a0b1c2d3-0000-0000-0000-000000000006'),
   ('b0c1d2e3-0000-0000-0000-000000000002', '4eme', '2013-06-20', 'a0b1c2d3-0000-0000-0000-000000000007'),
   ('b0c1d2e3-0000-0000-0000-000000000003', '3eme', '2014-09-10', 'a0b1c2d3-0000-0000-0000-000000000008'),
@@ -47,11 +47,11 @@ INSERT INTO student_profiles (id, class,"dateOfBirth", "userId") VALUES
   ('b0c1d2e3-0000-0000-0000-000000000006', '4eme', '2013-04-18', 'a0b1c2d3-0000-0000-0000-000000000011'),
   ('b0c1d2e3-0000-0000-0000-000000000007', '6eme', '2015-07-30', 'a0b1c2d3-0000-0000-0000-000000000012');
 
--- PROFILS STAFF (employés du collège)
+-- PROFILS STAFF
 INSERT INTO staff_profiles (id, profession, subject, "userId") VALUES
-  ('a0b2d3c9-0000-0000-0000-000000000001', 'enseignant',     'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
-  ('a0b2d3c9-0000-0000-0000-000000000002', 'enseignant',     'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
-  ('a0b2d3c9-0000-0000-0000-000000000003', 'agent de saisie', NULL,           'a0b1c2d3-0000-0000-0000-000000000005');
+  ('a0b2d3c9-0000-0000-0000-000000000001', 'enseignant',      'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
+  ('a0b2d3c9-0000-0000-0000-000000000002', 'enseignant',      'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
+  ('a0b2d3c9-0000-0000-0000-000000000003', 'agent de saisie', NULL,            'a0b1c2d3-0000-0000-0000-000000000005');
 
 -- AFFECTATION STAFF ↔ CLASSES
 INSERT INTO staff_classes ("staffProfilesId", "classesId") VALUES
@@ -62,11 +62,11 @@ INSERT INTO staff_classes ("staffProfilesId", "classesId") VALUES
 
 -- PARENTS
 INSERT INTO parents (id, "firstName", "lastName", email, phone, address) VALUES
-  ('d8e2a4b2-0000-0000-0000-000000000001', 'Ahmed',   'Bougrine', 'ahmed.bougrine@gmail.com',  '0612345690', '12 rue des Lilas, Lyon'),
-  ('d8e2a4b2-0000-0000-0000-000000000002', 'Claire',  'Bernard',  'claire.bernard@gmail.com',  '0612345691', '5 avenue Victor Hugo, Paris'),
-  ('d8e2a4b2-0000-0000-0000-000000000003', 'Marc',    'Petit',    'marc.petit@gmail.com',      '0612345692', '8 rue de la Paix, Bordeaux'),
-  ('d8e2a4b2-0000-0000-0000-000000000004', 'Sophie',  'Thomas',   'sophie.thomas@gmail.com',   '0612345693', '3 impasse des Roses, Nantes'),
-  ('d8e2a4b2-0000-0000-0000-000000000005', 'Pierre',  'Moulin',   'pierre.moulin@gmail.com',   '0612345694', '17 boulevard Gambetta, Marseille');
+  ('d8e2a4b2-0000-0000-0000-000000000001', 'Ahmed',  'Bougrine', 'ahmed.bougrine@gmail.com',  '0612345690', '12 rue des Lilas, Lyon'),
+  ('d8e2a4b2-0000-0000-0000-000000000002', 'Claire', 'Bernard',  'claire.bernard@gmail.com',  '0612345691', '5 avenue Victor Hugo, Paris'),
+  ('d8e2a4b2-0000-0000-0000-000000000003', 'Marc',   'Petit',    'marc.petit@gmail.com',      '0612345692', '8 rue de la Paix, Bordeaux'),
+  ('d8e2a4b2-0000-0000-0000-000000000004', 'Sophie', 'Thomas',   'sophie.thomas@gmail.com',   '0612345693', '3 impasse des Roses, Nantes'),
+  ('d8e2a4b2-0000-0000-0000-000000000005', 'Pierre', 'Moulin',   'pierre.moulin@gmail.com',   '0612345694', '17 boulevard Gambetta, Marseille');
 
 -- LIAISON PARENTS ↔ ÉLÈVES
 INSERT INTO student_parents ("studentProfilesId", "parentsId") VALUES
@@ -123,15 +123,16 @@ INSERT INTO reports (id, title, description, grade, "caseNumber", "aiScore", "ai
    'a0b1c2d3-0000-0000-0000-000000000003', NOW() - INTERVAL '6 days');
 
 -- SOUPÇONNÉS
-INSERT INTO report_suspects (id, "reportId", "userId", "freeText") VALUES
-  ('d0e1f2a3-0000-0000-0000-000000000001', 'c0d1e2f3-0000-0000-0000-000000000001', 'a0b1c2d3-0000-0000-0000-000000000011', NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000002', 'c0d1e2f3-0000-0000-0000-000000000001', NULL, 'Rayan Saidi - 5eme A'),
-  ('d0e1f2a3-0000-0000-0000-000000000003', 'c0d1e2f3-0000-0000-0000-000000000002', NULL, 'Groupe inconnu Instagram'),
-  ('d0e1f2a3-0000-0000-0000-000000000004', 'c0d1e2f3-0000-0000-0000-000000000003', 'a0b1c2d3-0000-0000-0000-000000000011', NULL),
-  ('d0e1f2a3-0000-0000-0000-000000000005', 'c0d1e2f3-0000-0000-0000-000000000004', NULL, 'Mehdi Karim - 6eme B'),
-  ('d0e1f2a3-0000-0000-0000-000000000006', 'c0d1e2f3-0000-0000-0000-000000000004', NULL, 'Axel Morin - 6eme B'),
-  ('d0e1f2a3-0000-0000-0000-000000000007', 'c0d1e2f3-0000-0000-0000-000000000006', NULL, 'Thomas Girard - 4eme A'),
-  ('d0e1f2a3-0000-0000-0000-000000000008', 'c0d1e2f3-0000-0000-0000-000000000007', 'a0b1c2d3-0000-0000-0000-000000000011', NULL);
+-- freeText obligatoire (saisi par l'élève), resolvedUserId optionnel (lié par l'admin)
+INSERT INTO report_suspects (id, "reportId", "freeText", "resolvedUserId") VALUES
+  ('d0e1f2a3-0000-0000-0000-000000000001', 'c0d1e2f3-0000-0000-0000-000000000001', 'Kevin Thomas - 5eme',        'a0b1c2d3-0000-0000-0000-000000000011'),
+  ('d0e1f2a3-0000-0000-0000-000000000002', 'c0d1e2f3-0000-0000-0000-000000000001', 'Rayan Saidi - 5eme A',       NULL),
+  ('d0e1f2a3-0000-0000-0000-000000000003', 'c0d1e2f3-0000-0000-0000-000000000002', 'Groupe inconnu Instagram',   NULL),
+  ('d0e1f2a3-0000-0000-0000-000000000004', 'c0d1e2f3-0000-0000-0000-000000000003', 'Kevin Thomas - 4eme',        'a0b1c2d3-0000-0000-0000-000000000011'),
+  ('d0e1f2a3-0000-0000-0000-000000000005', 'c0d1e2f3-0000-0000-0000-000000000004', 'Mehdi Karim - 6eme B',       NULL),
+  ('d0e1f2a3-0000-0000-0000-000000000006', 'c0d1e2f3-0000-0000-0000-000000000004', 'Axel Morin - 6eme B',        NULL),
+  ('d0e1f2a3-0000-0000-0000-000000000007', 'c0d1e2f3-0000-0000-0000-000000000006', 'Thomas Girard - 4eme A',     NULL),
+  ('d0e1f2a3-0000-0000-0000-000000000008', 'c0d1e2f3-0000-0000-0000-000000000007', 'Kevin Thomas - 4eme',        'a0b1c2d3-0000-0000-0000-000000000011');
 
 -- NOTES
 INSERT INTO report_notes (id, content, type, "createdAt", "reportId", "authorId") VALUES
