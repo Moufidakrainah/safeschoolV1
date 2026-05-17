@@ -8,7 +8,7 @@ export interface AuthUser {
   role: UserRole;
   studentProfile?: {
     id: string;
-    schoolClass: string;
+    schoolClass: { id: string; level: string; section: string } | null;
     dateOfBirth: string;
   } | null;
   staffProfile?: {
@@ -24,7 +24,7 @@ export interface AdminUser {
   lastName: string;
   email: string;
   role: UserRole;
-  studentProfile?: { schoolClass: string } | null;
+  studentProfile?: { schoolClass: { id: string; level: string; section: string } | null } | null;
 }
 
 export interface UserSearchResult {
@@ -88,7 +88,7 @@ export interface Report {
     firstName: string;
     lastName: string;
     role: UserRole;
-    studentProfile?: { schoolClass: string } | null;
+    studentProfile?: { schoolClass: { id: string; level: string; section: string } | null } | null;
   };
   suspects: ReportSuspect[];
 }

@@ -22,7 +22,6 @@ class CreateReportDto {
   isAnonymous: boolean;
   suspects?: { freeText: string }[];
   frequency?: string;
-  schoolClass?: string;
 }
 
 class UpdateReportDto {
@@ -52,7 +51,6 @@ export class ReportsController {
       req.user,
       dto.suspects || [],
       dto.frequency || "",
-      dto.schoolClass || "",
     );
   }
 

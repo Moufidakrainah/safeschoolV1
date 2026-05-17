@@ -31,11 +31,10 @@ export class ReportsService {
     student: User,
     suspects: { freeText: string }[] = [],
     frequency = "",
-    schoolClass = "",
   ): Promise<Report> {
     const { finalScore, grade, aiScore, aiReason } =
       await this.scoringService.calculateScore(
-        title, description, frequency, schoolClass, suspects,
+        title, description, frequency, (student as any).studentProfile?.schoolClass?.level ?? "", suspects,
       );
 
     const year = new Date().getFullYear();

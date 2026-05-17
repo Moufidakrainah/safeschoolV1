@@ -5,6 +5,7 @@ import { StudentProfile } from '../student-profiles/student-profile.entity';
 import * as bcrypt from 'bcrypt';
 import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Report } from '../reports/report.entity';
+import { SchoolClass } from '../classes/school-class.entity';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,8 @@ constructor(
   private studentProfileRepository: Repository<StudentProfile>,
   @InjectRepository(Report)
   private reportRepository: Repository<Report>,
+  @InjectRepository(SchoolClass)
+  private classesRepository: Repository<SchoolClass>,
 ) {}
 
 
@@ -140,7 +143,7 @@ constructor(
     firstName: string;
     lastName: string;
     role: string;
-    schoolClass?: string;
+    classId?: string;
   }): Promise<User> {
     // Vérifier que l'email n'est pas déjà utilisé
     const existing = await this.usersRepository.findOne({
@@ -159,8 +162,11 @@ constructor(
     const saved = await this.usersRepository.save(user);
 
     // Si c'est un élève avec une classe, on crée son profil élève
-    if (dto.role === 'student' && dto.schoolClass) {
-      const profile = this.studentProfileRepository.create({ user: saved, schoolClass: dto.schoolClass });
+    if (dto.role === 'student') {
+      const schoolClass = dto.classId
+        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
+        : null;
+      const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
       await this.studentProfileRepository.save(profile);
     }
 
@@ -176,7 +182,7 @@ constructor(
       firstName?: string;
       lastName?: string;
       role?: string;
-      schoolClass?: string;
+      classId?: string;
     },
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
@@ -201,11 +207,15 @@ constructor(
     const saved = await this.usersRepository.save(user);
 
     // Mettre à jour ou créer le profil élève si une classe est fournie
-    if (dto.schoolClass) {
+    if (dto.classId !== undefined) {
+      const schoolClass = dto.classId
+        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
+        : null;
       if (user.studentProfile) {
-        await this.studentProfileRepository.update(user.studentProfile.id, { schoolClass: dto.schoolClass });
+        user.studentProfile.schoolClass = schoolClass;
+        await this.studentProfileRepository.save(user.studentProfile);
       } else {
-        const profile = this.studentProfileRepository.create({ user: saved, schoolClass: dto.schoolClass });
+        const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
         await this.studentProfileRepository.save(profile);
       }
     }

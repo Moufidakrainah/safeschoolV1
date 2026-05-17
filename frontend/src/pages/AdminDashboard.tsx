@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect,
+  searchUsers, resolveSuspect, getClasses,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -18,6 +18,8 @@ import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
+
+interface SchoolClass { id: string; level: string; section: string; }
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
@@ -60,13 +62,16 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const [userForm, setUserForm] = useState({
     firstName: '', lastName: '', email: '',
-    password: '', role: 'student', schoolClass: '',
+    password: '', role: 'student', classId: '',
   });
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [globalDeleteError, setGlobalDeleteError] = useState('');
   const [isBlocked, setIsBlocked] = useState(false);
+
+  // ── État classes
+  const [classes, setClasses] = useState<SchoolClass[]>([]);
 
   // ── État résolution suspects
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
@@ -76,7 +81,12 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-  useEffect(() => { fetchReports(); }, []);
+  useEffect(() => { fetchReports(); fetchClassesList(); }, []);
+
+  const fetchClassesList = async () => {
+    try { setClasses(await getClasses()); }
+    catch { console.error('Erreur chargement classes'); }
+  };
 
   const fetchReports = async () => {
     try {
@@ -131,7 +141,11 @@ export default function AdminDashboard() {
     return reports.filter((r: Report) => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
       if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-      if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
+      if (filterClass !== 'all') {
+      const sc = r.student?.studentProfile?.schoolClass;
+      const classLabel = sc ? `${sc.level} ${sc.section}` : '';
+      if (classLabel !== filterClass) return false;
+    }
       if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
       if (filterSuspect) {
         const q = filterSuspect.toLowerCase();
@@ -217,7 +231,7 @@ export default function AdminDashboard() {
       await fetchUsers();
       setShowUserForm(false);
       setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', schoolClass: '' });
+      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '' });
     } catch { console.error('Erreur sauvegarde utilisateur'); }
   };
 
@@ -318,7 +332,7 @@ export default function AdminDashboard() {
                     {([
                       { label: t('admin.detail.titleField'), value: selected.title },
                       { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
-                      { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
+                      { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ? `${selected.student.studentProfile.schoolClass.level} ${selected.student.studentProfile.schoolClass.section}` : '-' },
                       { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
                       { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
                       { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
@@ -524,8 +538,8 @@ export default function AdminDashboard() {
                   </Select>
                   <Select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allClasses')}>
                     <option value="all">{t('admin.filters.allClasses')}</option>
-                    {[...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
-                      <option key={cls} value={cls}>{cls}</option>
+                    {classes.map(c => (
+                      <option key={c.id} value={`${c.level} ${c.section}`}>{c.level} {c.section}</option>
                     ))}
                   </Select>
                   <Select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allReporters')}>
@@ -579,7 +593,7 @@ export default function AdminDashboard() {
                             </p>
                             <div className="flex gap-4 text-xs text-primary">
                               <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
-                              <span>🏫 {report.student?.studentProfile?.schoolClass ?? '-'}</span>
+                              <span>🏫 {report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
                               <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
                               {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
                               <span>{report.caseNumber}</span>
@@ -599,7 +613,7 @@ export default function AdminDashboard() {
               <section aria-labelledby="users-title">
                 <div className="flex justify-between items-center mb-5">
                   <h2 id="users-title" className="text-xl font-bold text-gray-800">👥 {t('admin.users.title')}</h2>
-                  <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', schoolClass: '' }); }}>
+                  <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '' }); }}>
                     {t('admin.users.add')}
                   </Button>
                 </div>
@@ -619,7 +633,7 @@ export default function AdminDashboard() {
                       <Input label={t('admin.users.password')} type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} theme="light" />
                       <div className="min-h-5 w-full">{errors.password && <p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>}</div>
                       <div className="text-center">
-                        <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
+                        <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value, classId: '' })} aria-label={t('admin.users.roles.label')}>
                           <option value="student">{t('admin.users.roles.student')}</option>
                           <option value="teacher">{t('admin.users.roles.teacher')}</option>
                           <option value="staff">{t('admin.users.roles.staff')}</option>
@@ -627,7 +641,7 @@ export default function AdminDashboard() {
                           <option value="director">{t('admin.users.roles.director')}</option>
                         </Select>
                         {userForm.role === 'student' && (
-                          <Select value={userForm.schoolClass} onChange={e => setUserForm({ ...userForm, schoolClass: e.target.value })} aria-label={t('admin.users.selectClass')}>
+                          <Select value={userForm.classId} onChange={e => setUserForm({ ...userForm, classId: e.target.value })} aria-label={t('admin.users.selectClass')}>
                             <option value="">{t('admin.users.selectClass')}</option>
                             <option value="6eme">6ème</option>
                             <option value="5eme">5ème</option>
@@ -656,13 +670,15 @@ export default function AdminDashboard() {
                             <span className="ml-2 text-xs text-gray-400">{u.email}</span>
                             <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
                             {u.studentProfile?.schoolClass && (
-                              <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">{u.studentProfile.schoolClass}</span>
+                              <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
+                                {u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}
+                              </span>
                             )}
                           </div>
                           <div className="flex gap-2">
                             <Button variant="outline" onClick={() => {
                               setEditingUser(u);
-                              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, schoolClass: u.studentProfile?.schoolClass || '' });
+                              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '' });
                               setShowUserForm(true);
                             }}>✏️ {t('admin.users.edit')}</Button>
                             <Button variant="danger" onClick={() => handleDeleteUser(u.id)}>🗑️ {t('admin.users.delete')}</Button>

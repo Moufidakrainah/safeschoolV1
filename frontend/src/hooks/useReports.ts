@@ -197,7 +197,11 @@ export function useReports(): UseReportsReturn {
     return reports.filter(r => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
       if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-      if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
+      if (filterClass !== 'all') {
+      const sc = r.student?.studentProfile?.schoolClass;
+      const classLabel = sc ? `${sc.level} ${sc.section}` : '';
+      if (classLabel !== filterClass) return false;
+    }
       if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
       if (filterSuspect) {
         const q = filterSuspect.toLowerCase();

@@ -44,7 +44,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
               { label: 'Prénom',            value: user?.firstName },
               { label: 'Nom',               value: user?.lastName },
               { label: 'Email',             value: user?.email },
-              { label: 'Classe',            value: user?.studentProfile?.schoolClass ?? '—' },
+              { label: 'Classe',            value: user?.studentProfile?.schoolClass ? `${user.studentProfile.schoolClass.level} ${user.studentProfile.schoolClass.section}` : '—' },
               { label: 'Date de naissance', value: user?.studentProfile?.dateOfBirth ?? '—' },
             ].map(row => (
               <tr key={row.label} className="border-b border-gray-100">

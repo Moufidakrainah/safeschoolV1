@@ -10,7 +10,7 @@ interface User {
   role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
   studentProfile?: {
     id: string;
-    schoolClass: string;
+    schoolClass: { id: string; level: string; section: string } | null;
     dateOfBirth: string;
   } | null;
   staffProfile?: {
