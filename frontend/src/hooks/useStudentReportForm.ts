@@ -40,7 +40,7 @@ export interface UseStudentReportFormReturn {
   resetForm:          () => void;
 }
 
-export function useReportForm(
+export function useStudentReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
@@ -81,8 +81,8 @@ export function useReportForm(
       const suspectsData = suspects.map(s => ({
         freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
       }));
-      const victimsData = whoSignals === 'temoin' && victimName
-        ? [{ freeText: victimName }]
+      const victimsData = victimName
+        ? victimName.split('|').filter(v => v.trim()).map(v => ({ freeText: v.trim() }))
         : [];
 
       await createReport(

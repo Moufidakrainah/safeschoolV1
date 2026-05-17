@@ -1,82 +1,50 @@
-/**
- * StudentForm — formulaire multi-étapes de signalement.
- *
- * Gère :
- *   - L'état et la logique du formulaire (via le hook useReportForm)
- *   - Les 5 étapes du formulaire + l'écran de confirmation (step 6)
- *   - La navigation entre étapes (Précédent / Suivant / Envoyer)
- *   - La validation inline (messages d'erreur sous les champs)
- *
- * Reçoit uniquement `user` en prop (pour le rôle et les options de traduction).
- */
-
-
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useReportForm } from '../../hooks/useReportForm';
+import { useStudentReportForm } from '../../hooks/useStudentReportForm';
 import Button from '../Button';
 import Card from '../Card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-
 interface StudentFormProps {
   user: AuthUser | null;
 }
 
-// ─── Composant ──────────────────────────────────────────────────────────────
-
 export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
 
+  const typeOptions = [
+    { label: 'Physique',          value: 'physique',   sub: t('reporter.step2.physicalSub')  },
+    { label: 'Verbal',            value: 'verbal',     sub: t('reporter.step2.verbalSub')    },
+    { label: 'Cyber',             value: 'cyber',      sub: t('reporter.step2.cyberSub')     },
+    { label: 'Exclusion sociale', value: 'exclusion',  sub: t('reporter.step2.exclusionSub') },
+    { label: 'Sexuel',            value: 'sexuel',     sub: t('reporter.step2.sexualSub')    },
+  ];
 
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-
-const typeOptions = [
-      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'), },
-      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),     },
-      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),      },
-      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'),  },
-      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    },
-      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     },
-];
-
-
-const [typeInput, setTypeInput] = useState("");
-const [filteredTypes, setFilteredTypes] = useState(typeOptions);
-  // Tout l'état et les handlers du formulaire viennent du hook personnalisé.
   const {
     step, setStep,
+    whoSignals, setWhoSignals,
     type, setType,
     description, setDescription,
     frequency, setFrequency,
-    whoSignals,
     isAnonymous, setIsAnonymous,
-    loading,
-    submitError,
+    loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects,
-    suspectInput,
-    suspectSuggestions,
-    searchingUsers,
+    suspects, suspectInput, suspectSuggestions, searchingUsers,
     victimName,
     victimInput, setVictimInput,
     victimSuggestions, setVictimSuggestions,
     selectedVictim, setSelectedVictim, setVictimName,
-    handleSubmit,
-    handleSuspectSearch,
-    handleVictimSearch,
-    addSuspect,
-    removeSuspect,
-    resetForm,
-  } = useReportForm(user?.role, t);
+    handleSubmit, handleSuspectSearch, handleVictimSearch,
+    addSuspect, removeSuspect, resetForm,
+  } = useStudentReportForm(user?.role, t);
 
-  // Labels des étapes affichés dans la StepBar.
   const steps = [
+    'Qui signale',
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -84,44 +52,20 @@ const [filteredTypes, setFilteredTypes] = useState(typeOptions);
     t('reporter.steps.validate'),
   ];
 
+  useEffect(() => {
+    const index = typeOptions.findIndex(o => o.value === type);
+    if (index >= 0) cardRefs.current[index]?.focus();
+  }, [type]);
 
-
-
-
-
-const handleTypeSearch = (value: string) => {
-  setTypeInput(value);
-  setFilteredTypes(
-    typeOptions.filter(opt =>
-      opt.label.toLowerCase().includes(value.toLowerCase())
-    )
-  );
-};
-
-
-
-const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-useEffect(() => {
-  const index = typeOptions.findIndex(o => o.label === type);
-  if (index >= 0) {
-    cardRefs.current[index]?.focus();
-  }
-}, [type]);
-
-
-
-  // ── Écran de confirmation (step 6) ──────────────────────────────────────
-  if (step === 6) {
+  // Écran de confirmation
+  if (step === 7) {
     return (
       <main className="bg-gray-50 font-sans">
-    <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
-
-
+        <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
           <Card className="max-w-md w-full mx-5 text-center">
-            <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
+            <div className="text-5xl mb-4">✅</div>
             <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
             <div className="bg-surface rounded-lg p-4 mb-6 text-left">
@@ -134,185 +78,86 @@ useEffect(() => {
     );
   }
 
-  // ── Formulaire multi-étapes (steps 1 à 5) ───────────────────────────────
   return (
     <main className="bg-gray-50 font-sans">
-    <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
-
-
+      <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card>
 
-          {/* Étape 1 : Type de harcèlement */}
-          {/* {step === 1 && (
+          {/* Étape 1 : Victime ou témoin */}
+          {step === 1 && (
+            <fieldset>
+              <legend className="text-gray-800 font-bold text-lg mb-2">
+                Tu signales en tant que ?
+              </legend>
+              <p className="text-gray-500 text-sm mb-6">Sélectionne ta situation</p>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setWhoSignals('victime')}
+                  className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
+                    whoSignals === 'victime' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <div className="text-3xl mb-2">🙋</div>
+                  <div className="text-sm font-semibold text-gray-800">Je suis la victime</div>
+                  <div className="text-xs text-gray-400 mt-1">Le harcèlement me vise directement</div>
+                </button>
+                <button
+                  onClick={() => setWhoSignals('temoin')}
+                  className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
+                    whoSignals === 'temoin' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <div className="text-3xl mb-2">👁️</div>
+                  <div className="text-sm font-semibold text-gray-800">Je suis témoin</div>
+                  <div className="text-xs text-gray-400 mt-1">J'ai été témoin de harcèlement</div>
+                </button>
+              </div>
+              {showErrors && !whoSignals && (
+                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ Veuillez choisir votre situation</p>
+              )}
+            </fieldset>
+          )}
+
+          {/* Étape 2 : Type de harcèlement */}
+          {step === 2 && (
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
-              <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                {typeOptions.map(opt => (
-                  <button
-                    key={opt.label}
+              <div role="radiogroup" aria-label={t('reporter.step2.title')} className="grid grid-cols-2 gap-3">
+                {typeOptions.map((opt, index) => (
+                  <div
+                    key={opt.value}
+                    ref={el => (cardRefs.current[index] = el)}
                     role="radio"
-                    aria-checked={type === opt.label}
-                    onClick={() => setType(opt.label)}
-                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                      type === opt.label ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
-                    }`}
+                    aria-checked={type === opt.value}
+                    tabIndex={type === opt.value ? 0 : -1}
+                    onClick={() => setType(opt.value)}
+                    onKeyDown={(e) => {
+                      const currentIndex = typeOptions.findIndex(o => o.value === type);
+                      const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
+                      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setType(opt.value); }
+                      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); setType(typeOptions[(fallbackIndex + 1) % typeOptions.length].value); }
+                      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setType(typeOptions[(fallbackIndex - 1 + typeOptions.length) % typeOptions.length].value); }
+                    }}
+                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none ${
+                      type === opt.value ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    } focus-visible:ring-2 focus-visible:ring-primary`}
                   >
-                    <div className="text-2xl mb-1" role="img" aria-hidden="true">{opt.icon}</div>
                     <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
                     <div className="text-xs text-gray-400">{opt.sub}</div>
-                  </button>
+                  </div>
                 ))}
               </div>
               {showErrors && !type && (
                 <p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
               )}
             </fieldset>
-          )} */}
+          )}
 
-	
-
-
-{step === 1 && (
-  <fieldset>
-    <legend className="text-gray-800 font-bold text-lg mb-2">
-      {t('reporter.step2.title')}
-    </legend>
-
-    <p className="text-gray-500 text-sm mb-6">
-      {t('reporter.step2.subtitle')}
-    </p>
-
-    {/* <div
-      role="radiogroup"
-      aria-label={t('reporter.step2.title')}
-      className="grid grid-cols-2 gap-3"
-    >
-      {typeOptions.map((opt, index) => (
-        <div
-          key={opt.label}
-          role="radio"
-          aria-checked={type === opt.label}
-          tabIndex={type === opt.label ? 0 : -1}
-          onClick={() => setType(opt.label)}
-			onKeyDown={(e) => {
-  const currentIndex = typeOptions.findIndex(o => o.label === type);
-  const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
-
-  // ✔ Valider la carte focusée
-  if (e.key === " " || e.key === "Enter") {
-    e.preventDefault();
-    setType(opt.label);
-  }
-
-  // ✔ Aller à la carte suivante
-  if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-    e.preventDefault();
-    const next = (fallbackIndex + 1) % typeOptions.length;
-    setType(typeOptions[next].label);
-  }
-
-  // ✔ Aller à la carte précédente
-  if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-    e.preventDefault();
-    const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
-    setType(typeOptions[prev].label);
-  }
-}}
-
-
-          className={`
-            px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
-            ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
-            focus-visible:ring-2 focus-visible:ring-primary
-          `}
-        >
-          <div className="text-2xl mb-1" aria-hidden="true">
-            {opt.icon}
-          </div>
-          <div className="text-sm font-semibold text-gray-800">
-            {opt.label}
-          </div>
-          <div className="text-xs text-gray-400">
-            {opt.sub}
-          </div>
-        </div>
-      ))}
-    </div> */}
-
-<div
-  role="radiogroup"
-  aria-label={t('reporter.step2.title')}
-  className="grid grid-cols-2 gap-3"
->
-  {typeOptions.map((opt, index) => (
-    <div
-      key={opt.label}
-      ref={el => (cardRefs.current[index] = el)}
-      role="radio"
-      aria-checked={type === opt.label}
-      tabIndex={type === opt.label ? 0 : -1}
-      onClick={() => setType(opt.label)}
-      onKeyDown={(e) => {
-        const currentIndex = typeOptions.findIndex(o => o.label === type);
-        const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
-
-        // ✔ Valider la carte focusée
-        if (e.key === " " || e.key === "Enter") {
-          e.preventDefault();
-          setType(opt.label);
-        }
-
-        // ✔ Aller à la carte suivante
-        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-          e.preventDefault();
-          const next = (fallbackIndex + 1) % typeOptions.length;
-          setType(typeOptions[next].label);
-        }
-
-        // ✔ Aller à la carte précédente
-        if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-          e.preventDefault();
-          const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
-          setType(typeOptions[prev].label);
-        }
-      }}
-      className={`
-        px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
-        ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
-        focus-visible:ring-2 focus-visible:ring-primary
-      `}
-    >
-      <div className="text-2xl mb-1" aria-hidden="true">
-        {opt.icon}
-      </div>
-
-      <div className="text-sm font-semibold text-gray-800">
-        {opt.label}
-      </div>
-
-      <div className="text-xs text-gray-400">
-        {opt.sub}
-      </div>
-    </div>
-  ))}
-</div>
-
-    {showErrors && !type && (
-      <p role="alert" className="mt-3 text-sm text-red-600">
-        ⚠️ {t('reporter.validation.typeRequired')}
-      </p>
-    )}
-  </fieldset>
-)}
-
-
-
-
-          {/* Étape 2 : Description des faits + fréquence */}
-          {step === 2 && (
+          {/* Étape 3 : Description + fréquence */}
+          {step === 3 && (
             <div>
               <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step3.title')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step3.subtitle')}</p>
@@ -325,7 +170,6 @@ useEffect(() => {
                 onChange={e => setDescription(e.target.value)}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
-                aria-required="true"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
               {showErrors && !description && (
@@ -338,7 +182,6 @@ useEffect(() => {
                 id="frequency"
                 value={frequency}
                 onChange={e => setFrequency(e.target.value)}
-                aria-required="true"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
               >
                 <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
@@ -353,68 +196,103 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Étape 3 : Victime et suspects */}
-          {step === 3 && (
+          {/* Étape 4 : Victime et suspects */}
+          {step === 4 && (
             <div>
               <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step4.title')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step4.subtitle')}</p>
 
-              {/* Victime */}
-              <label className="block mb-2 text-sm font-semibold text-gray-700">
-                {t('reporter.step4.victimLabel')}
-              </label>
-              <Autocomplete
-                value={victimInput}
-                onChange={handleVictimSearch}
-                suggestions={victimSuggestions}
-                onSelect={s => {
-                  setSelectedVictim(s);
-                  setVictimName(`${s.firstName} ${s.lastName}`);
-                  setVictimInput(`${s.firstName} ${s.lastName}`);
-                  setVictimSuggestions([]);
-                }}
-                placeholder={t('reporter.step4.searchPlaceholder')}
-                label={t('reporter.step4.victimLabel')}
-              />
-              {selectedVictim && (
-                <p className="mt-2 bg-green-50 px-3 py-1 rounded-lg text-sm text-green-500 inline-block" role="status">
-                  ✅ {selectedVictim.firstName} {selectedVictim.lastName} {t('reporter.step4.selected')}
-                </p>
-              )}
+              {/* Victimes — saisie libre, plusieurs possibles */}
+              <>
+                <label className="block mb-2 text-sm font-semibold text-gray-700">
+                  {whoSignals === 'victime' ? 'Autres victimes (optionnel)' : t('reporter.step4.victimLabel')}
+                </label>
+                {whoSignals === 'victime' && (
+                  <p className="text-xs text-gray-400 mb-2">Tu es déjà enregistré(e) comme victime. Tu peux ajouter d'autres victimes si besoin.</p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={victimInput}
+                    onChange={e => setVictimInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && victimInput.trim()) {
+                        e.preventDefault();
+                        setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
+                        setVictimInput('');
+                      }
+                    }}
+                    placeholder="Ex: Prénom Nom - Classe"
+                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (victimInput.trim()) {
+                        setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
+                        setVictimInput('');
+                      }
+                    }}
+                    disabled={!victimInput.trim()}
+                  >
+                    + Ajouter
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Appuie sur Entrée ou clique sur Ajouter</p>
+                {victimName && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {victimName.split('|').map((v, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full text-sm text-blue-600">
+                        <span>{v}</span>
+                        <button
+                          onClick={() => {
+                            const arr = victimName.split('|').filter((_, idx) => idx !== i);
+                            setVictimName(arr.join('|'));
+                          }}
+                          className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-5" />
+              </>
 
-              {/* Suspects */}
-              <label className="block mt-5 mb-2 text-sm font-semibold text-gray-700">
+              {/* Suspects — saisie libre uniquement, pas d'autocomplete */}
+              <label className="block mb-2 text-sm font-semibold text-gray-700">
                 {t('reporter.step4.suspectsLabel')}
               </label>
-              <Autocomplete
-                value={suspectInput}
-                onChange={handleSuspectSearch}
-                suggestions={suspectSuggestions}
-                onSelect={addSuspect}
-                placeholder={t('reporter.step4.searchPlaceholder')}
-                label={t('reporter.step4.suspectsLabel')}
-              />
-              {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={suspectInput}
+                  onChange={e => { const { setSuspectInput } = {} as any; handleSuspectSearch(e.target.value); }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && suspectInput.trim()) {
+                      e.preventDefault();
+                      addSuspect({ firstName: suspectInput.trim(), lastName: '' });
+                    }
+                  }}
+                  placeholder="Ex: Prénom Nom - Classe"
+                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
                 <Button
                   variant="outline"
-                  onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
-                  className="mt-3"
+                  onClick={() => { if (suspectInput.trim()) addSuspect({ firstName: suspectInput.trim(), lastName: '' }); }}
+                  disabled={!suspectInput.trim()}
                 >
-                  + {t('reporter.step4.addFreeText')} "{suspectInput}"
+                  + Ajouter
                 </Button>
-              )}
+              </div>
+              <p className="text-xs text-gray-400 mt-1">Appuie sur Entrée ou clique sur Ajouter</p>
               {suspects.length > 0 ? (
                 <div className="mt-4">
                   <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p>
-                  <div className="flex flex-wrap gap-2" role="list" aria-label={t('reporter.step4.suspectsAdded')}>
+                  <div className="flex flex-wrap gap-2">
                     {suspects.map((s, i) => (
-                      <div key={i} role="listitem" className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
                         <span>{s.firstName} {s.lastName}</span>
-                        <button
-                          onClick={() => removeSuspect(i)}
-                          aria-label={`${t('reporter.step4.removeSuspect')} ${s.firstName} ${s.lastName}`}
-                          className="text-red-500 font-bold cursor-pointer bg-transparent border-none"
-                        >×</button>
+                        <button onClick={() => removeSuspect(i)} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
                       </div>
                     ))}
                   </div>
@@ -425,8 +303,8 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Étape 4 : Preuves (à venir) */}
-          {step === 4 && (
+          {/* Étape 5 : Preuves */}
+          {step === 5 && (
             <div>
               <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step5.title')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step5.subtitle')}</p>
@@ -436,23 +314,23 @@ useEffect(() => {
             </div>
           )}
 
-          {/* Étape 5 : Récapitulatif + envoi */}
-          {step === 5 && (
+          {/* Étape 6 : Récapitulatif */}
+          {step === 6 && (
             <div>
               <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step6.title')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step6.subtitle')}</p>
               <dl className="bg-gray-50 rounded-lg p-4 mb-5 text-sm space-y-2">
                 {([
-                  { label: t('reporter.step6.who'),         value: whoSignals  },
-                  { label: t('reporter.step6.type'),        value: type        },
+                  { label: 'Situation',                value: whoSignals === 'victime' ? 'Je suis la victime' : 'Je suis témoin' },
+                  { label: t('reporter.step6.type'),   value: type        },
                   { label: t('reporter.step6.description'), value: description },
                   { label: t('reporter.step6.frequency'),   value: frequency   },
-                  ...(victimName ? [{ label: t('reporter.step6.victim'), value: victimName }] : []),
+                  ...(victimName ? [{ label: 'Victime(s)', value: victimName.split('|').join(', ') }] : []),
                   ...(suspects.length > 0 ? [{ label: t('reporter.step6.suspects'), value: suspects.map(s => `${s.firstName} ${s.lastName}`).join(', ') }] : []),
                 ] as const).map(row => (
                   <div key={row.label} className="flex gap-2">
                     <dt className="font-semibold text-gray-700 min-w-[120px]">{row.label} :</dt>
-                    <dd className="text-gray-600 wrap-break-word min-w-0">{row.value}</dd>
+                    <dd className="text-gray-600 break-words min-w-0">{row.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -462,43 +340,28 @@ useEffect(() => {
                   checked={isAnonymous}
                   onChange={e => setIsAnonymous(e.target.checked)}
                   className="w-4 h-4"
-                  aria-label={t('reporter.step6.anonymous')}
                 />
-                <span>
-                  <strong>{t('reporter.step6.anonymous')}</strong> — {t('reporter.step6.anonymousDesc')}
-                </span>
+                <span><strong>{t('reporter.step6.anonymous')}</strong> — {t('reporter.step6.anonymousDesc')}</span>
               </label>
-              {/* Bandeau d'erreur si la soumission précédente a échoué */}
               {submitError && (
-                <div
-                  role="alert"
-                  className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2"
-                >
-                  <span aria-hidden="true">⚠️</span>
-                  {submitError}
+                <div role="alert" className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2">
+                  <span>⚠️</span>{submitError}
                 </div>
               )}
             </div>
           )}
 
-          {/* Boutons de navigation entre étapes */}
+          {/* Navigation */}
           <div className="flex justify-between mt-8">
-            <Button
-              variant="ghost"
-              onClick={() => { setShowErrors(false); setStep(s => s - 1); }}
-              disabled={step === 1}
-            >
+            <Button variant="ghost" onClick={() => { setShowErrors(false); setStep(s => s - 1); }} disabled={step === 1}>
               ← {t('common.previous')}
             </Button>
-            {step < 5 ? (
-              <Button
-                onClick={() => {
-                  if (isNextDisabled) { setShowErrors(true); return; }
-                  setShowErrors(false);
-                  setStep(s => s + 1);
-                }}
-                disabled={isNextDisabled}
-              >
+            {step < 6 ? (
+              <Button onClick={() => {
+                if (isNextDisabled) { setShowErrors(true); return; }
+                setShowErrors(false);
+                setStep(s => s + 1);
+              }}>
                 {t('common.next')} →
               </Button>
             ) : (
