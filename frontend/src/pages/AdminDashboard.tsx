@@ -41,6 +41,7 @@ export default function AdminDashboard() {
   const [filterClass, setFilterClass] = useState('all');
   const [filterStudent, setFilterStudent] = useState('all');
   const [filterSuspect, setFilterSuspect] = useState('');
+  const [filterVictim, setFilterVictim] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -147,7 +148,17 @@ export default function AdminDashboard() {
       if (classLabel !== filterClass) return false;
     }
       if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
-      if (filterSuspect) {
+      if (filterVictim) {
+      const q = filterVictim.toLowerCase();
+      const match =
+        (r.reporter === 'victime' && `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase().includes(q)) ||
+        (r.reporter === 'temoin' && r.victims?.some(v =>
+          v.freeText.toLowerCase().includes(q) ||
+          (v.resolvedUser && `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`.toLowerCase().includes(q))
+        ));
+      if (!match) return false;
+    }
+    if (filterSuspect) {
         const q = filterSuspect.toLowerCase();
         const match = r.suspects?.some(s =>
           (s.freeText?.toLowerCase() ?? '').includes(q) ||
@@ -168,7 +179,7 @@ export default function AdminDashboard() {
       }
       return true;
     });
-  }, [reports, filterGrade, filterStatus, filterClass, filterStudent, filterSuspect, filterDateFrom, filterDateTo, search]);
+  }, [reports, filterGrade, filterStatus, filterClass, filterStudent, filterVictim, filterSuspect, filterDateFrom, filterDateTo, search]);
 
   const totalPages = useMemo(() => Math.ceil(filtered.length / itemsPerPage), [filtered, itemsPerPage]);
   const paginated = useMemo(() => {
@@ -181,13 +192,12 @@ export default function AdminDashboard() {
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
-    escalated: reports.filter(r => r.status === 'escalated').length,
   }), [reports]);
 
   const handleReset = () => {
     setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all');
     setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo('');
-    setFilterSuspect(''); setSearch(''); setCurrentPage(1);
+    setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1);
     setResetKey(k => k + 1);
   };
 
@@ -305,13 +315,15 @@ export default function AdminDashboard() {
 
             {/* Statut + actions */}
             <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-              <Badge variant={selected.status as BadgeVariant} />
+              <div className="flex items-center gap-3">
+                <Badge variant={selected.status as BadgeVariant} />
+                <Button variant="ghost" onClick={() => { setView('list'); setSelected(null); }}>← {t('common.back')}</Button>
+              </div>
               {isAdmin && (
                 <div className="flex gap-2 flex-wrap" role="group" aria-label={t('admin.actions.groupLabel')}>
                   {([
                     { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
-                    { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
-                    { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
+                          { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
                     { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
                   ] as const).map(btn => (
                     <Button key={btn.status} variant={btn.variant} disabled={saving}
@@ -579,7 +591,7 @@ export default function AdminDashboard() {
 
             {viewSection === 'reports' && (
               <>
-                <div className="grid grid-cols-5 gap-4 mb-8" role="group" aria-label={t('admin.stats.groupLabel')}>
+                <div className="grid grid-cols-4 gap-4 mb-8" role="group" aria-label={t('admin.stats.groupLabel')}>
                   <StatCard label={t('admin.stats.total')} value={stats.total} color="#1a1a2e"
                     active={filterGrade === 'all' && filterStatus === 'all'}
                     onClick={() => { setFilterGrade('all'); setFilterStatus('all'); setCurrentPage(1); }} />
@@ -592,9 +604,7 @@ export default function AdminDashboard() {
                   <StatCard label={t('admin.stats.pending')} value={stats.pending} color="#eab308"
                     active={filterStatus === 'pending'}
                     onClick={() => { setFilterStatus('pending'); setFilterGrade('all'); setCurrentPage(1); }} />
-                  <StatCard label={t('admin.stats.escalated')} value={stats.escalated} color="#7c3aed"
-                    active={filterStatus === 'escalated'}
-                    onClick={() => { setFilterStatus('escalated'); setFilterGrade('all'); setCurrentPage(1); }} />
+
                 </div>
 
                 <div className="mb-5">
@@ -608,7 +618,6 @@ export default function AdminDashboard() {
                     <option value="all">{t('admin.filters.allStatuses')}</option>
                     <option value="pending">{t('admin.status.pending')}</option>
                     <option value="in_progress">{t('admin.status.in_progress')}</option>
-                    <option value="escalated">{t('admin.status.escalated')}</option>
                     <option value="closed">{t('admin.status.closed')}</option>
                     <option value="rejected">{t('admin.status.rejected')}</option>
                   </Select>
@@ -624,6 +633,12 @@ export default function AdminDashboard() {
                       <option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</option>
                     ))}
                   </Select>
+                  <input type="search" value={filterVictim}
+                    onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }}
+                    placeholder="Nom de la victime..."
+                    aria-label="Filtrer par victime"
+                    className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  />
                   <input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                     placeholder={t('admin.filters.suspectPlaceholder')} aria-label={t('admin.filters.suspectPlaceholder')}
                     className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700" />

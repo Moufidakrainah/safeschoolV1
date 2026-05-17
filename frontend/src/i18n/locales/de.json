@@ -177,7 +177,8 @@
     "previous": "Zurück",
     "next": "Weiter",
     "error": "Ein Fehler ist aufgetreten",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück"
   },
   "privacy": {
     "updated": "Letzte Aktualisierung: April 2026",

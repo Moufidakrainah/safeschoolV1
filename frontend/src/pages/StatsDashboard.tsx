@@ -22,7 +22,7 @@ export default function StatsDashboard({ reports }: Props) {
     if (period === '365') return (now.getTime() - date.getTime()) <= 365 * 86400000;
     return true;
   })
-    .filter(r => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
+    .filter(r => { const sc = r.student?.studentProfile?.schoolClass; const label = sc ? `${sc.level} ${sc.section}` : ''; return filterClass === 'all' || label === filterClass; })
     .filter(r => filterGrade === 'all' || r.grade === filterGrade);
 	}, [reports, period, filterClass, filterGrade]);
 
@@ -37,9 +37,9 @@ export default function StatsDashboard({ reports }: Props) {
   }).filter(d => d.value > 0);
   }, [filtered]);
 
-  const classes = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
+  const classes = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
   const classData = useMemo(() => {
-  const classes = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
+  const classes = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
 
   return classes.map(c => ({
     classe: c,
@@ -51,12 +51,12 @@ export default function StatsDashboard({ reports }: Props) {
 
  
   const typeData = useMemo(() => {
-  const types = ['Physique', 'Verbal', 'Cyber', 'Exclusion sociale', 'Sexuel', 'Autre'];
+  const types = ['physique', 'verbal', 'cyber', 'exclusion', 'sexuel'];
 
   return types
     .map(t => ({
-      type: t,
-      count: filtered.filter(r => r.type?.includes(t)).length,
+      type: t.charAt(0).toUpperCase() + t.slice(1),
+      count: filtered.filter(r => r.type === t).length,
     }))
     .filter(d => d.count > 0);
 }, [filtered]);
@@ -67,7 +67,6 @@ const statusData = useMemo(() => {
   const statuses = [
     { name: 'En attente', key: 'pending',     color: '#eab308' },
     { name: 'En cours',   key: 'in_progress', color: '#0f3460' },
-    { name: 'Escaladé',   key: 'escalated',   color: '#7c3aed' },
     { name: 'Clôturé',    key: 'closed',      color: '#22c55e' },
     { name: 'Rejeté',     key: 'rejected',    color: '#dc2626' },
   ];
@@ -99,7 +98,7 @@ const last7Days = useMemo(() => {
 
 
 
-  const allClasses = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
+  const allClasses = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
 
   return (
     <main>

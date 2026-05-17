@@ -177,7 +177,8 @@
     "previous": "Précédent",
     "next": "Suivant",
     "error": "Une erreur est survenue",
-    "close": "Fermer"
+    "close": "Fermer",
+    "back": "Retour"
   },
   "reporter": {
     "nav": {
