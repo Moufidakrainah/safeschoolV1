@@ -49,6 +49,7 @@ export default function AdminDashboard() {
   const [filterClass, setFilterClass] = useState('all');
   const [filterStudent, setFilterStudent] = useState('all');
   const [filterSuspect, setFilterSuspect] = useState('');
+  const [filterVictim, setFilterVictim] = useState('');
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -143,6 +144,19 @@ const filtered = useMemo(() => {
       if (!match) return false;
     }
 
+    if (filterVictim) {
+      const q = filterVictim.toLowerCase();
+      const title = r.title?.toLowerCase() ?? '';
+      let victim: string | null = null;
+      if (title.includes('victime') && r.student) {
+        victim = `${r.student.firstName} ${r.student.lastName}`.toLowerCase();
+      } else if ((title.includes('témoin') || title.includes('temoin')) && r.description) {
+        const match = r.description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
+        victim = match ? match[1].trim().toLowerCase() : null;
+      }
+      if (!victim || !victim.includes(q)) return false;
+    }
+
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
 
     if (filterDateTo) {
@@ -170,6 +184,7 @@ const filtered = useMemo(() => {
   filterClass,
   filterStudent,
   filterSuspect,
+  filterVictim,
   filterDateFrom,
   filterDateTo,
   search
@@ -205,6 +220,7 @@ const stats = useMemo(() => {
     setFilterDateFrom('');
     setFilterDateTo('');
     setFilterSuspect('');
+    setFilterVictim('');
     setSearch('');
     setCurrentPage(1);
     setResetKey(k => k + 1);
@@ -693,6 +709,15 @@ const classOptions = Array.from(
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
+                className="px-1 py-2"
+              />
+
+              <Input
+                type="search"
+                value={filterVictim}
+                onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }}
+                placeholder={t('admin.filters.victimPlaceholder')}
+                aria-label={t('admin.filters.victimPlaceholder')}
                 className="px-1 py-2"
               />
 

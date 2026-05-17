@@ -211,7 +211,7 @@ export function useReportForm(
    * Appelé après un envoi réussi (bouton "Nouveau signalement").
    */
   const resetForm = () => {
-    setStep(1);
+    setStep(0);
     setType('');
     setDescription('');
     setFrequency('');

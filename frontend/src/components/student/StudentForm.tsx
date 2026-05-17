@@ -11,9 +11,9 @@
  */
 
 
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useReportForm } from '../../hooks/useReportForm';
+import { useReportForm } from '../../hooks/useStudentReportForm';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Textarea } from '../ui/textarea';
@@ -37,14 +37,14 @@ export default function StudentForm({ user }: StudentFormProps) {
 
 
 
-const typeOptions = [
+const typeOptions = useMemo(() => [
       { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
       { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
       { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
       { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
       { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
       { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
-];
+  ], [t]);
 
 
 const [typeInput, setTypeInput] = useState("");
@@ -55,7 +55,7 @@ const [filteredTypes, setFilteredTypes] = useState(typeOptions);
     type, setType,
     description, setDescription,
     frequency, setFrequency,
-    whoSignals,
+    whoSignals, setWhoSignals,
     isAnonymous, setIsAnonymous,
     loading,
     submitError,
@@ -79,6 +79,7 @@ const [filteredTypes, setFilteredTypes] = useState(typeOptions);
 
   // Labels des étapes affichés dans la StepBar.
   const steps = [
+    t('reporter.steps.who'),
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -103,13 +104,25 @@ const handleTypeSearch = (value: string) => {
 
 
 const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+const whoRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+// Auto-focus le bon élément à chaque changement d'étape
+useEffect(() => {
+  if (step === 0) {
+    whoRefs.current[0]?.focus();
+  } else if (step === 1) {
+    const idx = typeOptions.findIndex(o => o.label === type);
+    cardRefs.current[idx >= 0 ? idx : 0]?.focus();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [step]);
 
 useEffect(() => {
   const index = typeOptions.findIndex(o => o.label === type);
   if (index >= 0) {
     cardRefs.current[index]?.focus();
   }
-}, [type]);
+}, [type, typeOptions]);
 
 
 
@@ -146,6 +159,47 @@ useEffect(() => {
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
         <Card className="p-6 shadow-sm">
 
+          {/* Étape 0 : Qui signale ? */}
+          {step === 0 && (
+            <fieldset>
+              <legend className="text-gray-800 font-bold text-lg mb-2">{t('student.step1.title')}</legend>
+              <p className="text-gray-500 text-sm mb-6">{t('student.step1.subtitle')}</p>
+              <div className="flex flex-col gap-3" role="radiogroup" aria-label={t('student.step1.title')}>
+                {[t('student.step1.victim'), t('student.step1.witness')].map((option, idx, arr) => (
+                  <button
+                    key={option}
+                    ref={el => (whoRefs.current[idx] = el)}
+                    role="radio"
+                    aria-checked={whoSignals === option}
+                    tabIndex={whoSignals === option || (!whoSignals && idx === 0) ? 0 : -1}
+                    onClick={() => setWhoSignals(option)}
+                    onKeyDown={(e) => {
+                      const cur = arr.findIndex(o => o === whoSignals);
+                      const fallback = cur === -1 ? 0 : cur;
+                      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const next = (fallback + 1) % arr.length;
+                        setWhoSignals(arr[next]);
+                        whoRefs.current[next]?.focus();
+                      }
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prev = (fallback - 1 + arr.length) % arr.length;
+                        setWhoSignals(arr[prev]);
+                        whoRefs.current[prev]?.focus();
+                      }
+                    }}
+                    className={`px-4 py-4 rounded-lg cursor-pointer text-left transition-all border-2 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      whoSignals === option ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+
           {/* Étape 1 : Type de harcèlement */}
           {step === 1 && (
   <fieldset>
@@ -168,7 +222,7 @@ useEffect(() => {
       ref={el => (cardRefs.current[index] = el)}
       role="radio"
       aria-checked={type === opt.label}
-      tabIndex={type === opt.label ? 0 : -1}
+      tabIndex={type === opt.label || (!type && index === 0) ? 0 : -1}
       onClick={() => setType(opt.label)}
       onKeyDown={(e) => {
         const currentIndex = typeOptions.findIndex(o => o.label === type);
@@ -185,6 +239,7 @@ useEffect(() => {
           e.preventDefault();
           const next = (fallbackIndex + 1) % typeOptions.length;
           setType(typeOptions[next].label);
+          cardRefs.current[next]?.focus();
         }
 
         // ✔ Aller à la carte précédente
@@ -192,6 +247,7 @@ useEffect(() => {
           e.preventDefault();
           const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
           setType(typeOptions[prev].label);
+          cardRefs.current[prev]?.focus();
         }
       }}
       className={`
@@ -399,7 +455,7 @@ useEffect(() => {
             <Button
               variant="ghost"
               onClick={() => { setShowErrors(false); setStep(s => s - 1); }}
-              disabled={step === 1}
+              disabled={step === 0}
             >
               ← {t('common.previous')}
             </Button>

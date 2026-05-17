@@ -1,37 +1,8 @@
-# Audit SafeSchool — Bugs & Tickets consolidés
+# Audit — Bugs & Tickets consolidés
 
-> Dernière mise à jour : 17 mai 2026
-> Source : review code + session de travail PM
-> Ce fichier est la référence unique. Tout ce qui est listé ici a été vérifié dans le code.
-
----
 
 ## ⛔ BLOQUANTS — Critères de rejet du projet
 
-### [INFRA] Pas de HTTPS — exigence obligatoire du sujet
-
-> **Sujet** : *"Any connection to the backend, from a browser, from a script, from an external API, must use HTTPS."*
-> Si non corrigé avant la soutenance : **rejet automatique du projet, indépendamment des modules.**
-
-**C'est quoi le problème ?**
-Toute l'application tourne en HTTP pur. Les tokens JWT, les mots de passe et les données d'élèves circulent en clair sur le réseau. Les connexions WebSocket du quiz sont également non chiffrées (`ws://` au lieu de `wss://`).
-
-**Travail attendu**
-- Ajouter un service nginx dans docker-compose.yml (reverse proxy unique, port 443 exposé)
-- Redirection automatique HTTP (80) → HTTPS (443)
-- Certificat TLS autosigné pour le dev (Let's Encrypt ou équivalent en prod)
-- Configuration WebSocket : transmettre les headers `Upgrade` et `Connection`
-- Supprimer l'exposition directe des ports 5173 et 5000
-- Mettre à jour le CORS backend pour pointer sur l'origin HTTPS
-
-**Critères d'acceptation**
-- `http://localhost` redirige vers `https://localhost`
-- La connexion WebSocket passe en `wss://`
-- Aucun avertissement "mixed content" dans la console navigateur
-
-**Assigné à** : backend / devops
-
----
 
 ### [MODULE] Swagger/OpenAPI manquant — 2 pts Major perdus d'emblée
 

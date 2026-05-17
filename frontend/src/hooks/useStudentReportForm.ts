@@ -83,14 +83,14 @@ export function useReportForm(
 
   // "Qui signale" est pré-rempli selon le rôle : teacher → libellé teacher, sinon staff.
   // La valeur est calculée une seule fois à l'initialisation du hook.
-  const defaultWho = userRole === 'student' => t('student.step1.teacher');
+  const defaultWho = userRole === 'student' ;
 
   // ── État des étapes ─────────────────────────────────────────────────────
   // step 1-5 = étapes du formulaire, step 6 = écran de confirmation
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
 
   // ── Champs du formulaire ────────────────────────────────────────────────
-  const [whoSignals,   setWhoSignals]   = useState(defaultWho);
+  const [whoSignals,   setWhoSignals]   = useState<string>('');
   const [type,         setType]         = useState('');
   const [description,  setDescription]  = useState('');
   const [frequency,    setFrequency]    = useState('');
@@ -209,7 +209,7 @@ export function useReportForm(
    * Appelé après un envoi réussi (bouton "Nouveau signalement").
    */
   const resetForm = () => {
-    setStep(1);
+    setStep(0);
     setType('');
     setDescription('');
     setFrequency('');
