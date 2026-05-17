@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -63,18 +64,16 @@ export class ReportsController {
     return this.reportsService.findAll();
   }
 
-    @Get("victims/search")
+  @Get("victims/search")
   async searchByVictim(@Query("name") name: string, @Request() req) {
     if (req.user.role !== "admin" && req.user.role !== "director") {
       throw new ForbiddenException("Access denied");
     }
-    if (!name || name.trim().length < 2) {
-      return [];
-    }
+    if (!name || name.trim().length < 2) return [];
     return this.reportsService.findByVictimName(name.trim());
   }
 
-    @Get("victims/stats")
+  @Get("victims/stats")
   async victimStats(@Request() req) {
     if (req.user.role !== "admin" && req.user.role !== "director") {
       throw new ForbiddenException("Access denied");
@@ -82,7 +81,16 @@ export class ReportsController {
     return this.reportsService.countByVictim();
   }
 
-
+  @Patch("suspects/:suspectId/resolve")
+  async resolveSuspect(
+    @Param("suspectId") suspectId: string,
+    @Body() dto: { resolvedUserId: string | null },
+    @Request() req,
+  ) {
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Access denied");
+    return this.reportsService.resolveSuspect(suspectId, dto.resolvedUserId);
+  }
 
   @Get(":id")
   async findOne(@Param("id") id: string, @Request() req) {
@@ -144,3 +152,5 @@ export class ReportsController {
     );
   }
 }
+
+

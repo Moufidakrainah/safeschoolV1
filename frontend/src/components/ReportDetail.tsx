@@ -1,22 +1,12 @@
-/**
- * ReportDetail — vue détail d'un signalement.
- *
- * Affiche toutes les informations d'un signalement sélectionné :
- * informations générales, personnes impliquées, description,
- * notes administratives et convocations.
- *
- * Extrait de AdminDashboard pour réduire sa taille.
- */
-
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import Button from './Button';
 import Badge, { type BadgeVariant } from './Badge';
 import Card from './Card';
 import NoteBlock from './NoteBlock';
-import type { Report, Note } from '../types';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { searchUsers, resolveSuspect } from '../services/api';
+import type { Report, Note, ReportSuspect, UserSearchResult } from '../types';
 
 interface ReportDetailProps {
   selected:             Report;
@@ -36,9 +26,8 @@ interface ReportDetailProps {
   handleUpdateStatus:   (id: string, status: string) => Promise<void>;
   handleAddNote:        (type?: string) => Promise<void>;
   onBack:               () => void;
+  onSuspectResolved?:   () => void;
 }
-
-// ─── Composant ────────────────────────────────────────────────────────────────
 
 export default function ReportDetail({
   selected, filtered, notes, isAdmin, saving,
@@ -47,58 +36,70 @@ export default function ReportDetail({
   convocationDate, setConvocationDate,
   convocationMessage, setConvocationMessage,
   goTo, handleUpdateStatus, handleAddNote, onBack,
+  onSuspectResolved,
 }: ReportDetailProps) {
   const { t } = useTranslation();
+
+  const [searchQuery, setSearchQuery]     = useState('');
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+  const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
+  const [resolving, setResolving]         = useState(false);
 
   const idx = filtered.findIndex(r => r.id === selected.id);
   const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) { setSearchResults([]); return; }
+    try {
+      const results = await searchUsers(query);
+      setSearchResults(results.filter((u: UserSearchResult) => u.role === 'student'));
+    } catch { setSearchResults([]); }
+  };
+
+  const handleResolve = async (suspectId: string, userId: string | null) => {
+    setResolving(true);
+    try {
+      await resolveSuspect(suspectId, userId);
+      onSuspectResolved?.();
+      setActiveSuspect(null);
+      setSearchQuery('');
+      setSearchResults([]);
+    } finally {
+      setResolving(false);
+    }
+  };
+
   return (
     <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
-      {/* Retour + navigation précédent / suivant */}
+      {/* Navigation */}
       <div className="flex justify-between items-center mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => goTo(filtered[idx - 1])}
-          disabled={idx === 0}
-          aria-label={t('admin.prev')}
-        >
+        <Button variant="ghost" onClick={() => goTo(filtered[idx - 1])} disabled={idx === 0}>
           ← {t('admin.prev')}
         </Button>
         <span className="font-bold text-primary">
           {t('admin.reportLabel', { number: selected.caseNumber })}
         </span>
-        <Button
-          variant="ghost"
-          onClick={() => goTo(filtered[idx + 1])}
-          disabled={idx === filtered.length - 1}
-          aria-label={t('admin.next')}
-        >
+        <Button variant="ghost" onClick={() => goTo(filtered[idx + 1])} disabled={idx === filtered.length - 1}>
           {t('admin.next')} →
         </Button>
       </div>
 
-      {/* Statut + boutons d'action */}
+      {/* Statut + actions */}
       <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
         <Badge variant={selected.status as BadgeVariant} />
-        <Button variant="ghost" onClick={onBack}>
-          ← {t('common.back')}
-        </Button>
+        <Button variant="ghost" onClick={onBack}>← {t('common.back')}</Button>
         {isAdmin && (
-          <div className="flex gap-2 flex-wrap" role="group" aria-label={t('admin.actions.groupLabel')}>
+          <div className="flex gap-2 flex-wrap">
             {([
               { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
               { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
               { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
               { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
             ] as const).map(btn => (
-              <Button
-                key={btn.status}
-                variant={btn.variant}
-                disabled={saving}
-                onClick={() => handleUpdateStatus(selected.id, btn.status)}
-              >
+              <Button key={btn.status} variant={btn.variant} disabled={saving}
+                onClick={() => handleUpdateStatus(selected.id, btn.status)}>
                 {btn.label}
               </Button>
             ))}
@@ -106,7 +107,7 @@ export default function ReportDetail({
         )}
       </div>
 
-      {/* Informations + personnes impliquées */}
+      {/* Infos + personnes */}
       <div className="grid grid-cols-2 gap-6 mb-6">
         <Card borderColor={severityColor}>
           <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
@@ -131,6 +132,8 @@ export default function ReportDetail({
 
         <Card>
           <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
+
+          {/* Signalé par */}
           <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
           <p className="text-sm text-gray-700 mb-4">
             {selected.isAnonymous
@@ -140,6 +143,8 @@ export default function ReportDetail({
               <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
             )}
           </p>
+
+          {/* Victime (cas témoin) */}
           {selected.description?.includes('| Victime :') && (
             <>
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
@@ -148,12 +153,77 @@ export default function ReportDetail({
               </p>
             </>
           )}
+
+          {/* Suspects */}
           <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
           {selected.suspects?.length > 0 ? (
-            <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
-              {selected.suspects.map((s, i) => (
-                <li key={i} className="bg-surface px-3 py-1 text-sm text-red-500">
-                  {s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
+            <ul className="flex flex-col gap-2">
+              {selected.suspects.map((s: ReportSuspect) => (
+                <li key={s.id} className="bg-surface rounded-lg px-3 py-2 text-sm">
+                  {/* Nom saisi par l'élève */}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-red-500 font-medium">{s.freeText}</span>
+                    {isAdmin && (
+                      <button
+                        className="text-xs text-blue-500 hover:underline shrink-0"
+                        onClick={() => setActiveSuspect(activeSuspect === s.id ? null : s.id)}
+                      >
+                        {s.resolvedUser ? '✏️ Modifier' : '🔗 Lier à un élève'}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Profil résolu */}
+                  {s.resolvedUser && (
+                    <div className="mt-1 flex items-center gap-2 text-xs text-green-600">
+                      <span>✅ Lié à :</span>
+                      <span className="font-semibold">
+                        {s.resolvedUser.firstName} {s.resolvedUser.lastName}
+                      </span>
+                      {isAdmin && (
+                        <button
+                          className="text-red-400 hover:underline ml-1"
+                          onClick={() => handleResolve(s.id, null)}
+                          disabled={resolving}
+                        >
+                          ✕ Délier
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Panneau de recherche */}
+                  {isAdmin && activeSuspect === s.id && (
+                    <div className="mt-2 border border-gray-200 rounded-lg p-2 bg-white">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={e => handleSearch(e.target.value)}
+                        placeholder="Rechercher un élève..."
+                        className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary mb-1"
+                        autoFocus
+                      />
+                      {searchResults.length > 0 && (
+                        <ul className="flex flex-col gap-0.5 max-h-32 overflow-y-auto">
+                          {searchResults.map(u => (
+                            <li key={u.id}>
+                              <button
+                                className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
+                                onClick={() => handleResolve(s.id, u.id)}
+                                disabled={resolving}
+                              >
+                                {u.firstName} {u.lastName}
+                                <span className="text-gray-400 ml-1">({u.role})</span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {searchQuery.length >= 2 && searchResults.length === 0 && (
+                        <p className="text-xs text-gray-400 px-2">Aucun élève trouvé</p>
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -171,7 +241,7 @@ export default function ReportDetail({
         </p>
       </Card>
 
-      {/* Notes administratives */}
+      {/* Notes */}
       <Card borderColor={severityColor} className="mb-6">
         <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
         {notes.length > 0 ? (
@@ -188,7 +258,6 @@ export default function ReportDetail({
               onChange={e => setNewNote(e.target.value)}
               rows={3}
               placeholder={t('admin.notes.placeholder')}
-              aria-label={t('admin.notes.placeholder')}
               className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
             />
             <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
@@ -217,7 +286,6 @@ export default function ReportDetail({
             onChange={e => setConvocationMessage(e.target.value)}
             rows={3}
             placeholder={t('admin.convocation.placeholder')}
-            aria-label={t('admin.convocation.placeholder')}
             className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
           />
           <Button onClick={() => handleAddNote('convocation')}>
@@ -225,7 +293,6 @@ export default function ReportDetail({
           </Button>
         </Card>
       )}
-
     </div>
   );
 }

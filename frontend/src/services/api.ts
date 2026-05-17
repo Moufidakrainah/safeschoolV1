@@ -79,3 +79,5 @@ export const checkCanDeleteUser = async (id: string) => {
   const res = await api.get(`/users/${id}/can-delete`);
   return res.data;
 };
+export const resolveSuspect = async (suspectId: string, resolvedUserId: string | null) =>
+  (await api.patch(`/reports/suspects/${suspectId}/resolve`, { resolvedUserId })).data;

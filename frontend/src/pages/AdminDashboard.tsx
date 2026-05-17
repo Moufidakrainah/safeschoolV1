@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, createUser, updateUser, deleteUser,checkCanDeleteUser
+  getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
+  searchUsers, resolveSuspect,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -17,9 +18,6 @@ import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
-import { useMemo } from 'react';
-
-// ─── AdminDashboard ───────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
@@ -64,21 +62,20 @@ export default function AdminDashboard() {
     firstName: '', lastName: '', email: '',
     password: '', role: 'student', schoolClass: '',
   });
-
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [globalDeleteError, setGlobalDeleteError] = useState('');
+  const [isBlocked, setIsBlocked] = useState(false);
 
-
-
-const [deleteError, setDeleteError] = useState('');
-const [globalDeleteError, setGlobalDeleteError] = useState('');
-
-const [isBlocked, setIsBlocked] = useState(false);
-
+  // ── État résolution suspects
+  const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
+  const [suspectSearch, setSuspectSearch] = useState('');
+  const [suspectResults, setSuspectResults] = useState<any[]>([]);
+  const [resolving, setResolving] = useState(false);
 
   const itemsPerPage = 5;
 
-  // ── Chargement initial
   useEffect(() => { fetchReports(); }, []);
 
   const fetchReports = async () => {
@@ -92,7 +89,6 @@ const [isBlocked, setIsBlocked] = useState(false);
     }
   };
 
-  // ── Mise à jour statut
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
     try {
@@ -108,99 +104,82 @@ const [isBlocked, setIsBlocked] = useState(false);
     }
   };
 
-  // ── Filtrage
-const filtered = useMemo(() => {
-  return reports.filter((r: Report) => {
-    if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
-    if (filterStatus !== 'all' && r.status !== filterStatus) return false;
-    if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
-    if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+  const handleSuspectSearch = async (query: string) => {
+    setSuspectSearch(query);
+    if (query.length < 2) { setSuspectResults([]); return; }
+    try {
+      const results = await searchUsers(query);
+      setSuspectResults(results.filter((u: any) => u.role === 'student'));
+    } catch { setSuspectResults([]); }
+  };
 
-    if (filterSuspect) {
-      const q = filterSuspect.toLowerCase();
-      const match = r.suspects?.some(s => {
-        const name = `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.toLowerCase();
-        return name.includes(q) || (s.freeText?.toLowerCase() ?? '').includes(q);
-      });
-      if (!match) return false;
-    }
+  const handleResolveSuspect = async (suspectId: string, userId: string | null) => {
+    setResolving(true);
+    try {
+      await resolveSuspect(suspectId, userId);
+      const updated = await getAllReports();
+      setReports(updated);
+      const updatedSelected = updated.find((r: any) => r.id === selected?.id);
+      if (updatedSelected) setSelected(updatedSelected);
+      setActiveSuspect(null);
+      setSuspectSearch('');
+      setSuspectResults([]);
+    } finally { setResolving(false); }
+  };
 
-    if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+  const filtered = useMemo(() => {
+    return reports.filter((r: Report) => {
+      if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
+      if (filterStatus !== 'all' && r.status !== filterStatus) return false;
+      if (filterClass !== 'all' && r.student?.studentProfile?.schoolClass !== filterClass) return false;
+      if (filterStudent !== 'all' && r.student?.id !== filterStudent) return false;
+      if (filterSuspect) {
+        const q = filterSuspect.toLowerCase();
+        const match = r.suspects?.some(s =>
+          (s.freeText?.toLowerCase() ?? '').includes(q) ||
+          (`${s.resolvedUser?.firstName ?? ''} ${s.resolvedUser?.lastName ?? ''}`).toLowerCase().includes(q)
+        );
+        if (!match) return false;
+      }
+      if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
+      if (filterDateTo) {
+        const to = new Date(filterDateTo);
+        to.setHours(23, 59, 59, 999);
+        if (new Date(r.createdAt) > to) return false;
+      }
+      if (search) {
+        const q = search.toLowerCase();
+        const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
+        if (!name.includes(q) && !(r.title ?? '').toLowerCase().includes(q) && !(r.description ?? '').toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [reports, filterGrade, filterStatus, filterClass, filterStudent, filterSuspect, filterDateFrom, filterDateTo, search]);
 
-    if (filterDateTo) {
-      const to = new Date(filterDateTo);
-      to.setHours(23, 59, 59, 999);
-      if (new Date(r.createdAt) > to) return false;
-    }
+  const totalPages = useMemo(() => Math.ceil(filtered.length / itemsPerPage), [filtered, itemsPerPage]);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage, itemsPerPage]);
 
-    if (search) {
-      const q = search.toLowerCase();
-      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (
-        !name.includes(q) &&
-        !(r.title ?? '').toLowerCase().includes(q) &&
-        !(r.description ?? '').toLowerCase().includes(q)
-      ) return false;
-    }
-
-    return true;
-  });
-}, [
-  reports,
-  filterGrade,
-  filterStatus,
-  filterClass,
-  filterStudent,
-  filterSuspect,
-  filterDateFrom,
-  filterDateTo,
-  search
-]);
-
-
-
-
-const totalPages = useMemo(() => {
-  return Math.ceil(filtered.length / itemsPerPage);
-}, [filtered, itemsPerPage]);
-const paginated = useMemo(() => {
-  const start = (currentPage - 1) * itemsPerPage;
-  return filtered.slice(start, start + itemsPerPage);
-}, [filtered, currentPage, itemsPerPage]);
-
-  // ── Compteurs pour les StatCards
-const stats = useMemo(() => {
-  return {
+  const stats = useMemo(() => ({
     total: reports.length,
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
     escalated: reports.filter(r => r.status === 'escalated').length,
-  };
-}, [reports]);
-
+  }), [reports]);
 
   const handleReset = () => {
-    setFilterGrade('all');
-    setFilterStatus('all');
-    setFilterClass('all');
-    setFilterStudent('all');
-    setFilterDateFrom('');
-    setFilterDateTo('');
-    setFilterSuspect('');
-    setSearch('');
-    setCurrentPage(1);
+    setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all');
+    setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo('');
+    setFilterSuspect(''); setSearch(''); setCurrentPage(1);
     setResetKey(k => k + 1);
   };
 
-  // ── Notes
   const loadNotes = async (reportId: string) => {
-    try {
-      const data = await getNotes(reportId);
-      setNotes(data);
-    } catch {
-      console.error('Erreur chargement notes');
-    }
+    try { setNotes(await getNotes(reportId)); }
+    catch { console.error('Erreur chargement notes'); }
   };
 
   const goTo = (report: typeof selected) => {
@@ -212,11 +191,8 @@ const stats = useMemo(() => {
     if (!selected) return;
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
-    // Si convocation avec date, on préfixe le message avec la date choisie
     if (type === 'convocation' && convocationDate) {
-      const formatted = new Date(convocationDate).toLocaleString('fr-FR', {
-        dateStyle: 'long', timeStyle: 'short',
-      });
+      const formatted = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
       content = `📅 ${formatted}\n\n${content}`;
     }
     try {
@@ -224,23 +200,14 @@ const stats = useMemo(() => {
       await loadNotes(selected.id);
       if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); }
       else setNewNote('');
-    } catch {
-      console.error('Erreur ajout note');
-    }
+    } catch { console.error('Erreur ajout note'); }
   };
 
-  // ── Utilisateurs
   const fetchUsers = async () => {
-	console.log("Users after deletion:", users);
     setLoadingUsers(true);
-    try {
-      const data = await getAllUsers();
-      setUsers(data);
-    } catch {
-      console.error('Erreur chargement utilisateurs');
-    } finally {
-      setLoadingUsers(false);
-    }
+    try { setUsers(await getAllUsers()); }
+    catch { console.error('Erreur chargement utilisateurs'); }
+    finally { setLoadingUsers(false); }
   };
 
   const handleSaveUser = async () => {
@@ -251,718 +218,490 @@ const stats = useMemo(() => {
       setShowUserForm(false);
       setEditingUser(null);
       setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', schoolClass: '' });
-    } catch {
-      console.error('Erreur sauvegarde utilisateur');
-    }
+    } catch { console.error('Erreur sauvegarde utilisateur'); }
   };
 
-
-
-  
-const handleDeleteUser = async (id: string) => {
-  // Vérifier si c'est son propre compte
-  if (id === user?.id) {
-    setDeleteTarget(id);
-    setIsBlocked(true);
-    setDeleteError(t('admin.users.deleteSelf'));
-    return;
-  }
-
-  const { deletable } = await checkCanDeleteUser(id);
-  setDeleteTarget(id);
-  setIsBlocked(!deletable);
-  setDeleteError('');
-};
-
-
-
-const confirmDelete = async () => {
-  if (!deleteTarget) return;
-
-  setIsDeleting(true);
-  setDeleteError('');
-  setIsBlocked(false);
-
-  try {
-    await deleteUser(deleteTarget);
-    await fetchUsers();
-    setDeleteTarget(null); // suppression OK → fermer la popup
-  } catch (err: any) {
-    console.error("Erreur suppression utilisateur:", err);
-
-   const msg = err?.response?.data?.message ?? err?.message ?? "";
-  
-    // 🔥 Cas : utilisateur lié à un signalement
-    if (msg === "USER_HAS_REPORTS") {
-      setIsBlocked(true); // active le mode "bloqué"
-      // setDeleteError(t('admin.users.deleteBlocked')); 
-    } else {
-      // 🔥 Autre erreur
-      setDeleteError(t('admin.users.deleteError'));
+  const handleDeleteUser = async (id: string) => {
+    if (id === user?.id) {
+      setDeleteTarget(id); setIsBlocked(true);
+      setDeleteError(t('admin.users.deleteSelf')); return;
     }
-  } finally {
-    setIsDeleting(false);
-  }
-};
+    const { deletable } = await checkCanDeleteUser(id);
+    setDeleteTarget(id); setIsBlocked(!deletable); setDeleteError('');
+  };
 
-
-
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
+    try {
+      await deleteUser(deleteTarget);
+      await fetchUsers();
+      setDeleteTarget(null);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? "";
+      if (msg === "USER_HAS_REPORTS") setIsBlocked(true);
+      else setDeleteError(t('admin.users.deleteError'));
+    } finally { setIsDeleting(false); }
+  };
 
   const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
 
+  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
-const [errors, setErrors] = useState({
-  firstName: '',
-  lastName: '',
-  email: '',
-  password: '',
-});
+  const validateField = (field: string, value: string) => {
+    let message = '';
+    if (!value.trim() && field !== 'password') message = t('admin.users.errorRequired');
+    else if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
+    else if (field === 'password' && value.length > 0 && value.length < 6) message = t('admin.users.errorPasswordLength');
+    setErrors(prev => ({ ...prev, [field]: message }));
+  };
 
-const validateField = (field: string, value: string) => {
-  let message = '';
+  const updateField = (field: string, value: string) => {
+    setUserForm(prev => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
 
-  if (!value.trim() && field !== 'password') {
-    message = t('admin.users.errorRequired');
-  } else if (field === 'email') {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      message = t('admin.users.errorEmailFormat');
-    }
-  } else if (field === 'password')
-	{
-		if (value.length > 0 && value.length < 6) {
-    message = t('admin.users.errorPasswordLength');
-  }
-}
+  const isFormValid =
+    userForm.firstName.trim() && userForm.lastName.trim() &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
+    !errors.firstName && !errors.lastName && !errors.email && !errors.password;
 
-  setErrors(prev => ({ ...prev, [field]: message }));
-};
-
-
-const updateField = (field: string, value: string) => {
-  setUserForm(prev => ({ ...prev, [field]: value }));
-  validateField(field, value);
-};
-
-const isFormValid =
-  userForm.firstName.trim() &&
-  userForm.lastName.trim() &&
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
-  !errors.firstName &&
-  !errors.lastName &&
-  !errors.email &&
-  !errors.password;
-
-
-
-
-
-  // ── Vue détail ──────────────────────────────────────────────────────────────────
+  // ── Vue détail
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
 
     return (
+      <main className="min-h-screen bg-gray-50 font-sans">
+        <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
+        <div className="flex-1 bg-gray-50 font-sans">
+          <AdminHeader {...headerProps} />
+          <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
-  <main className="min-h-screen bg-gray-50 font-sans">
-    <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
-
-      <div className="flex-1 bg-gray-50 font-sans">
-        <AdminHeader {...headerProps} />
-        <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
-
-          {/* Navigation précédent / suivant */}
-          <div className="flex justify-between items-center mb-6">
-            <Button
-              variant="ghost"
-              onClick={() => goTo(filtered[idx - 1])}
-              disabled={idx === 0}
-              aria-label={t('admin.prev')}
-            >
-              ← {t('admin.prev')}
-            </Button>
-            <span className="font-bold text-primary">
-              {t('admin.reportLabel', { number: selected.caseNumber })}
-            </span>
-            <Button
-              variant="ghost"
-              onClick={() => goTo(filtered[idx + 1])}
-              disabled={idx === filtered.length - 1}
-              aria-label={t('admin.next')}
-            >
-              {t('admin.next')} →
-            </Button>
-          </div>
-
-          {/* Statut + boutons d'action */}
-          <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-            <Badge variant={selected.status as BadgeVariant} />
-            {isAdmin && (
-              <div className="flex gap-2 flex-wrap" role="group" aria-label={t('admin.actions.groupLabel')}>
-                {([
-                  { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
-                  { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
-                  { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
-                  { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
-                ] as const).map(btn => (
-                  <Button
-                    key={btn.status}
-                    variant={btn.variant}
-                    disabled={saving}
-                    onClick={() => handleUpdateStatus(selected.id, btn.status)}
-                  >
-                    {btn.label}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Informations + personnes impliquées */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
-            <Card borderColor={severityColor}>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
-              <table className="w-full text-sm border-collapse">
-                <tbody>
-                  {([
-                    { label: t('admin.detail.titleField'), value: selected.title },
-                    { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
-                    { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
-                    { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
-                    { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
-                    { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
-                  ] as const).map(row => (
-                    <tr key={row.label} className="border-b border-gray-100">
-                      <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                      <td className="py-2 text-gray-700">{row.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-
-            <Card>
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
-              <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
-              <p className="text-sm text-gray-700 mb-4">
-                {selected.isAnonymous
-                  ? t('admin.detail.anonymousLabel')
-                  : `${selected.student?.firstName} ${selected.student?.lastName}`}
-                {selected.student?.role && (
-                  <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
-                )}
-              </p>
-              {selected.description?.includes('| Victime :') && (
-                <>
-                  <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
-                  </p>
-                </>
-              )}
-              <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
-              {selected.suspects?.length > 0 ? (
-                <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
-                  {selected.suspects.map((s, i) => (
-                    <li key={i} className="bg-surface px-3 py-1 text-sm text-red-500">
-                      {s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
-              )}
-            </Card>
-          </div>
-
-          {/* Description */}
-          <Card borderColor={severityColor} className="mb-6">
-            <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
-            <p className="text-sm text-gray-700 leading-7">
-              {selected.description?.split('|')[0]?.trim()}
-            </p>
-          </Card>
-
-          {/* Notes administratives */}
-          <Card borderColor={severityColor} className="mb-6">
-            <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
-            {notes.length > 0 ? (
-              <div className="flex flex-col gap-3 mb-5">
-                {notes.map(note => <NoteBlock key={note.id} note={note} />)}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>
-            )}
-            {isAdmin && (
-              <>
-                <textarea
-                  value={newNote}
-                  onChange={e => setNewNote(e.target.value)}
-                  rows={3}
-                  placeholder={t('admin.notes.placeholder')}
-                  aria-label={t('admin.notes.placeholder')}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
-                />
-                <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
-              </>
-            )}
-          </Card>
-
-          {/* Convocation */}
-          {isAdmin && (
-            <Card borderColor={severityColor}>
-              <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
-              <div className="mb-4">
-                <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
-                  {t('admin.convocation.dateLabel')}
-                </label>
-                <input
-                  id="convocation-date"
-                  type="datetime-local"
-                  value={convocationDate}
-                  onChange={e => setConvocationDate(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
-                />
-              </div>
-              <textarea
-                value={convocationMessage}
-                onChange={e => setConvocationMessage(e.target.value)}
-                rows={3}
-                placeholder={t('admin.convocation.placeholder')}
-                aria-label={t('admin.convocation.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
-              />
-              <Button onClick={() => handleAddNote('convocation')}>
-                {t('admin.convocation.send')}
+            {/* Navigation */}
+            <div className="flex justify-between items-center mb-6">
+              <Button variant="ghost" onClick={() => goTo(filtered[idx - 1])} disabled={idx === 0} aria-label={t('admin.prev')}>
+                ← {t('admin.prev')}
               </Button>
-            </Card>
-          )}
-
-        </div>
-      </div>
-	  </main>
-    );
-  }
-
-  // ── Vue liste ───────────────────────────────────────────────────────────────
-  return (
-	<>
-
-  <main className="min-h-screen bg-gray-50 font-sans">
-    <h1 className="sr-only">{t('admin.title.allReports')}</h1>
-
-    <div className="flex-1 bg-white font-sans">
-      <AdminHeader {...headerProps} />
-
-      <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
-
-        {/* ── Section signalements ── */}
-        {viewSection === 'reports' && (
-          <>
-            {/* StatCards — les 3 premières filtrent par grade, les 2 dernières par statut */}
-            <div className="grid grid-cols-5 gap-4 mb-8" role="group" aria-label={t('admin.stats.groupLabel')}>
-              <StatCard
-                label={t('admin.stats.total')}
-                value={stats.total}
-                color="#1a1a2e"
-                active={filterGrade === 'all' && filterStatus === 'all'}
-                onClick={() => { setFilterGrade('all'); setFilterStatus('all'); setCurrentPage(1); }}
-              />
-              <StatCard
-                label={t('admin.stats.critical')}
-                value={stats.critical}
-                color={SEVERITY_COLORS.critical}
-                active={filterGrade === 'critique'}
-                onClick={() => { setFilterGrade('critique'); setFilterStatus('all'); setCurrentPage(1); }}
-              />
-              <StatCard
-                label={t('admin.stats.high')}
-                value={stats.high}
-                color={SEVERITY_COLORS.high}
-                active={filterGrade === 'grave'}
-                onClick={() => { setFilterGrade('grave'); setFilterStatus('all'); setCurrentPage(1); }}
-              />
-              <StatCard
-                label={t('admin.stats.pending')}
-                value={stats.pending}
-                color="#eab308"
-                active={filterStatus === 'pending'}
-                onClick={() => { setFilterStatus('pending'); setFilterGrade('all'); setCurrentPage(1); }}
-              />
-              <StatCard
-                label={t('admin.stats.escalated')}
-                value={stats.escalated}
-                color="#7c3aed"
-                active={filterStatus === 'escalated'}
-                onClick={() => { setFilterStatus('escalated'); setFilterGrade('all'); setCurrentPage(1); }}
-              />
+              <span className="font-bold text-primary">{t('admin.reportLabel', { number: selected.caseNumber })}</span>
+              <Button variant="ghost" onClick={() => goTo(filtered[idx + 1])} disabled={idx === filtered.length - 1} aria-label={t('admin.next')}>
+                {t('admin.next')} →
+              </Button>
             </div>
 
-            {/* Recherche */}
-            <div className="mb-5">
-              <input
-                type="search"
-                value={search}
-                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder={t('admin.search.placeholder')}
-                aria-label={t('admin.search.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              />
+            {/* Statut + actions */}
+            <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
+              <Badge variant={selected.status as BadgeVariant} />
+              {isAdmin && (
+                <div className="flex gap-2 flex-wrap" role="group" aria-label={t('admin.actions.groupLabel')}>
+                  {([
+                    { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
+                    { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
+                    { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
+                    { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
+                  ] as const).map(btn => (
+                    <Button key={btn.status} variant={btn.variant} disabled={saving}
+                      onClick={() => handleUpdateStatus(selected.id, btn.status)}>
+                      {btn.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Filtres */}
-            <div className="flex gap-2 mb-5 flex-wrap items-center" role="group" aria-label={t('admin.filters.groupLabel')}>
-              <Select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allStatuses')}>
-                <option value="all">{t('admin.filters.allStatuses')}</option>
-                <option value="pending">{t('admin.status.pending')}</option>
-                <option value="in_progress">{t('admin.status.in_progress')}</option>
-                <option value="escalated">{t('admin.status.escalated')}</option>
-                <option value="closed">{t('admin.status.closed')}</option>
-                <option value="rejected">{t('admin.status.rejected')}</option>
-              </Select>
+            {/* Infos + personnes */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              <Card borderColor={severityColor}>
+                <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
+                <table className="w-full text-sm border-collapse">
+                  <tbody>
+                    {([
+                      { label: t('admin.detail.titleField'), value: selected.title },
+                      { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
+                      { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
+                      { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
+                      { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
+                      { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
+                    ] as const).map(row => (
+                      <tr key={row.label} className="border-b border-gray-100">
+                        <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
+                        <td className="py-2 text-gray-700">{row.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Card>
 
-              <Select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allClasses')}>
-                <option value="all">{t('admin.filters.allClasses')}</option>
-                {[...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
-                  <option key={cls} value={cls}>{cls}</option>
-                ))}
-              </Select>
-
-              <Select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allReporters')}>
-                <option value="all">{t('admin.filters.allReporters')}</option>
-                {[...new Map(
-                  reports
-                    .filter(r => r.student && !r.isAnonymous)
-                    .map(r => [r.student!.id, r.student!])
-                ).values()].map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName} ({s.role})
-                  </option>
-                ))}
-              </Select>
-
-              <input
-                type="search"
-                value={filterSuspect}
-                onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
-                placeholder={t('admin.filters.suspectPlaceholder')}
-                aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-              />
-
-              <div className="flex items-center gap-1" role="group" aria-label={t('admin.filters.dateRange')}>
-                <input
-                  key={`from-${resetKey}`}
-                  type="date"
-                  value={filterDateFrom}
-                  onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
-                  aria-label={t('admin.filters.dateFrom')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-                />
-                <span aria-hidden="true" className="text-gray-400">→</span>
-                <input
-                  key={`to-${resetKey}`}
-                  type="date"
-                  value={filterDateTo}
-                  onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
-                  aria-label={t('admin.filters.dateTo')}
-                  className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-                />
-              </div>
-
-              <Button variant="ghost" onClick={handleReset}>{t('admin.filters.reset')}</Button>
-            </div>
-
-            {/* Liste des signalements */}
-            {loading ? (
-              <p className="text-center py-16 text-gray-400" role="status">{t('admin.loading')}</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
-            ) : (
-              <ul className="flex flex-col gap-3" aria-label={t('admin.reportsList')}>
-                {paginated.map(report => (
-                  <li
-                    key={report.id}
-                    style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
-                    className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => {
-                      setSelected(report);
-                      setAdminNote(report.adminNote || '');
-                      setView('detail');
-                      loadNotes(report.id);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}
-                    aria-label={`${report.title} — ${report.caseNumber}`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-sm text-primary">{report.title}</span>
-                          {report.gradeModified && (
-                            <span className="bg-gray-100 text-gray-500 px-2 rounded-full text-xs">
-                              ✏️ {t('admin.detail.gradeModified')}
-                            </span>
+              <Card>
+                <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
+                <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
+                <p className="text-sm text-gray-700 mb-4">
+                  {selected.isAnonymous
+                    ? t('admin.detail.anonymousLabel')
+                    : `${selected.student?.firstName} ${selected.student?.lastName}`}
+                  {selected.student?.role && (
+                    <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
+                  )}
+                </p>
+                {selected.description?.includes('| Victime :') && (
+                  <>
+                    <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
+                    <p className="text-sm text-gray-700 mb-4">
+                      {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
+                    </p>
+                  </>
+                )}
+                <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
+                {selected.suspects?.length > 0 ? (
+                  <ul className="flex flex-col gap-2">
+                    {selected.suspects.map((s) => (
+                      <li key={s.id} className="bg-surface rounded-lg px-3 py-2 text-sm">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-red-500 font-medium">{s.freeText}</span>
+                          {isAdmin && (
+                            <button
+                              className="text-xs text-blue-500 hover:underline shrink-0"
+                              onClick={() => {
+                                setActiveSuspect(activeSuspect === s.id ? null : s.id);
+                                setSuspectSearch('');
+                                setSuspectResults([]);
+                              }}
+                            >
+                              {s.resolvedUser ? '✏️ Modifier' : '🔗 Lier à un élève'}
+                            </button>
                           )}
                         </div>
-                        <p className="text-xs text-primary mb-2">
-                          {report.description.length > 120
-                            ? `${report.description.substring(0, 120)}...`
-                            : report.description}
-                        </p>
-                        <div className="flex gap-4 text-xs text-primary">
-                          <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
-                          <span>🏫 {report.student?.studentProfile?.schoolClass ?? '-'}</span>
-                          <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
-                          {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
-                          <span>{report.caseNumber}</span>
-                        </div>
-                      </div>
-                      <Badge variant={report.status as BadgeVariant} className="ml-4" />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={filtered.length}
-              onPageChange={setCurrentPage}
-            />
-          </>
-        )}
-
-        {/* ── Section utilisateurs ── */}
-        {viewSection === 'users' && isAdmin && (
-          <section aria-labelledby="users-title">
-            <div className="flex justify-between items-center mb-5">
-              <h2 id="users-title" className="text-xl font-bold text-gray-800">
-                👥 {t('admin.users.title')}
-              </h2>
-              <Button onClick={() => {
-                setShowUserForm(true);
-                setEditingUser(null);
-                setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', schoolClass: '' });
-              }}>
-                {t('admin.users.add')}
-              </Button>
+                        {s.resolvedUser && (
+                          <div className="mt-1 flex items-center gap-2 text-xs text-green-600">
+                            <span>✅ Lié à :</span>
+                            <span className="font-semibold">{s.resolvedUser.firstName} {s.resolvedUser.lastName}</span>
+                            {isAdmin && (
+                              <button
+                                className="text-red-400 hover:underline ml-1"
+                                onClick={() => handleResolveSuspect(s.id, null)}
+                                disabled={resolving}
+                              >✕ Délier</button>
+                            )}
+                          </div>
+                        )}
+                        {isAdmin && activeSuspect === s.id && (
+                          <div className="mt-2 border border-gray-200 rounded-lg p-2 bg-white">
+                            <input
+                              type="text"
+                              value={suspectSearch}
+                              onChange={e => handleSuspectSearch(e.target.value)}
+                              placeholder="Rechercher un élève..."
+                              className="w-full px-3 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-primary mb-1"
+                              autoFocus
+                            />
+                            {suspectResults.length > 0 && (
+                              <ul className="flex flex-col gap-0.5 max-h-32 overflow-y-auto">
+                                {suspectResults.map((u: any) => (
+                                  <li key={u.id}>
+                                    <button
+                                      className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
+                                      onClick={() => handleResolveSuspect(s.id, u.id)}
+                                      disabled={resolving}
+                                    >
+                                      {u.firstName} {u.lastName}
+                                      <span className="text-gray-400 ml-1">({u.role})</span>
+                                    </button>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                            {suspectSearch.length >= 2 && suspectResults.length === 0 && (
+                              <p className="text-xs text-gray-400 px-2">Aucun élève trouvé</p>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
+                )}
+              </Card>
             </div>
 
-            {showUserForm && (
-              <Card className="mb-5">
-                <h3 className="text-gray-800 font-bold mb-4">
-                  {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
-                </h3>
-              <div className="rounded-lg bg-primary p-4 mb-5">
-    
+            {/* Description */}
+            <Card borderColor={severityColor} className="mb-6">
+              <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
+              <p className="text-sm text-gray-700 leading-7">{selected.description?.split('|')[0]?.trim()}</p>
+            </Card>
 
-
-                  <Input
-                    label={t('admin.users.firstName')}
-                    value={userForm.firstName}
-                    onChange={e => updateField('firstName', e.target.value)}
-                    theme="light"
-                  />
-				  <div className="min-h-5 w-full">
-					{errors.firstName && (
-						<p className="text-red-300 text-xs">{errors.firstName}</p>
-					)}
-					</div>
-
-
-                  <Input
-                    label={t('admin.users.lastName')}
-                    value={userForm.lastName}
-                    onChange={e => updateField('lastName', e.target.value)}
-                    theme="light"
-                  />
-				  <div className="min-h-5 w-full">
-				{errors.lastName && (
-					<p className="text-red-300 text-xs">{errors.lastName}</p>
-				)}
-				</div>
-
-
-                  <Input
-                    label={t('admin.users.email')}
-                    value={userForm.email}
-                    onChange={e => updateField('email', e.target.value)}
-                    theme="light"
-                  />
-				  <div className="min-h-5 w-full">
-					{errors.email && (
-						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
-					)}
-					</div>
-
-                  <Input
-                    label={t('admin.users.password')}
-                    type="password"
-                    value={userForm.password}
-                    onChange={e => updateField('password', e.target.value)}
-                    theme="light"
-                  />
-					<div className="min-h-5 w-full">
-					{errors.password && (
-						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
-					)}
-					</div>
-
-				<div className="text-center">
-                  <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
-                    <option value="student">{t('admin.users.roles.student')}</option>
-                    <option value="teacher">{t('admin.users.roles.teacher')}</option>
-                    <option value="staff">{t('admin.users.roles.staff')}</option>
-                    <option value="admin">{t('admin.users.roles.admin')}</option>
-                    <option value="director">{t('admin.users.roles.director')}</option>
-                  </Select>
-                  {userForm.role === 'student' && (
-                    <Select value={userForm.schoolClass} onChange={e => setUserForm({ ...userForm, schoolClass: e.target.value })} aria-label={t('admin.users.selectClass')}>
-                      <option value="">{t('admin.users.selectClass')}</option>
-                      <option value="6eme">6ème</option>
-                      <option value="5eme">5ème</option>
-                      <option value="4eme">4ème</option>
-                      <option value="3eme">3ème</option>
-                    </Select>
-                  )}
-				  </div>
+            {/* Notes */}
+            <Card borderColor={severityColor} className="mb-6">
+              <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
+              {notes.length > 0 ? (
+                <div className="flex flex-col gap-3 mb-5">
+                  {notes.map(note => <NoteBlock key={note.id} note={note} />)}
                 </div>
-                <div className="flex gap-3 place-content-end">
-				  <Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button>
+              ) : (
+                <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>
+              )}
+              {isAdmin && (
+                <>
+                  <textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3}
+                    placeholder={t('admin.notes.placeholder')} aria-label={t('admin.notes.placeholder')}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                  />
+                  <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
+                </>
+              )}
+            </Card>
 
-                  <Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>
-                    {t('common.cancel')}
-                  </Button>
+            {/* Convocation */}
+            {isAdmin && (
+              <Card borderColor={severityColor}>
+                <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
+                <div className="mb-4">
+                  <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
+                    {t('admin.convocation.dateLabel')}
+                  </label>
+                  <input id="convocation-date" type="datetime-local" value={convocationDate}
+                    onChange={e => setConvocationDate(e.target.value)}
+                    className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
+                  />
                 </div>
+                <textarea value={convocationMessage} onChange={e => setConvocationMessage(e.target.value)} rows={3}
+                  placeholder={t('admin.convocation.placeholder')} aria-label={t('admin.convocation.placeholder')}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                />
+                <Button onClick={() => handleAddNote('convocation')}>{t('admin.convocation.send')}</Button>
               </Card>
             )}
 
-            
+          </div>
+        </div>
+      </main>
+    );
+  }
 
+  // ── Vue liste
+  return (
+    <>
+      <main className="min-h-screen bg-gray-50 font-sans">
+        <h1 className="sr-only">{t('admin.title.allReports')}</h1>
+        <div className="flex-1 bg-white font-sans">
+          <AdminHeader {...headerProps} />
+          <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
+            {viewSection === 'reports' && (
+              <>
+                <div className="grid grid-cols-5 gap-4 mb-8" role="group" aria-label={t('admin.stats.groupLabel')}>
+                  <StatCard label={t('admin.stats.total')} value={stats.total} color="#1a1a2e"
+                    active={filterGrade === 'all' && filterStatus === 'all'}
+                    onClick={() => { setFilterGrade('all'); setFilterStatus('all'); setCurrentPage(1); }} />
+                  <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical}
+                    active={filterGrade === 'critique'}
+                    onClick={() => { setFilterGrade('critique'); setFilterStatus('all'); setCurrentPage(1); }} />
+                  <StatCard label={t('admin.stats.high')} value={stats.high} color={SEVERITY_COLORS.high}
+                    active={filterGrade === 'grave'}
+                    onClick={() => { setFilterGrade('grave'); setFilterStatus('all'); setCurrentPage(1); }} />
+                  <StatCard label={t('admin.stats.pending')} value={stats.pending} color="#eab308"
+                    active={filterStatus === 'pending'}
+                    onClick={() => { setFilterStatus('pending'); setFilterGrade('all'); setCurrentPage(1); }} />
+                  <StatCard label={t('admin.stats.escalated')} value={stats.escalated} color="#7c3aed"
+                    active={filterStatus === 'escalated'}
+                    onClick={() => { setFilterStatus('escalated'); setFilterGrade('all'); setCurrentPage(1); }} />
+                </div>
 
+                <div className="mb-5">
+                  <input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+                    placeholder={t('admin.search.placeholder')} aria-label={t('admin.search.placeholder')}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" />
+                </div>
 
-		{loadingUsers ? (
-		<p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
-		) : (
-		<ul className="flex flex-col gap-3">
-			{users.map(u => (
-			<li key={u.id}>
-				<Card className="flex justify-between items-center">
-				<div>
-					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
-					<span className="ml-2 text-xs text-gray-400">{u.email}</span>
-					<span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
-					{u.studentProfile?.schoolClass && (
-					<span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">
-						{u.studentProfile.schoolClass}
-					</span>
-					)}
-				</div>
+                <div className="flex gap-2 mb-5 flex-wrap items-center" role="group" aria-label={t('admin.filters.groupLabel')}>
+                  <Select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allStatuses')}>
+                    <option value="all">{t('admin.filters.allStatuses')}</option>
+                    <option value="pending">{t('admin.status.pending')}</option>
+                    <option value="in_progress">{t('admin.status.in_progress')}</option>
+                    <option value="escalated">{t('admin.status.escalated')}</option>
+                    <option value="closed">{t('admin.status.closed')}</option>
+                    <option value="rejected">{t('admin.status.rejected')}</option>
+                  </Select>
+                  <Select value={filterClass} onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allClasses')}>
+                    <option value="all">{t('admin.filters.allClasses')}</option>
+                    {[...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))].map(cls => (
+                      <option key={cls} value={cls}>{cls}</option>
+                    ))}
+                  </Select>
+                  <Select value={filterStudent} onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }} aria-label={t('admin.filters.allReporters')}>
+                    <option value="all">{t('admin.filters.allReporters')}</option>
+                    {[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => (
+                      <option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</option>
+                    ))}
+                  </Select>
+                  <input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
+                    placeholder={t('admin.filters.suspectPlaceholder')} aria-label={t('admin.filters.suspectPlaceholder')}
+                    className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700" />
+                  <div className="flex items-center gap-1" role="group" aria-label={t('admin.filters.dateRange')}>
+                    <input key={`from-${resetKey}`} type="date" value={filterDateFrom}
+                      onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
+                      aria-label={t('admin.filters.dateFrom')}
+                      className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700" />
+                    <span aria-hidden="true" className="text-gray-400">→</span>
+                    <input key={`to-${resetKey}`} type="date" value={filterDateTo}
+                      onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
+                      aria-label={t('admin.filters.dateTo')}
+                      className="px-3 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700" />
+                  </div>
+                  <Button variant="ghost" onClick={handleReset}>{t('admin.filters.reset')}</Button>
+                </div>
 
-				<div className="flex gap-2">
-					<Button
-					variant="outline"
-					onClick={() => {
-						setEditingUser(u);
-						setUserForm({
-						firstName: u.firstName,
-						lastName: u.lastName,
-						email: u.email,
-						password: '',
-						role: u.role,
-						schoolClass: u.studentProfile?.schoolClass || '',
-						});
-						setShowUserForm(true);
-					}}
-					>
-					✏️ {t('admin.users.edit')}
-					</Button>
+                {loading ? (
+                  <p className="text-center py-16 text-gray-400" role="status">{t('admin.loading')}</p>
+                ) : filtered.length === 0 ? (
+                  <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
+                ) : (
+                  <ul className="flex flex-col gap-3" aria-label={t('admin.reportsList')}>
+                    {paginated.map(report => (
+                      <li key={report.id}
+                        style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
+                        className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => { setSelected(report); setAdminNote(report.adminNote || ''); setView('detail'); loadNotes(report.id); }}
+                        role="button" tabIndex={0}
+                        onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}
+                        aria-label={`${report.title} — ${report.caseNumber}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-sm text-primary">{report.title}</span>
+                              {report.gradeModified && (
+                                <span className="bg-gray-100 text-gray-500 px-2 rounded-full text-xs">✏️ {t('admin.detail.gradeModified')}</span>
+                              )}
+                            </div>
+                            <p className="text-xs text-primary mb-2">
+                              {report.description.length > 120 ? `${report.description.substring(0, 120)}...` : report.description}
+                            </p>
+                            <div className="flex gap-4 text-xs text-primary">
+                              <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
+                              <span>🏫 {report.student?.studentProfile?.schoolClass ?? '-'}</span>
+                              <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+                              {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
+                              <span>{report.caseNumber}</span>
+                            </div>
+                          </div>
+                          <Badge variant={report.status as BadgeVariant} className="ml-4" />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} />
+              </>
+            )}
 
-					<Button
-					variant="danger"
-					onClick={() => handleDeleteUser(u.id)}
-					>
-					🗑️ {t('admin.users.delete')}
-					</Button>
-				</div>
-				</Card>
-			</li>
-			))}
+            {viewSection === 'users' && isAdmin && (
+              <section aria-labelledby="users-title">
+                <div className="flex justify-between items-center mb-5">
+                  <h2 id="users-title" className="text-xl font-bold text-gray-800">👥 {t('admin.users.title')}</h2>
+                  <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', schoolClass: '' }); }}>
+                    {t('admin.users.add')}
+                  </Button>
+                </div>
 
+                {showUserForm && (
+                  <Card className="mb-5">
+                    <h3 className="text-gray-800 font-bold mb-4">
+                      {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
+                    </h3>
+                    <div className="rounded-lg bg-primary p-4 mb-5">
+                      <Input label={t('admin.users.firstName')} value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} theme="light" />
+                      <div className="min-h-5 w-full">{errors.firstName && <p className="text-red-300 text-xs">{errors.firstName}</p>}</div>
+                      <Input label={t('admin.users.lastName')} value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} theme="light" />
+                      <div className="min-h-5 w-full">{errors.lastName && <p className="text-red-300 text-xs">{errors.lastName}</p>}</div>
+                      <Input label={t('admin.users.email')} value={userForm.email} onChange={e => updateField('email', e.target.value)} theme="light" />
+                      <div className="min-h-5 w-full">{errors.email && <p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>}</div>
+                      <Input label={t('admin.users.password')} type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} theme="light" />
+                      <div className="min-h-5 w-full">{errors.password && <p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>}</div>
+                      <div className="text-center">
+                        <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
+                          <option value="student">{t('admin.users.roles.student')}</option>
+                          <option value="teacher">{t('admin.users.roles.teacher')}</option>
+                          <option value="staff">{t('admin.users.roles.staff')}</option>
+                          <option value="admin">{t('admin.users.roles.admin')}</option>
+                          <option value="director">{t('admin.users.roles.director')}</option>
+                        </Select>
+                        {userForm.role === 'student' && (
+                          <Select value={userForm.schoolClass} onChange={e => setUserForm({ ...userForm, schoolClass: e.target.value })} aria-label={t('admin.users.selectClass')}>
+                            <option value="">{t('admin.users.selectClass')}</option>
+                            <option value="6eme">6ème</option>
+                            <option value="5eme">5ème</option>
+                            <option value="4eme">4ème</option>
+                            <option value="3eme">3ème</option>
+                          </Select>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-3 place-content-end">
+                      <Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button>
+                      <Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>{t('common.cancel')}</Button>
+                    </div>
+                  </Card>
+                )}
 
+                {loadingUsers ? (
+                  <p className="text-center py-10 text-gray-400" role="status">{t('admin.loading')}</p>
+                ) : (
+                  <ul className="flex flex-col gap-3">
+                    {users.map(u => (
+                      <li key={u.id}>
+                        <Card className="flex justify-between items-center">
+                          <div>
+                            <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+                            <span className="ml-2 text-xs text-gray-400">{u.email}</span>
+                            <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
+                            {u.studentProfile?.schoolClass && (
+                              <span className="ml-1 bg-surface px-2 py-0.5 rounded-lg text-xs text-primary">{u.studentProfile.schoolClass}</span>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => {
+                              setEditingUser(u);
+                              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, schoolClass: u.studentProfile?.schoolClass || '' });
+                              setShowUserForm(true);
+                            }}>✏️ {t('admin.users.edit')}</Button>
+                            <Button variant="danger" onClick={() => handleDeleteUser(u.id)}>🗑️ {t('admin.users.delete')}</Button>
+                          </div>
+                        </Card>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
+                {deleteTarget && (
+                  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+                      <p className="text-sm text-gray-600 mb-4">
+                        {deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}
+                      </p>
+                      <div className="flex justify-end gap-3">
+                        <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); }}
+                          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
+                          {isBlocked ? t('common.close') : t('common.cancel')}
+                        </button>
+                        {!isBlocked && (
+                          <button onClick={confirmDelete} disabled={isDeleting}
+                            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                            {isDeleting ? t('common.loading') : t('common.delete')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
 
+            {viewSection === 'stats' && <StatsDashboard reports={reports} />}
 
-
-		</ul>
-
-		)}
-
-
-
-
-{deleteTarget && (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-
-		 <p className="text-sm text-gray-600 mb-4">
-        {deleteError
-          ? deleteError
-          : isBlocked
-            ? t('admin.users.deleteBlocked')
-            : t('admin.users.deleteConfirm')}
-      </p>
-
-      <div className="flex justify-end gap-3">
-
-        {/* Bouton Annuler / Fermer */}
-        <button
-          onClick={() => {
-            setDeleteTarget(null);
-            setIsBlocked(false);
-          }}
-          className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300"
-        >
-          {isBlocked ? t('common.close') : t('common.cancel')}
-        </button>
-
-        {/* Bouton Supprimer → seulement si NON bloqué */}
-        {!isBlocked && (
-          <button
-            onClick={confirmDelete}
-            disabled={isDeleting}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {isDeleting ? t('common.loading') : t('common.delete')}
-          </button>
-        )}
-
-      </div>
-
-    </div>
-  </div>
-)}
-
-
-
-
-
-          </section>
-        )}
-
-        {/* ── Section statistiques ── */}
-        {viewSection === 'stats' && (
-          <StatsDashboard reports={reports} />
-        )}
-
-      </div>
-    </div>
-	</main>
-  </>
-
+          </div>
+        </div>
+      </main>
+    </>
   );
 }

@@ -35,11 +35,7 @@ export class ReportsService {
   ): Promise<Report> {
     const { finalScore, grade, aiScore, aiReason } =
       await this.scoringService.calculateScore(
-        title,
-        description,
-        frequency,
-        schoolClass,
-        suspects,
+        title, description, frequency, schoolClass, suspects,
       );
 
     const year = new Date().getFullYear();
@@ -56,15 +52,8 @@ export class ReportsService {
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
 
     const report = this.reportsRepository.create({
-      title,
-      description,
-      grade,
-      aiScore: finalScore,
-      aiReason,
-      caseNumber,
-      isAnonymous,
-      student,
-      status: ReportStatus.PENDING,
+      title, description, grade, aiScore: finalScore, aiReason,
+      caseNumber, isAnonymous, student, status: ReportStatus.PENDING,
     });
     const savedReport = await this.reportsRepository.save(report);
 
@@ -84,12 +73,7 @@ export class ReportsService {
 
   async findAll(): Promise<Report[]> {
     return this.reportsRepository.find({
-      relations: [
-        "student",
-        "student.studentProfile",
-        "suspects",
-        "suspects.resolvedUser",
-      ],
+      relations: ["student", "student.studentProfile", "suspects", "suspects.resolvedUser"],
     });
   }
 
@@ -120,18 +104,11 @@ export class ReportsService {
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade && updates.grade !== report.grade) {
-      const grades = [
-        ReportGrade.FAIBLE,
-        ReportGrade.MOYEN,
-        ReportGrade.GRAVE,
-        ReportGrade.CRITIQUE,
-      ];
+      const grades = [ReportGrade.FAIBLE, ReportGrade.MOYEN, ReportGrade.GRAVE, ReportGrade.CRITIQUE];
       const oldIndex = grades.indexOf(report.grade);
       const newIndex = grades.indexOf(updates.grade);
       if (newIndex < oldIndex && !updates.gradeModificationReason) {
-        throw new ForbiddenException(
-          "Une justification est obligatoire pour baisser le grade",
-        );
+        throw new ForbiddenException("Une justification est obligatoire pour baisser le grade");
       }
       report.grade = updates.grade;
       report.gradeModified = true;
@@ -164,9 +141,7 @@ export class ReportsService {
       if (targetRole === "victime" || targetRole === "temoin") {
         if (report.student?.id) {
           await this.notificationsService.create(
-            report.student.id,
-            reportId,
-            `📅 Convocation : ${content}`,
+            report.student.id, reportId, `📅 Convocation : ${content}`,
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
@@ -174,26 +149,20 @@ export class ReportsService {
         const suspect = report.suspects?.[suspectIndex];
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
-            suspect.resolvedUser.id,
-            reportId,
-            `📅 Convocation : ${content}`,
+            suspect.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
           );
         }
       } else {
         if (report.student?.id) {
           await this.notificationsService.create(
-            report.student.id,
-            reportId,
-            `📅 Convocation : ${content}`,
+            report.student.id, reportId, `📅 Convocation : ${content}`,
           );
         }
         if (report.suspects) {
           for (const suspect of report.suspects) {
             if (suspect.resolvedUser?.id) {
               await this.notificationsService.create(
-                suspect.resolvedUser.id,
-                reportId,
-                `📅 Convocation : ${content}`,
+                suspect.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
               );
             }
           }
@@ -212,33 +181,34 @@ export class ReportsService {
     });
   }
 
-    async findByVictimName(name: string): Promise<any[]> {
+  async resolveSuspect(suspectId: string, resolvedUserId: string | null): Promise<ReportSuspect> {
+    const suspect = await this.suspectsRepository.findOne({ where: { id: suspectId } });
+    if (!suspect) throw new NotFoundException("Suspect introuvable");
+    suspect.resolvedUser = resolvedUserId ? { id: resolvedUserId } as any : null;
+    return this.suspectsRepository.save(suspect);
+  }
+
+  async findByVictimName(name: string): Promise<any[]> {
     const all = await this.reportsRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.student", "student")
       .leftJoinAndSelect("report.suspects", "suspects")
-      .leftJoinAndSelect("suspects.user", "suspectUser")
+      .leftJoinAndSelect("suspects.resolvedUser", "resolvedUser")
       .getMany();
- 
+
     return all
       .filter((report) => {
         const isVictim = report.title?.toLowerCase().includes("victime");
         const isWitness = report.title?.toLowerCase().includes("témoin") ||
                           report.title?.toLowerCase().includes("temoin");
- 
-        // Cas 1 : le signaleur est la victime
         if (isVictim && report.student) {
           const fullName = `${report.student.firstName} ${report.student.lastName}`.toLowerCase();
           return fullName.includes(name.toLowerCase());
         }
- 
-        // Cas 2 : la victime est dans la description
         if (isWitness && report.description) {
-          return report.description.toLowerCase().includes(
-            `victime : ${name.toLowerCase()}`
-          ) || report.description.toLowerCase().includes(name.toLowerCase());
+          return report.description.toLowerCase().includes(`victime : ${name.toLowerCase()}`)
+            || report.description.toLowerCase().includes(name.toLowerCase());
         }
- 
         return false;
       })
       .map((report) => ({
@@ -251,9 +221,7 @@ export class ReportsService {
         signalePar:  report.student
           ? `${report.student.firstName} ${report.student.lastName}`
           : "Anonyme",
-        typeSignalement: report.title?.toLowerCase().includes("victime")
-          ? "victime"
-          : "temoin",
+        typeSignalement: report.title?.toLowerCase().includes("victime") ? "victime" : "temoin",
         victime: report.title?.toLowerCase().includes("victime")
           ? report.student
             ? `${report.student.firstName} ${report.student.lastName}`
@@ -262,43 +230,35 @@ export class ReportsService {
       }));
   }
 
-    async countByVictim(): Promise<any[]> {
+  async countByVictim(): Promise<any[]> {
     const all = await this.reportsRepository
       .createQueryBuilder("report")
       .leftJoinAndSelect("report.student", "student")
       .getMany();
- 
+
     const counts: Record<string, number> = {};
- 
     for (const report of all) {
       let victimName: string | null = null;
- 
       const isVictim = report.title?.toLowerCase().includes("victime");
       const isWitness = report.title?.toLowerCase().includes("témoin") ||
                         report.title?.toLowerCase().includes("temoin");
- 
       if (isVictim && report.student) {
         victimName = `${report.student.firstName} ${report.student.lastName}`;
       } else if (isWitness && report.description) {
         victimName = this.extractVictimFromDescription(report.description);
       }
- 
       if (victimName) {
         counts[victimName] = (counts[victimName] || 0) + 1;
       }
     }
- 
-    // Transforme en tableau trié par nombre de signalements décroissant
     return Object.entries(counts)
       .map(([victim, count]) => ({ victim, count }))
       .sort((a, b) => b.count - a.count);
   }
- 
-    private extractVictimFromDescription(description: string): string | null {
+
+  private extractVictimFromDescription(description: string): string | null {
     if (!description) return null;
     const match = description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
     return match ? match[1].trim() : null;
   }
-
-
 }

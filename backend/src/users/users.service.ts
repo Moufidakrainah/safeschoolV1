@@ -271,7 +271,7 @@ constructor(
 //   const hasReports = await this.reportRepository.count({
 //     where: [
 //       { student: { id } },
-//       { suspects: { user: { id } } },
+//       { suspects: { resolvedUser: { id } } },
 //     ]
 //   });
 
@@ -295,7 +295,7 @@ async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
   const hasReports = await this.reportRepository.count({
     where: [
       { student: { id } },
-      { suspects: { user: { id } } },
+      { suspects: { resolvedUser: { id } } },
     ]
   });
 
@@ -316,7 +316,7 @@ async canDelete(id: string): Promise<{ deletable: boolean }> {
   const hasReports = await this.reportRepository.count({
     where: [
       { student: { id } },
-      { suspects: { user: { id } } },
+      { suspects: { resolvedUser: { id } } },
     ]
   });
   return { deletable: hasReports === 0 };
