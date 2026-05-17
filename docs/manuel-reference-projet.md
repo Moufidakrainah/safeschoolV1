@@ -228,6 +228,19 @@ Docker interroge Postgres toutes les 5 secondes. Une fois que `pg_isready` répo
 
 Tous les services partagent le même réseau Docker privé. Dans ce réseau, chaque service est accessible via son **nom** (pas son IP). Le backend peut donc appeler `database:5432` directement — Docker résout `database` en l'IP interne du conteneur Postgres.
 
+Les IP internes (ex : 172.18.0.8) sont **attribuées dynamiquement** par Docker à chaque démarrage. Elles peuvent changer si tu recrées les conteneurs. On ne s'y fie jamais pour communiquer entre services — on utilise les noms de service à la place.
+
+Le driver `bridge` est le type de réseau utilisé : il crée un réseau privé isolé sur la machine hôte, avec un routage interne géré par Docker. Les conteneurs ne sont pas accessibles depuis l'extérieur sauf via un port mapping explicite (`ports:`).
+
+### ⚠️ Bug connu — `REACT_APP_API_URL` inutilisée
+
+Dans `docker-compose.yml`, le service frontend déclare :
+```yaml
+environment:
+  - REACT_APP_API_URL=http://localhost:5000
+```
+`REACT_APP_*` est la convention de **Create React App (CRA)**. Ce projet utilise **Vite**, qui exige le préfixe `VITE_` et la syntaxe `import.meta.env.VITE_XXX`. Le code frontend utilise `import.meta.env.VITE_API_URL` (visible dans `Quiz.tsx`). Cette variable n'est définie nulle part → la variable `REACT_APP_API_URL` dans docker-compose.yml est silencieusement ignorée et n'a aucun effet.
+
 ### Les Dockerfiles
 
 **Frontend** (`frontend/Dockerfile`) :
@@ -239,6 +252,16 @@ RUN npm install        # installe
 COPY . .               # copie le code
 EXPOSE 5173            # déclare le port
 CMD ["npm", "run", "dev", "--", "--host"]  # démarre Vite en mode dev
+```
+
+**Décortiqué : `CMD ["npm", "run", "dev", "--", "--host"]`**
+
+```
+npm run dev   → exécute le script "dev" défini dans package.json, soit "vite"
+--            → séparateur : tout ce qui suit est passé directement à vite, pas à npm
+--host        → option Vite : écoute sur toutes les interfaces réseau (0.0.0.0)
+               sans ça, Vite n'accepte que les connexions depuis l'intérieur du conteneur
+               → inaccessible depuis le navigateur sur la machine hôte
 ```
 
 **Backend** (`backend/Dockerfile`) :

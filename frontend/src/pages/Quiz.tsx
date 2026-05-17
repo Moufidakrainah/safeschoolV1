@@ -48,6 +48,8 @@ type QuestionState = {
   answerResult: string;
 } | null;
 
+// Si VITE_SOCKET_URL ou VITE_API_URL ne sont pas définies dans un .env, on utilise http://localhost:5000 par défaut.
+// Cela permet de fonctionner en dev sans config spéciale, mais pour la prod il faudra définir VITE_SOCKET_URL ou VITE_API_URL.
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ??
   import.meta.env.VITE_API_URL ??
