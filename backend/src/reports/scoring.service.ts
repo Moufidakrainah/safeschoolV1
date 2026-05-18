@@ -144,13 +144,14 @@ Signalement : "${description}"`,
       );
       const data = await response.json();
       const text = data.choices[0].message.content.trim();
-      const parsed = JSON.parse(text);
+      const jsonMatch = text.match(/{[\s\S]*?}/);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
       return {
         score: parsed.score ?? 0,
         urgency: parsed.urgency ?? false,
         reason: parsed.reason ?? "",
       };
-    } catch {
+    } catch (err) {
       return this.scoreAIFallback(description);
     }
   }
