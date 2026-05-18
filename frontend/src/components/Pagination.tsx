@@ -17,6 +17,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
       </span>
       <div className="flex gap-2">
         <button
+          type="button"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
           aria-label={t('pagination.prev')}
@@ -26,6 +27,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
         </button>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
           <button
+            type="button"
             key={page}
             onClick={() => onPageChange(page)}
             aria-label={t('pagination.page', { n: page })}
@@ -40,6 +42,7 @@ export default function Pagination({ currentPage, totalPages, totalItems, onPage
           </button>
         ))}
         <button
+          type="button"
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
           aria-label={t('pagination.next')}

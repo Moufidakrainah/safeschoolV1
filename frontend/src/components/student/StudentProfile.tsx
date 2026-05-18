@@ -10,6 +10,9 @@
  */
 
 import type { AuthUser } from '../../types';
+import { Card } from '../ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,9 +38,19 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
     <main className="max-w-xl mx-auto mt-8 px-5 pb-10">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mon profil</h2>
 
+      <div className="flex justify-center mb-6">
+        <Avatar className="size-28">
+          <AvatarImage src={user?.avatarUrl ?? '/sample_student.webp'} alt={`${user?.firstName} ${user?.lastName}`} />
+          <AvatarFallback>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
       {/* Informations personnelles */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
+      <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -54,10 +67,11 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      </Card>
 
       {/* Parents / Responsables légaux */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card className="p-6 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👨‍👩‍👧 Parents / Responsables légaux</h3>
         {loadingParents ? (
           <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>
@@ -70,6 +84,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
                 <p className="font-semibold text-gray-800 mb-2">
                   Parent {i + 1} — {parent.firstName} {parent.lastName}
                 </p>
+                <div className="overflow-x-auto">
                 <table className="w-full table-fixed text-sm">
                   <tbody>
                     {[
@@ -84,11 +99,12 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </main>
   );
 }

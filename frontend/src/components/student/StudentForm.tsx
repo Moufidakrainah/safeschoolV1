@@ -11,11 +11,13 @@
  */
 
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useStudentReportForm';
-import Button from '../Button';
-import Card from '../Card';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
@@ -32,14 +34,18 @@ interface StudentFormProps {
 export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
 
-const typeOptions = [
-      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'), },
-      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),     },
-      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),      },
-      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'),  },
-      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    },
-      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     },
-];
+
+
+
+const typeOptions = useMemo(() => [
+      { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
+      { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
+      { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
+      { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
+      { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
+      { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
+  ], [t]);
+
 
 const [typeInput, setTypeInput] = useState("");
 const [filteredTypes, setFilteredTypes] = useState(typeOptions);
@@ -98,13 +104,25 @@ const handleTypeSearch = (value: string) => {
 
 
 const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+const whoRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+// Auto-focus le bon élément à chaque changement d'étape
+useEffect(() => {
+  if (step === 0) {
+    whoRefs.current[0]?.focus();
+  } else if (step === 1) {
+    const idx = typeOptions.findIndex(o => o.label === type);
+    cardRefs.current[idx >= 0 ? idx : 0]?.focus();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [step]);
 
 useEffect(() => {
   const index = typeOptions.findIndex(o => o.label === type);
   if (index >= 0) {
     cardRefs.current[index]?.focus();
   }
-}, [type]);
+}, [type, typeOptions]);
 
 
 
@@ -117,7 +135,7 @@ useEffect(() => {
 
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-          <Card className="max-w-md w-full mx-5 text-center">
+          <Card className="max-w-md w-full mx-5 text-center p-6 shadow-sm">
             <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
             <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
@@ -139,135 +157,127 @@ useEffect(() => {
 
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
+        <Card className="p-6 shadow-sm">
 
-          {/* Étape 1 : Type de harcèlement */}
-          {/* {step === 1 && (
+          {/* Étape 0 : Qui signale ? */}
+          {step === 0 && (
             <fieldset>
-              <legend className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step2.title')}</legend>
-              <p className="text-gray-500 text-sm mb-6">{t('reporter.step2.subtitle')}</p>
-              <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                {typeOptions.map(opt => (
+              <legend className="text-gray-800 font-bold text-lg mb-2">{t('student.step1.title')}</legend>
+              <p className="text-gray-500 text-sm mb-6">{t('student.step1.subtitle')}</p>
+              <div className="flex flex-col gap-3" role="radiogroup" aria-label={t('student.step1.title')}>
+                {[t('student.step1.victim'), t('student.step1.witness')].map((option, idx, arr) => (
                   <button
-                    key={opt.label}
+                    key={option}
+                    ref={el => (whoRefs.current[idx] = el)}
                     role="radio"
-                    aria-checked={type === opt.label}
-                    onClick={() => setType(opt.label)}
-                    className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                      type === opt.label ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    aria-checked={whoSignals === option}
+                    tabIndex={whoSignals === option || (!whoSignals && idx === 0) ? 0 : -1}
+                    onClick={() => setWhoSignals(option)}
+                    onKeyDown={(e) => {
+                      const cur = arr.findIndex(o => o === whoSignals);
+                      const fallback = cur === -1 ? 0 : cur;
+                      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const next = (fallback + 1) % arr.length;
+                        setWhoSignals(arr[next]);
+                        whoRefs.current[next]?.focus();
+                      }
+                      if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prev = (fallback - 1 + arr.length) % arr.length;
+                        setWhoSignals(arr[prev]);
+                        whoRefs.current[prev]?.focus();
+                      }
+                    }}
+                    className={`px-4 py-4 rounded-lg cursor-pointer text-left transition-all border-2 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+                      whoSignals === option ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
                     }`}
                   >
-                    <div className="text-2xl mb-1" role="img" aria-hidden="true">{opt.icon}</div>
-                    <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
-                    <div className="text-xs text-gray-400">{opt.sub}</div>
+                    {option}
                   </button>
                 ))}
               </div>
-              {showErrors && !type && (
-                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
-              )}
             </fieldset>
-          )} */}
+          )}
 
-	
+          {/* Étape 1 : Type de harcèlement */}
+          {step === 1 && (
+  <fieldset>
+    <legend className="text-gray-800 font-bold text-lg mb-2">
+      {t('reporter.step2.title')}
+    </legend>
 
+    <p className="text-gray-500 text-sm mb-6">
+      {t('reporter.step2.subtitle')}
+    </p>
 
-			 {step === 0 && (
-				<div>
-				<h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
-				<p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
-				<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-					{['Je suis victime', 'Je suis témoin',].map(option => (
-					<div key={option} onClick={() => setWhoSignals(option)} style={{
-						padding: '16px', borderRadius: '8px', cursor: 'pointer',
-						border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
-						background: whoSignals === option ? '#f0f4ff' : 'white',
-						fontSize: '14px', fontWeight: whoSignals === option ? 600 : 400,
-					}}>
-						{option}
-					</div>
-					))}
-				</div>
-				</div>
-			)}
+<div
+  role="radiogroup"
+  aria-label={t('reporter.step2.title')}
+  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+>
+  {typeOptions.map((opt, index) => (
+    <div
+      key={opt.label}
+      ref={el => (cardRefs.current[index] = el)}
+      role="radio"
+      aria-checked={type === opt.label}
+      tabIndex={type === opt.label || (!type && index === 0) ? 0 : -1}
+      onClick={() => setType(opt.label)}
+      onKeyDown={(e) => {
+        const currentIndex = typeOptions.findIndex(o => o.label === type);
+        const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
 
+        // ✔ Valider la carte focusée
+        if (e.key === " " || e.key === "Enter") {
+          e.preventDefault();
+          setType(opt.label);
+        }
 
-			{step === 1 && (
-			<fieldset>
-				<legend className="text-gray-800 font-bold text-lg mb-2">
-				{t('reporter.step2.title')}
-				</legend>
+        // ✔ Aller à la carte suivante
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = (fallbackIndex + 1) % typeOptions.length;
+          setType(typeOptions[next].label);
+          cardRefs.current[next]?.focus();
+        }
 
-				<p className="text-gray-500 text-sm mb-6">
-				{t('reporter.step2.subtitle')}
-				</p>
+        // ✔ Aller à la carte précédente
+        if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
+          setType(typeOptions[prev].label);
+          cardRefs.current[prev]?.focus();
+        }
+      }}
+      className={`
+        px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
+        ${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
+        focus-visible:ring-2 focus-visible:ring-primary
+      `}
+    >
+      <div className="text-2xl mb-1" aria-hidden="true">
+        {opt.icon}
+      </div>
 
+      <div className="text-sm font-semibold text-gray-800">
+        {opt.label}
+      </div>
 
-			<div
-			role="radiogroup"
-			aria-label={t('reporter.step2.title')}
-			className="grid grid-cols-2 gap-3"
-			>
-			{typeOptions.map((opt, index) => (
-				<div
-				key={opt.label}
-				ref={el => (cardRefs.current[index] = el)}
-				role="radio"
-				aria-checked={type === opt.label}
-				tabIndex={type === opt.label ? 0 : -1}
-				onClick={() => setType(opt.label)}
-				onKeyDown={(e) => {
-					const currentIndex = typeOptions.findIndex(o => o.label === type);
-					const fallbackIndex = currentIndex === -1 ? 0 : currentIndex;
+      <div className="text-xs text-gray-400">
+        {opt.sub}
+      </div>
+    </div>
+  ))}
+</div>
 
-					// ✔ Valider la carte focusée
-					if (e.key === " " || e.key === "Enter") {
-					e.preventDefault();
-					setType(opt.label);
-					}
-
-					// ✔ Aller à la carte suivante
-					if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-					e.preventDefault();
-					const next = (fallbackIndex + 1) % typeOptions.length;
-					setType(typeOptions[next].label);
-					}
-
-					// ✔ Aller à la carte précédente
-					if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-					e.preventDefault();
-					const prev = (fallbackIndex - 1 + typeOptions.length) % typeOptions.length;
-					setType(typeOptions[prev].label);
-					}
-				}}
-				className={`
-					px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none
-					${type === opt.label ? "border-primary bg-surface" : "border-gray-200 bg-white"}
-					focus-visible:ring-2 focus-visible:ring-primary
-				`}
-				>
-				<div className="text-2xl mb-1" aria-hidden="true">
-					{opt.icon}
-				</div>
-
-				<div className="text-sm font-semibold text-gray-800">
-					{opt.label}
-				</div>
-
-				<div className="text-xs text-gray-400">
-					{opt.sub}
-				</div>
-				</div>
-			))}
-			</div>
-
-				{showErrors && !type && (
-				<p role="alert" className="mt-3 text-sm text-red-600">
-					⚠️ {t('reporter.validation.typeRequired')}
-				</p>
-				)}
-			</fieldset>
-			)}
+    {showErrors && !type && (
+      <p role="alert" className="mt-3 text-sm text-red-600">
+        ⚠️ {t('reporter.validation.typeRequired')}
+      </p>
+    )}
+  </fieldset>
+)}
 
 
 
@@ -280,14 +290,14 @@ useEffect(() => {
               <label className="block mb-1 text-sm font-semibold text-gray-700" htmlFor="description">
                 {t('reporter.step3.descriptionLabel')}
               </label>
-              <textarea
+              <Textarea
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
                 aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
+                className="resize-y mb-1"
               />
               {showErrors && !description && (
                 <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {t('reporter.validation.descriptionRequired')}</p>
@@ -295,19 +305,17 @@ useEffect(() => {
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
               </label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={e => setFrequency(e.target.value)}
-                aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-              >
-                <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
-                <option value="Une fois">{t('reporter.step3.freq1')}</option>
-                <option value="Deux fois">{t('reporter.step3.freq2')}</option>
-                <option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
-                <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
-              </select>
+              <Select value={frequency} onValueChange={v => setFrequency(v)}>
+                <SelectTrigger id="frequency" aria-required="true">
+                  <SelectValue placeholder={t('reporter.step3.frequencyPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
+                  <SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
+                  <SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
+                  <SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
+                </SelectContent>
+              </Select>
               {showErrors && !frequency && (
                 <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {t('reporter.validation.frequencyRequired')}</p>
               )}
@@ -447,7 +455,7 @@ useEffect(() => {
             <Button
               variant="ghost"
               onClick={() => { setShowErrors(false); setStep(s => s - 1); }}
-              disabled={step === 1}
+              disabled={step === 0}
             >
               ← {t('common.previous')}
             </Button>

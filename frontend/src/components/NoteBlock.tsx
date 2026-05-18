@@ -29,11 +29,11 @@ export default function NoteBlock({ note }: NoteBlockProps) {
   const isConvocation = note.type === 'convocation';
   return (
     <div
-      style={{ borderLeft: `3px solid ${isConvocation ? '#7c3aed' : 'var(--color-primary)'}` }}
+      style={{ borderLeft: `3px solid ${isConvocation ? 'var(--color-warning)' : 'var(--color-primary)'}` }}
       className={`p-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
     >
       <div className="flex justify-between mb-1">
-        <span className={`text-xs font-semibold ${isConvocation ? 'text-purple-700' : 'text-primary'}`}>
+        <span className={`text-xs font-semibold ${isConvocation ? 'text-warning' : 'text-primary'}`}>
           {isConvocation ? t('noteblock.convocation') : t('noteblock.note')}
         </span>
         <span className="text-xs text-gray-400">
