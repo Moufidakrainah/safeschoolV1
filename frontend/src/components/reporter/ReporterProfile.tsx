@@ -11,6 +11,8 @@
 
 import { useTranslation } from 'react-i18next';
 import type { AuthUser } from '../../types';
+import { Card } from '../ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,9 +45,21 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
       <h2 className="text-2xl font-bold mb-6 text-gray-800">{t('reporter.profile.title')}</h2>
 
+
+      <div className="flex justify-center mb-6">
+        <Avatar className="size-28">
+          <AvatarImage src={user?.avatarUrl ?? '/teacher.png'} alt={`${user?.firstName} ${user?.lastName}`} />
+          <AvatarFallback>
+            {user?.firstName?.[0]}{user?.lastName?.[0]}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
+
       {/* Informations personnelles */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
+      <Card className="p-6 mb-4 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -60,10 +74,11 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
+      </Card>
 
       {/* Profil professionnel */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <Card className="p-6 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">🏫 Profil professionnel</h3>
 
         {loadingProfile ? (
@@ -72,6 +87,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
           <p className="text-gray-400 text-sm text-center py-4">Aucun profil professionnel enregistré</p>
         ) : (
           <>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm mb-4">
               <tbody>
                 <tr className="border-b border-gray-100">
@@ -86,8 +102,9 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
                 )}
               </tbody>
             </table>
+            </div>
 
-            {staffProfile.classes && staffProfile.classes.length > 0 && (
+            {staffProfile.classes.length > 0 && (
               <>
                 <p className="text-gray-400 font-semibold text-sm mb-2">Classes</p>
                 <div className="flex flex-wrap gap-2">
@@ -101,7 +118,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             )}
           </>
         )}
-      </div>
+      </Card>
     </main>
   );
 }

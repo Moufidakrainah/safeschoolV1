@@ -90,7 +90,7 @@ export function useReportForm(
   const [step, setStep] = useState(0);
 
   // ── Champs du formulaire ────────────────────────────────────────────────
-  const [whoSignals,   setWhoSignals]   = useState(defaultWho);
+  const [whoSignals,   setWhoSignals]   = useState<string>('');
   const [type,         setType]         = useState('');
   const [description,  setDescription]  = useState('');
   const [frequency,    setFrequency]    = useState('');
@@ -110,7 +110,7 @@ export function useReportForm(
   // Utilisé à la fois pour bloquer la navigation et pour déclencher showErrors.
   const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description || !frequency));
+    (step === 2 && (!description.trim() || !frequency));
 
   // ── Suspects ────────────────────────────────────────────────────────────
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);

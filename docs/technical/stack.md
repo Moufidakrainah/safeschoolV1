@@ -38,7 +38,9 @@ Tous les services sont orchestrés par **Docker Compose** et communiquent via un
 | **Vite** | 5 | Bundler et serveur de développement. Compile le TypeScript + JSX, applique Tailwind, sert les fichiers statiques avec HMR. |
 | **React Router** | 6 | Routage côté client — navigation entre pages sans rechargement, gestion des routes protégées (`ProtectedRoute`). |
 | **Axios** | 1.x | Client HTTP. Centralise tous les appels API dans `services/api.ts`. Intercepteur pour injection automatique du token JWT. |
-| **Tailwind CSS** | 4 | Framework CSS utilitaire. Styles définis directement dans les composants via des classes. Thème de couleurs sémantiques (`primary`, `critical`, `warning`) configuré via `@theme` dans `index.css`. |
+| **Tailwind CSS** | 4 | Framework CSS utilitaire. Styles définis directement dans les composants via des classes. Thème de couleurs sémantiques (`primary`, `critical`, `warning`) configuré via `@theme` dans `index.css`. Plugin `@tailwindcss/vite` (pas postcss). |
+| **shadcn/ui** | — | Collection de composants React copiés dans le projet (pas une dépendance npm). Construits sur Radix UI. Code dans `src/components/ui/`. Ajout : `npx shadcn@latest add <composant>`. Voir [`docs/design/design-system.md`](../design/design-system.md). |
+| **Radix UI** | — | Primitives accessibles (ARIA, navigation clavier) utilisées par shadcn. Installées automatiquement à l'ajout de chaque composant shadcn. |
 | **react-i18next** | 15 | Internationalisation. Fichiers de traduction JSON (`fr`, `en`, `de`) dans `src/i18n/`. Hook `useTranslation()` dans chaque composant. |
 | **Recharts** | 2.x | Bibliothèque de graphiques React pour `StatsDashboard.tsx`. Composants déclaratifs (`<BarChart>`, `<LineChart>`, etc.). |
 | **Socket.io-client** | 4 | Client WebSocket pour le module Quiz temps réel. Connexion au gateway NestJS depuis `Quiz.tsx`. |

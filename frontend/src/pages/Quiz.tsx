@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 
 type QuestionPayload = {
   roomId: string;
@@ -46,6 +48,8 @@ type QuestionState = {
   answerResult: string;
 } | null;
 
+// Si VITE_SOCKET_URL ou VITE_API_URL ne sont pas définies dans un .env, on utilise http://localhost:5000 par défaut.
+// Cela permet de fonctionner en dev sans config spéciale, mais pour la prod il faudra définir VITE_SOCKET_URL ou VITE_API_URL.
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ??
   import.meta.env.VITE_API_URL ??
@@ -289,18 +293,17 @@ useEffect(() => {
           {socketError ? <p className="text-red-500">{socketError}</p> : null}
           <form onSubmit={handleJoinRoom}>
             <label htmlFor="room-code" className="text-sm font-medium text-gray-700">Room code</label>
-            <input
+            <Input
               id="room-code"
               type="text"
               maxLength={10}
               value={roomCode}
               onChange={(event) => setRoomCode(event.target.value)}
               placeholder="Enter room id"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary"
             />
-            <button type="submit" disabled={!connected} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
+            <Button type="submit" disabled={!connected} className="mt-2 w-full rounded-full h-auto py-3">
               Join
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -327,29 +330,24 @@ useEffect(() => {
               <p>{isRevealing ? `Next question in: ${secondsLeft}s` : `Time left: ${secondsLeft}s`}</p>
               <h2>{questionState.question.text}</h2>
               {questionState.answerResult ? <p>{questionState.answerResult}</p> : null}
-              <ul className="grid grid-cols-2 gap-4">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {questionState.question.options.map((opt, i) => {
-                  let optionClass = 'w-full mt-2 rounded-full px-16 py-3 text-white font-semibold disabled:opacity-50 ';
+                  let variant: 'default' | 'success' | 'destructive' | 'secondary' = 'default';
                   if (isRevealing) {
-                    if (i === questionState.correctIndex) {
-                      optionClass += 'bg-green-500';
-                    } else if (i === questionState.selectedIndex) {
-                      optionClass += 'bg-red-500';
-                    } else {
-                      optionClass += 'bg-gray-400';
-                    }
-                  } else {
-                    optionClass += 'bg-primary hover:bg-primary-hover';
+                    if (i === questionState.correctIndex) variant = 'success';
+                    else if (i === questionState.selectedIndex) variant = 'destructive';
+                    else variant = 'secondary';
                   }
                   return (
                     <li key={i}>
-                      <button
+                      <Button
+                        variant={variant}
                         onClick={() => handleAnswer(i)}
                         disabled={questionState.hasAnswered || timeLeftMs <= 0 || isRevealing}
-                        className={optionClass}
+                        className="w-full mt-2 rounded-full h-auto px-6 py-3"
                       >
                         {opt}
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}
@@ -359,7 +357,9 @@ useEffect(() => {
             </>
           ) : (
             <p>{gamePhase === 'over' ? 'Thanks for playing.' : 'Waiting for question...'}</p>,
-            <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave</button>
+            <Button onClick={handleLeaveRoom} className="mt-2 w-full rounded-full h-auto py-3">
+              Leave
+            </Button>
           )}
         </div>
       </div>
@@ -375,10 +375,10 @@ useEffect(() => {
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
         <h1 className="text-center text-2xl font-black">Room: {joinedRoom}</h1>
         {socketError ? <p className="text-red-500">{socketError}</p> : null}
-        <button onClick={handleStartGame} disabled={!isHost} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">
+        <Button onClick={handleStartGame} disabled={!isHost} className="mt-2 w-full rounded-full h-auto py-3">
           Start the quiz ?
-        </button>
-        <button onClick={handleLeaveRoom} className="mt-2 rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50">Leave room</button>
+        </Button>
+        <Button onClick={handleLeaveRoom} variant="outline" className="rounded-full h-auto py-3">Leave room</Button>
       </div>
     </div>
 	</>

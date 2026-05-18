@@ -7,12 +7,20 @@ import {
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import Button from '../components/Button';
+import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
-import Card from '../components/Card';
+import { Card } from '../components/ui/card';
 import StatCard from '../components/StatCard';
-import Select from '../components/Select';
-import Input from '../components/Input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
@@ -83,7 +91,7 @@ export default function AdminDashboard() {
 	useEffect(() => { fetchReports(); }, []);
 
 	const fetchReports = async () => {
-	try {		
+	try {
 		const data = await getAllReports();
 		setReports(data);
 	} catch {
@@ -108,9 +116,6 @@ export default function AdminDashboard() {
 		setSaving(false);
 	}
 	};
-
-
-
 
   // ── Filtrage
 const filtered = useMemo(() => {
@@ -139,30 +144,18 @@ const filtered = useMemo(() => {
       if (!match) return false;
     }
 
-
-	if (filterVictim && filterVictim !== "all") {
-		const title = r.title?.toLowerCase() ?? "";
-		const q = filterVictim.toLowerCase();
-
-		let victim: string | null = null;
-
-		// Cas 1 : le signaleur est la victime
-		if (title.includes("victime") && r.student) {
-			victim = `${r.student.firstName} ${r.student.lastName}`.toLowerCase();
-		}
-
-		// Cas 2 : la victime est dans la description
-		else if ((title.includes("témoin") || title.includes("temoin")) && r.description) {
-			const match = r.description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
-			victim = match ? match[1].trim().toLowerCase() : null;
-		}
-
-		if (!victim || !victim.includes(q)) return false;
-		}
-
-
-
-
+    if (filterVictim) {
+      const q = filterVictim.toLowerCase();
+      const title = r.title?.toLowerCase() ?? '';
+      let victim: string | null = null;
+      if (title.includes('victime') && r.student) {
+        victim = `${r.student.firstName} ${r.student.lastName}`.toLowerCase();
+      } else if ((title.includes('témoin') || title.includes('temoin')) && r.description) {
+        const match = r.description.match(/[Vv]ictime\s*:\s*([^|(\n]+)/);
+        victim = match ? match[1].trim().toLowerCase() : null;
+      }
+      if (!victim || !victim.includes(q)) return false;
+    }
 
     if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
 
@@ -170,6 +163,16 @@ const filtered = useMemo(() => {
       const to = new Date(filterDateTo);
       to.setHours(23, 59, 59, 999);
       if (new Date(r.createdAt) > to) return false;
+    }
+
+    if (search) {
+      const q = search.toLowerCase();
+      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
+      if (
+        !name.includes(q) &&
+        !(r.title ?? '').toLowerCase().includes(q) &&
+        !(r.description ?? '').toLowerCase().includes(q)
+      ) return false;
     }
 
     return true;
@@ -181,7 +184,7 @@ const filtered = useMemo(() => {
   filterClass,
   filterStudent,
   filterSuspect,
-  filterVictim, 
+  filterVictim,
   filterDateFrom,
   filterDateTo,
   search
@@ -408,22 +411,6 @@ const classOptions = Array.from(
 
 
 
-const handleVictimSearch = async (name: string) => {
-    setFilterVictim(name);
-    setCurrentPage(1);
-    if (!name || name.trim().length < 2) { setVictimReports(null); return; }
-    setLoadingVictim(true);
-    try {
-      const results = await searchReportsByVictim(name.trim());
-      setVictimReports(results);
-    } catch { console.error('Erreur recherche victime'); setVictimReports([]); }
-    finally { setLoadingVictim(false); }
-  };
-
-
-
-
-
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
@@ -462,105 +449,26 @@ const handleVictimSearch = async (name: string) => {
               {t('admin.next')} →
             </Button>
           </div>
-          <div className="text-center">
-
-
-
-
-          {/* Victimes */}
-            <Card borderColor={severityColor} title={t('admin.detail.victim')}>
-              {selected.description?.includes('') && (
-				<>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
-					
-				</p>
-				<p className="text-sm text-gray-700 mb-4">
-								{selected.student?.studentProfile?.class.level}
-
-							{selected.student?.studentProfile?.class.section}
-                  </p>
-				  </>
-              )}
-            </Card>
 
 
 
 
 
 
-			<Card borderColor={severityColor} title={t('admin.detail.reportDetails')}>
-             
-            
-                  {([
-                    { label: t('admin.detail.reported'), value: new Date(selected.createdAt).toLocaleDateString('fr-FR',
-						{
-							hour:'2-digit',
-							minute:'2-digit'
-						})
-					},
-                  ] as const).map(row => (
-					<p className="text-sm text-gray-700 mb-4">
-                      {row.value}
-					</p>
-                  ))}
-
-				  <p className="text-sm text-gray-700 leading-7">
-              {/* {selected.description?.split('|')[0]?.trim()} */}
-              {selected.description}
-            	</p>
-
-
-       
-			   <table className="w-full text-sm border-collapse">
 
 
 
 
-			<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.title.split(" - ")[0]}</td>
-
-			</tr>
-<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.title.split(" - ")[1]}</td>
-
-			</tr>
-
-
-			<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.reportedBy')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.student?.firstName} {selected.student?.lastName}</td>
-
-			</tr>
-
-			<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.anonymousLabel')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') }</td>
-
-			</tr>
-
-			
-
-              </table>
-
-            </Card>
-       
-
-
-
-          {/* Analyse IA */}
-			<Card borderColor={severityColor} title={t('admin.detail.iaAnalysis')}>
+          {/* Informations + personnes impliquées */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
+              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
               <table className="w-full text-sm border-collapse">
                 <tbody>
                   {([
                     { label: t('admin.detail.titleField'), value: selected.title },
-                    // { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
+                    { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
+                    { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
                     { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
                     { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
                     { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
@@ -574,9 +482,8 @@ const handleVictimSearch = async (name: string) => {
               </table>
             </Card>
 
-
-          {/* Signale par */}
-            <Card borderColor={severityColor} title={t('admin.detail.people')}>
+            <Card className="p-6 shadow-sm">
+              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
               <p className="text-sm text-gray-700 mb-4">
                 {selected.isAnonymous
@@ -586,17 +493,14 @@ const handleVictimSearch = async (name: string) => {
                   <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
                 )}
               </p>
-
-            </Card>
-
-
-
-
-
-
-
-          {/* Suspects */}
-            <Card borderColor={severityColor} title={t('admin.detail.people')}>
+              {selected.description?.includes('| Victime :') && (
+                <>
+                  <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
+                  <p className="text-sm text-gray-700 mb-4">
+                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
+                  </p>
+                </>
+              )}
               <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
               {selected.suspects?.length > 0 ? (
                 <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
@@ -610,14 +514,18 @@ const handleVictimSearch = async (name: string) => {
                 <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
               )}
             </Card>
+          </div>
 
-
-
-			</div>
-
+          {/* Description */}
+          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
+            <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
+            <p className="text-sm text-gray-700 leading-7">
+              {selected.description?.split('|')[0]?.trim()}
+            </p>
+          </Card>
 
           {/* Notes administratives */}
-          <Card borderColor={severityColor} className="mb-6">
+          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
             <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
             {notes.length > 0 ? (
               <div className="flex flex-col gap-3 mb-5">
@@ -628,13 +536,13 @@ const handleVictimSearch = async (name: string) => {
             )}
             {isAdmin && (
               <>
-                <textarea
+                <Textarea
                   value={newNote}
                   onChange={e => setNewNote(e.target.value)}
                   rows={3}
                   placeholder={t('admin.notes.placeholder')}
                   aria-label={t('admin.notes.placeholder')}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                  className="resize-y mb-3"
                 />
                 <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
               </>
@@ -643,27 +551,26 @@ const handleVictimSearch = async (name: string) => {
 
           {/* Convocation */}
           {isAdmin && (
-            <Card borderColor={severityColor}>
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
               <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
               <div className="mb-4">
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
                   {t('admin.convocation.dateLabel')}
                 </label>
-                <input
+                <Input
                   id="convocation-date"
                   type="datetime-local"
                   value={convocationDate}
                   onChange={e => setConvocationDate(e.target.value)}
-                  className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
                 />
               </div>
-              <textarea
+              <Textarea
                 value={convocationMessage}
                 onChange={e => setConvocationMessage(e.target.value)}
                 rows={3}
                 placeholder={t('admin.convocation.placeholder')}
                 aria-label={t('admin.convocation.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+                className="resize-y mb-3"
               />
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
@@ -736,13 +643,12 @@ const handleVictimSearch = async (name: string) => {
 
             {/* Recherche */}
             <div className="mb-5">
-              <input
+              <Input
                 type="search"
                 value={search}
                 onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.search.placeholder')}
                 aria-label={t('admin.search.placeholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </div>
 
@@ -751,19 +657,16 @@ const handleVictimSearch = async (name: string) => {
         <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
 
 
-		<Select
-
-			value={filterClass}
-			onChange={e => { setFilterClass(e.target.value); setCurrentPage(1); }}
-			aria-label={t('admin.filters.allClasses')}
-			>
-			<option value="all">{t('admin.filters.allClasses')}</option>
-
-			{classOptions.map(cls => (
-				<option key={cls} value={cls}>
-				{cls}
-				</option>
-			))}
+		<Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
+			<SelectTrigger aria-label={t('admin.filters.allClasses')}>
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>
+				{classOptions.map(cls => (
+					<SelectItem key={cls} value={cls}>{cls}</SelectItem>
+				))}
+			</SelectContent>
 		</Select>
 
 
@@ -771,90 +674,73 @@ const handleVictimSearch = async (name: string) => {
 
 
 
-		<Select
-
-			value={filterStudent}
-			onChange={e => { setFilterStudent(e.target.value); setCurrentPage(1); }}
-			aria-label={t('admin.filters.allReporters')}
-			>
-			<option value="all">{t('admin.filters.allReporters')}</option>
-
-			{[...new Map(
-				reports
-				.filter(r => r.student && !r.isAnonymous)
-				.map(r => [r.student!.id, r.student!])
-			).values()].map(s => {
-
-				// 👉 C’est ICI qu’on log l’utilisateur
-				console.log("USER OPTION:", s);
-
-				return (
-				<option key={s.id} value={s.id}>
-					{s.firstName} {s.lastName} (
-					{s.role === 'student' && s.studentProfile?.class
-						? `${s.studentProfile.class.level}${s.studentProfile.class.section}`
-						: s.role === 'teacher' && s.staffProfile?.subject
-						? s.staffProfile.subject
-						: s.role}
-					)
-				</option>
-				);
-			})}
-			</Select>
+		<Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
+			<SelectTrigger aria-label={t('admin.filters.allReporters')}>
+				<SelectValue />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>
+				{[...new Map(
+					reports
+					.filter(r => r.student && !r.isAnonymous)
+					.map(r => [r.student!.id, r.student!])
+				).values()].map(s => (
+					<SelectItem key={s.id} value={s.id}>
+						{s.firstName} {s.lastName} (
+						{s.role === 'student' && s.studentProfile?.class
+							? `${s.studentProfile.class.level}${s.studentProfile.class.section}`
+							: s.role === 'teacher' && s.staffProfile?.subject
+							? s.staffProfile.subject
+							: s.role}
+						)
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 
 
 
 
 
 
-              <input
+              <Input
                 type="search"
                 value={filterSuspect}
                 onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.suspectPlaceholder')}
                 aria-label={t('admin.filters.suspectPlaceholder')}
-                className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                className="px-1 py-2"
               />
 
-
-
-
-
-
-
-              <input
+              <Input
                 type="search"
                 value={filterVictim}
                 onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }}
                 placeholder={t('admin.filters.victimPlaceholder')}
                 aria-label={t('admin.filters.victimPlaceholder')}
-                className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                className="px-1 py-2"
               />
-
-
-
-
 
 			<div className="w-full text-sm flex items-center justify-center gap-2 mt-2 font-sans">
             
 
 			<span aria-hidden="true" className="text-gray-600">Dates : </span>
-                <input
+                <Input
                   key={`from-${resetKey}`}
                   type="date"
                   value={filterDateFrom}
                   onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateFrom')}
-                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2"
                 />
                 <span aria-hidden="true" className="text-gray-400">→</span>
-                <input
+                <Input
                   key={`to-${resetKey}`}
                   type="date"
                   value={filterDateTo}
                   onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }}
                   aria-label={t('admin.filters.dateTo')}
-                  className="px-1 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
+                  className="px-1 py-2"
                 />
 			</div>
 
@@ -996,7 +882,7 @@ const handleVictimSearch = async (name: string) => {
             </div>
 
             {showUserForm && (
-              <Card className="mb-5">
+              <Card className="mb-5 p-6 shadow-sm">
                 <h3 className="text-gray-800 font-bold mb-4">
                   {editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}
                 </h3>
@@ -1004,12 +890,14 @@ const handleVictimSearch = async (name: string) => {
     
 
 
-                  <Input
-                    label={t('admin.users.firstName')}
-                    value={userForm.firstName}
-                    onChange={e => updateField('firstName', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.firstName')}</Label>
+                    <Input
+                      value={userForm.firstName}
+                      onChange={e => updateField('firstName', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 					{errors.firstName && (
 						<p className="text-red-300 text-xs">{errors.firstName}</p>
@@ -1017,12 +905,14 @@ const handleVictimSearch = async (name: string) => {
 					</div>
 
 
-                  <Input
-                    label={t('admin.users.lastName')}
-                    value={userForm.lastName}
-                    onChange={e => updateField('lastName', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.lastName')}</Label>
+                    <Input
+                      value={userForm.lastName}
+                      onChange={e => updateField('lastName', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 				{errors.lastName && (
 					<p className="text-red-300 text-xs">{errors.lastName}</p>
@@ -1030,25 +920,29 @@ const handleVictimSearch = async (name: string) => {
 				</div>
 
 
-                  <Input
-                    label={t('admin.users.email')}
-                    value={userForm.email}
-                    onChange={e => updateField('email', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.email')}</Label>
+                    <Input
+                      value={userForm.email}
+                      onChange={e => updateField('email', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 				  <div className="min-h-5 w-full">
 					{errors.email && (
 						<p className="text-red-300 text-xs">{t('admin.users.errorEmailFormat')}</p>
 					)}
 					</div>
 
-                  <Input
-                    label={t('admin.users.password')}
-                    type="password"
-                    value={userForm.password}
-                    onChange={e => updateField('password', e.target.value)}
-                    theme="light"
-                  />
+                  <div className="flex flex-col gap-1 w-full">
+                    <Label className="text-white text-sm font-medium">{t('admin.users.password')}</Label>
+                    <Input
+                      type="password"
+                      value={userForm.password}
+                      onChange={e => updateField('password', e.target.value)}
+                      className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
+                    />
+                  </div>
 					<div className="min-h-5 w-full">
 					{errors.password && (
 						<p className="text-red-300 text-xs">{t('admin.users.errorPasswordLength')}</p>
@@ -1056,20 +950,29 @@ const handleVictimSearch = async (name: string) => {
 					</div>
 
 				<div className="text-center">
-                  <Select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })} aria-label={t('admin.users.roles.label')}>
-                    <option value="student">{t('admin.users.roles.student')}</option>
-                    <option value="teacher">{t('admin.users.roles.teacher')}</option>
-                    <option value="staff">{t('admin.users.roles.staff')}</option>
-                    <option value="admin">{t('admin.users.roles.admin')}</option>
-                    <option value="director">{t('admin.users.roles.director')}</option>
+                  <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v })}>
+                    <SelectTrigger aria-label={t('admin.users.roles.label')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
+                      <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
+                      <SelectItem value="staff">{t('admin.users.roles.staff')}</SelectItem>
+                      <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+                      <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
+                    </SelectContent>
                   </Select>
                   {userForm.role === 'student' && (
-                    <Select value={userForm.schoolClass} onChange={e => setUserForm({ ...userForm, schoolClass: e.target.value })} aria-label={t('admin.users.selectClass')}>
-                      <option value="">{t('admin.users.selectClass')}</option>
-                      <option value="6eme">6ème</option>
-                      <option value="5eme">5ème</option>
-                      <option value="4eme">4ème</option>
-                      <option value="3eme">3ème</option>
+                    <Select value={userForm.schoolClass} onValueChange={v => setUserForm({ ...userForm, schoolClass: v })}>
+                      <SelectTrigger aria-label={t('admin.users.selectClass')}>
+                        <SelectValue placeholder={t('admin.users.selectClass')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="6eme">6ème</SelectItem>
+                        <SelectItem value="5eme">5ème</SelectItem>
+                        <SelectItem value="4eme">4ème</SelectItem>
+                        <SelectItem value="3eme">3ème</SelectItem>
+                      </SelectContent>
                     </Select>
                   )}
 				  </div>
@@ -1095,7 +998,7 @@ const handleVictimSearch = async (name: string) => {
 		<ul className="flex flex-col gap-3">
 			{users.map(u => (
 			<li key={u.id}>
-				<Card className="flex justify-between items-center">
+				<Card className="flex justify-between items-center p-6 shadow-sm">
 				<div>
 					<span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
 					<span className="ml-2 text-xs text-gray-400">{u.email}</span>
