@@ -66,41 +66,113 @@ export class ScoringService {
     reason: string;
   } {
     const text = description.toLowerCase();
-    if (
-      text.includes("suicid") ||
-      text.includes("me tuer") ||
-      text.includes("mourir") ||
-      text.includes("menace") ||
-      text.includes("frapper") ||
-      text.includes("tuer")
-    ) {
-      return {
-        score: 20,
-        urgency: true,
-        reason: "Menace physique ou idées suicidaires détectées",
-      };
+    const match = (patterns: RegExp[]) => patterns.some(p => p.test(text));
+
+    // ── Urgence : violence physique ou idées suicidaires ──────────────────
+    const urgencePatterns = [
+      // Idées suicidaires
+      /suicid/,
+      /me tuer|envie de mourir|veux mourir|veut mourir/,
+      /mourir|la mort|en finir/,
+      /plus vivre|plus envie de vivre/,
+
+      // Violence physique
+      /frapp/,            // frappe, frapper, frappé, frappée, frappent
+      /cogn/,             // cogner, cogné
+      /coup[s ]|coup$/,   // coup, coups
+      /battre|me bat |me batt/,
+      /bless/,            // blesser, blessé
+      /agress/,           // agresser, agression
+      /violen/,           // violence, violent
+      /attaqu/,           // attaquer, attaque
+      /pouss/,            // pousser, poussé, pousse
+      /gifle|giffl/,      // gifle, giflé
+      /étrangl/,          // étrangler
+      /crach/,            // cracher, craché
+
+      // Menaces graves
+      /menaç|je vais te/,
+      /te tuer|te frapper|te casser/,
+      /si tu parles|si tu le dis/,
+
+      // Harcèlement sexuel
+      /touch.*corps|corps.*touch/,
+      /geste déplacé|remarque.*corps/,
+      /harcèlement sexuel|agression sexuelle/,
+    ];
+
+    // ── Détresse émotionnelle ─────────────────────────────────────────────
+    const detressePatterns = [
+      // Peur et anxiété
+      /\bpeur\b|apeur/,
+      /anxieu|angoiss/,
+      /stressé|stress/,
+      /tremble|trembl/,
+
+      // Tristesse et isolement
+      /pleur/,            // pleurer, pleure, pleuré
+      /triste|tristesse/,
+      /déprim|dépress/,
+      /malheur/,
+      /souffr/,
+      /\bseul[e ]?\b|isolé|mis à l.écart/,
+      /personne ne m.aime|personne ne me parle/,
+
+      // Mal-être scolaire
+      /plus envie d.aller|peur d.aller|j.ose pas aller/,
+      /mal à l.aise|pas bien|très mal/,
+      /honte/,
+      /plus dormir|ne dors plus|cauchemar/,
+      /ne mange plus|ne mange pas/,
+
+      // Demande d.aide
+      /aidez.moi|besoin d.aide|au secours/,
+      /\baide\b/,
+    ];
+
+    // ── Menace verbale ────────────────────────────────────────────────────
+    const verbalePatterns = [
+      // Insultes
+      /insult/,
+      /traite.*nom|noms|tous les noms/,
+      /gros mot|grossièreté/,
+      /racis|racist|discrimin/,
+      /moque|rigoler de moi|rient de moi/,
+
+      // Humiliation
+      /humili/,
+      /ridiculis|se fout de moi/,
+      /surnom|appell.*méchant/,
+      /imit/,             // imiter, imitation
+
+      // Menace verbale
+      /menace verbal|crier|hurler/,
+      /réputation|répand.*rumeur|rumeur/,
+      /dit.*mensonge|ment sur moi/,
+    ];
+
+    // ── Exclusion sociale ─────────────────────────────────────────────────
+    const exclusionPatterns = [
+      /refuse.*s.asseoir|ne veut pas.*asseoir/,
+      /exclure|exclu[e ]|mis à l.écart/,
+      /personne ne me parle|plus personne/,
+      /seul.*cantine|mange seul/,
+      /groupe.*travail|refus.*groupe/,
+      /ignor/,            // ignorer, ignoré
+      /ostracis/,
+    ];
+
+    if (match(urgencePatterns)) {
+      return { score: 20, urgency: true,  reason: "Menace physique ou idées suicidaires détectées" };
     }
-    if (
-      text.includes("peur") ||
-      text.includes("aide") ||
-      text.includes("souffre") ||
-      text.includes("pleure") ||
-      text.includes("seul") ||
-      text.includes("malheureux")
-    ) {
-      return {
-        score: 10,
-        urgency: false,
-        reason: "Détresse émotionnelle détectée",
-      };
+    if (match(detressePatterns)) {
+      return { score: 10, urgency: false, reason: "Détresse émotionnelle détectée" };
     }
-    if (
-      text.includes("insulte") ||
-      text.includes("menace verbale") ||
-      text.includes("crier") ||
-      text.includes("humili")
-    ) {
-      return { score: 5, urgency: false, reason: "Menace verbale détectée" };
+    if (match(verbalePatterns)) {
+      return { score: 5,  urgency: false, reason: "Menace verbale détectée" };
+    }
+    if (match(exclusionPatterns)) {
+      return { score: 3,  urgency: false, reason: "Exclusion sociale détectée" };
     }
     return { score: 0, urgency: false, reason: "Situation banale" };
   }
