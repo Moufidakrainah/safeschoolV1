@@ -490,68 +490,46 @@ const handleVictimSearch = async (name: string) => {
 
 
 			<Card borderColor={severityColor} title={t('admin.detail.reportDetails')}>
-             
-            
-                  {([
-                    { label: t('admin.detail.reported'), value: new Date(selected.createdAt).toLocaleDateString('fr-FR',
+			   <table className="w-full text-sm border-collapse">
+
+            <tr className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.reported')}</td>
+				<td className="py-2 text-gray-700">
+                      {new Date(selected.createdAt).toLocaleDateString('fr-FR',
 						{
 							hour:'2-digit',
 							minute:'2-digit'
 						})
-					},
-                  ] as const).map(row => (
-					<p className="text-sm text-gray-700 mb-4">
-                      {row.value}
-					</p>
-                  ))}
-
-				  <p className="text-sm text-gray-700 leading-7">
-              {/* {selected.description?.split('|')[0]?.trim()} */}
-              {selected.description}
-            	</p>
-
-
-       
-			   <table className="w-full text-sm border-collapse">
-
-
-
+					}
+				  </td>
+			</tr>
 
 			<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.type')}</td>
 				<td className="py-2 text-gray-700">
 			{selected.title.split(" - ")[0]}</td>
-
 			</tr>
-<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.titleField')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.title.split(" - ")[1]}</td>
-
-			</tr>
-
 
 			<tr className="border-b border-gray-100">
-					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.reportedBy')}</td>
-				<td className="py-2 text-gray-700">
-			{selected.student?.firstName} {selected.student?.lastName}</td>
+				<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.reportedBy')}</td>
+				<td className="py-2 text-gray-700">{selected.student?.firstName} {selected.student?.lastName}</td>
+			</tr>
 
+			<tr className="border-b border-gray-100">
+				<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.role')}</td>
+				<td className="py-2 text-gray-700">
+			{selected.title.split(" - ")[1].split(" ")[2].charAt(0).toUpperCase() + selected.title.split(" - ")[1].split(" ")[2].slice(1)}
+			</td>
 			</tr>
 
 			<tr className="border-b border-gray-100">
 					<td className="py-2 text-gray-400 font-semibold w-2/5">{t('admin.detail.anonymousLabel')}</td>
 				<td className="py-2 text-gray-700">
 			{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') }</td>
-
 			</tr>
 
-			
-
               </table>
-
             </Card>
-       
-
 
 
           {/* Analyse IA */}
@@ -559,15 +537,12 @@ const handleVictimSearch = async (name: string) => {
               <table className="w-full text-sm border-collapse">
                 <tbody>
                   {([
-                    { label: t('admin.detail.titleField'), value: selected.title },
-                    // { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
                     { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
                     { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
-                    { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
                   ] as const).map(row => (
                     <tr key={row.label} className="border-b border-gray-100">
                       <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                      <td className="py-2 text-gray-700">{row.value}</td>
+                      <td className="py-2 text-gray-700">{row.value.charAt(0).toUpperCase() + row.value.slice(1)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -575,8 +550,18 @@ const handleVictimSearch = async (name: string) => {
             </Card>
 
 
-          {/* Signale par */}
-            <Card borderColor={severityColor} title={t('admin.detail.people')}>
+          {/* Suspects */}
+            <Card borderColor={severityColor} title={t('admin.detail.suspected')}>
+{/* 
+			<table className="w-full text-sm border-collapse">
+				<tr key={row.label} className="border-b border-gray-100">
+					<td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
+					<td className="py-2 text-gray-700">{row.value.charAt(0).toUpperCase() + row.value.slice(1)}</td>
+				</tr>
+			</table> */}
+
+
+
               <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
               <p className="text-sm text-gray-700 mb-4">
                 {selected.isAnonymous
@@ -587,7 +572,7 @@ const handleVictimSearch = async (name: string) => {
                 )}
               </p>
 
-            </Card>
+            {/* </Card>
 
 
 
@@ -595,8 +580,8 @@ const handleVictimSearch = async (name: string) => {
 
 
 
-          {/* Suspects */}
-            <Card borderColor={severityColor} title={t('admin.detail.people')}>
+          {/* Alerteur */}
+            {/* <Card borderColor={severityColor} title={t('admin.detail.alerter')}> */} 
               <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
               {selected.suspects?.length > 0 ? (
                 <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">

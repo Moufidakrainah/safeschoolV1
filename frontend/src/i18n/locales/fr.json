@@ -75,7 +75,7 @@
     },
     "detail": {
 	  "reportDetails": "Details du signalement",
-	  "reported":"Signale le ",
+	  "reported":"Date du signalement",
       "iaAnalysis": "Analyse IA",
       "titleField": "Titre",
       "date": "Date",
@@ -92,7 +92,11 @@
       "suspects": "Suspect(s)",
       "noSuspect": "Aucun soupçonné indiqué",
       "gradeModified": "Grade modifié",
-      "suspectsCount": "coupable(s)"
+      "suspectsCount": "coupable(s)", 
+	  "type": "Type de harcelement", 
+	  "role": "Role", 
+	  "suspected": "Suspect",
+	  "alerter": "Alerteur"
     },
     "actions": {
       "groupLabel": "Actions sur le signalement",
