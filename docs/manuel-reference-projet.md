@@ -232,14 +232,37 @@ Les IP internes (ex : 172.18.0.8) sont **attribuées dynamiquement** par Docker 
 
 Le driver `bridge` est le type de réseau utilisé : il crée un réseau privé isolé sur la machine hôte, avec un routage interne géré par Docker. Les conteneurs ne sont pas accessibles depuis l'extérieur sauf via un port mapping explicite (`ports:`).
 
-### ⚠️ Bug connu — `REACT_APP_API_URL` inutilisée
+### `REACT_APP_API_URL`
 
-Dans `docker-compose.yml`, le service frontend déclare :
+Dans `docker-compose.yml`, le service frontend déclarait :
 ```yaml
 environment:
   - REACT_APP_API_URL=http://localhost:5000
 ```
-`REACT_APP_*` est la convention de **Create React App (CRA)**. Ce projet utilise **Vite**, qui exige le préfixe `VITE_` et la syntaxe `import.meta.env.VITE_XXX`. Le code frontend utilise `import.meta.env.VITE_API_URL` (visible dans `Quiz.tsx`). Cette variable n'est définie nulle part → la variable `REACT_APP_API_URL` dans docker-compose.yml est silencieusement ignorée et n'a aucun effet.
+`REACT_APP_*` est la convention de **Create React App (CRA)**. Ce projet utilise **Vite**, qui exige le préfixe `VITE_` et la syntaxe `import.meta.env.VITE_XXX`. Le code frontend utilise `import.meta.env.VITE_API_URL` (visible dans `Quiz.tsx`). Cette variable n'est définie nulle part → la variable `REACT_APP_API_URL` dans docker-compose.yml est silencieusement ignorée et n'a aucun effet (supprimee)
+
+### Dev vs Production — ce qui tourne vs ce qu'on livre
+
+| | Dev (aujourd'hui) | Production livrée |
+|---|---|---|
+| Commande | `npm run dev` → Vite dev server | `npm run build` → génère des fichiers statiques dans `dist/` |
+| Ce qui tourne | Serveur Node dans le conteneur | Fichiers HTML/CSS/JS servis par nginx |
+| Prettier, ESLint, TypeScript | ✅ utilisés pendant le dev | ❌ absents du livrable |
+| React, tailwindcss, etc. | ✅ utilisés | ✅ compilés dans le bundle JS |
+| Hot reload, source maps | ✅ | ❌ |
+| node_modules | Présent dans le conteneur Docker | Absent — le build n'en a plus besoin |
+| Taille | ~500 Mo (node_modules) | ~1-5 Mo (juste HTML/CSS/JS compilé) |
+
+**C'est quoi `dist/` ?**  
+Quand tu fais `npm run build`, Vite lit tout ton code React/TypeScript, le compile, le minifie (rend illisible mais léger), et produit un dossier `dist/` avec quelques fichiers :
+```
+dist/
+  index.html
+  assets/
+    main-abc123.js   ← tout ton code React compilé en un seul fichier
+    main-def456.css  ← tout ton CSS compilé
+```
+C'est tout ce dont nginx a besoin pour servir l'application. Plus de Node, plus de TypeScript, juste des fichiers statiques.
 
 ### Les Dockerfiles
 
@@ -558,11 +581,12 @@ Le `JwtAuthGuard` est appliqué à toutes les routes qui nécessitent une authen
 
 #### Pourquoi React et pas Vue ou Svelte
 
-Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour trois raisons : l'écosystème TypeScript est mature (types officiels, excellent support dans les outils), la courbe d'apprentissage est compatible avec le niveau de l'équipe en début de projet, et la documentation officielle (`react.dev`) est de haute qualité.
+Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour son écosystème TypeScript mature (types officiels, excellent support dans les outils) et sa documentation officielle (`react.dev`) de qualité.
 
 #### Pourquoi Tailwind et pas Bootstrap
 
-Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles — ce qui annule son intérêt. Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
+Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles, ce qui n'est pas ideal.
+Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
 
 #### La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
 
@@ -2851,13 +2875,6 @@ WebSocket est un protocole **bidirectionnel persistant** : une seule connexion r
 - Connexion au gateway via `socket.io-client` : `const socket = io(SOCKET_URL)`.
 - La référence au socket est stockée dans un `useRef` (pas un `useState`) pour éviter les re-renders à chaque message reçu.
 - Les événements entrants (`question`, `leaderboard`, `gameEnd`) déclenchent des mises à jour d'état React.
-
-### Points d'attention actuels
-
-| Problème | Impact | Référence |
-|---|---|---|
-| `SOCKET_URL` codé en dur (`http://localhost:5000`) | La connexion échoue hors de la machine de développement — le sujet exige HTTPS | `Quiz.tsx` ligne ~8 |
-| Bug room cleanup | La room n'est pas nettoyée correctement quand un quiz se termine | Documenté dans le dernier commit de `feat/quiz` |
 
 ### Socket.io vs WebSocket natif
 
