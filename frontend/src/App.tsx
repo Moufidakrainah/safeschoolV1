@@ -1,3 +1,4 @@
+/*Routes : redirige selon le role */
 import type { ReactElement } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';

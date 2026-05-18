@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 // Affiche une étiquette colorée pour un statut ou un niveau de gravité.
 //
 // Variants gravité  : 'critical' | 'high' | 'medium' | 'low'
-// Variants statut   : 'pending' | 'in_progress' | 'escalated' | 'closed' | 'rejected'
+// Variants statut   : 'pending' | 'in_progress' | 'closed' | 'rejected'
 // Variant neutre    : 'default'
 //
 // Props :
@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 
 export type BadgeVariant =
   | 'critical' | 'high' | 'medium' | 'low'
-  | 'pending' | 'in_progress' | 'escalated' | 'closed' | 'rejected'
+  | 'pending' | 'in_progress' | 'closed' | 'rejected'
   | 'default';
 
 const variantClasses: Record<BadgeVariant, string> = {
@@ -32,7 +32,6 @@ const variantClasses: Record<BadgeVariant, string> = {
   low:         'bg-low text-gray-900',
   pending:     'bg-yellow-100 text-yellow-700',
   in_progress: 'bg-blue-100 text-blue-700',
-  escalated:   'bg-purple-100 text-purple-700',
   closed:      'bg-green-100 text-green-700',
   rejected:    'bg-red-100 text-red-700',
   default:     'bg-gray-100 text-gray-600',
@@ -46,7 +45,6 @@ const variantI18nKeys: Record<BadgeVariant, string> = {
   low:         'badge.low',
   pending:     'badge.pending',
   in_progress: 'badge.in_progress',
-  escalated:   'badge.escalated',
   closed:      'badge.closed',
   rejected:    'badge.rejected',
   default:     '',

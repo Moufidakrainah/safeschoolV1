@@ -20,7 +20,6 @@ export enum ReportGrade {
 export enum ReportStatus {
   PENDING    = "pending",
   IN_PROGRESS = "in_progress",
-  ESCALATED  = "escalated",
   CLOSED     = "closed",
   REJECTED   = "rejected",
 }

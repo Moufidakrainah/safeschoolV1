@@ -157,7 +157,6 @@ export default function UiKit() {
               <div className="flex flex-wrap gap-2">
                 <Badge variant="pending" />
                 <Badge variant="in_progress" />
-                <Badge variant="escalated" />
                 <Badge variant="closed" />
                 <Badge variant="rejected" />
                 <Badge variant="default" />

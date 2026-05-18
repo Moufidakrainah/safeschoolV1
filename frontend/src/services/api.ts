@@ -1,5 +1,6 @@
+/*Toutes les fonctions qui appellent le backend cest ici qu on ajoute une route API */
 import axios from 'axios';
-import type { SuspectInput } from '../types';
+import type { SuspectInput, VictimInput } from '../types';
 
 const api = axios.create({ baseURL: 'http://localhost:5000' });
 
@@ -19,14 +20,11 @@ export const getReports = async () => (await api.get('/reports')).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
 
-export const createReport = async (type: string, reporter: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], victims: SuspectInput[], frequency: string) =>
+export const createReport = async (type: string, reporter: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], victims: VictimInput[], frequency: string) =>
   (await api.post('/reports', { type, reporter, description, isAnonymous, suspects, victims, frequency })).data;
 
 export const updateReport = async (id: string, updates: object) =>
   (await api.patch(`/reports/${id}`, updates)).data;
-
-export const escalateReport = async (id: string) =>
-  (await api.patch(`/reports/${id}/escalate`)).data;
 
 export const searchUsers = async (query: string) =>
   (await api.get(`/users/search?q=${query}`)).data;

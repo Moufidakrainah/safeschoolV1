@@ -1,3 +1,4 @@
+/* stocke l utilisateur connecte. Disponible partout via useAuth() */
 import { createContext, useContext, useState } from 'react';
 // FIX: ReactNode must be imported as a type because verbatimModuleSyntax is enabled.
 import type { ReactNode } from 'react';

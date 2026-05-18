@@ -94,7 +94,6 @@ export default function ReportDetail({
           <div className="flex gap-2 flex-wrap">
             {([
               { status: 'in_progress', label: `🔄 ${t('admin.actions.inProgress')}`, variant: 'primary'  },
-              { status: 'escalated',   label: `🚨 ${t('admin.actions.escalate')}`,   variant: 'warning'  },
               { status: 'closed',      label: `✅ ${t('admin.actions.close')}`,       variant: 'success'  },
               { status: 'rejected',    label: `❌ ${t('admin.actions.reject')}`,      variant: 'danger'   },
             ] as const).map(btn => (

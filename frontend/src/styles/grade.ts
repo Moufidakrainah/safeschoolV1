@@ -17,7 +17,6 @@ export const GRADE_LABELS: Record<string, string> = {
 export const STATUS_LABELS: Record<string, string> = {
   pending:     '⏳ En attente',
   in_progress: '🔄 En cours',
-  escalated:   '🚨 Escaladé',
   closed:      '✅ Clôturé',
   rejected:    '❌ Rejeté',
 };

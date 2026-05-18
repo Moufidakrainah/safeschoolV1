@@ -114,7 +114,7 @@ INSERT INTO reports (id, type, reporter, description, grade, "caseNumber", "aiSc
   ('c0d1e2f3-0000-0000-0000-000000000006',
    'sexuel', 'victime',
    'Un élève me fait des remarques déplacées sur mon corps tous les jours et a essayé de me toucher dans le couloir. Je me sens très mal à l aise et j ai honte d en parler. (Fréquence: Tous les jours)',
-   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', 'escalated', false,
+   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000012', NOW() - INTERVAL '2 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000007',

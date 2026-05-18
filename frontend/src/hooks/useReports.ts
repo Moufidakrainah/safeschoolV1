@@ -19,7 +19,6 @@ export interface ReportStats {
   critical: number;
   high: number;
   pending: number;
-  escalated: number;
 }
 
 export interface UseReportsReturn {
@@ -242,7 +241,6 @@ export function useReports(): UseReportsReturn {
     critical:  reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
     high:      reports.filter(r => severityFromApiGrade(r.grade) === 'high').length,
     pending:   reports.filter(r => r.status === 'pending').length,
-    escalated: reports.filter(r => r.status === 'escalated').length,
   }), [reports]);
 
   return {

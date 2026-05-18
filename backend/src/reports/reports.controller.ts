@@ -115,12 +115,6 @@ export class ReportsController {
     return this.reportsService.update(id, dto);
   }
 
-  @Patch(":id/escalate")
-  async escalate(@Param("id") id: string, @Request() req) {
-    if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
-    return this.reportsService.escalate(id);
-  }
-
   @Get(":id/notes")
   async getNotes(@Param("id") id: string, @Request() req) {
     validateUUID(id);

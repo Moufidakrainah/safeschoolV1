@@ -120,12 +120,6 @@ export class ReportsService {
     return this.reportsRepository.save(report);
   }
 
-  async escalate(id: string): Promise<Report> {
-    const report = await this.findOne(id);
-    report.status = ReportStatus.ESCALATED;
-    return this.reportsRepository.save(report);
-  }
-
   async addNote(
     reportId: string,
     content: string,
