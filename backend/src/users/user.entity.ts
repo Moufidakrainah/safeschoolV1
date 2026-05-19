@@ -25,6 +25,7 @@ export class User {
   @Column() firstName: string;
   @Column() lastName: string;
   @CreateDateColumn() createdAt: Date;
+  @Column({ nullable: true }) avatar: string;
   @OneToMany(() => Report, (report) => report.student) reports: Report[];
   @OneToOne(() => StudentProfile, profile => profile.user) studentProfile: StudentProfile;
   @OneToOne(() => StaffProfile, staffProfile => staffProfile.user) staffProfile: StaffProfile;

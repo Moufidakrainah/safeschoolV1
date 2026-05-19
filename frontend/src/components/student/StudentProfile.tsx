@@ -1,17 +1,5 @@
-/**
- * StudentProfile — section "Mon profil" du StudentDashboard.
- *
- * Affiche deux blocs :
- *   - Informations personnelles (prénom, nom, email, classe, date de naissance)
- *   - Parents / Responsables légaux
- *
- * Ce composant est purement présentationnel : il reçoit les données en props
- * et ne fait aucun appel réseau lui-même. Le chargement est géré par le parent.
- */
-
+import { useRef, useState } from 'react';
 import type { AuthUser } from '../../types';
-
-// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface Parent {
   id: string;
@@ -28,9 +16,49 @@ interface StudentProfileProps {
   loadingParents: boolean;
 }
 
-// ─── Composant ──────────────────────────────────────────────────────────────
+const AVATAR_BASE = 'http://localhost:5000/uploads/avatars/';
+const API_BASE    = 'http://localhost:5000';
 
 export default function StudentProfile({ user, parents, loadingParents }: StudentProfileProps) {
+  const [avatar, setAvatar]       = useState<string | null>(user?.avatar ?? null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError]         = useState<string | null>(null);
+  const fileInputRef              = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/users/${user.id}/avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.avatar) {
+        setAvatar(data.avatar);
+        // Mettre à jour le localStorage
+        const saved = localStorage.getItem('user');
+        if (saved) {
+          const u = JSON.parse(saved);
+          u.avatar = data.avatar;
+          localStorage.setItem('user', JSON.stringify(u));
+        }
+      } else {
+        setError('Erreur lors de l\'upload');
+      }
+    } catch {
+      setError('Erreur lors de l\'upload');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <main className="max-w-xl mx-auto mt-8 px-5 pb-10">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mon profil</h2>
@@ -38,6 +66,38 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
       {/* Informations personnelles */}
       <div className="bg-white shadow rounded-lg p-6 mb-4">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+
+        {/* Avatar */}
+        <div className="flex flex-col items-center mb-6 gap-3">
+          {avatar ? (
+            <img
+              src={`${AVATAR_BASE}${avatar}?t=${Date.now()}`}
+              alt={`${user?.firstName} ${user?.lastName}`}
+              className="w-24 h-24 rounded-full object-cover border-4 border-primary shadow"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-400 border-4 border-gray-200 shadow">
+              {user?.firstName?.[0]}{user?.lastName?.[0]}
+            </div>
+          )}
+
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            ref={fileInputRef}
+            onChange={handleUpload}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="text-xs px-3 py-1.5 rounded-lg border border-primary text-primary hover:bg-surface transition-colors disabled:opacity-50"
+          >
+            {uploading ? 'Upload en cours...' : avatar ? '🔄 Changer la photo' : '📷 Ajouter une photo'}
+          </button>
+          {error && <p className="text-xs text-red-500">{error}</p>}
+        </div>
+
         <table className="w-full text-sm">
           <tbody>
             {[
@@ -56,7 +116,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
         </table>
       </div>
 
-      {/* Parents / Responsables légaux */}
+      {/* Parents */}
       <div className="bg-white shadow rounded-lg p-6">
         <h3 className="text-primary font-bold text-sm mb-4">👨‍👩‍👧 Parents / Responsables légaux</h3>
         {loadingParents ? (

@@ -24,7 +24,14 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import * as path from "path";
+import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "./users.service";
 import { validateUUID } from "../utils/validate-uuid";
@@ -342,5 +349,47 @@ async canDelete(@Request() req, @Param('id') id: string) {
   if (req.user.role !== 'admin') throw new ForbiddenException();
   return this.usersService.canDelete(id);
 }
+
+  @Post(':id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: diskStorage({
+      destination: './uploads/avatars',
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+        cb(null, `${req.params.id}${ext}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return cb(new BadRequestException('Seules les images jpg/png/webp sont acceptées'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
+  }))
+  async uploadAvatar(
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+    @Request() req,
+  ) {
+    validateUUID(id);
+    if (req.user.role !== 'admin' && req.user.id !== id) {
+      throw new ForbiddenException('Accès refusé');
+    }
+    if (!file) throw new BadRequestException('Aucun fichier envoyé');
+    // Renommer en nom.prenom.ext
+    const user = await this.usersService.findById(id);
+    const ext = path.extname(file.filename);
+    let newFilename = file.filename;
+    if (user) {
+      const nom = user.lastName.toLowerCase().replace(/\s+/g, '-');
+      const prenom = user.firstName.toLowerCase().replace(/\s+/g, '-');
+      newFilename = `${nom}.${prenom}${ext}`;
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', file.filename);
+      const newPath = path.join(process.cwd(), 'uploads', 'avatars', newFilename);
+      fs.renameSync(oldPath, newPath);
+    }
+    return this.usersService.updateAvatar(id, newFilename);
+  }
 
 }

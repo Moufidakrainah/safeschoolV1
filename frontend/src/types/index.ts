@@ -18,6 +18,7 @@ export interface AuthUser {
   firstName: string;
   lastName: string;
   role: UserRole;
+  avatar?: string | null;
   studentProfile?: {
     id: string;
     schoolClass: SchoolClass | null;
@@ -37,6 +38,7 @@ export interface AdminUser {
   lastName: string;
   email: string;
   role: UserRole;
+  avatar?: string | null;
   studentProfile?: { 
     schoolClass: SchoolClass | null 
   } | null;

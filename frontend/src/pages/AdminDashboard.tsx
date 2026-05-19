@@ -366,6 +366,9 @@ export default function AdminDashboard() {
                   {selected.isAnonymous
                     ? t('admin.detail.anonymousLabel')
                     : `${selected.student?.firstName} ${selected.student?.lastName}`}
+                  {selected.student?.avatar && (
+                    <img src={`http://localhost:5000/uploads/avatars/${selected.student.avatar}`} alt="" className="w-8 h-8 rounded-full object-cover border-2 border-gray-200 inline-block ml-2 align-middle" />
+                  )}
                   {selected.student?.role && (
                     <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
                   )}
@@ -757,7 +760,16 @@ export default function AdminDashboard() {
                       <li key={u.id}>
                         <Card className="flex justify-between items-center">
                           <div>
-                            <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+                            <div className="flex items-center gap-3">
+                              {u.avatar ? (
+                                <img src={`http://localhost:5000/uploads/avatars/${u.avatar}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" />
+                              ) : (
+                                <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">
+                                  {u.firstName?.[0]}{u.lastName?.[0]}
+                                </div>
+                              )}
+                              <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
+                            </div>
                             <span className="ml-2 text-xs text-gray-400">{u.email}</span>
                             <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded-lg text-xs text-gray-500">{u.role}</span>
                             {u.studentProfile?.schoolClass && (

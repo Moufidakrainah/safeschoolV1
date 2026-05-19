@@ -33,7 +33,7 @@ constructor(
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
     //   relations: ['studentProfile', 'staffProfile'],
     });
   }
@@ -43,7 +43,7 @@ constructor(
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
       relations: ['studentProfile'],
     //   relations: ['studentProfile', 'staffProfile'],
     });
@@ -338,4 +338,9 @@ async canDelete(id: string): Promise<{ deletable: boolean }> {
 
 
 
+
+  async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
+    await this.usersRepository.update(id, { avatar: filename });
+    return { avatar: filename };
+  }
 }

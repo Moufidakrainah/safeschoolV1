@@ -26,6 +26,7 @@ export class AuthService {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        avatar: user.avatar || null,
         studentProfile: user.studentProfile || null,
       },
     };
