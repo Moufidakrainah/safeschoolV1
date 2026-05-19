@@ -68,6 +68,18 @@ export class ReportsService {
       );
     }
 
+    // Si reporter = victime, ajouter automatiquement le student comme première victime
+    if (reporter === 'victime') {
+      await this.victimsRepository.save(
+        this.victimsRepository.create({
+          report: savedReport,
+          freeText: `${student.firstName} ${student.lastName}`,
+          resolvedUser: student,
+        })
+      );
+    }
+
+    // Ajouter les autres victimes saisies
     for (const victim of victims) {
       await this.victimsRepository.save(
         this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })

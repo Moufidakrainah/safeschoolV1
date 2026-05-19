@@ -450,7 +450,7 @@ export default function AdminDashboard() {
                 )}
 
                 {/* Victimes — uniquement pour les témoins */}
-                {selected.reporter === 'temoin' && (
+                {selected.victims?.length > 0 && (
                   <>
                     <p className="text-xs text-gray-400 font-semibold mb-2 mt-4">{t('admin.detail.victims')}</p>
                     {selected.victims?.length > 0 ? (
