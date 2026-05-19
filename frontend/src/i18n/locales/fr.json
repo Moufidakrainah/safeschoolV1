@@ -81,8 +81,9 @@
       "date": "Date",
       "class": "Classe",
       "aiScore": "Score IA",
-      "aiReason": "Analyse IA",
+      "aiDescription": "Description IA",
       "anonymous": "Anonyme",
+      "anonymousReport": "Signalement anonyme",
       "yes": "Oui",
       "no": "Non",
       "people": "Personnes impliquées",
@@ -95,7 +96,6 @@
       "suspectsCount": "coupable(s)", 
 	  "type": "Type de harcelement", 
 	  "role": "Role", 
-	  "suspected": "Suspect",
 	  "alerter": "Alerteur"
     },
     "actions": {

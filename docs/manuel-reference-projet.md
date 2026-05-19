@@ -2960,6 +2960,8 @@ docker exec -it transcendence-frontend-1 sh
 
 # Installer le composant (exemple : dialog)
 pnpm dlx shadcn@latest add dialog
+# Ceci ne fonctionne pas pour moi. J'ai fait npx shadcn@latest add table et ca a installe dans frontend/@/components/ui
+
 
 # Quitter le conteneur
 exit

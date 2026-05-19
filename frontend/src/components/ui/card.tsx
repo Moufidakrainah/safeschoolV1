@@ -5,8 +5,6 @@ import { cn } from "@/lib/utils"
 function Card({
   className,
   size = "default",
-  title,
-  children,
   ...props
 }: React.ComponentProps<"div"> & { 
 	size?: "default" | "sm", 
@@ -17,17 +15,11 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col mb-8 gap-4 overflow-hidden bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col mb-8 gap-4 overflow-hidden bg-card py-4 text-sm text-card-foreground ring-1 ring-foreground/10",
         className
       )}
-      {...props}>
-		{title && (
-        <h3 className="text-lg font-semibold px-4">
-          {title}
-        </h3>
-      )}
-      {children}
-	  </div>
+      {...props}
+	  />
   )
 }
 
@@ -46,14 +38,14 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
+    <h3
       data-slot="card-title"
       className={cn(
-        "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",
+        "font-heading text-base leading-snug font-medium text-primary font-bold",
         className
       )}
       {...props}
-    />
+    ></h3>
   )
 }
 
@@ -84,7 +76,7 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-content"
-      className={cn("px-4 group-data-[size=sm]/card:px-3", className)}
+      className={cn("px-4 text-accent-foreground", className)}
       {...props}
     />
   )
