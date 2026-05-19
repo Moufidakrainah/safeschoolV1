@@ -106,7 +106,7 @@
       "reject": "Rejeter"
     },
     "notes": {
-      "title": "Notes administratives",
+      "title": "Suivi du signalement",
       "empty": "Aucune note pour ce dossier",
       "placeholder": "Ajouter une note...",
       "save": "Enregistrer la note"
@@ -163,8 +163,8 @@
     "false_report": "❌ Faux signalement"
   },
   "noteblock": {
-    "note": "📝 Note",
-    "convocation": "📅 Convocation"
+    "note": "Note",
+    "convocation": "Convocation"
   },
   "pagination": {
     "nav": "Pagination",

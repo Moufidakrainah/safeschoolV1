@@ -40,6 +40,37 @@ import { useMemo } from 'react';
 
 
 
+function ConvocationSelector({ selected, onSend }: {
+  selected: any;
+  onSend: (date: string, message: string, targetRole: string) => Promise<void>;
+}) {
+  const people: { id: string; label: string }[] = [];
+
+  if (selected.title?.includes('Je suis témoin')) {
+    people.push({
+      id: 'temoin',
+      label: `👁️ Témoin — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
+    });
+    const victimMatch = selected.description?.match(/\| Victime : (.+?)(\||$)/);
+    const victimName = victimMatch ? victimMatch[1].trim() : 'Victime inconnue';
+    people.push({
+      id: 'victime',
+      label: `🧑‍🎓 Victime — ${victimName}`,
+    });
+  } else {
+    people.push({
+      id: 'victime',
+      label: `🧑‍🎓 Victime — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
+    });
+  }
+
+  selected.suspects?.forEach((s: any, i: number) => {
+    const name = s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText;
+    people.push({
+      id: `suspect_${i}`,
+      label: `⚠️ Soupçonné${selected.suspects.length > 1 ? ` ${i + 1}` : ''} — ${name}`,
+    });
+  });}
 
 
 
@@ -453,7 +484,6 @@ const classOptions = Array.from(
               ← {t('admin.prev')}
             </Button>
 
-
             <span className="font-bold text-primary">
               {t('admin.reportLabel', { number: selected.caseNumber })}
             </span>
@@ -563,24 +593,6 @@ const classOptions = Array.from(
 				</CardContent>
 			</Card>
 
-
-
-        {/* Victimes */}
-			<Card style={{ borderLeft: `5px solid ${severityColor}` }}>
-				<CardHeader>
-					<CardTitle>{t('admin.detail.victim')}</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()} ({selected.student?.studentProfile?.class.level + selected.student?.studentProfile?.class.section})
-				</CardContent>
-			</Card>
-
-
-
-
-
-
-
           {/* Notes administratives */}
           <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
             <CardTitle>{t('admin.notes.title')}</CardTitle>
@@ -592,7 +604,7 @@ const classOptions = Array.from(
               <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>
             )}
             {isAdmin && (
-              <div className=" mx-5 my-5">
+              <div className="mx-5 my-5">
                 <Textarea 
                   value={newNote}
                   onChange={e => setNewNote(e.target.value)}
@@ -608,8 +620,8 @@ const classOptions = Array.from(
 
           {/* Convocation */}
           {isAdmin && (
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
-              <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+              <CardTitle>{t('admin.convocation.title')}</CardTitle> 
               <div className="mb-4">
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
                   {t('admin.convocation.dateLabel')}
@@ -632,6 +644,18 @@ const classOptions = Array.from(
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
               </Button>
+
+			  <ConvocationSelector
+              selected={selected}
+              onSend={async (date, message, targetRole) => {
+                const dateFormatted = formatDate(date);
+
+                await addNote(selected.id, `Rendez-vous le ${dateFormatted}. ${message}`, 'convocation', targetRole);
+                await loadNotes(selected.id);
+              }}
+              />
+
+			  
             </Card>
           )}
 
