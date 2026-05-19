@@ -42,6 +42,7 @@ export default function AdminDashboard() {
   const [filterStudent, setFilterStudent] = useState('all');
   const [filterSuspect, setFilterSuspect] = useState('');
   const [filterVictim, setFilterVictim] = useState('');
+  const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -204,6 +205,27 @@ export default function AdminDashboard() {
   const loadNotes = async (reportId: string) => {
     try { setNotes(await getNotes(reportId)); }
     catch { console.error('Erreur chargement notes'); }
+  };
+
+  const handleAvatarUpload = async (userId: string, file: File) => {
+    setUploadingAvatarId(userId);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.avatar) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, avatar: data.avatar } : u));
+      }
+    } catch (e) {
+      console.error('Avatar upload failed', e);
+    } finally {
+      setUploadingAvatarId(null);
+    }
   };
 
   const goTo = (report: typeof selected) => {
@@ -784,6 +806,12 @@ export default function AdminDashboard() {
                               setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '' });
                               setShowUserForm(true);
                             }}>✏️ {t('admin.users.edit')}</Button>
+                            <label className={`cursor-pointer px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-gray-50 transition-colors ${uploadingAvatarId === u.id ? 'opacity-50' : ''}`}>
+                              {uploadingAvatarId === u.id ? '⏳' : '📷'}
+                              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                                onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(u.id, f); }}
+                              />
+                            </label>
                             <Button variant="danger" onClick={() => handleDeleteUser(u.id)}>🗑️ {t('admin.users.delete')}</Button>
                           </div>
                         </Card>

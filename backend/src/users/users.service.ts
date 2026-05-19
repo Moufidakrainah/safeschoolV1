@@ -340,6 +340,12 @@ async canDelete(id: string): Promise<{ deletable: boolean }> {
 
 
   async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
+    // Supprimer l'ancien fichier si il existe
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (user?.avatar && user.avatar !== filename) {
+      const oldPath = require('path').join(process.cwd(), 'uploads', 'avatars', user.avatar);
+      try { require('fs').unlinkSync(oldPath); } catch {}
+    }
     await this.usersRepository.update(id, { avatar: filename });
     return { avatar: filename };
   }
