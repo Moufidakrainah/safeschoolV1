@@ -40,40 +40,6 @@ import { useMemo } from 'react';
 
 
 
-function ConvocationSelector({ selected, onSend }: {
-  selected: any;
-  onSend: (date: string, message: string, targetRole: string) => Promise<void>;
-}) {
-  const people: { id: string; label: string }[] = [];
-
-  if (selected.title?.includes('Je suis témoin')) {
-    people.push({
-      id: 'temoin',
-      label: `👁️ Témoin — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
-    });
-    const victimMatch = selected.description?.match(/\| Victime : (.+?)(\||$)/);
-    const victimName = victimMatch ? victimMatch[1].trim() : 'Victime inconnue';
-    people.push({
-      id: 'victime',
-      label: `🧑‍🎓 Victime — ${victimName}`,
-    });
-  } else {
-    people.push({
-      id: 'victime',
-      label: `🧑‍🎓 Victime — ${selected.isAnonymous ? 'Anonyme' : `${selected.student?.firstName} ${selected.student?.lastName}`}`,
-    });
-  }
-
-  selected.suspects?.forEach((s: any, i: number) => {
-    const name = s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText;
-    people.push({
-      id: `suspect_${i}`,
-      label: `⚠️ Soupçonné${selected.suspects.length > 1 ? ` ${i + 1}` : ''} — ${name}`,
-    });
-  });}
-
-
-
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -645,15 +611,7 @@ const classOptions = Array.from(
                 {t('admin.convocation.send')}
               </Button>
 
-			  <ConvocationSelector
-              selected={selected}
-              onSend={async (date, message, targetRole) => {
-                const dateFormatted = formatDate(date);
-
-                await addNote(selected.id, `Rendez-vous le ${dateFormatted}. ${message}`, 'convocation', targetRole);
-                await loadNotes(selected.id);
-              }}
-              />
+			
 
 			  
             </Card>
