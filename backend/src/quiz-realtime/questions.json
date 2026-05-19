@@ -2,19 +2,134 @@
   {
     "id": 1,
     "text": "Quel pourcentage de jeunes est touché par le harcèlement ou cyberharcèlement ?",
-    "options": ["37%", "14%"],
-    "correctIndex": 0
+    "options": ["37%", "52%"],
+    "correctIndex": 0,
+    "score": 2
   },
   {
     "id": 2,
     "text": "À partir de quel âge les enfants peuvent-ils être concernés par le harcèlement ?",
-    "options": ["6 ans", "10 ans"],
-    "correctIndex": 0
+    "options": ["À partir de 10 ans", "Dès 6 ans"],
+    "correctIndex": 1,
+    "score": 2
   },
   {
-	"id": 3,
-	"text": "Où se produit le plus souvent le harcèlement",
-	"options": ["Sur les réseaux sociaux", "À l'ecole"],
-	"correctIndex": 1
+    "id": 3,
+    "text": "Où se produit le plus souvent le harcèlement ?",
+    "options": ["Sur les réseaux sociaux", "Dans l'établissement scolaire"],
+    "correctIndex": 1,
+    "score": 1
+  },
+  {
+    "id": 4,
+    "text": "Quel pourcentage des cas de harcèlement a lieu à l'école ?",
+    "options": ["45%", "71%"],
+    "correctIndex": 1,
+    "score": 3
+  },
+  {
+    "id": 5,
+    "text": "Quel pourcentage de jeunes a déjà subi du harcèlement (hors cyberharcèlement) ?",
+    "options": ["35%", "55%"],
+    "correctIndex": 0,
+    "score": 2
+  },
+  {
+    "id": 6,
+    "text": "Quel pourcentage de victimes a déjà pensé à se faire du mal ou au suicide ?",
+    "options": ["10%", "25%"],
+    "correctIndex": 1,
+    "score": 3
+  },
+  {
+    "id": 7,
+    "text": "Chez quel groupe le risque de pensées suicidaires liées au harcèlement est-il le plus élevé ?",
+    "options": ["Les filles (39%)", "Les garçons (25%)"],
+    "correctIndex": 0,
+    "score": 2
+  },
+  {
+    "id": 8,
+    "text": "Quel pourcentage de jeunes a déjà été confronté au cyberharcèlement ?",
+    "options": ["Environ 50%", "Environ 23%"],
+    "correctIndex": 1,
+    "score": 2
+  },
+  {
+    "id": 9,
+    "text": "Sur quelle application le cyberharcèlement est-il le plus fréquent ?",
+    "options": ["WhatsApp", "Instagram"],
+    "correctIndex": 0,
+    "score": 1
+  },
+  {
+    "id": 10,
+    "text": "Quel pourcentage des victimes de cyberharcèlement ont été touchées via WhatsApp ?",
+    "options": ["44%", "65%"],
+    "correctIndex": 0,
+    "score": 3
+  },
+  {
+    "id": 11,
+    "text": "Qui est le plus touché par le cyberharcèlement ?",
+    "options": ["Les garçons", "Les filles"],
+    "correctIndex": 1,
+    "score": 1
+  },
+  {
+    "id": 12,
+    "text": "Quel impact principal le harcèlement a-t-il sur les jeunes ?",
+    "options": ["Des conséquences graves sur la santé mentale", "Des difficultés financières"],
+    "correctIndex": 0,
+    "score": 1
+  },
+  {
+    "id": 13,
+    "text": "Quel pourcentage de victimes perd confiance en elles à cause du harcèlement ?",
+    "options": ["58%", "75%"],
+    "correctIndex": 0,
+    "score": 3
+  },
+  {
+    "id": 14,
+    "text": "Quel pourcentage de victimes rencontre des difficultés scolaires à cause du harcèlement ?",
+    "options": ["57%", "70%"],
+    "correctIndex": 0,
+    "score": 3
+  },
+  {
+    "id": 15,
+    "text": "Quel pourcentage de parents souhaite des actions concrètes contre le harcèlement ?",
+    "options": ["Environ 50%", "Près de 90%"],
+    "correctIndex": 1,
+    "score": 2
+  },
+  {
+    "id": 16,
+    "text": "Quel pourcentage des parents ne voit pas clairement ce que fait leur enfant en ligne ?",
+    "options": ["85%", "71%"],
+    "correctIndex": 1,
+    "score": 3
+  },
+  {
+    "id": 17,
+    "text": "Le harcèlement diminue-t-il avec l'âge ?",
+    "options": ["Oui, il diminue après la primaire", "Non, il reste stable de la primaire au lycée"],
+    "correctIndex": 1,
+    "score": 1
+  },
+  {
+    "id": 18,
+    "text": "Le harcèlement est-il seulement physique ?",
+    "options": ["Non, il peut aussi se produire en ligne", "Oui, le harcèlement est uniquement physique"],
+    "correctIndex": 0,
+    "score": 1
+  },
+  {
+    "id": 19,
+    "text": "Le harcèlement est-il un phénomène rare ?",
+    "options": ["Oui, seul 1 jeune sur 20 est concerné", "Non, il touche près de 2 jeunes sur 5"],
+    "correctIndex": 1,
+    "score": 1
   }
 ]
