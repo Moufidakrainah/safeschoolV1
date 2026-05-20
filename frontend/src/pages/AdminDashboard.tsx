@@ -10,6 +10,7 @@ import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from '../components/ui/card';
+import { Checkbox } from "../components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -37,9 +38,6 @@ import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
 import { useMemo } from 'react';
-
-
-
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
 
@@ -90,15 +88,9 @@ export default function AdminDashboard() {
 
 	const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
-
-
-
 	const [deleteError, setDeleteError] = useState('');
 	const [globalDeleteError, setGlobalDeleteError] = useState('');
-
 	const [isBlocked, setIsBlocked] = useState(false);
-
-
 	const itemsPerPage = 5;
 
 	// ── Chargement initial
@@ -423,7 +415,33 @@ const classOptions = Array.from(
   return sectionA.localeCompare(sectionB);
 });
 
+const recipients = [
+  {
+    id: "victim",
+    label: "Victime",
+    person: selected.victim, // à adapter selon ton modèle
+  },
+  {
+    id: "suspect",
+    label: "Coupable",
+    person: selected.suspect, // à adapter
+  },
+  !selected.isAnonymous && {
+    id: "reporter",
+    label: "Alerteur",
+    person: selected.student, // celui qui a fait le signalement
+  }
+].filter(Boolean)
 
+const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
+
+function toggleRecipient(id: string) {
+  setSelectedRecipients(prev =>
+    prev.includes(id)
+      ? prev.filter(r => r !== id)
+      : [...prev, id]
+  )
+}
 
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
@@ -588,6 +606,26 @@ const classOptions = Array.from(
           {isAdmin && (
             <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
               <CardTitle>{t('admin.convocation.title')}</CardTitle> 
+
+
+
+				<div className="flex flex-col gap-3 mb-5">
+				{recipients.map(r => (
+					<div key={r.id} className="flex items-center gap-2">
+					<Checkbox
+						checked={selectedRecipients.includes(r.id)}
+						onCheckedChange={() => toggleRecipient(r.id)}
+						id={r.id}
+					/>
+					<label htmlFor={r.id} className="text-sm cursor-pointer">
+						{r.label}
+					</label>
+					</div>
+				))}
+				</div>
+
+
+				
               <div className="mb-4">
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
                   {t('admin.convocation.dateLabel')}
@@ -610,6 +648,9 @@ const classOptions = Array.from(
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
               </Button>
+
+
+
 
 			
 
