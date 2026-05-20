@@ -5,6 +5,7 @@ import { StudentProfile } from '../student-profiles/student-profile.entity';
 import * as bcrypt from 'bcrypt';
 import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Report } from '../reports/report.entity';
+import { SchoolClass } from '../classes/class.entity';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,8 @@ constructor(
   private studentProfileRepository: Repository<StudentProfile>,
   @InjectRepository(Report)
   private reportRepository: Repository<Report>,
+  @InjectRepository(SchoolClass)
+  private classRepository: Repository<SchoolClass>,
 ) {}
 
 
@@ -106,61 +109,100 @@ constructor(
   }
 
   // ── Créer un utilisateur via l'interface admin ────────────────────────────
-  async createByAdmin(dto: { email: string; password: string; firstName: string; lastName: string; role: string; schoolClass?: string }): Promise<User> {
-    // Vérifier que l'email n'est pas déjà utilisé
-    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
-    if (existing) throw new ConflictException('Cet email est déjà utilisé');
+  
+  async createByAdmin(dto: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  schoolClass?: string; // ici c'est l'id de la classe
+}): Promise<User> {
 
-    const hashed = await bcrypt.hash(dto.password, 10);
-    const user = this.usersRepository.create({
-      email: dto.email,
-      password: hashed,
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      role: dto.role as UserRole,
+  // Vérifier email
+  const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+  if (existing) throw new ConflictException('Cet email est déjà utilisé');
+
+  // Créer l'utilisateur
+  const hashed = await bcrypt.hash(dto.password, 10);
+  const user = this.usersRepository.create({
+    email: dto.email,
+    password: hashed,
+    firstName: dto.firstName,
+    lastName: dto.lastName,
+    role: dto.role as UserRole,
+  });
+  const saved = await this.usersRepository.save(user);
+
+  // Si c'est un élève → créer le profil
+  if (dto.role === 'student' && dto.schoolClass) {
+    const schoolClass = await this.classRepository.findOneBy({ id: dto.schoolClass });
+    if (!schoolClass) throw new NotFoundException('Classe introuvable');
+
+    const profile = this.studentProfileRepository.create({
+      user: saved,
+      class: schoolClass,
     });
-    const saved = await this.usersRepository.save(user);
 
-    // Si c'est un élève avec une classe, on crée son profil élève
-    if (dto.role === 'student' && dto.schoolClass) {
-      const profile = this.studentProfileRepository.create({ user: saved, schoolClass: dto.schoolClass });
-      await this.studentProfileRepository.save(profile);
-    }
-
-    return saved;
+    await this.studentProfileRepository.save(profile);
   }
+
+  return saved;
+}
+
+
 
   // ── Modifier un utilisateur (par un admin) ────────────────────────────────
   // On vérifie que le nouvel email n'est pas déjà utilisé par quelqu'un d'autre
-  async updateByAdmin(id: string, dto: { email?: string; firstName?: string; lastName?: string; role?: string; schoolClass?: string }): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id }, relations: ['studentProfile'] });
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
+  
+  async updateByAdmin(id: string, dto: {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;
+  schoolClass?: string; // id de la classe
+}): Promise<User> {
 
-    // Si on change l'email, vérifier qu'il n'est pas déjà pris par un autre user
-    if (dto.email && dto.email !== user.email) {
-      const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
-      if (existing) throw new ConflictException('Cet email est déjà utilisé');
-      user.email = dto.email;
-    }
+  const user = await this.usersRepository.findOne({
+    where: { id },
+    relations: ['studentProfile'],
+  });
+  if (!user) throw new NotFoundException('Utilisateur introuvable');
 
-    if (dto.firstName) user.firstName = dto.firstName;
-    if (dto.lastName)  user.lastName  = dto.lastName;
-    if (dto.role)      user.role      = dto.role as UserRole;
-
-    const saved = await this.usersRepository.save(user);
-
-    // Mettre à jour ou créer le profil élève si une classe est fournie
-    if (dto.schoolClass) {
-      if (user.studentProfile) {
-        await this.studentProfileRepository.update(user.studentProfile.id, { schoolClass: dto.schoolClass });
-      } else {
-        const profile = this.studentProfileRepository.create({ user: saved, schoolClass: dto.schoolClass });
-        await this.studentProfileRepository.save(profile);
-      }
-    }
-
-    return saved;
+  // Email
+  if (dto.email && dto.email !== user.email) {
+    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+    if (existing) throw new ConflictException('Cet email est déjà utilisé');
+    user.email = dto.email;
   }
+
+  if (dto.firstName) user.firstName = dto.firstName;
+  if (dto.lastName)  user.lastName  = dto.lastName;
+  if (dto.role)      user.role      = dto.role as UserRole;
+
+  const saved = await this.usersRepository.save(user);
+
+  // Mise à jour du profil élève
+  if (dto.schoolClass) {
+    const schoolClass = await this.classRepository.findOneBy({ id: dto.schoolClass });
+    if (!schoolClass) throw new NotFoundException('Classe introuvable');
+
+    if (user.studentProfile) {
+      user.studentProfile.class = schoolClass;
+      await this.studentProfileRepository.save(user.studentProfile);
+    } else {
+      const profile = this.studentProfileRepository.create({
+        user: saved,
+        class: schoolClass,
+      });
+      await this.studentProfileRepository.save(profile);
+    }
+  }
+
+  return saved;
+}
+
+
 
   // ── Changer le mot de passe d'un utilisateur ──────────────────────────────
   // Accessible par l'admin (pour n'importe quel user)
