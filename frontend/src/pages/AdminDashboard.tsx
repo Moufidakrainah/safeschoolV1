@@ -38,13 +38,21 @@ import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
 import { useMemo } from 'react';
+import ConvocationSelector from '../components/ConvocationSelector';
+
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
+
+
+
+
+
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
+//   const people ;
 
   // ── État signalements
   const [reports, setReports] = useState<Report[]>([]);
@@ -294,9 +302,6 @@ const stats = useMemo(() => {
       console.error('Erreur sauvegarde utilisateur');
     }
   };
-
-
-
   
 const handleDeleteUser = async (id: string) => {
   // Vérifier si c'est son propre compte
@@ -312,8 +317,6 @@ const handleDeleteUser = async (id: string) => {
   setIsBlocked(!deletable);
   setDeleteError('');
 };
-
-
 
 const confirmDelete = async () => {
   if (!deleteTarget) return;
@@ -415,33 +418,8 @@ const classOptions = Array.from(
   return sectionA.localeCompare(sectionB);
 });
 
-const recipients = [
-  {
-    id: "victim",
-    label: "Victime",
-    person: selected.victim, // à adapter selon ton modèle
-  },
-  {
-    id: "suspect",
-    label: "Coupable",
-    person: selected.suspect, // à adapter
-  },
-  !selected.isAnonymous && {
-    id: "reporter",
-    label: "Alerteur",
-    person: selected.student, // celui qui a fait le signalement
-  }
-].filter(Boolean)
 
-const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
 
-function toggleRecipient(id: string) {
-  setSelectedRecipients(prev =>
-    prev.includes(id)
-      ? prev.filter(r => r !== id)
-      : [...prev, id]
-  )
-}
 
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
@@ -609,20 +587,33 @@ function toggleRecipient(id: string) {
 
 
 
-				<div className="flex flex-col gap-3 mb-5">
-				{recipients.map(r => (
-					<div key={r.id} className="flex items-center gap-2">
-					<Checkbox
-						checked={selectedRecipients.includes(r.id)}
-						onCheckedChange={() => toggleRecipient(r.id)}
-						id={r.id}
-					/>
-					<label htmlFor={r.id} className="text-sm cursor-pointer">
-						{r.label}
-					</label>
-					</div>
-				))}
-				</div>
+
+{/* Selectionner le(s) destinataire(s) */}
+
+				<ConvocationSelector 
+
+				selected={selected}
+				//   onSend={handleSendConvocation}
+
+				/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 				

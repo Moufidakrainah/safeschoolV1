@@ -73,5 +73,4 @@ export const checkCanDeleteUser = async (id: string) => {
   
 };
 
-
 export default api;
