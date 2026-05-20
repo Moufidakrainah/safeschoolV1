@@ -81,8 +81,9 @@
       "date": "Date",
       "class": "Classe",
       "aiScore": "Score IA",
-      "aiReason": "Analyse IA",
+      "aiDescription": "Description IA",
       "anonymous": "Anonyme",
+      "anonymousReport": "Signalement anonyme",
       "yes": "Oui",
       "no": "Non",
       "people": "Personnes impliquées",
@@ -92,7 +93,10 @@
       "suspects": "Suspect(s)",
       "noSuspect": "Aucun soupçonné indiqué",
       "gradeModified": "Grade modifié",
-      "suspectsCount": "coupable(s)"
+      "suspectsCount": "coupable(s)", 
+	  "type": "Type de harcelement", 
+	  "role": "Role", 
+	  "alerter": "Alerteur"
     },
     "actions": {
       "groupLabel": "Actions sur le signalement",
@@ -102,7 +106,7 @@
       "reject": "Rejeter"
     },
     "notes": {
-      "title": "Notes administratives",
+      "title": "Suivi du signalement",
       "empty": "Aucune note pour ce dossier",
       "placeholder": "Ajouter une note...",
       "save": "Enregistrer la note"
@@ -159,8 +163,8 @@
     "false_report": "❌ Faux signalement"
   },
   "noteblock": {
-    "note": "📝 Note",
-    "convocation": "📅 Convocation"
+    "note": "Note",
+    "convocation": "Convocation"
   },
   "pagination": {
     "nav": "Pagination",

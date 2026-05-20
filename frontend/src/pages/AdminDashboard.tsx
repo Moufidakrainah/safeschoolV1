@@ -9,7 +9,19 @@ import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
 import Badge, { type BadgeVariant } from '../components/Badge';
-import { Card } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter } from '../components/ui/card';
+import { Checkbox } from "../components/ui/checkbox";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table";
+
 import StatCard from '../components/StatCard';
 import {
   Select,
@@ -26,13 +38,21 @@ import NoteBlock from '../components/NoteBlock';
 import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import type { Report, Note, AdminUser } from '../types';
 import { useMemo } from 'react';
+import ConvocationSelector from '../components/ConvocationSelector';
+
 
 // ─── AdminDashboard ───────────────────────────────────────────────────────────
+
+
+
+
+
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
+//   const people ;
 
   // ── État signalements
   const [reports, setReports] = useState<Report[]>([]);
@@ -76,15 +96,9 @@ export default function AdminDashboard() {
 
 	const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
-
-
-
 	const [deleteError, setDeleteError] = useState('');
 	const [globalDeleteError, setGlobalDeleteError] = useState('');
-
 	const [isBlocked, setIsBlocked] = useState(false);
-
-
 	const itemsPerPage = 5;
 
 	// ── Chargement initial
@@ -288,9 +302,6 @@ const stats = useMemo(() => {
       console.error('Erreur sauvegarde utilisateur');
     }
   };
-
-
-
   
 const handleDeleteUser = async (id: string) => {
   // Vérifier si c'est son propre compte
@@ -306,8 +317,6 @@ const handleDeleteUser = async (id: string) => {
   setIsBlocked(!deletable);
   setDeleteError('');
 };
-
-
 
 const confirmDelete = async () => {
   if (!deleteTarget) return;
@@ -411,6 +420,7 @@ const classOptions = Array.from(
 
 
 
+
   // ── Vue détail ──────────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
@@ -436,7 +446,6 @@ const classOptions = Array.from(
               ← {t('admin.prev')}
             </Button>
 
-
             <span className="font-bold text-primary">
               {t('admin.reportLabel', { number: selected.caseNumber })}
             </span>
@@ -449,84 +458,106 @@ const classOptions = Array.from(
               {t('admin.next')} →
             </Button>
           </div>
+			<div className="text-center">
 
+          {/* Victimes */}
+			<Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+				<CardHeader>
+					<CardTitle>{t('admin.detail.victim')}</CardTitle>
+				</CardHeader>
+				<CardContent>
+					{selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()} ({selected.student?.studentProfile?.class.level + selected.student?.studentProfile?.class.section})
+				</CardContent>
+			</Card>
 
+          {/* Details du signalement */}
+			<Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+				<CardHeader>
+					<CardTitle>{t('admin.detail.reportDetails')}</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Table>
+						<TableBody>
+							<TableRow>
+								<TableCell className="w-1/2 text-muted-foreground font-bold">{t('admin.detail.reported')}</TableCell>
+								<TableCell>
+									{new Date(selected.createdAt).toLocaleDateString('fr-FR',{
+										hour:'2-digit',
+										minute:'2-digit'
+									})}
+								</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell className="text-muted-foreground font-bold">{t('admin.detail.type')}</TableCell>
+								<TableCell>{selected.title.split(" - ")[0]}</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell className="text-muted-foreground font-bold">{t('admin.detail.reportedBy')}</TableCell>
+								<TableCell>{selected.student?.firstName} {selected.student?.lastName}</TableCell>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
 
+          {/* Analyse IA */}
+			<Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+				<CardHeader>
+					<CardTitle>{t('admin.detail.iaAnalysis')}</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<Table>
+						<TableBody>
+							<TableRow>
+								<TableCell className="w-1/2 text-muted-foreground font-bold">{t('admin.detail.aiScore')}</TableCell>
+								<TableCell>{selected.aiScore}/100</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiDescription')}</TableCell>
+								<TableCell>{selected.aiReason.charAt(0).toUpperCase() + selected.aiReason.slice(1)}</TableCell>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
 
-
-
-
-
-
-
-          {/* Informations + personnes impliquées */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
-              <table className="w-full text-sm border-collapse">
-                <tbody>
-                  {([
-                    { label: t('admin.detail.titleField'), value: selected.title },
-                    { label: t('admin.detail.date'),       value: new Date(selected.createdAt).toLocaleDateString('fr-FR') },
-                    { label: t('admin.detail.class'),      value: selected.student?.studentProfile?.schoolClass ?? '-' },
-                    { label: t('admin.detail.aiScore'),    value: selected.aiScore ? `${selected.aiScore}/100` : '-' },
-                    { label: t('admin.detail.aiReason'),   value: selected.aiReason ?? '-' },
-                    { label: t('admin.detail.anonymous'),  value: selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no') },
-                  ] as const).map(row => (
-                    <tr key={row.label} className="border-b border-gray-100">
-                      <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                      <td className="py-2 text-gray-700">{row.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-
-            <Card className="p-6 shadow-sm">
-              <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.people')}</h3>
-              <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
-              <p className="text-sm text-gray-700 mb-4">
-                {selected.isAnonymous
-                  ? t('admin.detail.anonymousLabel')
-                  : `${selected.student?.firstName} ${selected.student?.lastName}`}
-                {selected.student?.role && (
-                  <span className="text-gray-400 text-xs ml-1">({selected.student.role})</span>
-                )}
-              </p>
-              {selected.description?.includes('| Victime :') && (
-                <>
-                  <p className="text-xs text-gray-400 font-semibold mb-1">{t('admin.detail.victim')}</p>
-                  <p className="text-sm text-gray-700 mb-4">
-                    {selected.description.split('| Victime :')[1]?.split('|')[0]?.trim()}
-                  </p>
-                </>
-              )}
-              <p className="text-xs text-gray-400 font-semibold mb-2">{t('admin.detail.suspects')}</p>
-              {selected.suspects?.length > 0 ? (
-                <ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
-                  {selected.suspects.map((s, i) => (
-                    <li key={i} className="bg-surface px-3 py-1 text-sm text-red-500">
-                      {s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
-              )}
-            </Card>
-          </div>
-
-          {/* Description */}
-          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
-            <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
-            <p className="text-sm text-gray-700 leading-7">
-              {selected.description?.split('|')[0]?.trim()}
-            </p>
-          </Card>
+          {/* Suspect et alerteur */}
+			<Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+				<CardContent>
+					<Table>
+						<TableBody>
+							<TableRow>
+								<TableCell className="w-1/2 text-muted-foreground font-bold"><CardTitle>{t('admin.detail.suspects')}</CardTitle></TableCell>
+								<TableCell className="text-muted-foreground font-bold"><CardTitle>{t('admin.detail.alerter')}</CardTitle></TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell>
+									{selected.suspects?.length > 0 ? (
+										<ul aria-label={t('admin.detail.suspects')} className="flex flex-col gap-1">
+										{selected.suspects.map((s, i) => (
+											<li key={i}>
+											{s.user ? `${s.user.firstName} ${s.user.lastName}` : s.freeText}
+											</li>
+										))}
+										</ul>
+									) : (
+										<p className="text-sm text-gray-300">{t('admin.detail.noSuspect')}</p>
+									)}
+								</TableCell>
+								<TableCell>
+									<div>{selected.student?.firstName} {selected.student?.lastName}</div>
+									<div>{selected.title.split(" - ")[1].split(" ")[2].charAt(0).toUpperCase() + selected.title.split(" - ")[1].split(" ")[2].slice(1)}</div>
+									<div className={selected.isAnonymous ? "text-destructive" : ""}>{selected.isAnonymous ? t('admin.detail.anonymousReport') : ' ' }</div>
+									</TableCell>
+							</TableRow>
+						</TableBody>
+					</Table>
+				</CardContent>
+			</Card>
 
           {/* Notes administratives */}
-          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
-            <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
+          <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+            <CardTitle>{t('admin.notes.title')}</CardTitle>
             {notes.length > 0 ? (
               <div className="flex flex-col gap-3 mb-5">
                 {notes.map(note => <NoteBlock key={note.id} note={note} />)}
@@ -535,8 +566,8 @@ const classOptions = Array.from(
               <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>
             )}
             {isAdmin && (
-              <>
-                <Textarea
+              <div className="mx-5 my-5">
+                <Textarea 
                   value={newNote}
                   onChange={e => setNewNote(e.target.value)}
                   rows={3}
@@ -545,14 +576,47 @@ const classOptions = Array.from(
                   className="resize-y mb-3"
                 />
                 <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
-              </>
+              </div>
             )}
           </Card>
 
           {/* Convocation */}
           {isAdmin && (
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
-              <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
+            <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
+              <CardTitle>{t('admin.convocation.title')}</CardTitle> 
+
+
+
+
+{/* Selectionner le(s) destinataire(s) */}
+
+				<ConvocationSelector 
+
+				selected={selected}
+				//   onSend={handleSendConvocation}
+
+				/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				
               <div className="mb-4">
                 <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
                   {t('admin.convocation.dateLabel')}
@@ -575,9 +639,17 @@ const classOptions = Array.from(
               <Button onClick={() => handleAddNote('convocation')}>
                 {t('admin.convocation.send')}
               </Button>
+
+
+
+
+			
+
+			  
             </Card>
           )}
 
+			</div>
         </div>
       </div>
 	  </main>

@@ -30,11 +30,11 @@ export default function NoteBlock({ note }: NoteBlockProps) {
   return (
     <div
       style={{ borderLeft: `3px solid ${isConvocation ? 'var(--color-warning)' : 'var(--color-primary)'}` }}
-      className={`p-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
+      className={`p-3 m-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
     >
       <div className="flex justify-between mb-1">
         <span className={`text-xs font-semibold ${isConvocation ? 'text-warning' : 'text-primary'}`}>
-          {isConvocation ? t('noteblock.convocation') : t('noteblock.note')}
+          {isConvocation ? t('noteblock.convocation') : ''}
         </span>
         <span className="text-xs text-gray-400">
           {new Date(note.createdAt).toLocaleDateString('fr-FR')} à{' '}
@@ -42,7 +42,7 @@ export default function NoteBlock({ note }: NoteBlockProps) {
           {note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
         </span>
       </div>
-      <p className="text-sm text-gray-700 m-0">{note.content}</p>
+      <p className="text-sm text-gray-700 m-0 text-left">{note.content}</p>
     </div>
   );
 }
