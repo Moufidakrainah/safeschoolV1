@@ -158,6 +158,14 @@ export class ReportsService {
             suspect.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
           );
         }
+      } else if (targetRole?.startsWith("victim_")) {
+        const victimIndex = parseInt(targetRole.split("_")[1]);
+        const victim = report.victims?.[victimIndex];
+        if (victim?.resolvedUser?.id) {
+          await this.notificationsService.create(
+            victim.resolvedUser.id, reportId, `📅 Convocation : ${content}`,
+          );
+        }
       } else {
         if (report.student?.id) {
           await this.notificationsService.create(

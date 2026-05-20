@@ -47,7 +47,9 @@
       "critical": "Critical",
       "high": "Serious",
       "pending": "Pending",
-      "escalated": "Escalated"
+      "escalated": "Escalated",
+      "medium": "Medium",
+      "low": "Low"
     },
     "search": {
       "placeholder": "Search by name, title, description"
@@ -61,7 +63,8 @@
       "dateRange": "Date range",
       "dateFrom": "From date",
       "dateTo": "To date",
-      "reset": "Reset"
+      "reset": "Reset",
+      "victimPlaceholder": "Victim name..."
     },
     "status": {
       "pending": "Pending",
@@ -156,7 +159,10 @@
     "in_progress": "🔄 In progress",
     "escalated": "🚨 Escalated",
     "closed": "✅ Closed",
-    "rejected": "❌ Rejected"
+    "rejected": "❌ Rejected",
+    "new": "New",
+    "resolved": "Resolved",
+    "false_report": "False report"
   },
   "noteblock": {
     "note": "📝 Note",

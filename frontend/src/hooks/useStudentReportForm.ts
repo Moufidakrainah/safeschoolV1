@@ -81,6 +81,8 @@ export function useStudentReportForm(
       const suspectsData = suspects.map(s => ({
         freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
       }));
+      // Si reporter=victime, les victimes supplémentaires sont dans victimName
+      // L'alerteur lui-même est déjà enregistré comme victim côté backend si besoin
       const victimsData = victimName
         ? victimName.split('|').filter(v => v.trim()).map(v => ({ freeText: v.trim() }))
         : [];

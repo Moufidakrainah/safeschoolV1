@@ -47,7 +47,9 @@
       "critical": "Critique",
       "high": "Grave",
       "pending": "En attente",
-      "escalated": "Escaladés"
+      "escalated": "Escaladés",
+      "medium": "Moyen",
+      "low": "Faible"
     },
     "search": {
       "placeholder": "Rechercher par nom, titre, description"
@@ -61,7 +63,8 @@
       "dateRange": "Plage de dates",
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser",
+      "victimPlaceholder": "Nom de la victime..."
     },
     "status": {
       "pending": "En attente",
@@ -156,7 +159,10 @@
     "in_progress": "🔄 En cours",
     "escalated": "🚨 Escaladé",
     "closed": "✅ Clôturé",
-    "rejected": "❌ Rejeté"
+    "rejected": "❌ Rejeté",
+    "new": "Nouveau",
+    "resolved": "Résolu",
+    "false_report": "Faux signalement"
   },
   "noteblock": {
     "note": "📝 Note",
