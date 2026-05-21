@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import questionsData from './questions.json';
 
 interface QuestionInternal {
 	id: number;
 	text: string;
 	options: string[];
 	correctIndex: number;
+	score: number;
 }
 
 interface QuestionPublic {
@@ -13,22 +15,14 @@ interface QuestionPublic {
 	options: string[];
 }
 
-const QUESTIONS: QuestionInternal[] = [
-	{
-		id: 1,
-		text: 'what is 1+1?',
-		options: ['2', '3', '1', '-42'],
-		correctIndex: 0,
-	},
-	{
-		id: 2,
-		text: 'what is 2+2?',
-		options: ['0', '1', '2.5', '4'],
-		correctIndex: 3,
-	},
-];
-
+const ALL_QUESTIONS: QuestionInternal[] = questionsData;
+const QUESTIONS_PER_GAME = 10;
 const QUESTION_TIME_LIMIT_MS = 30_000;
+
+function pickRandomQuestions(questions: QuestionInternal[], count: number): QuestionInternal[] {
+	const shuffled = [...questions].sort(() => Math.random() - 0.5);
+	return shuffled.slice(0, Math.min(count, shuffled.length));
+}
 const REVEAL_TIME_MS = 5_000;
 
 type GameStatus = 'waiting' | 'in-progress' | 'finished';
@@ -44,13 +38,21 @@ interface QuizRoom {
 	hostId: string;
 	status: GameStatus;
 	players: Map<string, QuizPlayer>;
+	questions: QuestionInternal[];
 	currentQuestionIndex: number;
 	answeredPlayerIds: Set<string>;
+	selectedAnswerByPlayerId: Map<string, number>;
 	startedAt: number | null;
 	questionEndsAt: number | null;
 	questionTimer: NodeJS.Timeout | null;
 	revealEndsAt: number | null;
 	revealTimer: NodeJS.Timeout | null;
+}
+
+interface AnswerStatistic {
+	index: number;
+	count: number;
+	percentage: number;
 }
 
 interface TimeoutAdvancePayload {
@@ -63,6 +65,7 @@ interface QuestionRevealPayload {
 	roomId: string;
 	questionId: number;
 	correctIndex: number;
+	answerStatistics: AnswerStatistic[];
 	roomSnapshot: RoomSnapshot;
 	revealEndsAt: number;
 	revealDurationMs: number;
@@ -96,6 +99,7 @@ type SubmitAnswerResult =
 				playerId: string;
 				questionId: number;
 				isCorrect: boolean;
+				pointValue: number;
 			};
 			revealPayload: QuestionRevealPayload | null;
 	  }
@@ -149,8 +153,10 @@ export class QuizRealtimeService {
 				hostId: clientId,
 				status: 'waiting',
 				players: new Map<string, QuizPlayer>(),
+				questions: [],
 				currentQuestionIndex: 0,
 				answeredPlayerIds: new Set<string>(),
+				selectedAnswerByPlayerId: new Map<string, number>(),
 				startedAt: null,
 				questionEndsAt: null,
 				questionTimer: null,
@@ -233,8 +239,10 @@ export class QuizRealtimeService {
 
 		this.clearQuestionTimer(room);
 		room.status = 'in-progress';
+		room.questions = pickRandomQuestions(ALL_QUESTIONS, QUESTIONS_PER_GAME);
 		room.currentQuestionIndex = 0;
 		room.answeredPlayerIds.clear();
+		room.selectedAnswerByPlayerId.clear();
 		room.startedAt = Date.now();
 		this.scheduleQuestionTimer(room);
 
@@ -260,7 +268,7 @@ export class QuizRealtimeService {
 			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
-		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion) {
 			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
@@ -275,9 +283,10 @@ export class QuizRealtimeService {
 
 		const isCorrect = selectedIndex === currentQuestion.correctIndex;
 		if (isCorrect) {
-			player.score += 1;
+			player.score += currentQuestion.score;
 		}
 
+		room.selectedAnswerByPlayerId.set(clientId, selectedIndex);
 		room.answeredPlayerIds.add(clientId);
 
 		const allAnswered = [...room.players.keys()].every((id) => room.answeredPlayerIds.has(id));
@@ -289,7 +298,7 @@ export class QuizRealtimeService {
 		return {
 			status: 'accepted',
 			roomSnapshot: this.getRoomSnapshot(roomId),
-			answerResult: { roomId, playerId: clientId, questionId, isCorrect },
+			answerResult: { roomId, playerId: clientId, questionId, isCorrect, pointValue: currentQuestion.score },
 			revealPayload,
 		};
 	}
@@ -336,14 +345,14 @@ export class QuizRealtimeService {
 		const room = this.rooms.get(roomId);
 		if (!room) return null;
 
-		const question = QUESTIONS[room.currentQuestionIndex];
+		const question = room.questions[room.currentQuestionIndex];
 		if (!question) return null;
 
 		return {
 			roomId: room.roomId,
 			question: this.toPublicQuestion(question),
 			questionNumber: room.currentQuestionIndex + 1,
-			totalQuestions: QUESTIONS.length,
+			totalQuestions: room.questions.length,
 			timeLimitMs: QUESTION_TIME_LIMIT_MS,
 			endsAt: room.questionEndsAt,
 		};
@@ -360,7 +369,7 @@ export class QuizRealtimeService {
 	private scheduleQuestionTimer(room: QuizRoom) {
 		this.clearQuestionTimer(room);
 
-		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion || room.status !== 'in-progress') {
 			return;
 		}
@@ -382,7 +391,7 @@ export class QuizRealtimeService {
 	private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
 		if (room.status !== 'in-progress') return null;
 
-		const currentQuestion = QUESTIONS[room.currentQuestionIndex];
+		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion) return null;
 
 		this.clearQuestionTimer(room);
@@ -406,6 +415,7 @@ export class QuizRealtimeService {
 			roomId: room.roomId,
 			questionId: currentQuestion.id,
 			correctIndex: currentQuestion.correctIndex,
+			answerStatistics: this.getAnswerStatistics(room, currentQuestion.options.length),
 			roomSnapshot: this.getRoomSnapshot(room.roomId),
 			revealEndsAt: room.revealEndsAt,
 			revealDurationMs: REVEAL_TIME_MS,
@@ -432,8 +442,9 @@ export class QuizRealtimeService {
 		this.clearRevealTimer(room);
 		room.currentQuestionIndex += 1;
 		room.answeredPlayerIds.clear();
+		room.selectedAnswerByPlayerId.clear();
 
-		const hasMoreQuestions = room.currentQuestionIndex < QUESTIONS.length;
+		const hasMoreQuestions = room.currentQuestionIndex < room.questions.length;
 		if (!hasMoreQuestions) {
 			const roomSnapshot = this.getRoomSnapshot(room.roomId);
 			room.status = 'finished';
@@ -454,5 +465,23 @@ export class QuizRealtimeService {
 
 	private toPublicQuestion(q: QuestionInternal): QuestionPublic {
 		return { id: q.id, text: q.text, options: q.options };
+	}
+
+	private getAnswerStatistics(room: QuizRoom, optionCount: number): AnswerStatistic[] {
+		const counts = Array.from({ length: optionCount }, () => 0);
+
+		for (const selectedIndex of room.selectedAnswerByPlayerId.values()) {
+			if (selectedIndex >= 0 && selectedIndex < optionCount) {
+				counts[selectedIndex] += 1;
+			}
+		}
+
+		const totalAnswers = counts.reduce((total, count) => total + count, 0);
+
+		return counts.map((count, index) => ({
+			index,
+			count,
+			percentage: totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0,
+		}));
 	}
 }
