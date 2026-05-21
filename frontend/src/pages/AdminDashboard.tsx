@@ -83,6 +83,7 @@ export default function AdminDashboard() {
   const itemsPerPage = 5;
 
   useEffect(() => { fetchReports(); fetchClassesList(); }, []);
+  useEffect(() => { if (viewSection === 'users') fetchUsers(); }, [viewSection]);
 
   const fetchClassesList = async () => {
     try { setClasses(await getClasses()); } catch { console.error('Erreur classes'); }

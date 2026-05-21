@@ -163,7 +163,7 @@ export class ScoringService {
     ];
 
     if (match(urgencePatterns)) {
-      return { score: 20, urgency: true,  reason: "Menace physique ou idées suicidaires détectées" };
+      return { score: 20, urgency: true,  reason: "Menace physique / idées suicidaires détectées" };
     }
     if (match(detressePatterns)) {
       return { score: 10, urgency: false, reason: "Détresse émotionnelle détectée" };

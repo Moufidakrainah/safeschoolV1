@@ -46,7 +46,7 @@ export const getUnreadCount = async () => (await api.get('/notifications/unread-
 export const markNotificationRead = async (id: string) =>
   (await api.patch(`/notifications/${id}/read`)).data;
 
-export const getAllUsers = async () => (await api.get('/users')).data;
+export const getAllUsers = async () => (await api.get('/users')).data.data;
 
 export const createUser = async (dto: Record<string, string>) =>
   (await api.post('/users', dto)).data;
