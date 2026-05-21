@@ -72,6 +72,7 @@ export default function AdminDashboard() {
   const [deleteError, setDeleteError]   = useState('');
   const [isBlocked, setIsBlocked]       = useState(false);
   const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
+  const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
 
   const [classes, setClasses]         = useState<SchoolClass[]>([]);
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
@@ -125,6 +126,11 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    try { const data = await getAllUsers(); setUsers(Array.isArray(data) ? data : []); } catch { console.error('Erreur users'); setUsers([]); } finally { setLoadingUsers(false); }
+  };
+
   const handleAvatarUpload = async (userId: string, file: File) => {
     setUploadingAvatarId(userId);
     try {
@@ -136,7 +142,11 @@ export default function AdminDashboard() {
         body: formData,
       });
       const data = await res.json();
-      if (data.avatar) setUsers(prev => prev.map(u => u.id === userId ? { ...u, avatar: data.avatar } : u));
+      console.log('Avatar upload response:', data);
+      if (data.avatar) {
+        setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
+        await fetchUsers();
+      }
     } catch (e) { console.error('Avatar upload failed', e); }
     finally { setUploadingAvatarId(null); }
   };
@@ -240,10 +250,6 @@ export default function AdminDashboard() {
     } catch { console.error('Erreur note'); }
   };
 
-  const fetchUsers = async () => {
-    setLoadingUsers(true);
-    try { setUsers(await getAllUsers()); } catch { console.error('Erreur users'); } finally { setLoadingUsers(false); }
-  };
 
   const handleSaveUser = async () => {
     try {
@@ -835,7 +841,7 @@ export default function AdminDashboard() {
                       <CardContent className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-3">
                           {u.avatar
-                            ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" />
+                            ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" />
                             : <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>
                           }
                           <div>
