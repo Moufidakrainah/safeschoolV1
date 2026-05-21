@@ -255,10 +255,10 @@ Signalement : "${description}"`,
     if (urgency) finalScore = Math.max(finalScore, 60);
 
     let grade: ReportGrade;
-    if (finalScore >= 60) grade = ReportGrade.CRITIQUE;
-    else if (finalScore >= 40) grade = ReportGrade.GRAVE;
-    else if (finalScore >= 20) grade = ReportGrade.MOYEN;
-    else grade = ReportGrade.FAIBLE;
+    if (finalScore >= 60) grade = ReportGrade.CRITICAL;
+    else if (finalScore >= 40) grade = ReportGrade.HIGH;
+    else if (finalScore >= 20) grade = ReportGrade.MEDIUM;
+    else grade = ReportGrade.LOW;
 
     return { finalScore, grade, aiScore, aiReason };
   }

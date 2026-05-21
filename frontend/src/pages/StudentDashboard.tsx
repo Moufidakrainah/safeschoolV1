@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getStudentParents, getNotifications, markNotificationRead } from '../services/api';
@@ -6,10 +7,13 @@ import type { Parent } from '../types';
 import StudentHeader from '../components/layout/StudentHeader/StudentHeader';
 import StudentProfile from '../components/student/StudentProfile';
 import StudentForm from '../components/student/StudentForm';
+// import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 type StudentSection = 'profile' | 'report' | 'notifications' | 'quiz';
 
 export default function StudentDashboard() {
+  const { t } = useTranslation();
+
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -69,6 +73,13 @@ export default function StudentDashboard() {
   return (
     <>
       <StudentHeader {...headerProps} />
+		{/* <RoleHeader
+			user={user}
+			logoutUser={logoutUser}
+			studentViewSection={viewSection}
+			studentSetViewSection={setViewSection}
+			studentNotifRefreshKey={notifRefreshKey}
+		/> */}
 
       {viewSection === 'profile' && (
         <StudentProfile user={user} parents={parents} loadingParents={loadingParents} />
@@ -79,17 +90,17 @@ export default function StudentDashboard() {
       {viewSection === 'notifications' && (
         <main className="max-w-2xl mx-auto mt-8 px-5 pb-10">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-800">🔔 Mes notifications</h2>
+            <h2 className="text-xl font-bold text-gray-800">{t('notifications.notifs')}</h2>
             {notifications.some(n => !n.isRead) && (
               <button onClick={handleMarkAllRead} className="text-sm text-blue-500 hover:underline">
-                ✓ Tout marquer comme lu
+               {t('notifications.notifs')}
               </button>
             )}
           </div>
           {loadingNotifs ? (
-            <p className="text-center text-gray-400 py-10">Chargement...</p>
+            <p className="text-center text-gray-400 py-10">{t('notifications.loading')}</p>
           ) : notifications.length === 0 ? (
-            <p className="text-center text-gray-400 py-10">Aucune notification</p>
+            <p className="text-center text-gray-400 py-10">{t('notifications.no')}</p>
           ) : (
             <ul className="flex flex-col gap-3">
               {notifications.map(n => (
@@ -108,7 +119,7 @@ export default function StudentDashboard() {
                         })}
                       </p>
                       {n.report?.caseNumber && (
-                        <p className="text-xs text-primary mt-1">Dossier {n.report.caseNumber}</p>
+                        <p className="text-xs text-primary mt-1">{t('notifications.report')} {n.report.caseNumber}</p>
                       )}
                     </div>
                     {!n.isRead && (
@@ -116,7 +127,7 @@ export default function StudentDashboard() {
                         onClick={() => handleMarkRead(n.id)}
                         className="text-xs text-blue-500 hover:underline shrink-0"
                       >
-                        ✓ Lu
+                        {t('notifications.read')}
                       </button>
                     )}
                   </div>

@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
-import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+// import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
+
 
 type QuestionPayload = {
   roomId: string;
@@ -282,7 +284,9 @@ useEffect(() => {
   if (!joinedRoom) {
     return (
 		<>
-	<ReporterHeader {...headerProps} />
+	{/* <ReporterHeader {...headerProps} /> */}
+	<RoleHeader {...headerProps} />
+
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -314,7 +318,9 @@ useEffect(() => {
 
     return (
 <>
-	<ReporterHeader {...headerProps} />
+	{/* <ReporterHeader {...headerProps} /> */}
+	<RoleHeader {...headerProps} />
+
       <div className="flex items-center justify-center h-screen">
         <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
           <h1 className="text-center text-2xl font-black">Quiz</h1>
@@ -370,7 +376,8 @@ useEffect(() => {
   return (
 
 <>
-	<ReporterHeader {...headerProps} />
+	{/* <ReporterHeader {...headerProps} /> */}
+	<RoleHeader {...headerProps} />
     <div className="flex items-center justify-center h-screen">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-6 shadow-sm flex flex-col gap-4">
         <h1 className="text-center text-2xl font-black">Room: {joinedRoom}</h1>

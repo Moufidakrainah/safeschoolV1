@@ -8,7 +8,7 @@ interface AdminHeaderProps {
   logoutUser: () => void;
   viewSection: 'reports' | 'users' | 'stats';
   setViewSection: (s: 'reports' | 'users' | 'stats') => void;
-  setSelected: (r: Report | null) => void;
+//   setSelected: (r: Report | null) => void;
   fetchUsers: () => void;
 }
 
@@ -17,15 +17,15 @@ export default function AdminHeader({
   logoutUser,
   viewSection,
   setViewSection,
-  setSelected,
+//   setSelected,
   fetchUsers,
 }: AdminHeaderProps) {
   const { t } = useTranslation();
 
   const navItems: { key: 'reports' | 'users' | 'stats'; label: string; onClick: () => void }[] = [
-    { key: 'reports', label: t('admin.nav.reports'), onClick: () => { setSelected(null); setViewSection('reports'); } },
-    { key: 'users',   label: t('admin.nav.users'),   onClick: () => { setSelected(null); setViewSection('users'); fetchUsers(); } },
-    { key: 'stats',   label: t('admin.nav.stats'),   onClick: () => { setSelected(null); setViewSection('stats'); } },
+    { key: 'reports', label: t('admin.nav.reports'), onClick: () => {  setViewSection('reports'); } },
+    { key: 'users',   label: t('admin.nav.users'),   onClick: () => {  setViewSection('users'); fetchUsers(); } },
+    { key: 'stats',   label: t('admin.nav.stats'),   onClick: () => { setViewSection('stats'); } },
   ];
 
   return (

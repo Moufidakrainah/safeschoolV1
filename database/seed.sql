@@ -84,43 +84,43 @@ INSERT INTO reports (id, type, reporter, description, grade, "caseNumber", "aiSc
   ('c0d1e2f3-0000-0000-0000-000000000001',
    'physique', 'victime',
    'Je me fais frapper tous les jours dans le couloir par un groupe d élèves. Ils me poussent contre les murs et me menacent de me frapper encore plus fort si je le dis à un adulte. J ai très peur d aller à l école. (Fréquence: Tous les jours)',
-   'critique', '#2026-001', 85, 'Menace physique et intimidation détectées', 'in_progress', false,
+   'critical', '#2026-001', 85, 'Menace physique et intimidation détectées', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '10 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000002',
    'cyber', 'victime',
    'Des élèves ont créé un faux profil avec ma photo sur Instagram et publient des choses humiliantes. Tout le monde se moque de moi à l école depuis. Je ne veux plus venir en cours. (Fréquence: Tous les jours)',
-   'grave', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', 'pending', false,
+   'high', '#2026-002', 62, 'Cyberharcèlement avec impact psychologique détecté', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000007', NOW() - INTERVAL '7 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000003',
    'verbal', 'victime',
    'Des élèves se moquent de moi en classe à cause de mes vêtements. Ils rigolent quand je réponds aux questions du professeur et m appellent par des surnoms humiliants. (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-003', 38, 'Harcèlement verbal répété détecté', 'pending', false,
+   'medium', '#2026-003', 38, 'Harcèlement verbal répété détecté', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000008', NOW() - INTERVAL '5 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000004',
    'physique', 'temoin',
    'J ai vu un élève se faire frapper dans les toilettes par deux autres élèves. La victime pleurait et avait l air très apeurée. Les agresseurs l ont menacé de recommencer s il parlait. (Fréquence: Deux fois)',
-   'critique', '#2026-004', 78, 'Violence physique grave avec menaces détectée', 'pending', false,
+   'critical', '#2026-004', 78, 'Violence physique grave avec menaces détectée', 'pending', false,
    'a0b1c2d3-0000-0000-0000-000000000006', NOW() - INTERVAL '3 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000005',
    'exclusion', 'victime',
    'Mes camarades refusent de s asseoir à côté de moi en cours et ne m invitent jamais dans leurs groupes de travail. Je mange seule à la cantine depuis le début de l année. (Fréquence: Tous les jours)',
-   'moyen', '#2026-005', 32, 'Exclusion sociale persistante détectée', 'closed', false,
+   'medium', '#2026-005', 32, 'Exclusion sociale persistante détectée', 'closed', false,
    'a0b1c2d3-0000-0000-0000-000000000010', NOW() - INTERVAL '15 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000006',
    'sexuel', 'victime',
    'Un élève me fait des remarques déplacées sur mon corps tous les jours et a essayé de me toucher dans le couloir. Je me sens très mal à l aise et j ai honte d en parler. (Fréquence: Tous les jours)',
-   'critique', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', 'in_progress', false,
+   'critical', '#2026-006', 90, 'Harcèlement sexuel grave détecté — intervention urgente', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000012', NOW() - INTERVAL '2 days'),
 
   ('c0d1e2f3-0000-0000-0000-000000000007',
    'verbal', 'temoin',
    'J ai observé en classe qu un élève est systématiquement moqué par ses camarades quand il prend la parole. Les autres élèves l imitent et rient de lui. Cela se passe depuis plusieurs semaines. (Fréquence: Trois fois ou plus)',
-   'moyen', '#2026-007', 35, 'Harcèlement verbal en classe signalé par témoin', 'in_progress', false,
+   'medium', '#2026-007', 35, 'Harcèlement verbal en classe signalé par témoin', 'in_progress', false,
    'a0b1c2d3-0000-0000-0000-000000000003', NOW() - INTERVAL '6 days');
 
 -- SUSPECTS

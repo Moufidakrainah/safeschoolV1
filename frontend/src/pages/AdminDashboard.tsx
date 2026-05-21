@@ -9,7 +9,7 @@ import {
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
-import Badge, { type BadgeVariant } from '../components/Badge';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Table, TableBody, TableCell, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -19,9 +19,10 @@ import { Textarea } from '../components/ui/textarea';
 import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
-import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
+// import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import ConvocationSelector from '../components/ConvocationSelector';
 import type { Report, Note, AdminUser } from '../types';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -307,7 +308,17 @@ export default function AdminDashboard() {
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
-        <AdminHeader {...headerProps} />
+        {/* <AdminHeader {...headerProps} /> */}
+
+		<RoleHeader
+		user={user}
+		logoutUser={logoutUser}
+		adminViewSection={viewSection}
+		adminSetViewSection={setViewSection}
+		adminSetSelected={setSelected}
+		adminFetchUsers={fetchUsers}
+		/>
+
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
           {/* Navigation */}
@@ -659,7 +670,19 @@ export default function AdminDashboard() {
   return (
     <main className="min-h-screen bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
-      <AdminHeader {...headerProps} />
+      {/* <AdminHeader {...headerProps} /> */}
+	  <RoleHeader
+			user={user}
+			logoutUser={logoutUser}
+
+
+			adminViewSection={viewSection}
+			adminSetViewSection={setViewSection}
+			adminSetSelected={setSelected}
+			adminFetchUsers={fetchUsers}
+
+			/>
+
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
         {viewSection === 'reports' && (
@@ -667,10 +690,10 @@ export default function AdminDashboard() {
             {/* StatCards */}
             <div className="grid grid-cols-5 gap-4 mb-8">
               <StatCard label={t('admin.stats.total')}    value={stats.total}    color="#1a1a2e"             active={filterGrade === 'all'}      onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical} active={filterGrade === 'critique'} onClick={() => { setFilterGrade('critique'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'grave'}    onClick={() => { setFilterGrade('grave'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'moyen'}    onClick={() => { setFilterGrade('moyen'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'faible'}   onClick={() => { setFilterGrade('faible'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical} active={filterGrade === 'critical'} onClick={() => { setFilterGrade('critical'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'high'}    onClick={() => { setFilterGrade('high'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'medium'}    onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'low'}   onClick={() => { setFilterGrade('low'); setCurrentPage(1); }} />
             </div>
 
             {/* Recherche */}
@@ -740,7 +763,7 @@ export default function AdminDashboard() {
                 {paginated.map(report => (
                   <li key={report.id}
                     style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
-                    className="bg-white px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow rounded-lg"
+                    className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }}
                     role="button" tabIndex={0}
                     onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}

@@ -23,9 +23,10 @@ import { getStaffProfile } from '../services/api';
 import type { StaffProfile } from '../types';
 
 // UI components
-import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+// import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 import ReporterProfile from '../components/reporter/ReporterProfile';
 import ReporterForm from '../components/reporter/ReporterForm';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
@@ -60,7 +61,14 @@ export default function ReporterDashboard() {
 
   return (
     <>
-      <ReporterHeader {...headerProps} />
+      {/* <ReporterHeader {...headerProps} /> */}
+
+		<RoleHeader
+			user={user}
+			logoutUser={logoutUser}
+			reporterViewSection={viewSection}
+			reporterSetViewSection={setViewSection}
+			/>
       {viewSection === 'profile' && (
         <ReporterProfile
           user={user}

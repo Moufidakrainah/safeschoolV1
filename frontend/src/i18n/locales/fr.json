@@ -11,6 +11,13 @@
   },
   "nav": {
     "logout": "Se déconnecter"
+	},
+  "notifications": {
+    "notifs": "Notifications",
+    "loading": "Chargement", 
+	"no": "Aucune notification", 
+	"report": "Signalement", 
+	"read": "Lu"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -151,6 +158,7 @@
     }
   },
   "badge": {
+	"total":"Total", 
     "critical": "🔴 Critique",
     "high": "🟠 Grave",
     "medium": "🟡 Moyen",

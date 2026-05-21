@@ -11,10 +11,10 @@ import { ReportSuspect } from "./report-suspect.entity";
 import { ReportVictim } from "./report-victim.entity";
 
 export enum ReportGrade {
-  CRITIQUE = "critique",
-  GRAVE    = "grave",
-  MOYEN    = "moyen",
-  FAIBLE   = "faible",
+  CRITICAL = "critical",
+  HIGH    = "high",
+  MEDIUM    = "medium",
+  LOW   = "low",
 }
 
 export enum ReportStatus {

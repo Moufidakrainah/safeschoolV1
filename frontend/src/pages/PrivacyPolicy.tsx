@@ -1,16 +1,43 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
+import RoleHeader from '../components/layout/Header/RoleHeader';
 
 export default function PrivacyPolicy()
 {
   const { t } = useTranslation();
+  const { user, logoutUser } = useAuth();
+  const headerProps = { user, logoutUser };
 
   return (
     <div className="flex-1 flex flex-col bg-surface font-sans">
     {/* flex-1 flex flex-col : s'étire dans le layout App (div.flex-1.flex.flex-col) — pas de min-h-screen ici, App gère la hauteur */}
       {/* flex-1 : grandit pour pousser le Footer en bas — fonctionne car le parent est flex-col */}
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
 
+		<RoleHeader
+			user={user}
+			logoutUser={logoutUser}
+
+			adminViewSection="reports"
+			adminSetViewSection={() => {}}
+			adminSetSelected={() => {}}
+			adminFetchUsers={() => {}}
+
+			studentViewSection="home"
+			studentSetViewSection={() => {}}
+			notifRefreshKey={0}
+
+
+			reporterViewSection="home"
+			reporterSetViewSection={() => {}}
+
+
+
+
+			/>
+
+
+      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
         <Link
           to="/login"
           className="text-primary hover:underline text-sm inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary rounded"
