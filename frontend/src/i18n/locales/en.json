@@ -152,17 +152,16 @@
   },
   "badge": {
     "critical": "🔴 Critical",
-    "high": "🟠 Serious",
-    "medium": "🟡 Moderate",
-    "low": "🟢 Minor",
+    "high": "🟠 High",
+    "medium": "🟡 Medium",
+    "low": "🟢 Low",
+    "new": "📄 New",
+    "in_progress": "📂 In progress",
     "pending": "⏳ Pending",
-    "in_progress": "🔄 In progress",
-    "escalated": "🚨 Escalated",
+    "resolved": "✅ Resolved",
+    "false_report": "❌ False report",
     "closed": "✅ Closed",
-    "rejected": "❌ Rejected",
-    "new": "New",
-    "resolved": "Resolved",
-    "false_report": "False report"
+    "rejected": "❌ Rejected"
   },
   "noteblock": {
     "note": "📝 Note",

@@ -152,17 +152,16 @@
   },
   "badge": {
     "critical": "🔴 Kritisch",
-    "high": "🟠 Ernst",
-    "medium": "🟡 Mäßig",
-    "low": "🟢 Gering",
+    "high": "🟠 Hoch",
+    "medium": "🟡 Mittel",
+    "low": "🟢 Niedrig",
+    "new": "📄 Neu",
+    "in_progress": "📂 In Bearbeitung",
     "pending": "⏳ Ausstehend",
-    "in_progress": "🔄 In Bearbeitung",
-    "escalated": "🚨 Eskaliert",
+    "resolved": "✅ Gelöst",
+    "false_report": "❌ Falscher Bericht",
     "closed": "✅ Geschlossen",
-    "rejected": "❌ Abgelehnt",
-    "new": "Neu",
-    "resolved": "Gelöst",
-    "false_report": "Falscher Bericht"
+    "rejected": "❌ Abgelehnt"
   },
   "noteblock": {
     "note": "📝 Notiz",

@@ -155,14 +155,13 @@
     "high": "🟠 Grave",
     "medium": "🟡 Moyen",
     "low": "🟢 Faible",
+    "new": "📄 Nouveau",
+    "in_progress": "📂 En cours",
     "pending": "⏳ En attente",
-    "in_progress": "🔄 En cours",
-    "escalated": "🚨 Escaladé",
+    "resolved": "✅ Résolu",
+    "false_report": "❌ Faux signalement",
     "closed": "✅ Clôturé",
-    "rejected": "❌ Rejeté",
-    "new": "Nouveau",
-    "resolved": "Résolu",
-    "false_report": "Faux signalement"
+    "rejected": "❌ Rejeté"
   },
   "noteblock": {
     "note": "📝 Note",
