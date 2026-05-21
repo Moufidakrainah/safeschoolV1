@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudentReportForm } from '../../hooks/useStudentReportForm';
-import Button from '../Button';
-import Card from '../Card';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
