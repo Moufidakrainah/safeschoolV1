@@ -10,11 +10,13 @@
  * Reçoit uniquement `user` en prop (pour le rôle et les options de traduction).
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportForm } from '../../hooks/useReportForm';
-import Button from '../Button';
-import Card from '../Card';
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import { Textarea } from '../ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
@@ -69,19 +71,14 @@ export default function ReporterForm({ user }: ReporterFormProps) {
   ];
 
   // typeOptions : les 6 types de harcèlement avec icône et sous-titre.
-  // Mémoïsés pour éviter un recalcul à chaque re-render.
-  const typeOptions = useMemo(
-    () => [
+  const typeOptions = useMemo(() => [
       { label: t('reporter.step2.physical'),  sub: t('reporter.step2.physicalSub'),  icon: '✋' },
       { label: t('reporter.step2.verbal'),    sub: t('reporter.step2.verbalSub'),    icon: '💬' },
       { label: t('reporter.step2.cyber'),     sub: t('reporter.step2.cyberSub'),     icon: '📱' },
       { label: t('reporter.step2.exclusion'), sub: t('reporter.step2.exclusionSub'), icon: '🚫' },
       { label: t('reporter.step2.sexual'),    sub: t('reporter.step2.sexualSub'),    icon: '⚠️' },
       { label: t('reporter.step2.other'),     sub: t('reporter.step2.otherSub'),     icon: '...' },
-    ],
-    [t]
-  );
-
+  ], [t]);
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
@@ -98,7 +95,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
         <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
         <StepBar steps={steps} currentStep={step} />
         <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-          <Card className="max-w-md w-full mx-5 text-center">
+          <Card className="max-w-md w-full mx-5 text-center p-6 shadow-sm">
             <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
             <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
@@ -118,7 +115,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
+        <Card className="p-6 shadow-sm">
 
           {/* Étape 1 : Type de harcèlement */}
           {step === 1 && (
@@ -128,7 +125,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
               <div
                 role="radiogroup"
                 aria-label={t('reporter.step2.title')}
-                className="grid grid-cols-2 gap-3"
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3"
               >
                 {typeOptions.map((opt, index) => (
                   <button
@@ -179,14 +176,14 @@ export default function ReporterForm({ user }: ReporterFormProps) {
               <label className="block mb-1 text-sm font-semibold text-gray-700" htmlFor="description">
                 {t('reporter.step3.descriptionLabel')}
               </label>
-              <textarea
+              <Textarea
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
                 aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
+                className="resize-y mb-1"
               />
               {showErrors && !description && (
                 <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {t('reporter.validation.descriptionRequired')}</p>
@@ -194,19 +191,17 @@ export default function ReporterForm({ user }: ReporterFormProps) {
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
               </label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={e => setFrequency(e.target.value)}
-                aria-required="true"
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-              >
-                <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
-                <option value="Une fois">{t('reporter.step3.freq1')}</option>
-                <option value="Deux fois">{t('reporter.step3.freq2')}</option>
-                <option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
-                <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
-              </select>
+              <Select value={frequency} onValueChange={v => setFrequency(v)}>
+                <SelectTrigger id="frequency" aria-required="true">
+                  <SelectValue placeholder={t('reporter.step3.frequencyPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
+                  <SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
+                  <SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
+                  <SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
+                </SelectContent>
+              </Select>
               {showErrors && !frequency && (
                 <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {t('reporter.validation.frequencyRequired')}</p>
               )}
@@ -362,7 +357,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 {t('common.next')} →
               </Button>
             ) : (
-              <Button variant="success" onClick={handleSubmit} disabled={loading}>
+              <Button onClick={handleSubmit} variant="success" disabled={loading}>
                 {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
               </Button>
             )}

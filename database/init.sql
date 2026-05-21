@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS reports (
   id          SERIAL PRIMARY KEY,
   title       VARCHAR(255) NOT NULL,
   description TEXT NOT NULL,
-  status      VARCHAR(50) NOT NULL DEFAULT 'pending',
+  status      VARCHAR(50) NOT NULL DEFAULT 'new',
   user_id     INT REFERENCES users(id),
   created_at  TIMESTAMP DEFAULT NOW()
 );

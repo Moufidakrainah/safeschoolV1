@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 
 type QuestionPayload = {
   roomId: string;
@@ -67,6 +69,8 @@ type QuestionState = {
   pointsEarned: number | null;
 } | null;
 
+// Si VITE_SOCKET_URL ou VITE_API_URL ne sont pas définies dans un .env, on utilise http://localhost:5000 par défaut.
+// Cela permet de fonctionner en dev sans config spéciale, mais pour la prod il faudra définir VITE_SOCKET_URL ou VITE_API_URL.
 const SOCKET_URL =
   import.meta.env.VITE_SOCKET_URL ??
   import.meta.env.VITE_API_URL ??

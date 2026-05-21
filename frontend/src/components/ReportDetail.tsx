@@ -10,11 +10,13 @@
 
 import { useTranslation } from 'react-i18next';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import Button from './Button';
+import { Button } from './ui/button';
 import Badge, { type BadgeVariant } from './Badge';
-import Card from './Card';
+import { Card } from './ui/card';
 import NoteBlock from './NoteBlock';
 import type { Report, Note } from '../types';
+import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -107,9 +109,10 @@ export default function ReportDetail({
       </div>
 
       {/* Informations + personnes impliquées */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <Card borderColor={severityColor}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
           <h3 className="text-primary text-sm font-bold mb-4">{t('admin.detail.info')}</h3>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <tbody>
               {([
@@ -127,6 +130,7 @@ export default function ReportDetail({
               ))}
             </tbody>
           </table>
+          </div>
         </Card>
 
         <Card>
@@ -164,7 +168,7 @@ export default function ReportDetail({
       </div>
 
       {/* Description */}
-      <Card borderColor={severityColor} className="mb-6">
+      <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
         <h3 className="text-primary text-sm font-bold mb-3">{selected.aiReason}</h3>
         <p className="text-sm text-gray-700 leading-7">
           {selected.description?.split('|')[0]?.trim()}
@@ -172,7 +176,7 @@ export default function ReportDetail({
       </Card>
 
       {/* Notes administratives */}
-      <Card borderColor={severityColor} className="mb-6">
+      <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-6 p-6 shadow-sm">
         <h3 className="text-primary text-sm font-bold mb-4">📝 {t('admin.notes.title')}</h3>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
@@ -183,13 +187,13 @@ export default function ReportDetail({
         )}
         {isAdmin && (
           <>
-            <textarea
+            <Textarea
               value={newNote}
               onChange={e => setNewNote(e.target.value)}
               rows={3}
               placeholder={t('admin.notes.placeholder')}
               aria-label={t('admin.notes.placeholder')}
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+              className="resize-y mb-3"
             />
             <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
           </>
@@ -198,27 +202,26 @@ export default function ReportDetail({
 
       {/* Convocation */}
       {isAdmin && (
-        <Card borderColor={severityColor}>
+        <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="p-6 shadow-sm">
           <h3 className="text-gray-800 text-sm font-bold mb-4">📅 {t('admin.convocation.title')}</h3>
           <div className="mb-4">
             <label className="block mb-1 text-xs font-semibold text-gray-500" htmlFor="convocation-date">
               {t('admin.convocation.dateLabel')}
             </label>
-            <input
+            <Input
               id="convocation-date"
               type="datetime-local"
               value={convocationDate}
               onChange={e => setConvocationDate(e.target.value)}
-              className="px-4 py-2 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary text-gray-700"
             />
           </div>
-          <textarea
+          <Textarea
             value={convocationMessage}
             onChange={e => setConvocationMessage(e.target.value)}
             rows={3}
             placeholder={t('admin.convocation.placeholder')}
             aria-label={t('admin.convocation.placeholder')}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y mb-3 font-[inherit] box-border"
+            className="resize-y mb-3"
           />
           <Button onClick={() => handleAddNote('convocation')}>
             {t('admin.convocation.send')}

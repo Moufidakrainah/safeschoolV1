@@ -4,10 +4,10 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-	"errorRequired": "Please fill in all fields.",
-	"errorEmailFormat": "Invalid email format.",
-	"errorPasswordLength": "The password must contain at least 6 characters.",
-	"error": "Incorrect credentials."
+    "errorRequired": "Please fill in all fields.",
+    "errorEmailFormat": "Invalid email format.",
+    "errorPasswordLength": "The password must contain at least 6 characters.",
+    "error": "Incorrect credentials."
   },
   "nav": {
     "logout": "Log out"
@@ -64,11 +64,11 @@
       "reset": "Reset"
     },
     "status": {
-      "pending": "Pending",
+      "new": "New",
       "in_progress": "In progress",
-      "escalated": "Escalated",
-      "closed": "Closed",
-      "rejected": "Rejected"
+      "pending": "Pending",
+      "resolved": "Resolved",
+      "false_report": "False report"
     },
     "detail": {
       "info": "Report information",
@@ -129,42 +129,40 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-      }, 
-	  "errorEmailFormat": "Invalid email format.",
-	  "errorPasswordLength": "The password must contain at least 6 characters.",
-   	"deleteConfirm": "Do you really want to delete this user?",
-	"deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
-	"deleteError": "An error occurred during deletion.",
-  "deleteSelf": "You cannot delete your own account"
-     },
-	"title":{
-		"oneReport": "Details of a report",
-		"allReports": "All reports"
-
-
-	}
+      },
+      "errorEmailFormat": "Invalid email format.",
+      "errorPasswordLength": "The password must contain at least 6 characters.",
+      "deleteConfirm": "Do you really want to delete this user?",
+      "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
+      "deleteError": "An error occurred during deletion.",
+      "deleteSelf": "You cannot delete your own account"
+    },
+    "title": {
+      "oneReport": "Details of a report",
+      "allReports": "All reports"
+    }
   },
   "badge": {
-    "critical":    "🔴 Critical",
-    "high":        "🟠 Serious",
-    "medium":      "🟡 Moderate",
-    "low":         "🟢 Minor",
-    "pending":     "⏳ Pending",
-    "in_progress": "🔄 In progress",
-    "escalated":   "🚨 Escalated",
-    "closed":      "✅ Closed",
-    "rejected":    "❌ Rejected"
+    "critical": "🔴 Critical",
+    "high": "🟠 Serious",
+    "medium": "🟡 Moderate",
+    "low": "🟢 Minor",
+    "new": "📄 New",
+    "in_progress": "📂 In progress",
+    "pending": "⏳ Pending",
+    "resolved": "✅ Resolved",
+    "false_report": "❌ False report"
   },
   "noteblock": {
-    "note":        "📝 Note",
+    "note": "📝 Note",
     "convocation": "📅 Summons"
   },
   "pagination": {
-    "nav":     "Pagination",
+    "nav": "Pagination",
     "summary": "{{totalItems}} results · Page {{currentPage}} of {{totalPages}}",
-    "prev":    "Previous page",
-    "next":    "Next page",
-    "page":    "Page {{n}}"
+    "prev": "Previous page",
+    "next": "Next page",
+    "page": "Page {{n}}"
   },
   "common": {
     "save": "Save",
@@ -177,22 +175,22 @@
     "close": "Close"
   },
   "reporter": {
-	"nav": {
-		"ariaLabel": "Reporter navigation",
-		"profile": "My profile",
-		"report":   "Make a report",
-		"workshop": "Workshops",
-		"quiz":     "Quiz"
-	},
-	"profile": {
-		"title": "My profile",
-		"firstName": "First name",
-		"lastName": "Last name",
-		"email": "Email",
-    "role": "Occupation",
-    "subject": "Subject",
-    "subjectUnknown": "Unknown"
-	},
+    "nav": {
+      "ariaLabel": "Reporter navigation",
+      "profile": "My profile",
+      "report": "Make a report",
+      "workshop": "Workshops",
+      "quiz": "Quiz"
+    },
+    "profile": {
+      "title": "My profile",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "role": "Occupation",
+      "subject": "Subject",
+      "subjectUnknown": "Unknown"
+    },
     "roles": {
       "teacher": "Teacher",
       "staff": "School staff"
@@ -294,17 +292,17 @@
     "submit": "Submit report",
     "submitError": "Submission failed. Check your connection and try again.",
     "validation": {
-      "typeRequired":        "Please select a type of bullying to continue.",
+      "typeRequired": "Please select a type of bullying to continue.",
       "descriptionRequired": "Please describe the facts to continue.",
-      "frequencyRequired":   "Please indicate the frequency to continue."
+      "frequencyRequired": "Please indicate the frequency to continue."
     },
     "workshop": {
       "title": "Workshops",
-      "soon":  "This section will be available soon."
+      "soon": "This section will be available soon."
     },
     "quiz": {
       "title": "Quiz",
-      "soon":  "This section will be available soon."
+      "soon": "This section will be available soon."
     },
     "title": {
       "createAReport": "Create a report",
@@ -314,25 +312,29 @@
   "student": {
     "nav": {
       "ariaLabel": "Student navigation",
-      "profile":   "My profile",
-      "report":    "Make a report",
-      "workshop":  "Workshops",
-      "quiz":      "Quiz"
+      "profile": "My profile",
+      "report": "Make a report",
+      "workshop": "Workshops",
+      "quiz": "Quiz"
     },
     "profile": {
-      "title":     "My profile",
+      "title": "My profile",
       "firstName": "First name",
-      "lastName":  "Last name",
-      "email":     "Email",
-      "role":      "Role"
+      "lastName": "Last name",
+      "email": "Email",
+      "role": "Role"
     },
     "workshop": {
       "title": "Workshops",
-      "soon":  "This section will be available soon."
+      "soon": "This section will be available soon."
     },
     "quiz": {
       "title": "Quiz",
-      "soon":  "This section will be available soon."
+      "soon": "This section will be available soon."
+    },
+    "step1": {
+      "victim": "I am a victim",
+      "witness": "I am a witness"
     }
   },
   "privacy": {

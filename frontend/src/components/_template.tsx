@@ -2,8 +2,8 @@
 // NOMDUCOMPOSANT
 //
 // Props :
-//   propA : description
-//   propB : description
+//   propA : type
+//   propB : type
 //   ...
 //
 // Utilisation :

@@ -112,7 +112,7 @@ export function useReportForm(
   // Utilisé à la fois pour bloquer la navigation et pour déclencher showErrors.
   const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description || !frequency));
+    (step === 2 && (!description.trim() || !frequency));
 
   // ── Suspects ────────────────────────────────────────────────────────────
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
@@ -211,7 +211,7 @@ export function useReportForm(
    * Appelé après un envoi réussi (bouton "Nouveau signalement").
    */
   const resetForm = () => {
-    setStep(1);
+    setStep(0);
     setType('');
     setDescription('');
     setFrequency('');
