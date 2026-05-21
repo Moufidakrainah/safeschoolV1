@@ -4,10 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getStudentParents, getNotifications, markNotificationRead } from '../services/api';
 import type { Parent } from '../types';
-import StudentHeader from '../components/layout/StudentHeader/StudentHeader';
+// import StudentHeader from '../components/layout/StudentHeader/StudentHeader';
 import StudentProfile from '../components/student/StudentProfile';
 import StudentForm from '../components/student/StudentForm';
-// import RoleHeader from '@/components/layout/Header/RoleHeader';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 type StudentSection = 'profile' | 'report' | 'notifications' | 'quiz';
 
@@ -72,14 +72,14 @@ export default function StudentDashboard() {
 
   return (
     <>
-      <StudentHeader {...headerProps} />
-		{/* <RoleHeader
+      {/* <StudentHeader {...headerProps} /> */}
+		<RoleHeader
 			user={user}
 			logoutUser={logoutUser}
 			studentViewSection={viewSection}
 			studentSetViewSection={setViewSection}
 			studentNotifRefreshKey={notifRefreshKey}
-		/> */}
+		/>
 
       {viewSection === 'profile' && (
         <StudentProfile user={user} parents={parents} loadingParents={loadingParents} />

@@ -2,40 +2,57 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import RoleHeader from '../components/layout/Header/RoleHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicy()
 {
   const { t } = useTranslation();
   const { user, logoutUser } = useAuth();
-  const headerProps = { user, logoutUser };
+const navigate = useNavigate();
+
+  const goToAdminSection = (section: 'reports' | 'users' | 'stats') => {
+    navigate(`/dashboard?section=${section}`);
+  };
+
+  const goToStudentSection = (
+    section: 'profile' | 'report' | 'notifications' | 'quiz'
+  ) => {
+    navigate(`/student?section=${section}`);
+  };
+
+  const goToReporterSection = (
+    section: 'profile' | 'report' | 'quiz'
+  ) => {
+    navigate(`/reporter?section=${section}`);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-surface font-sans">
     {/* flex-1 flex flex-col : s'étire dans le layout App (div.flex-1.flex.flex-col) — pas de min-h-screen ici, App gère la hauteur */}
       {/* flex-1 : grandit pour pousser le Footer en bas — fonctionne car le parent est flex-col */}
-
-		<RoleHeader
-			user={user}
-			logoutUser={logoutUser}
-
-			adminViewSection="reports"
-			adminSetViewSection={() => {}}
-			adminSetSelected={() => {}}
-			adminFetchUsers={() => {}}
-
-			studentViewSection="home"
-			studentSetViewSection={() => {}}
-			notifRefreshKey={0}
-
-
-			reporterViewSection="home"
-			reporterSetViewSection={() => {}}
-
-
-
-
-			/>
-
+	      <RoleHeader
+        user={user}
+        logoutUser={logoutUser}
+        {...(user?.role === 'admin' && {
+          adminViewSection: 'reports',
+          adminSetViewSection: (section: 'reports' | 'users' | 'stats') =>
+            goToAdminSection(section),
+          adminSetSelected: () => {},
+          adminFetchUsers: () => {},
+        })}
+        {...(user?.role === 'student' && {
+          studentViewSection: 'profile',
+          studentSetViewSection: (
+            section: 'profile' | 'report' | 'notifications' | 'quiz'
+          ) => goToStudentSection(section),
+          studentNotifRefreshKey: 0,
+        })}
+        {...((user?.role === 'teacher' || user?.role === 'reporter') && {
+          reporterViewSection: 'report',
+          reporterSetViewSection: (section: 'profile' | 'report' | 'quiz') =>
+            goToReporterSection(section),
+        })}
+      />
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
         <Link
