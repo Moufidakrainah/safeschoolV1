@@ -93,4 +93,10 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
 export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
 
+export const createStaffProfile = async (dto: Record<string, any>) =>
+  (await api.post('/staff-profiles', dto)).data;
+
+export const updateStaffProfile = async (id: string, dto: Record<string, any>) =>
+  (await api.patch(`/staff-profiles/${id}`, dto)).data;
+
 export default api;

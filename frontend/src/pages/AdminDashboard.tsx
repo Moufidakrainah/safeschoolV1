@@ -6,7 +6,7 @@ import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
   searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
-  createClass, updateClass, deleteClass,
+  createStaffProfile, updateStaffProfile,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -21,8 +21,8 @@ import { Textarea } from '../components/ui/textarea';
 import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
-// import AdminHeader from '../components/layout/AdminHeader/AdminHeader';
 import ConvocationSelector from '../components/ConvocationSelector';
+import AdminClasses from '../components/AdminClasses';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 
@@ -58,16 +58,14 @@ export default function AdminDashboard() {
   const [convocationDate, setConvocationDate] = useState('');
   const [convocationMessage, setConvocationMessage] = useState('');
   const [checkedConvocIds, setCheckedConvocIds] = useState<string[]>([]);
-  // Convocations individuelles: { [personId]: { date: string, message: string } }
   const [convocDetails, setConvocDetails] = useState<Record<string, { date: string; message: string }>>({});
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats' | 'classes'>(
-    (searchParams.get('section') as 'reports' | 'users' | 'stats') ?? 'reports'
+    (searchParams.get('section') as 'reports' | 'users' | 'stats' | 'classes') ?? 'reports'
   );
 
-  // Mettre à jour l'URL quand viewSection change
   useEffect(() => {
     navigate(`/dashboard?section=${viewSection}`, { replace: true });
   }, [viewSection]);
@@ -76,9 +74,15 @@ export default function AdminDashboard() {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
-  const [userForm, setUserForm]         = useState({
-    firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '',
+
+  // Formulaire utilisateur enrichi
+  const [userForm, setUserForm] = useState({
+    firstName: '', lastName: '', email: '', password: '', role: 'student',
+    classId: '',           // élève
+    subject: '',           // prof
+    classIds: [] as string[], // prof — classes où il intervient
   });
+
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isDeleting, setIsDeleting]     = useState(false);
   const [deleteError, setDeleteError]   = useState('');
@@ -88,10 +92,6 @@ export default function AdminDashboard() {
   const selectedUserId = searchParams.get('userId');
   const [editMode, setEditMode] = useState(false);
   const [profileParents, setProfileParents] = useState<any[]>([]);
-  const [showClassForm, setShowClassForm] = useState(false);
-  const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
-  const [classForm, setClassForm] = useState({ level: '', section: '' });
-  const [classStudents, setClassStudents] = useState<{[classId: string]: any[]}>({});
   const [profileStaff, setProfileStaff] = useState<any | null>(null);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
 
@@ -107,19 +107,24 @@ export default function AdminDashboard() {
 
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
-  // Restaurer le user sélectionné depuis l'URL
   useEffect(() => {
     if (selectedUserId && users.length > 0 && !selectedUser) {
       const u = users.find(x => x.id === selectedUserId);
       if (u) {
         setSelectedUser(u);
-        setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '' });
+        setUserForm({
+          firstName: u.firstName, lastName: u.lastName, email: u.email,
+          password: '', role: u.role,
+          classId: u.studentProfile?.schoolClass?.id || '',
+          subject: '', classIds: [],
+        });
         if (u.role === 'student') {
           getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
         }
       }
     }
   }, [selectedUserId, users]);
+
   useEffect(() => { if (viewSection === 'users') fetchUsers(); }, [viewSection]);
 
   const fetchClassesList = async () => {
@@ -142,9 +147,7 @@ export default function AdminDashboard() {
     finally { setSaving(false); }
   };
 
-  const confirmAndUpdate = (status: string, label: string) => {
-    setConfirmAction({ status, label });
-  };
+  const confirmAndUpdate = (status: string, label: string) => setConfirmAction({ status, label });
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
@@ -168,7 +171,9 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
-    try { const data = await getAllUsers(); setUsers(Array.isArray(data) ? data : []); } catch { console.error('Erreur users'); setUsers([]); } finally { setLoadingUsers(false); }
+    try { const data = await getAllUsers(); setUsers(Array.isArray(data) ? data : []); }
+    catch { console.error('Erreur users'); setUsers([]); }
+    finally { setLoadingUsers(false); }
   };
 
   const handleAvatarUpload = async (userId: string, file: File) => {
@@ -182,7 +187,6 @@ export default function AdminDashboard() {
         body: formData,
       });
       const data = await res.json();
-      console.log('Avatar upload response:', data);
       if (data.avatar) {
         setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
         await fetchUsers();
@@ -191,7 +195,107 @@ export default function AdminDashboard() {
     finally { setUploadingAvatarId(null); }
   };
 
-  // Filtrage avec ta logique (type/reporter/victims)
+  // ── Sauvegarde utilisateur (création + profil staff si prof) ──
+  const handleSaveUser = async () => {
+    try {
+      if (editingUser) {
+        await updateUser(editingUser.id, {
+          firstName: userForm.firstName,
+          lastName: userForm.lastName,
+          email: userForm.email,
+          ...(userForm.password && { password: userForm.password }),
+          role: userForm.role,
+          ...(userForm.role === 'student' && { classId: userForm.classId }),
+        });
+        // Mettre à jour le profil staff si prof
+        if (userForm.role === 'teacher') {
+          try {
+            const existing = await getStaffProfile(editingUser.id);
+            await updateStaffProfile(existing.id, {
+              subject: userForm.subject,
+              classIds: userForm.classIds,
+            });
+          } catch {
+            // Pas encore de profil staff → on le crée
+            await createStaffProfile({
+              userId: editingUser.id,
+              profession: 'teacher',
+              subject: userForm.subject,
+              classIds: userForm.classIds,
+            });
+          }
+        }
+      } else {
+        const created = await createUser({
+          firstName: userForm.firstName,
+          lastName: userForm.lastName,
+          email: userForm.email,
+          password: userForm.password,
+          role: userForm.role,
+          ...(userForm.role === 'student' && { classId: userForm.classId }),
+        });
+        // Créer le profil staff si prof
+        if (userForm.role === 'teacher') {
+          await createStaffProfile({
+            userId: created.id,
+            profession: 'teacher',
+            subject: userForm.subject,
+            classIds: userForm.classIds,
+          });
+        }
+      }
+      await fetchUsers();
+      setShowUserForm(false); setEditingUser(null);
+      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] });
+    } catch { console.error('Erreur save user'); }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    if (id === user?.id) { setDeleteTarget(id); setIsBlocked(true); setDeleteError(t('admin.users.deleteSelf')); return; }
+    const { deletable } = await checkCanDeleteUser(id);
+    setDeleteTarget(id); setIsBlocked(!deletable); setDeleteError('');
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
+    try {
+      await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.message ?? '';
+      if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
+      else setDeleteError(t('admin.users.deleteError'));
+    } finally { setIsDeleting(false); }
+  };
+
+  const validateField = (field: string, value: string) => {
+    let message = '';
+    if (!value.trim() && field !== 'password') message = t('admin.users.errorRequired');
+    else if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
+    else if (field === 'password' && value.length > 0 && value.length < 6) message = t('admin.users.errorPasswordLength');
+    setErrors(prev => ({ ...prev, [field]: message }));
+  };
+
+  const updateField = (field: string, value: string) => {
+    setUserForm(prev => ({ ...prev, [field]: value }));
+    validateField(field, value);
+  };
+
+  // Toggle d'une classe dans classIds (pour les profs)
+  const toggleClassId = (id: string) => {
+    setUserForm(prev => ({
+      ...prev,
+      classIds: prev.classIds.includes(id)
+        ? prev.classIds.filter(x => x !== id)
+        : [...prev.classIds, id],
+    }));
+  };
+
+  const isFormValid =
+    userForm.firstName.trim() && userForm.lastName.trim() &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
+    !errors.firstName && !errors.lastName && !errors.email && !errors.password;
+
   const filtered = useMemo(() => {
     return reports
       .slice()
@@ -248,7 +352,6 @@ export default function AdminDashboard() {
     low:      reports.filter(r => severityFromApiGrade(r.grade) === 'low').length,
   }), [reports]);
 
-  // Options de classe extraites des reports
   const classOptions = useMemo(() => {
     return [...new Set(
       reports.map(r => {
@@ -290,56 +393,105 @@ export default function AdminDashboard() {
     } catch { console.error('Erreur note'); }
   };
 
+  // ── Formulaire utilisateur (partie partagée création + édition) ──
+  const renderUserForm = (isEdit = false) => (
+    <div className="rounded-lg bg-primary p-4 flex flex-col gap-3">
+      <div>
+        <Label className="text-white text-sm">{t('admin.users.firstName')}</Label>
+        <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />
+        {errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}
+      </div>
+      <div>
+        <Label className="text-white text-sm">{t('admin.users.lastName')}</Label>
+        <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />
+        {errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}
+      </div>
+      <div>
+        <Label className="text-white text-sm">{t('admin.users.email')}</Label>
+        <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />
+        {errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+      </div>
+      <div>
+        <Label className="text-white text-sm">
+          {t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}
+        </Label>
+        <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />
+        {errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}
+      </div>
 
-  const handleSaveUser = async () => {
-    try {
-      if (editingUser) await updateUser(editingUser.id, userForm);
-      else await createUser(userForm);
-      await fetchUsers();
-      setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '' });
-    } catch { console.error('Erreur save user'); }
-  };
+      {/* Rôle */}
+      <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
+        <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
+          <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
+          <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+          <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
+        </SelectContent>
+      </Select>
 
-  const handleDeleteUser = async (id: string) => {
-    if (id === user?.id) { setDeleteTarget(id); setIsBlocked(true); setDeleteError(t('admin.users.deleteSelf')); return; }
-    const { deletable } = await checkCanDeleteUser(id);
-    setDeleteTarget(id); setIsBlocked(!deletable); setDeleteError('');
-  };
+      {/* Champs spécifiques élève */}
+      {userForm.role === 'student' && (
+        <div>
+          <Label className="text-white text-sm">Classe</Label>
+          <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
+            <SelectTrigger className="bg-white mt-1">
+              <SelectValue placeholder={t('admin.users.selectClass')}>
+                {classes.find(c => c.id === userForm.classId)
+                  ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}`
+                  : t('admin.users.selectClass')}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
-    try {
-      await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? '';
-      if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
-      else setDeleteError(t('admin.users.deleteError'));
-    } finally { setIsDeleting(false); }
-  };
+      {/* Champs spécifiques professeur */}
+      {userForm.role === 'teacher' && (
+        <>
+          <div>
+            <Label className="text-white text-sm">Matière enseignée</Label>
+            <Input
+              value={userForm.subject}
+              onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value }))}
+              placeholder="ex: Mathématiques"
+              className="bg-white mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-white text-sm mb-2 block">Classes où il intervient</Label>
+            <div className="flex flex-wrap gap-2">
+              {classes.map(c => {
+                const isChecked = userForm.classIds.includes(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleClassId(c.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                      isChecked
+                        ? 'bg-white text-primary border-white'
+                        : 'bg-transparent text-white border-white/50 hover:border-white'
+                    }`}
+                  >
+                    {c.level} {c.section}
+                  </button>
+                );
+              })}
+              {classes.length === 0 && (
+                <p className="text-white/60 text-xs">Aucune classe disponible</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
-  const validateField = (field: string, value: string) => {
-    let message = '';
-    if (!value.trim() && field !== 'password') message = t('admin.users.errorRequired');
-    else if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
-    else if (field === 'password' && value.length > 0 && value.length < 6) message = t('admin.users.errorPasswordLength');
-    setErrors(prev => ({ ...prev, [field]: message }));
-  };
-
-  const updateField = (field: string, value: string) => {
-    setUserForm(prev => ({ ...prev, [field]: value }));
-    validateField(field, value);
-  };
-
-  const isFormValid =
-    userForm.firstName.trim() && userForm.lastName.trim() &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
-    !errors.firstName && !errors.lastName && !errors.email && !errors.password;
-
-  const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, setView, fetchUsers };
-
-  // ── Vue détail
+  // ── Vue détail ──────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
     const idx = filtered.findIndex(r => r.id === selected.id);
     const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
@@ -347,37 +499,21 @@ export default function AdminDashboard() {
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
-        {/* <AdminHeader {...headerProps} /> */}
-
-		<RoleHeader
-		user={user}
-		logoutUser={logoutUser}
-		adminViewSection={viewSection}
-		adminSetViewSection={setViewSection}
-		adminSetSelected={setSelected}
-		adminFetchUsers={fetchUsers}
-		/>
-
+        <RoleHeader
+          user={user} logoutUser={logoutUser}
+          adminViewSection={viewSection} adminSetViewSection={setViewSection}
+          adminSetSelected={setSelected} adminFetchUsers={fetchUsers}
+        />
         <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
-
-          {/* Navigation */}
           <div className="flex justify-between items-center mb-6">
-            <Button variant="ghost" onClick={() => goTo(filtered[idx - 1])} disabled={idx === 0}>
-              ← {t('admin.prev')}
-            </Button>
+            <Button variant="ghost" onClick={() => goTo(filtered[idx - 1])} disabled={idx === 0}>← {t('admin.prev')}</Button>
             <span className="font-bold text-primary">{t('admin.reportLabel', { number: selected.caseNumber })}</span>
-            <Button variant="ghost" onClick={() => goTo(filtered[idx + 1])} disabled={idx === filtered.length - 1}>
-              {t('admin.next')} →
-            </Button>
+            <Button variant="ghost" onClick={() => goTo(filtered[idx + 1])} disabled={idx === filtered.length - 1}>{t('admin.next')} →</Button>
           </div>
-
-          {/* Statut + actions */}
           <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <Badge variant={selected.status as BadgeVariant} />
-              <Button variant="ghost" onClick={() => { setView('list'); setSelected(null); }}>
-                ← {t('common.back')}
-              </Button>
+              <Button variant="ghost" onClick={() => { setView('list'); setSelected(null); }}>← {t('common.back')}</Button>
             </div>
             {isAdmin && (
               <div className="flex gap-2 flex-wrap">
@@ -389,105 +525,50 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-
-          {/* Informations + Personnes */}
           <div className="grid grid-cols-2 gap-4 mb-4">
-
-            {/* Infos du signalement */}
             <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
               <CardHeader><CardTitle>{t('admin.detail.info')}</CardTitle></CardHeader>
               <CardContent>
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold w-1/2">Date</TableCell>
-                      <TableCell>{new Date(selected.createdAt).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.type')}</TableCell>
-                      <TableCell className="capitalize">{selected.type}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.reporter')}</TableCell>
-                      <TableCell className="capitalize">{selected.reporter}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.class')}</TableCell>
-                      <TableCell>
-                        {selected.student?.studentProfile?.schoolClass
-                          ? `${selected.student.studentProfile.schoolClass.level} ${selected.student.studentProfile.schoolClass.section}`
-                          : '-'}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiScore')}</TableCell>
-                      <TableCell>{selected.aiScore ? `${selected.aiScore}/100` : '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiReason')}</TableCell>
-                      <TableCell>{selected.aiReason ?? '-'}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="text-muted-foreground font-bold">{t('admin.detail.anonymous')}</TableCell>
-                      <TableCell>{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no')}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+                <Table><TableBody>
+                  <TableRow><TableCell className="text-muted-foreground font-bold w-1/2">Date</TableCell><TableCell>{new Date(selected.createdAt).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</TableCell></TableRow>
+                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.type')}</TableCell><TableCell className="capitalize">{selected.type}</TableCell></TableRow>
+                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.reporter')}</TableCell><TableCell className="capitalize">{selected.reporter}</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell className="text-muted-foreground font-bold">{t('admin.detail.class')}</TableCell>
+                    <TableCell>{selected.student?.studentProfile?.schoolClass ? `${selected.student.studentProfile.schoolClass.level} ${selected.student.studentProfile.schoolClass.section}` : '-'}</TableCell>
+                  </TableRow>
+                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiScore')}</TableCell><TableCell>{selected.aiScore ? `${selected.aiScore}/100` : '-'}</TableCell></TableRow>
+                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiReason')}</TableCell><TableCell>{selected.aiReason ?? '-'}</TableCell></TableRow>
+                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.anonymous')}</TableCell><TableCell>{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no')}</TableCell></TableRow>
+                </TableBody></Table>
               </CardContent>
             </Card>
-
-            {/* Personnes impliquées */}
             <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
               <CardHeader><CardTitle>{t('admin.detail.people')}</CardTitle></CardHeader>
               <CardContent className="flex flex-col gap-4">
-
-                {/* Qui a signalé */}
                 <div>
                   <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
                   <p className="text-sm font-medium">
-                    {selected.isAnonymous
-                      ? t('admin.detail.anonymousLabel')
-                      : `${selected.student?.firstName} ${selected.student?.lastName}`}
-                    {selected.student?.role && (
-                      <span className="ml-2 text-xs text-gray-400">({selected.student.role})</span>
-                    )}
+                    {selected.isAnonymous ? t('admin.detail.anonymousLabel') : `${selected.student?.firstName} ${selected.student?.lastName}`}
+                    {selected.student?.role && <span className="ml-2 text-xs text-gray-400">({selected.student.role})</span>}
                   </p>
                 </div>
-
-                {/* Victime(s) */}
                 <div>
                   <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.victims')}</p>
                   <ul className="flex flex-col gap-2">
-
-                    {/* Victimes supplémentaires */}
                     {selected.victims?.map(v => (
                       <li key={v.id} className="text-sm">
                         <div className="flex items-center justify-between">
                           <span className="text-blue-600 font-medium">{v.freeText}</span>
-                          {isAdmin && (
-                            <button className="text-xs text-blue-500 hover:underline"
-                              onClick={() => { setActiveSuspect(activeSuspect === v.id ? null : v.id); setSuspectSearch(''); setSuspectResults([]); }}>
-                              {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
-                            </button>
-                          )}
+                          {isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === v.id ? null : v.id); setSuspectSearch(''); setSuspectResults([]); }}>{v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}
                         </div>
-                        {v.resolvedUser && (
-                          <p className="text-xs text-green-600 mt-0.5">✅ {v.resolvedUser.firstName} {v.resolvedUser.lastName}</p>
-                        )}
+                        {v.resolvedUser && <p className="text-xs text-green-600 mt-0.5">✅ {v.resolvedUser.firstName} {v.resolvedUser.lastName}</p>}
                         {isAdmin && activeSuspect === v.id && (
                           <div className="mt-2 border rounded-lg p-2 bg-white">
-                            <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)}
-                              placeholder="Rechercher un élève..." autoFocus
-                              className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
+                            <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                             {suspectResults.map((u: any) => (
                               <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
-                                onClick={async () => {
-                                  await resolveVictim(v.id, u.id);
-                                  const updated = await getAllReports();
-                                  setReports(updated);
-                                  setSelected(updated.find((r: any) => r.id === selected?.id) ?? null);
-                                  setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-                                }} disabled={resolving}>
+                                onClick={async () => { await resolveVictim(v.id, u.id); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === selected?.id) ?? null); setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]); }} disabled={resolving}>
                                 {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
                               </button>
                             ))}
@@ -495,14 +576,9 @@ export default function AdminDashboard() {
                         )}
                       </li>
                     ))}
-                    {/* Aucune victime */}
-                    {selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id).length === 0 && (
-                      <li className="text-sm text-gray-400">{t('admin.detail.noVictim')}</li>
-                    )}
+                    {selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id).length === 0 && <li className="text-sm text-gray-400">{t('admin.detail.noVictim')}</li>}
                   </ul>
                 </div>
-
-                {/* Suspects */}
                 <div>
                   <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.suspects')}</p>
                   {selected.suspects?.length > 0 ? (
@@ -511,12 +587,7 @@ export default function AdminDashboard() {
                         <li key={s.id} className="text-sm">
                           <div className="flex items-center justify-between">
                             <span className="text-red-500 font-medium">{s.freeText}</span>
-                            {isAdmin && (
-                              <button className="text-xs text-blue-500 hover:underline"
-                                onClick={() => { setActiveSuspect(activeSuspect === s.id ? null : s.id); setSuspectSearch(''); setSuspectResults([]); }}>
-                                {s.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
-                              </button>
-                            )}
+                            {isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === s.id ? null : s.id); setSuspectSearch(''); setSuspectResults([]); }}>{s.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}
                           </div>
                           {s.resolvedUser && (
                             <div className="flex items-center gap-2 text-xs text-green-600 mt-0.5">
@@ -526,12 +597,9 @@ export default function AdminDashboard() {
                           )}
                           {isAdmin && activeSuspect === s.id && (
                             <div className="mt-2 border rounded-lg p-2 bg-white">
-                              <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)}
-                                placeholder="Rechercher un élève..." autoFocus
-                                className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
+                              <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                               {suspectResults.map((u: any) => (
-                                <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
-                                  onClick={() => handleResolveSuspect(s.id, u.id)} disabled={resolving}>
+                                <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded" onClick={() => handleResolveSuspect(s.id, u.id)} disabled={resolving}>
                                   {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
                                 </button>
                               ))}
@@ -540,64 +608,33 @@ export default function AdminDashboard() {
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="text-sm text-gray-400">{t('admin.detail.noSuspect')}</p>
-                  )}
+                  ) : <p className="text-sm text-gray-400">{t('admin.detail.noSuspect')}</p>}
                 </div>
-
               </CardContent>
             </Card>
           </div>
-
-
-
-          {/* Description */}
           <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
             <CardHeader><CardTitle>{selected.aiReason}</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-700 leading-7">{selected.description}</p>
-            </CardContent>
+            <CardContent><p className="text-sm text-gray-700 leading-7">{selected.description}</p></CardContent>
           </Card>
-
-          {/* Notes */}
           <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
             <CardHeader><CardTitle>📝 {t('admin.notes.title')}</CardTitle></CardHeader>
             <CardContent>
-              {notes.length > 0
-                ? <div className="flex flex-col gap-3 mb-5">{notes.map(note => <NoteBlock key={note.id} note={note} />)}</div>
-                : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
+              {notes.length > 0 ? <div className="flex flex-col gap-3 mb-5">{notes.map(note => <NoteBlock key={note.id} note={note} />)}</div> : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
               {isAdmin && (
                 <div className="flex flex-col gap-2">
-                  <Textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3}
-                    placeholder={t('admin.notes.placeholder')} className="resize-y" />
+                  <Textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder={t('admin.notes.placeholder')} className="resize-y" />
                   <Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button>
                 </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Convocation */}
           {isAdmin && (
             <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
               <CardHeader><CardTitle>📅 {t('admin.convocation.title')}</CardTitle></CardHeader>
               <CardContent>
-                <p className="text-xs text-gray-500 mb-3">
-                  Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.
-                </p>
-
-                <ConvocationSelector
-                  selected={selected}
-                  checkedIds={checkedConvocIds}
-                  onToggle={id => {
-                    setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-                    setConvocDetails(prev => ({
-                      ...prev,
-                      [id]: prev[id] ?? { date: '', message: '' }
-                    }));
-                  }}
-                />
-
-                {/* Formulaire individuel pour chaque personne cochée */}
+                <p className="text-xs text-gray-500 mb-3">Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.</p>
+                <ConvocationSelector selected={selected} checkedIds={checkedConvocIds} onToggle={id => { setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); setConvocDetails(prev => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } })); }} />
                 {checkedConvocIds.length > 0 && (
                   <div className="flex flex-col gap-4 mt-4 border-t pt-4">
                     {checkedConvocIds.map(personId => {
@@ -606,178 +643,89 @@ export default function AdminDashboard() {
                         <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                           <p className="text-xs font-semibold text-primary mb-2">
                             {(() => {
-                              if (personId === 'alerteur') {
-                                return `👤 ${selected.student?.firstName} ${selected.student?.lastName}`;
-                              }
-                              if (personId.startsWith('victim_')) {
-                                const idx = parseInt(personId.split('_')[1]);
-                                const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[idx];
-                                const name = v?.resolvedUser
-                                  ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`
-                                  : v?.freeText ?? `Victime ${idx + 1}`;
-                                return `🟦 ${name}`;
-                              }
-                              if (personId.startsWith('suspect_')) {
-                                const idx = parseInt(personId.split('_')[1]);
-                                const s = selected.suspects?.[idx];
-                                const name = s?.resolvedUser
-                                  ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`
-                                  : s?.freeText ?? `Suspect ${idx + 1}`;
-                                return `🔴 ${name}`;
-                              }
+                              if (personId === 'alerteur') return `👤 ${selected.student?.firstName} ${selected.student?.lastName}`;
+                              if (personId.startsWith('victim_')) { const idx = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[idx]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${idx + 1}`}`; }
+                              if (personId.startsWith('suspect_')) { const idx = parseInt(personId.split('_')[1]); const s = selected.suspects?.[idx]; return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${idx + 1}`}`; }
                               return personId;
                             })()}
                           </p>
                           <div className="mb-2">
                             <Label className="text-xs text-gray-500 mb-1 block">Date et heure</Label>
-                            <Input type="datetime-local" value={details.date}
-                              min={new Date().toISOString().slice(0, 16)}
-                              onChange={e => setConvocDetails(prev => ({
-                                ...prev,
-                                [personId]: { ...prev[personId], date: e.target.value }
-                              }))} />
-                            {details.date && new Date(details.date) <= new Date() && (
-                              <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>
-                            )}
+                            <Input type="datetime-local" value={details.date} min={new Date().toISOString().slice(0, 16)} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
+                            {details.date && new Date(details.date) <= new Date() && <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>}
                           </div>
-                          <Textarea
-                            rows={2}
-                            placeholder="Message de convocation..."
-                            value={details.message}
-                            onChange={e => setConvocDetails(prev => ({
-                              ...prev,
-                              [personId]: { ...prev[personId], message: e.target.value }
-                            }))}
-                            className="resize-y"
-                          />
+                          <Textarea rows={2} placeholder="Message de convocation..." value={details.message} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value } }))} className="resize-y" />
                         </div>
                       );
                     })}
-
-                    {convocSuccess && (
-                      <p className="text-green-600 text-sm">✅ Convocations envoyées avec succès !</p>
-                    )}
-
+                    {convocSuccess && <p className="text-green-600 text-sm">✅ Convocations envoyées avec succès !</p>}
                     <Button
-                      disabled={sendingConvoc || checkedConvocIds.some(id =>
-                        !convocDetails[id]?.date ||
-                        !convocDetails[id]?.message ||
-                        new Date(convocDetails[id].date) <= new Date()
-                      )}
+                      disabled={sendingConvoc || checkedConvocIds.some(id => !convocDetails[id]?.date || !convocDetails[id]?.message || new Date(convocDetails[id].date) <= new Date())}
                       onClick={async () => {
-                        setSendingConvoc(true);
-                        setConvocSuccess(false);
+                        setSendingConvoc(true); setConvocSuccess(false);
                         try {
                           for (const personId of checkedConvocIds) {
                             const details = convocDetails[personId];
                             if (!details?.date || !details?.message) continue;
-                            const formatted = new Date(details.date).toLocaleString('fr-FR', {
-                              dateStyle: 'long', timeStyle: 'short'
-                            });
-                            const content = `📅 ${formatted}\n\n${details.message}`;
-                            await addNote(selected.id, content, 'convocation', personId);
+                            const formatted = new Date(details.date).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+                            await addNote(selected.id, `📅 ${formatted}\n\n${details.message}`, 'convocation', personId);
                           }
-                          await loadNotes(selected.id);
-                          setCheckedConvocIds([]);
-                          setConvocDetails({});
-                          setConvocSuccess(true);
+                          await loadNotes(selected.id); setCheckedConvocIds([]); setConvocDetails({}); setConvocSuccess(true);
                           setTimeout(() => setConvocSuccess(false), 3000);
-                        } finally {
-                          setSendingConvoc(false);
-                        }
+                        } finally { setSendingConvoc(false); }
                       }}
-                    >
-                      {sendingConvoc ? 'Envoi...' : `📤 Envoyer ${checkedConvocIds.length} convocation(s)`}
-                    </Button>
+                    >{sendingConvoc ? 'Envoi...' : `📤 Envoyer ${checkedConvocIds.length} convocation(s)`}</Button>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
-
         </div>
-
-        {/* Modale confirmation */}
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-              <p className="text-sm text-gray-700 mb-4">
-                Confirmer le changement de statut vers <strong>{confirmAction.label}</strong> ?
-              </p>
+              <p className="text-sm text-gray-700 mb-4">Confirmer le changement de statut vers <strong>{confirmAction.label}</strong> ?</p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setConfirmAction(null)}
-                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">
-                  Annuler
-                </button>
-                <button
-                  onClick={async () => {
-                    await handleUpdateStatus(selected!.id, confirmAction.status);
-                    setConfirmAction(null);
-                  }}
-                  disabled={saving}
-                  className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">
-                  {saving ? 'En cours...' : 'Confirmer'}
-                </button>
+                <button onClick={() => setConfirmAction(null)} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">Annuler</button>
+                <button onClick={async () => { await handleUpdateStatus(selected!.id, confirmAction.status); setConfirmAction(null); }} disabled={saving} className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">{saving ? 'En cours...' : 'Confirmer'}</button>
               </div>
             </div>
           </div>
         )}
-
       </main>
     );
   }
 
-  // ── Vue liste
+  // ── Vue liste ───────────────────────────────────────────────────────────
   return (
     <main className="min-h-screen bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
-      {/* <AdminHeader {...headerProps} /> */}
-	  <RoleHeader
-			user={user}
-			logoutUser={logoutUser}
-
-
-			adminViewSection={viewSection}
-			adminSetViewSection={setViewSection}
-			adminSetSelected={setSelected}
-			adminFetchUsers={fetchUsers}
-
-			/>
+      <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
+        {/* ── Signalements ── */}
         {viewSection === 'reports' && (
           <>
-            {/* StatCards */}
             <div className="grid grid-cols-5 gap-4 mb-8">
-              <StatCard label={t('admin.stats.total')}    value={stats.total}    color="#1a1a2e"             active={filterGrade === 'all'}      onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.total')}    value={stats.total}    color="#1a1a2e"                  active={filterGrade === 'all'}      onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical} active={filterGrade === 'critical'} onClick={() => { setFilterGrade('critical'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'high'}    onClick={() => { setFilterGrade('high'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'medium'}    onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }} />
-              <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'low'}   onClick={() => { setFilterGrade('low'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'high'}     onClick={() => { setFilterGrade('high'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'medium'}   onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'low'}      onClick={() => { setFilterGrade('low'); setCurrentPage(1); }} />
             </div>
-
-            {/* Recherche */}
-            <div className="mb-5">
-              <Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder={t('admin.search.placeholder')} />
-            </div>
-
-            {/* Filtres */}
+            <div className="mb-5"><Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} /></div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allClasses')}>
-                  <SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue>
-                </SelectTrigger>
+                <SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>
                   {classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}
                 </SelectContent>
               </Select>
-
               <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
                 <SelectTrigger aria-label={t('admin.filters.allReporters')}>
-                  <SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : reports.find(r => r.student?.id === filterStudent)?.student ? `${reports.find(r => r.student?.id === filterStudent)?.student?.firstName} ${reports.find(r => r.student?.id === filterStudent)?.student?.lastName}` : t('admin.filters.allReporters')}</SelectValue>
+                  <SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>
@@ -786,55 +734,32 @@ export default function AdminDashboard() {
                   ))}
                 </SelectContent>
               </Select>
-
-              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }}
-                placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
-
-              <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }}
-                placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
-
+              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
+              <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
                 <span className="text-gray-600 text-sm">Dates :</span>
-                <Input key={`from-${resetKey}`} type="date" value={filterDateFrom}
-                  onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
+                <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
                 <span className="text-gray-400">→</span>
-                <Input key={`to-${resetKey}`} type="date" value={filterDateTo}
-                  onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
+                <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
               </div>
             </div>
-
-            {/* Badges filtres statut */}
             <div className="flex justify-center gap-3 mb-4 flex-wrap">
               {(['new', 'in_progress', 'pending', 'resolved', 'false_report'] as BadgeVariant[]).map(s => (
                 <Badge key={s} variant={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }} />
               ))}
             </div>
-
-            <div className="flex justify-center mb-4">
-              <Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button>
-            </div>
-
-            {/* Liste */}
-            {loading ? (
-              <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p>
-            ) : filtered.length === 0 ? (
-              <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
-            ) : (
+            <div className="flex justify-center mb-4"><Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button></div>
+            {loading ? <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p> : filtered.length === 0 ? <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p> : (
               <ul className="flex flex-col gap-3">
                 {paginated.map(report => (
-                  <li key={report.id}
-                    style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
+                  <li key={report.id} style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
                     className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }}
-                    role="button" tabIndex={0}
-                    onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}
-                  >
+                    onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }} role="button" tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <span className="font-bold text-sm text-primary">{report.type} — {report.reporter}</span>
-                        <p className="text-xs text-gray-600 mt-1 mb-2">
-                          {report.description.length > 120 ? `${report.description.substring(0, 120)}...` : report.description}
-                        </p>
+                        <p className="text-xs text-gray-600 mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0, 120)}...` : report.description}</p>
                         <div className="flex gap-4 text-xs text-gray-400">
                           <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
                           <span>🏫 {report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
@@ -853,116 +778,71 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* Utilisateurs */}
-        {/* Vue profil utilisateur */}
+        {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
           <section className="max-w-xl mx-auto">
-            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>
-              ← Retour à la liste
-            </Button>
+            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>← Retour à la liste</Button>
             <Card>
               <CardContent className="pt-6">
-
-                {/* Avatar + infos */}
                 <div className="flex flex-col items-center gap-3 mb-6">
                   <div className="relative">
                     {selectedUser.avatar
-                      ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`}
-                          alt={selectedUser.firstName}
-                          className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow" />
-                      : <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-400 border-4 border-gray-200">
-                          {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
-                        </div>
+                      ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`} alt={selectedUser.firstName} className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow" />
+                      : <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-400 border-4 border-gray-200">{selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}</div>
                     }
                   </div>
                   <div className="text-center">
                     <h2 className="text-xl font-bold text-gray-800">{selectedUser.firstName} {selectedUser.lastName}</h2>
-                    <span className="text-sm text-gray-400 capitalize">{selectedUser.role}</span>
-                    {selectedUser.studentProfile?.schoolClass && (
-                      <p className="text-sm text-primary mt-1">
-                        {selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-500 mt-1">{selectedUser.email}</p>
+                    <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>
+                    {selectedUser.studentProfile?.schoolClass && <p className="text-sm text-primary mt-1">{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</p>}
+                    <p className="text-sm text-gray-700 mt-1">{selectedUser.email}</p>
                   </div>
                 </div>
-
-                {/* Boutons actions */}
                 {!editMode && (
                   <div className="flex justify-center gap-3 mb-4">
-                    <Button onClick={() => setEditMode(true)}>✏️ {t('admin.users.edit')}</Button>
+                    <Button onClick={async () => {
+                      setEditMode(true);
+                      // Pré-remplir les champs staff si prof
+                      if (selectedUser.role === 'teacher') {
+                        try {
+                          const staff = await getStaffProfile(selectedUser.id);
+                          setUserForm(prev => ({
+                            ...prev,
+                            subject: staff.subject ?? '',
+                            classIds: staff.classes?.map((c: any) => c.id) ?? [],
+                          }));
+                        } catch { /* pas de profil staff encore */ }
+                      }
+                    }}>✏️ {t('admin.users.edit')}</Button>
                     <label className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
                       {uploadingAvatarId === selectedUser.id ? '⏳ Upload...' : '📷 Changer la photo'}
-                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                        onChange={async e => {
-                          const f = e.target.files?.[0];
-                          if (f) {
-                            await handleAvatarUpload(selectedUser.id, f);
-                            await fetchUsers();
-                            const updated = users.find(u => u.id === selectedUser.id);
-                            if (updated) setSelectedUser({ ...updated });
-                          }
-                        }} />
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) { await handleAvatarUpload(selectedUser.id, f); await fetchUsers(); const updated = users.find(u => u.id === selectedUser.id); if (updated) setSelectedUser({ ...updated }); } }} />
                     </label>
-                    <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>
-                      🗑️ {t('admin.users.delete')}
-                    </Button>
+                    <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>🗑️ {t('admin.users.delete')}</Button>
                   </div>
                 )}
-
-                {/* Infos détaillées */}
                 {!editMode && (
                   <div className="mt-4">
-                    <Table>
-                      <TableBody>
-                        {selectedUser.studentProfile?.schoolClass && (
-                          <TableRow>
-                            <TableCell className="font-semibold text-muted-foreground">Classe</TableCell>
-                            <TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell>
-                          </TableRow>
-                        )}
-                        {selectedUser.studentProfile?.dateOfBirth && (
-                          <TableRow>
-                            <TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell>
-                            <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')}</TableCell>
-                          </TableRow>
-                        )}
-                        {(selectedUser.staffProfile?.profession || profileStaff?.profession) && (
-                          <TableRow>
-                            <TableCell className="font-semibold text-muted-foreground">Profession</TableCell>
-                            <TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell>
-                          </TableRow>
-                        )}
-                        {profileStaff?.subject && (
-                          <TableRow>
-                            <TableCell className="font-semibold text-muted-foreground">Matière</TableCell>
-                            <TableCell>{profileStaff.subject}</TableCell>
-                          </TableRow>
-                        )}
-                        {profileStaff?.classes?.length > 0 && (
-                          <TableRow>
-                            <TableCell className="font-semibold text-muted-foreground">Classes</TableCell>
-                            <TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell>
-                          </TableRow>
-                        )}
-                        <TableRow>
-                          <TableCell className="font-semibold text-muted-foreground">Membre depuis</TableCell>
-                          <TableCell>{new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-
-                    {/* Parents */}
+                    <Table><TableBody>
+                      {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
+                      {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')}</TableCell></TableRow>}
+                      {(selectedUser.staffProfile?.profession || profileStaff?.profession) && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell></TableRow>}
+                      {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
+                      {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
+                      <TableRow><TableCell className="font-semibold text-muted-foreground">Membre depuis</TableCell><TableCell>{new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</TableCell></TableRow>
+                    </TableBody></Table>
                     {profileParents.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-semibold text-muted-foreground mb-2">👨‍👩‍👧 Parents / Responsables</p>
+                      <div className="mt-5">
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">Parents / Responsables</p>
                         <div className="flex flex-col gap-2">
                           {profileParents.map((p: any) => (
-                            <div key={p.id} className="bg-gray-50 rounded-lg px-3 py-2">
-                              <p className="text-sm font-medium text-gray-800">{p.firstName} {p.lastName}</p>
-                              <p className="text-sm text-gray-500 mt-0.5">{p.email}</p>
-                              {p.phone && <p className="text-sm text-gray-500">{p.phone}</p>}
-                              {p.address && <p className="text-sm text-gray-400">{p.address}</p>}
+                            <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
+                              <p className="font-semibold text-gray-800 mb-2">{p.firstName} {p.lastName}</p>
+                              <table className="w-full table-fixed text-sm"><tbody>
+                                {[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => (
+                                  <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>
+                                ))}
+                              </tbody></table>
                             </div>
                           ))}
                         </div>
@@ -970,58 +850,25 @@ export default function AdminDashboard() {
                     )}
                   </div>
                 )}
-
-                {/* Formulaire modification */}
                 {editMode && (
                   <>
-                    <div className="rounded-lg bg-primary p-4 flex flex-col gap-3 mb-4">
-                      <div>
-                        <Label className="text-white text-sm">{t('admin.users.firstName')}</Label>
-                        <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />
-                        {errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}
-                      </div>
-                      <div>
-                        <Label className="text-white text-sm">{t('admin.users.lastName')}</Label>
-                        <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />
-                        {errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}
-                      </div>
-                      <div>
-                        <Label className="text-white text-sm">{t('admin.users.email')}</Label>
-                        <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />
-                        {errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
-                      </div>
-                      <div>
-                        <Label className="text-white text-sm">{t('admin.users.password')} (laisser vide pour ne pas changer)</Label>
-                        <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />
-                        {errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}
-                      </div>
-                      <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v, classId: '' })}>
-                        <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
-                          <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
-                              <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
-                          <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {userForm.role === 'student' && (
-                        <Select value={userForm.classId} onValueChange={v => setUserForm({ ...userForm, classId: v })}>
-                          <SelectTrigger className="bg-white mt-1">
-                            <SelectValue placeholder={t('admin.users.selectClass')}>
-                              {classes.find(c => c.id === userForm.classId) 
-                                ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}`
-                                : t('admin.users.selectClass')}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </div>
-                    <div className="flex gap-3 justify-end">
+                    {renderUserForm(true)}
+                    <div className="flex gap-3 justify-end mt-4">
                       <Button disabled={!isFormValid} onClick={async () => {
-                        await updateUser(selectedUser.id, userForm);
+                        await updateUser(selectedUser.id, {
+                          firstName: userForm.firstName, lastName: userForm.lastName,
+                          email: userForm.email, role: userForm.role,
+                          ...(userForm.password && { password: userForm.password }),
+                          ...(userForm.role === 'student' && { classId: userForm.classId }),
+                        });
+                        if (userForm.role === 'teacher') {
+                          try {
+                            const existing = await getStaffProfile(selectedUser.id);
+                            await updateStaffProfile(existing.id, { subject: userForm.subject, classIds: userForm.classIds });
+                          } catch {
+                            await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
+                          }
+                        }
                         await fetchUsers();
                         setEditMode(false);
                         const updated = users.find(u => u.id === selectedUser.id);
@@ -1031,114 +878,52 @@ export default function AdminDashboard() {
                     </div>
                   </>
                 )}
-
               </CardContent>
             </Card>
           </section>
         )}
 
+        {/* ── Utilisateurs — Vue liste ── */}
         {viewSection === 'users' && isAdmin && !selectedUser && (
           <section>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-xl font-bold text-gray-800">👥 {t('admin.users.title')}</h2>
-              <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '' }); }}>
-                {t('admin.users.add')}
-              </Button>
+              <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] }); }}>{t('admin.users.add')}</Button>
             </div>
-
             {showUserForm && (
               <Card className="mb-5">
                 <CardContent className="pt-6">
                   <h3 className="font-bold mb-4">{editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
-                  <div className="rounded-lg bg-primary p-4 mb-4 flex flex-col gap-2">
-                    <div>
-                      <Label className="text-white text-sm">{t('admin.users.firstName')}</Label>
-                      <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />
-                      {errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}
-                    </div>
-                    <div>
-                      <Label className="text-white text-sm">{t('admin.users.lastName')}</Label>
-                      <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />
-                      {errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}
-                    </div>
-                    <div>
-                      <Label className="text-white text-sm">{t('admin.users.email')}</Label>
-                      <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />
-                      {errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
-                    </div>
-                    <div>
-                      <Label className="text-white text-sm">{t('admin.users.password')}</Label>
-                      <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />
-                      {errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}
-                    </div>
-                    <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v, classId: '' })}>
-                      <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
-                        <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
-                          <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
-                        <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {userForm.role === 'student' && (
-                      <Select value={userForm.classId} onValueChange={v => setUserForm({ ...userForm, classId: v })}>
-                        <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')} /></SelectTrigger>
-                        <SelectContent>
-                          {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </div>
-                  <div className="flex gap-3 justify-end">
+                  {renderUserForm(false)}
+                  <div className="flex gap-3 justify-end mt-4">
                     <Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button>
                     <Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>{t('common.cancel')}</Button>
                   </div>
                 </CardContent>
               </Card>
             )}
-
-            {loadingUsers ? (
-              <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
-            ) : (
+            {loadingUsers ? <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p> : (
               <ul className="flex flex-col gap-3">
                 {users.map(u => (
                   <li key={u.id}>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={async () => {
-                        // Recharger les données fraîches de cet utilisateur
-                        const freshUsers = await getAllUsers();
-                        const freshU = Array.isArray(freshUsers) ? freshUsers.find((x: any) => x.id === u.id) ?? u : u;
-                        setSelectedUser(freshU);
-                        navigate(`/dashboard?section=users&userId=${freshU.id}`, { replace: true });
-                        setUserForm({ firstName: freshU.firstName, lastName: freshU.lastName, email: freshU.email, password: '', role: freshU.role, classId: freshU.studentProfile?.schoolClass?.id || '' });
-                        if (freshU.role === 'student') {
-                          try { setProfileParents(await getStudentParents(freshU.id)); }
-                          catch { setProfileParents([]); }
-                          setProfileStaff(null);
-                        } else if (freshU.role === 'teacher' || freshU.role === 'staff') {
-                          try { setProfileStaff(await getStaffProfile(freshU.id)); }
-                          catch { setProfileStaff(null); }
-                          setProfileParents([]);
-                        } else {
-                          setProfileParents([]);
-                          setProfileStaff(null);
-                        }
-                      }}>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={async () => {
+                      const freshUsers = await getAllUsers();
+                      const freshU = Array.isArray(freshUsers) ? freshUsers.find((x: any) => x.id === u.id) ?? u : u;
+                      setSelectedUser(freshU);
+                      navigate(`/dashboard?section=users&userId=${freshU.id}`, { replace: true });
+                      setUserForm({ firstName: freshU.firstName, lastName: freshU.lastName, email: freshU.email, password: '', role: freshU.role, classId: freshU.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+                      if (freshU.role === 'student') { try { setProfileParents(await getStudentParents(freshU.id)); } catch { setProfileParents([]); } setProfileStaff(null); }
+                      else if (freshU.role === 'teacher') { try { setProfileStaff(await getStaffProfile(freshU.id)); } catch { setProfileStaff(null); } setProfileParents([]); }
+                      else { setProfileParents([]); setProfileStaff(null); }
+                    }}>
                       <CardContent className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-3">
-                          {u.avatar
-                            ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" />
-                            : <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>
-                          }
+                          {u.avatar ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" /> : <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>}
                           <div>
                             <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
                             <span className="ml-2 text-xs text-gray-400">{u.email}</span>
                             <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
-                            {u.studentProfile?.schoolClass && (
-                              <span className="ml-1 bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">
-                                {u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}
-                              </span>
-                            )}
+                            {u.studentProfile?.schoolClass && <span className="ml-1 bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
                           </div>
                         </div>
                         <span className="text-xs text-gray-400">→ Voir le profil</span>
@@ -1148,24 +933,13 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-
             {deleteTarget && (
               <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
                 <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-                  <p className="text-sm text-gray-600 mb-4">
-                    {deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}
-                  </p>
+                  <p className="text-sm text-gray-600 mb-4">{deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}</p>
                   <div className="flex justify-end gap-3">
-                    <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); }}
-                      className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
-                      {isBlocked ? t('common.close') : t('common.cancel')}
-                    </button>
-                    {!isBlocked && (
-                      <button onClick={confirmDelete} disabled={isDeleting}
-                        className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
-                        {isDeleting ? t('common.loading') : t('common.delete')}
-                      </button>
-                    )}
+                    <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); }} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">{isBlocked ? t('common.close') : t('common.cancel')}</button>
+                    {!isBlocked && <button onClick={confirmDelete} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">{isDeleting ? t('common.loading') : t('common.delete')}</button>}
                   </div>
                 </div>
               </div>
@@ -1173,93 +947,11 @@ export default function AdminDashboard() {
           </section>
         )}
 
+        {/* ── Stats ── */}
         {viewSection === 'stats' && <StatsDashboard reports={reports} />}
 
-        {/* Section Classes */}
-        {viewSection === 'classes' && isAdmin && (
-          <section>
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-bold text-gray-800">Gestion des classes</h2>
-              <Button onClick={() => { setShowClassForm(true); setEditingClass(null); setClassForm({ level: '', section: '' }); }}>
-                + Ajouter une classe
-              </Button>
-            </div>
-
-            {/* Formulaire ajout/modification classe */}
-            {showClassForm && (
-              <Card className="mb-5">
-                <CardContent className="pt-6">
-                  <h3 className="font-bold mb-4">{editingClass ? 'Modifier la classe' : 'Nouvelle classe'}</h3>
-                  <div className="rounded-lg bg-primary p-4 flex flex-col gap-3">
-                    <div>
-                      <Label className="text-white text-sm">Niveau (ex: 5eme, 4eme...)</Label>
-                      <Input value={classForm.level} onChange={e => setClassForm(p => ({ ...p, level: e.target.value }))}
-                        className="bg-white mt-1" placeholder="5eme" />
-                    </div>
-                    <div>
-                      <Label className="text-white text-sm">Section (ex: A, B...)</Label>
-                      <Input value={classForm.section} onChange={e => setClassForm(p => ({ ...p, section: e.target.value }))}
-                        className="bg-white mt-1" placeholder="A" />
-                    </div>
-                  </div>
-                  <div className="flex gap-3 justify-end mt-4">
-                    <Button
-                      disabled={!classForm.level.trim() || !classForm.section.trim()}
-                      onClick={async () => {
-                        if (editingClass) {
-                          await updateClass(editingClass.id, classForm.level, classForm.section);
-                        } else {
-                          await createClass(classForm.level, classForm.section);
-                        }
-                        await fetchClassesList();
-                        setShowClassForm(false); setEditingClass(null);
-                      }}>
-                      Enregistrer
-                    </Button>
-                    <Button variant="ghost" onClick={() => { setShowClassForm(false); setEditingClass(null); }}>Annuler</Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Liste des classes */}
-            <div className="grid grid-cols-2 gap-4">
-              {classes.map(cls => {
-                const studentsInClass = reports
-                  .map(r => r.student)
-                  .filter(s => s && s.studentProfile?.schoolClass?.id === cls.id)
-                  .filter((s, i, arr) => arr.findIndex(x => x?.id === s?.id) === i);
-                return (
-                  <Card key={cls.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="font-bold text-lg text-primary">{cls.level} {cls.section}</h3>
-                        <div className="flex gap-2">
-                          <Button variant="outline" className="text-xs px-2 py-1 h-auto"
-                            onClick={() => { setEditingClass(cls); setClassForm({ level: cls.level, section: cls.section }); setShowClassForm(true); }}>
-                            ✏️
-                          </Button>
-                          <Button variant="destructive" className="text-xs px-2 py-1 h-auto"
-                            onClick={async () => {
-                              if (confirm(`Supprimer la classe ${cls.level} ${cls.section} ?`)) {
-                                await deleteClass(cls.id);
-                                await fetchClassesList();
-                              }
-                            }}>
-                            🗑️
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        👥 {studentsInClass.length} élève(s) dans les signalements
-                      </p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        )}
+        {/* ── Classes ── */}
+        {viewSection === 'classes' && isAdmin && <AdminClasses />}
 
       </div>
     </main>
