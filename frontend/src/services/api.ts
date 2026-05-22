@@ -75,6 +75,18 @@ export const getStaffProfile = async (userId: string) =>
 export const getClasses = async () =>
   (await api.get('/classes')).data;
 
+export const createClass = async (level: string, section: string) =>
+  (await api.post('/classes', { level, section })).data;
+
+export const updateClass = async (id: string, level: string, section: string) =>
+  (await api.patch(`/classes/${id}`, { level, section })).data;
+
+export const deleteClass = async (id: string) =>
+  (await api.delete(`/classes/${id}`)).data;
+
+export const assignStudentToClass = async (userId: string, classId: string) =>
+  (await api.patch(`/users/${userId}`, { classId })).data;
+
 export const resolveSuspect = async (suspectId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/suspects/${suspectId}/resolve`, { resolvedUserId })).data;
 

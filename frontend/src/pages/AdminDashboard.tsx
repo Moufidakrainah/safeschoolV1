@@ -6,6 +6,7 @@ import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
   searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
+  createClass, updateClass, deleteClass,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -62,7 +63,7 @@ export default function AdminDashboard() {
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
-  const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>(
+  const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats' | 'classes'>(
     (searchParams.get('section') as 'reports' | 'users' | 'stats') ?? 'reports'
   );
 
@@ -87,6 +88,10 @@ export default function AdminDashboard() {
   const selectedUserId = searchParams.get('userId');
   const [editMode, setEditMode] = useState(false);
   const [profileParents, setProfileParents] = useState<any[]>([]);
+  const [showClassForm, setShowClassForm] = useState(false);
+  const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
+  const [classForm, setClassForm] = useState({ level: '', section: '' });
+  const [classStudents, setClassStudents] = useState<{[classId: string]: any[]}>({});
   const [profileStaff, setProfileStaff] = useState<any | null>(null);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
 
@@ -1169,6 +1174,92 @@ export default function AdminDashboard() {
         )}
 
         {viewSection === 'stats' && <StatsDashboard reports={reports} />}
+
+        {/* Section Classes */}
+        {viewSection === 'classes' && isAdmin && (
+          <section>
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="text-xl font-bold text-gray-800">Gestion des classes</h2>
+              <Button onClick={() => { setShowClassForm(true); setEditingClass(null); setClassForm({ level: '', section: '' }); }}>
+                + Ajouter une classe
+              </Button>
+            </div>
+
+            {/* Formulaire ajout/modification classe */}
+            {showClassForm && (
+              <Card className="mb-5">
+                <CardContent className="pt-6">
+                  <h3 className="font-bold mb-4">{editingClass ? 'Modifier la classe' : 'Nouvelle classe'}</h3>
+                  <div className="rounded-lg bg-primary p-4 flex flex-col gap-3">
+                    <div>
+                      <Label className="text-white text-sm">Niveau (ex: 5eme, 4eme...)</Label>
+                      <Input value={classForm.level} onChange={e => setClassForm(p => ({ ...p, level: e.target.value }))}
+                        className="bg-white mt-1" placeholder="5eme" />
+                    </div>
+                    <div>
+                      <Label className="text-white text-sm">Section (ex: A, B...)</Label>
+                      <Input value={classForm.section} onChange={e => setClassForm(p => ({ ...p, section: e.target.value }))}
+                        className="bg-white mt-1" placeholder="A" />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 justify-end mt-4">
+                    <Button
+                      disabled={!classForm.level.trim() || !classForm.section.trim()}
+                      onClick={async () => {
+                        if (editingClass) {
+                          await updateClass(editingClass.id, classForm.level, classForm.section);
+                        } else {
+                          await createClass(classForm.level, classForm.section);
+                        }
+                        await fetchClassesList();
+                        setShowClassForm(false); setEditingClass(null);
+                      }}>
+                      Enregistrer
+                    </Button>
+                    <Button variant="ghost" onClick={() => { setShowClassForm(false); setEditingClass(null); }}>Annuler</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Liste des classes */}
+            <div className="grid grid-cols-2 gap-4">
+              {classes.map(cls => {
+                const studentsInClass = reports
+                  .map(r => r.student)
+                  .filter(s => s && s.studentProfile?.schoolClass?.id === cls.id)
+                  .filter((s, i, arr) => arr.findIndex(x => x?.id === s?.id) === i);
+                return (
+                  <Card key={cls.id}>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-bold text-lg text-primary">{cls.level} {cls.section}</h3>
+                        <div className="flex gap-2">
+                          <Button variant="outline" className="text-xs px-2 py-1 h-auto"
+                            onClick={() => { setEditingClass(cls); setClassForm({ level: cls.level, section: cls.section }); setShowClassForm(true); }}>
+                            ✏️
+                          </Button>
+                          <Button variant="destructive" className="text-xs px-2 py-1 h-auto"
+                            onClick={async () => {
+                              if (confirm(`Supprimer la classe ${cls.level} ${cls.section} ?`)) {
+                                await deleteClass(cls.id);
+                                await fetchClassesList();
+                              }
+                            }}>
+                            🗑️
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-2">
+                        👥 {studentsInClass.length} élève(s) dans les signalements
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
       </div>
     </main>
