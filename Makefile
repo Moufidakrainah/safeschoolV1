@@ -8,8 +8,11 @@ up:        ## Démarrer tous les services
 down:      ## Arrêter les conteneurs
 	$(COMPOSE) down
 
-rebuild:   ## Reconstruire les images et redémarrer (no-cache)
-	$(COMPOSE) down && $(COMPOSE) build --no-cache && $(COMPOSE) up -d
+build:     ## Construire les images et démarrer (avec cache)
+	$(COMPOSE) down && $(COMPOSE) up -d --build
+
+rebuild:   ## Reconstruire les images et redémarrer (sans cache)
+	$(COMPOSE) down && $(COMPOSE) up -d --build --no-cache
 
 
 # ── Démarrages partiels ──────────────────────────────────────────────────────
@@ -50,4 +53,4 @@ clean:     ## Supprimer les conteneurs et volumes orphelins
 prune:     ## Supprimer tous les volumes
 	$(COMPOSE) down -v --remove-orphans
 
-.PHONY: up down rebuild up-fe up-elk down-elk logs logs-fe logs-be seed clean prune help
+.PHONY: up down build rebuild up-fe up-elk down-elk logs logs-fe logs-be seed clean prune help
