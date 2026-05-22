@@ -11,6 +11,8 @@ interface RoleHeaderProps {
   adminViewSection?: 'reports' | 'users' | 'stats';
   adminSetViewSection?: (s: 'reports' | 'users' | 'stats') => void;
   adminFetchUsers?: () => void;
+  adminSetSelected?: (r: any) => void;
+  adminSetView?: (v: 'list' | 'detail') => void;
 
   // Student props
   studentViewSection?: 'profile' | 'report' | 'notifications' | 'quiz';
@@ -28,6 +30,8 @@ export default function RoleHeader({
   adminViewSection,
   adminSetViewSection,
   adminFetchUsers,
+  adminSetSelected,
+  adminSetView,
 
   studentViewSection,
   studentSetViewSection,
@@ -49,6 +53,8 @@ export default function RoleHeader({
           viewSection={adminViewSection!}
           setViewSection={adminSetViewSection!}
           fetchUsers={adminFetchUsers!}
+          setSelected={adminSetSelected ?? (() => {})}
+          setView={adminSetView ?? (() => {})}
         />
       );
     case 'student':

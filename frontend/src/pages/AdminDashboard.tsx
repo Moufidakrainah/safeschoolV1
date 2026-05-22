@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -9,7 +10,7 @@ import {
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import { Table, TableBody, TableCell, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
@@ -28,6 +29,7 @@ interface SchoolClass { id: string; level: string; section: string; }
 
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
 
@@ -59,7 +61,9 @@ export default function AdminDashboard() {
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
-  const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>('reports');
+  const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats'>(
+    (searchParams.get('section') as 'reports' | 'users' | 'stats') ?? 'reports'
+  );
 
   const [users, setUsers]               = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -80,6 +84,7 @@ export default function AdminDashboard() {
   const [suspectSearch, setSuspectSearch] = useState('');
   const [suspectResults, setSuspectResults] = useState<any[]>([]);
   const [resolving, setResolving]     = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [errors, setErrors]           = useState({ firstName: '', lastName: '', email: '', password: '' });
 
   const itemsPerPage = 5;
@@ -105,6 +110,10 @@ export default function AdminDashboard() {
       setView('list'); setSelected(null);
     } catch { console.error('Erreur statut'); }
     finally { setSaving(false); }
+  };
+
+  const confirmAndUpdate = (status: string, label: string) => {
+    setConfirmAction({ status, label });
   };
 
   const handleSuspectSearch = async (query: string) => {
@@ -298,7 +307,7 @@ export default function AdminDashboard() {
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) &&
     !errors.firstName && !errors.lastName && !errors.email && !errors.password;
 
-  const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, fetchUsers };
+  const headerProps = { user, logoutUser, viewSection, setViewSection, setSelected, setView, fetchUsers };
 
   // ── Vue détail
   if (view === 'detail' && selected) {
@@ -342,16 +351,11 @@ export default function AdminDashboard() {
             </div>
             {isAdmin && (
               <div className="flex gap-2 flex-wrap">
-                <Button variant="default" disabled={saving} onClick={() => handleUpdateStatus(selected.id, 'in_progress')}>
-                  🔄 {t('admin.actions.inProgress')}
-                </Button>
-                <Button variant="default" disabled={saving} onClick={() => handleUpdateStatus(selected.id, 'closed')}
-                  className="bg-green-600 hover:bg-green-700">
-                  ✅ {t('admin.actions.close')}
-                </Button>
-                <Button variant="destructive" disabled={saving} onClick={() => handleUpdateStatus(selected.id, 'rejected')}>
-                  ❌ {t('admin.actions.reject')}
-                </Button>
+                <Badge variant="new"          onClick={() => confirmAndUpdate('new', t('badge.new'))} />
+                <Badge variant="in_progress"  onClick={() => confirmAndUpdate('in_progress', t('badge.in_progress'))} />
+                <Badge variant="pending"      onClick={() => confirmAndUpdate('pending', t('badge.pending'))} />
+                <Badge variant="resolved"     onClick={() => confirmAndUpdate('resolved', t('badge.resolved'))} />
+                <Badge variant="false_report" onClick={() => confirmAndUpdate('false_report', t('badge.false_report'))} />
               </div>
             )}
           </div>
@@ -662,6 +666,33 @@ export default function AdminDashboard() {
           )}
 
         </div>
+
+        {/* Modale confirmation */}
+        {confirmAction && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+              <p className="text-sm text-gray-700 mb-4">
+                Confirmer le changement de statut vers <strong>{confirmAction.label}</strong> ?
+              </p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setConfirmAction(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    await handleUpdateStatus(selected!.id, confirmAction.status);
+                    setConfirmAction(null);
+                  }}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">
+                  {saving ? 'En cours...' : 'Confirmer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     );
   }
