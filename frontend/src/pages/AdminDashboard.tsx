@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -30,6 +30,7 @@ interface SchoolClass { id: string; level: string; section: string; }
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
 
@@ -65,6 +66,11 @@ export default function AdminDashboard() {
     (searchParams.get('section') as 'reports' | 'users' | 'stats') ?? 'reports'
   );
 
+  // Mettre à jour l'URL quand viewSection change
+  useEffect(() => {
+    navigate(`/dashboard?section=${viewSection}`, { replace: true });
+  }, [viewSection]);
+
   const [users, setUsers]               = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [showUserForm, setShowUserForm] = useState(false);
@@ -78,6 +84,7 @@ export default function AdminDashboard() {
   const [isBlocked, setIsBlocked]       = useState(false);
   const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const selectedUserId = searchParams.get('userId');
   const [editMode, setEditMode] = useState(false);
   const [profileParents, setProfileParents] = useState<any[]>([]);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
@@ -92,7 +99,21 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-  useEffect(() => { fetchReports(); fetchClassesList(); }, []);
+  useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
+
+  // Restaurer le user sélectionné depuis l'URL
+  useEffect(() => {
+    if (selectedUserId && users.length > 0 && !selectedUser) {
+      const u = users.find(x => x.id === selectedUserId);
+      if (u) {
+        setSelectedUser(u);
+        setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '' });
+        if (u.role === 'student') {
+          getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
+        }
+      }
+    }
+  }, [selectedUserId, users]);
   useEffect(() => { if (viewSection === 'users') fetchUsers(); }, [viewSection]);
 
   const fetchClassesList = async () => {
@@ -830,7 +851,7 @@ export default function AdminDashboard() {
         {/* Vue profil utilisateur */}
         {viewSection === 'users' && isAdmin && selectedUser && (
           <section className="max-w-xl mx-auto">
-            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); }}>
+            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>
               ← Retour à la liste
             </Button>
             <Card>
@@ -1065,8 +1086,8 @@ export default function AdminDashboard() {
                         // Recharger les données fraîches de cet utilisateur
                         const freshUsers = await getAllUsers();
                         const freshU = Array.isArray(freshUsers) ? freshUsers.find((x: any) => x.id === u.id) ?? u : u;
-                        console.log('freshU:', JSON.stringify(freshU, null, 2));
                         setSelectedUser(freshU);
+                        navigate(`/dashboard?section=users&userId=${freshU.id}`, { replace: true });
                         setUserForm({ firstName: freshU.firstName, lastName: freshU.lastName, email: freshU.email, password: '', role: freshU.role, classId: freshU.studentProfile?.schoolClass?.id || '' });
                         if (freshU.role === 'student') {
                           try { setProfileParents(await getStudentParents(freshU.id)); }
