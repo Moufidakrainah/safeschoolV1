@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents,
+  searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -87,6 +87,7 @@ export default function AdminDashboard() {
   const selectedUserId = searchParams.get('userId');
   const [editMode, setEditMode] = useState(false);
   const [profileParents, setProfileParents] = useState<any[]>([]);
+  const [profileStaff, setProfileStaff] = useState<any | null>(null);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
 
   const [classes, setClasses]         = useState<SchoolClass[]>([]);
@@ -921,10 +922,22 @@ export default function AdminDashboard() {
                             <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')}</TableCell>
                           </TableRow>
                         )}
-                        {selectedUser.staffProfile?.profession && (
+                        {(selectedUser.staffProfile?.profession || profileStaff?.profession) && (
                           <TableRow>
                             <TableCell className="font-semibold text-muted-foreground">Profession</TableCell>
-                            <TableCell>{selectedUser.staffProfile.profession}</TableCell>
+                            <TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell>
+                          </TableRow>
+                        )}
+                        {profileStaff?.subject && (
+                          <TableRow>
+                            <TableCell className="font-semibold text-muted-foreground">Matière</TableCell>
+                            <TableCell>{profileStaff.subject}</TableCell>
+                          </TableRow>
+                        )}
+                        {profileStaff?.classes?.length > 0 && (
+                          <TableRow>
+                            <TableCell className="font-semibold text-muted-foreground">Classes</TableCell>
+                            <TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell>
                           </TableRow>
                         )}
                         <TableRow>
@@ -1098,7 +1111,15 @@ export default function AdminDashboard() {
                         if (freshU.role === 'student') {
                           try { setProfileParents(await getStudentParents(freshU.id)); }
                           catch { setProfileParents([]); }
-                        } else { setProfileParents([]); }
+                          setProfileStaff(null);
+                        } else if (freshU.role === 'teacher' || freshU.role === 'staff') {
+                          try { setProfileStaff(await getStaffProfile(freshU.id)); }
+                          catch { setProfileStaff(null); }
+                          setProfileParents([]);
+                        } else {
+                          setProfileParents([]);
+                          setProfileStaff(null);
+                        }
                       }}>
                       <CardContent className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-3">
