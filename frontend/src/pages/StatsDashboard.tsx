@@ -43,9 +43,9 @@ export default function StatsDashboard({ reports }: Props) {
 
   return classes.map(c => ({
     classe: c,
-    total:    filtered.filter(r => r.student?.studentProfile?.schoolClass === c).length,
-    critical: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critical').length,
-    high:     filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'high').length,
+    total:    filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c : false; }).length,
+    critical: filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'critical' : false; }).length,
+    high:     filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'high' : false; }).length,
   }));
   }, [reports, filtered]);
 
