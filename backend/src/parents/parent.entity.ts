@@ -1,9 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm';
-import { StudentProfile } from '../student-profiles/student-profile.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
 
-@Entity('parents')
+@Entity("parents")
 export class Parent {
-  @PrimaryGeneratedColumn('uuid') id: string;
+  @PrimaryGeneratedColumn("uuid") id: string;
 
   @Column() firstName: string;
 
@@ -15,7 +21,7 @@ export class Parent {
 
   @Column({ nullable: true }) address: string;
 
-  @ManyToMany(() => StudentProfile, student => student.parents)
-  @JoinTable({ name: 'student_parents' })
+  @ManyToMany(() => StudentProfile, (student) => student.parents)
+  @JoinTable({ name: "student_parents" })
   students: StudentProfile[];
 }

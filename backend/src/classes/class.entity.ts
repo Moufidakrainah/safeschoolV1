@@ -1,10 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from 'typeorm';
-import { StudentProfile } from '../student-profiles/student-profile.entity';
-import { StaffProfile } from '../staff/staff-profile.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+} from "typeorm";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+import { StaffProfile } from "../staff/staff-profile.entity";
 
-@Entity('classes')
+@Entity("classes")
 export class SchoolClass {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
@@ -13,9 +19,9 @@ export class SchoolClass {
   @Column()
   section: string;
 
-  @OneToMany(() => StudentProfile, student => student.class)
+  @OneToMany(() => StudentProfile, (student) => student.class)
   students: StudentProfile[];
 
-  @ManyToMany(() => StaffProfile, staff => staff.classes)
+  @ManyToMany(() => StaffProfile, (staff) => staff.classes)
   staff: StaffProfile[];
 }
