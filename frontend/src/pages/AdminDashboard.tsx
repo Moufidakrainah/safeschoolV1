@@ -989,7 +989,13 @@ export default function AdminDashboard() {
                       </Select>
                       {userForm.role === 'student' && (
                         <Select value={userForm.classId} onValueChange={v => setUserForm({ ...userForm, classId: v })}>
-                          <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')} /></SelectTrigger>
+                          <SelectTrigger className="bg-white mt-1">
+                            <SelectValue placeholder={t('admin.users.selectClass')}>
+                              {classes.find(c => c.id === userForm.classId) 
+                                ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}`
+                                : t('admin.users.selectClass')}
+                            </SelectValue>
+                          </SelectTrigger>
                           <SelectContent>
                             {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
                           </SelectContent>

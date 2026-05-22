@@ -45,7 +45,16 @@ export default function StudentDashboard() {
     if (viewSection === 'notifications') {
       setLoadingNotifs(true);
       getNotifications()
-        .then(data => setNotifications(data))
+        .then(async data => {
+          setNotifications(data);
+          // Marquer toutes les non lues comme lues
+          const unread = data.filter((n: any) => !n.isRead);
+          if (unread.length > 0) {
+            await Promise.all(unread.map((n: any) => markNotificationRead(n.id)));
+            setNotifications(data.map((n: any) => ({ ...n, isRead: true })));
+            setNotifRefreshKey(k => k + 1);
+          }
+        })
         .catch(() => setNotifications([]))
         .finally(() => setLoadingNotifs(false));
     }
