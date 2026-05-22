@@ -995,8 +995,7 @@ export default function AdminDashboard() {
                         <SelectContent>
                           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
                           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
-                          <SelectItem value="staff">{t('admin.users.roles.staff')}</SelectItem>
-                          <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+                              <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
                           <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
                         </SelectContent>
                       </Select>
@@ -1072,8 +1071,7 @@ export default function AdminDashboard() {
                       <SelectContent>
                         <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
                         <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
-                        <SelectItem value="staff">{t('admin.users.roles.staff')}</SelectItem>
-                        <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+                          <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
                         <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
                       </SelectContent>
                     </Select>

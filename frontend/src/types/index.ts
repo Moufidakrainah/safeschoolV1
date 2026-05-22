@@ -1,5 +1,5 @@
 /* Definit report, user, note .., si on change lAPI o met ajour ici en premier */
-export type UserRole = 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+export type UserRole = 'student' | 'admin' | 'director' | 'teacher';
 export type ReportGrade  = 'critical' | 'high' | 'medium' | 'low';
 export type ReportStatus = 'pending' | 'in_progress' | 'closed' | 'rejected';
 export type ReportType   = 'physique' | 'verbal' | 'cyber' | 'exclusion' | 'sexuel';

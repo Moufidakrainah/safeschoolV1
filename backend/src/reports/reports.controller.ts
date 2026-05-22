@@ -37,7 +37,7 @@ export class ReportsController {
 
   @Post()
   async create(@Body() dto: CreateReportDto, @Request() req) {
-    const allowedRoles = ["student", "teacher", "staff"];
+    const allowedRoles = ["student", "teacher"];
     if (!allowedRoles.includes(req.user.role)) {
       throw new ForbiddenException("Only student, teacher and staff can create a report");
     }

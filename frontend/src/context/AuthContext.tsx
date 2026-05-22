@@ -7,7 +7,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+  role: 'student' | 'admin' | 'director' | 'teacher';
   avatar?: string | null;
   studentProfile?: {
     id: string;

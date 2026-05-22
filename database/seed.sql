@@ -29,7 +29,6 @@ INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdA
   ('a0b1c2d3-0000-0000-0000-000000000002', 'directeur@safeschool.com', '$2b$10$ZZLAuASLxIMnzrR9IedJn.zG2gYVBQjhWrkhjbe8tiZEiKL2SrhPO', 'Bernard', 'Dupont',   'director', NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000003', 'prof@safeschool.com',      '$2b$10$yxilnwmyhRgzZHor0M6PteoJ1KpITZIPMyovv0SZ/2uNie9Y15oY6', 'Marie',   'Leroy',    'teacher',  NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000004', 'prof2@safeschool.com',     '$2b$10$FLywd4Mimct8vYT5Ty/mXOvxbqPyibsbgasHENrQh7EIu5gr4mhzC', 'Pierre',  'Durand',   'teacher',  NOW(), NULL),
-  ('a0b1c2d3-0000-0000-0000-000000000005', 'agent@safeschool.com',     '$2b$10$3.8eHmoj7KEU9nRBZ1VHZOu6CI8ZoaLXoLifQALcvoR75/suSOu5q', 'Fatima',  'Benali',   'staff',    NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000006', 'lotfi@safeschool.com',     '$2b$10$rbXyyCR80klupr.HJz2xSOJXze6ij9Qh25LZ4nPxuXVyneHexoUb6', 'Lotfi',   'Bougrine', 'student',  NOW(), 'bougrine.lotfi.jpg'),
   ('a0b1c2d3-0000-0000-0000-000000000007', 'danya@safeschool.com',     '$2b$10$viOl4rJ733np43se1FrPb.UMkZjUpwoQNgTOQS8ip0lLQ1Pyn.LMK', 'Danya',   'Bougrine', 'student',  NOW(), 'bougrine.danya.jpg'),
   ('a0b1c2d3-0000-0000-0000-000000000008', 'lina@safeschool.com',      '$2b$10$Mnoabi/rcMzGhiqbJWn0mendOhWoIc.e.xLXB4Vl8OZACGt.2Xoiq', 'Lina',    'Bougrine', 'student',  NOW(), 'bougrine.lina.jpg'),
@@ -48,13 +47,11 @@ INSERT INTO student_profiles (id, "dateOfBirth", "classId", "userId") VALUES
   ('b0c1d2e3-0000-0000-0000-000000000006', '2013-04-18', 'f0a1b2c3-0000-0000-0000-000000000005', 'a0b1c2d3-0000-0000-0000-000000000011'),
   ('b0c1d2e3-0000-0000-0000-000000000007', '2015-07-30', 'f0a1b2c3-0000-0000-0000-000000000001', 'a0b1c2d3-0000-0000-0000-000000000012');
 
--- PROFILS STAFF
 INSERT INTO staff_profiles (id, profession, subject, "userId") VALUES
   ('a0b2d3c9-0000-0000-0000-000000000001', 'enseignant',      'Mathématiques', 'a0b1c2d3-0000-0000-0000-000000000003'),
   ('a0b2d3c9-0000-0000-0000-000000000002', 'enseignant',      'Français',      'a0b1c2d3-0000-0000-0000-000000000004'),
   ('a0b2d3c9-0000-0000-0000-000000000003', 'agent de saisie', NULL,            'a0b1c2d3-0000-0000-0000-000000000005');
 
--- AFFECTATION STAFF ↔ CLASSES
 INSERT INTO staff_classes ("staffProfilesId", "classesId") VALUES
   ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000003'),
   ('a0b2d3c9-0000-0000-0000-000000000001', 'f0a1b2c3-0000-0000-0000-000000000004'),
