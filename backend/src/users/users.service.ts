@@ -44,8 +44,7 @@ constructor(
     return this.usersRepository.findOne({
       where: { email },
 	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
-      relations: ['studentProfile'],
-    //   relations: ['studentProfile', 'staffProfile'],
+      relations: ['studentProfile', 'studentProfile.schoolClass', 'staffProfile'],
     });
   }
 
@@ -54,7 +53,7 @@ constructor(
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
-      relations: ["studentProfile"],
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
     });
   }
 
@@ -74,7 +73,9 @@ constructor(
   }> {
     const query = this.usersRepository
       .createQueryBuilder("user")
-      .leftJoinAndSelect("user.studentProfile", "studentProfile");
+      .leftJoinAndSelect("user.studentProfile", "studentProfile")
+      .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
+      .leftJoinAndSelect("user.staffProfile", "staffProfile");
 
     // Si un rôle est précisé, on filtre par ce rôle
     if (role) {
@@ -187,7 +188,7 @@ constructor(
   ): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ["studentProfile"],
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
     });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
 

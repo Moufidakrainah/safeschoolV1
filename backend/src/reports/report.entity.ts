@@ -18,10 +18,11 @@ export enum ReportGrade {
 }
 
 export enum ReportStatus {
-  PENDING    = "pending",
-  IN_PROGRESS = "in_progress",
-  CLOSED     = "closed",
-  REJECTED   = "rejected",
+  NEW          = "new",
+  IN_PROGRESS  = "in_progress",
+  PENDING      = "pending",
+  RESOLVED     = "resolved",
+  FALSE_REPORT = "false_report",
 }
 
 export enum ReportType {
@@ -51,7 +52,7 @@ export class Report {
 
   @Column({ type: "enum", enum: ReportGrade }) grade: ReportGrade;
 
-  @Column({ type: "enum", enum: ReportStatus, default: ReportStatus.PENDING })
+  @Column({ type: "enum", enum: ReportStatus, default: ReportStatus.NEW })
   status: ReportStatus;
 
   @Column({ nullable: true }) aiScore: number;

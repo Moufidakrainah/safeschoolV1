@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, resolveVictim, getClasses,
+  searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -77,6 +77,9 @@ export default function AdminDashboard() {
   const [deleteError, setDeleteError]   = useState('');
   const [isBlocked, setIsBlocked]       = useState(false);
   const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [profileParents, setProfileParents] = useState<any[]>([]);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
 
   const [classes, setClasses]         = useState<SchoolClass[]>([]);
@@ -824,7 +827,173 @@ export default function AdminDashboard() {
         )}
 
         {/* Utilisateurs */}
-        {viewSection === 'users' && isAdmin && (
+        {/* Vue profil utilisateur */}
+        {viewSection === 'users' && isAdmin && selectedUser && (
+          <section className="max-w-xl mx-auto">
+            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); }}>
+              ← Retour à la liste
+            </Button>
+            <Card>
+              <CardContent className="pt-6">
+
+                {/* Avatar + infos */}
+                <div className="flex flex-col items-center gap-3 mb-6">
+                  <div className="relative">
+                    {selectedUser.avatar
+                      ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`}
+                          alt={selectedUser.firstName}
+                          className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow" />
+                      : <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-400 border-4 border-gray-200">
+                          {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
+                        </div>
+                    }
+                  </div>
+                  <div className="text-center">
+                    <h2 className="text-xl font-bold text-gray-800">{selectedUser.firstName} {selectedUser.lastName}</h2>
+                    <span className="text-sm text-gray-400 capitalize">{selectedUser.role}</span>
+                    {selectedUser.studentProfile?.schoolClass && (
+                      <p className="text-sm text-primary mt-1">
+                        {selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-500 mt-1">{selectedUser.email}</p>
+                  </div>
+                </div>
+
+                {/* Boutons actions */}
+                {!editMode && (
+                  <div className="flex justify-center gap-3 mb-4">
+                    <Button onClick={() => setEditMode(true)}>✏️ {t('admin.users.edit')}</Button>
+                    <label className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
+                      {uploadingAvatarId === selectedUser.id ? '⏳ Upload...' : '📷 Changer la photo'}
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                        onChange={async e => {
+                          const f = e.target.files?.[0];
+                          if (f) {
+                            await handleAvatarUpload(selectedUser.id, f);
+                            await fetchUsers();
+                            const updated = users.find(u => u.id === selectedUser.id);
+                            if (updated) setSelectedUser({ ...updated });
+                          }
+                        }} />
+                    </label>
+                    <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>
+                      🗑️ {t('admin.users.delete')}
+                    </Button>
+                  </div>
+                )}
+
+                {/* Infos détaillées */}
+                {!editMode && (
+                  <div className="mt-4">
+                    <Table>
+                      <TableBody>
+                        {selectedUser.studentProfile?.schoolClass && (
+                          <TableRow>
+                            <TableCell className="font-semibold text-muted-foreground">Classe</TableCell>
+                            <TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell>
+                          </TableRow>
+                        )}
+                        {selectedUser.studentProfile?.dateOfBirth && (
+                          <TableRow>
+                            <TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell>
+                            <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')}</TableCell>
+                          </TableRow>
+                        )}
+                        {selectedUser.staffProfile?.profession && (
+                          <TableRow>
+                            <TableCell className="font-semibold text-muted-foreground">Profession</TableCell>
+                            <TableCell>{selectedUser.staffProfile.profession}</TableCell>
+                          </TableRow>
+                        )}
+                        <TableRow>
+                          <TableCell className="font-semibold text-muted-foreground">Membre depuis</TableCell>
+                          <TableCell>{new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+
+                    {/* Parents */}
+                    {profileParents.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-semibold text-muted-foreground mb-2">👨‍👩‍👧 Parents / Responsables</p>
+                        <div className="flex flex-col gap-2">
+                          {profileParents.map((p: any) => (
+                            <div key={p.id} className="bg-gray-50 rounded-lg px-3 py-2">
+                              <p className="text-sm font-medium text-gray-800">{p.firstName} {p.lastName}</p>
+                              <p className="text-sm text-gray-500 mt-0.5">{p.email}</p>
+                              {p.phone && <p className="text-sm text-gray-500">{p.phone}</p>}
+                              {p.address && <p className="text-sm text-gray-400">{p.address}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Formulaire modification */}
+                {editMode && (
+                  <>
+                    <div className="rounded-lg bg-primary p-4 flex flex-col gap-3 mb-4">
+                      <div>
+                        <Label className="text-white text-sm">{t('admin.users.firstName')}</Label>
+                        <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />
+                        {errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}
+                      </div>
+                      <div>
+                        <Label className="text-white text-sm">{t('admin.users.lastName')}</Label>
+                        <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />
+                        {errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}
+                      </div>
+                      <div>
+                        <Label className="text-white text-sm">{t('admin.users.email')}</Label>
+                        <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />
+                        {errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+                      </div>
+                      <div>
+                        <Label className="text-white text-sm">{t('admin.users.password')} (laisser vide pour ne pas changer)</Label>
+                        <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />
+                        {errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}
+                      </div>
+                      <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v, classId: '' })}>
+                        <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
+                          <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
+                          <SelectItem value="staff">{t('admin.users.roles.staff')}</SelectItem>
+                          <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
+                          <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {userForm.role === 'student' && (
+                        <Select value={userForm.classId} onValueChange={v => setUserForm({ ...userForm, classId: v })}>
+                          <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')} /></SelectTrigger>
+                          <SelectContent>
+                            {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    <div className="flex gap-3 justify-end">
+                      <Button disabled={!isFormValid} onClick={async () => {
+                        await updateUser(selectedUser.id, userForm);
+                        await fetchUsers();
+                        setEditMode(false);
+                        const updated = users.find(u => u.id === selectedUser.id);
+                        if (updated) setSelectedUser({ ...updated, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
+                      }}>{t('admin.users.save')}</Button>
+                      <Button variant="ghost" onClick={() => setEditMode(false)}>{t('common.cancel')}</Button>
+                    </div>
+                  </>
+                )}
+
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {viewSection === 'users' && isAdmin && !selectedUser && (
           <section>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-xl font-bold text-gray-800">👥 {t('admin.users.title')}</h2>
@@ -891,7 +1060,19 @@ export default function AdminDashboard() {
               <ul className="flex flex-col gap-3">
                 {users.map(u => (
                   <li key={u.id}>
-                    <Card>
+                    <Card className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={async () => {
+                        // Recharger les données fraîches de cet utilisateur
+                        const freshUsers = await getAllUsers();
+                        const freshU = Array.isArray(freshUsers) ? freshUsers.find((x: any) => x.id === u.id) ?? u : u;
+                        console.log('freshU:', JSON.stringify(freshU, null, 2));
+                        setSelectedUser(freshU);
+                        setUserForm({ firstName: freshU.firstName, lastName: freshU.lastName, email: freshU.email, password: '', role: freshU.role, classId: freshU.studentProfile?.schoolClass?.id || '' });
+                        if (freshU.role === 'student') {
+                          try { setProfileParents(await getStudentParents(freshU.id)); }
+                          catch { setProfileParents([]); }
+                        } else { setProfileParents([]); }
+                      }}>
                       <CardContent className="flex justify-between items-center py-4">
                         <div className="flex items-center gap-3">
                           {u.avatar
@@ -909,19 +1090,7 @@ export default function AdminDashboard() {
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" onClick={() => {
-                            setEditingUser(u);
-                            setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '' });
-                            setShowUserForm(true);
-                          }}>✏️ {t('admin.users.edit')}</Button>
-                          <label className={`cursor-pointer px-3 py-1.5 rounded border text-xs text-gray-600 hover:bg-gray-50 ${uploadingAvatarId === u.id ? 'opacity-50' : ''}`}>
-                            {uploadingAvatarId === u.id ? '⏳' : '📷'}
-                            <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                              onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(u.id, f); }} />
-                          </label>
-                          <Button variant="destructive" onClick={() => handleDeleteUser(u.id)}>🗑️ {t('admin.users.delete')}</Button>
-                        </div>
+                        <span className="text-xs text-gray-400">→ Voir le profil</span>
                       </CardContent>
                     </Card>
                   </li>
