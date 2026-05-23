@@ -4,7 +4,7 @@ import Header from '../Header/Header';
 import { getUnreadCount } from '../../../services/api';
 import type { AuthUser } from '../../../types';
 
-type StudentSection = 'profile' | 'report' | 'notifications' | 'quiz' | 'cases';
+type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 
 interface StudentHeaderProps {
   user: AuthUser | null;
@@ -36,11 +36,10 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
   }, [notifRefreshKey, fetchCount]);
 
   const navItems: { key: StudentSection; label: string }[] = [
-    { key: 'profile',       label: t('student.nav.profile') },
-    { key: 'report',        label: t('student.nav.report') },
-    { key: 'cases',         label: 'Mes dossiers' },
-    { key: 'notifications', label: 'Notifications' },
-    { key: 'quiz',          label: t('student.nav.quiz') },
+    { key: 'profile', label: t('student.nav.profile') },
+    { key: 'report',  label: t('student.nav.report') },
+    { key: 'cases',   label: 'Mes dossiers' },
+    { key: 'quiz',    label: t('student.nav.quiz') },
   ];
 
   return (
@@ -58,7 +57,8 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
             }`}
           >
             {item.label}
-            {item.key === 'notifications' && unreadCount > 0 && (
+            {/* Badge rouge sur Mes dossiers */}
+            {item.key === 'cases' && unreadCount > 0 && (
               <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
                 {unreadCount}
               </span>
