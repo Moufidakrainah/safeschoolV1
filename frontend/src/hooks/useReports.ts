@@ -165,7 +165,7 @@ export function useReports(): UseReportsReturn {
       const formatted = new Date(convocationDate).toLocaleString('fr-FR', {
         dateStyle: 'long', timeStyle: 'short',
       });
-      content = `📅 ${formatted}\n\n${content}`;
+      content = ` ${formatted}\n\n${content}`;
     }
     try {
       await addNote(selected.id, content, type);

@@ -4,7 +4,7 @@ import Header from '../Header/Header';
 import { getUnreadCount } from '../../../services/api';
 import type { AuthUser } from '../../../types';
 
-type StudentSection = 'profile' | 'report' | 'notifications' | 'quiz';
+type StudentSection = 'profile' | 'report' | 'notifications' | 'quiz' | 'cases';
 
 interface StudentHeaderProps {
   user: AuthUser | null;
@@ -25,14 +25,12 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
     } catch { setUnreadCount(0); }
   }, []);
 
-  // Refresh au montage et toutes les 30s
   useEffect(() => {
     fetchCount();
     const interval = setInterval(fetchCount, 30000);
     return () => clearInterval(interval);
   }, [fetchCount]);
 
-  // Refresh immédiat quand notifRefreshKey change
   useEffect(() => {
     if (notifRefreshKey > 0) fetchCount();
   }, [notifRefreshKey, fetchCount]);
@@ -40,7 +38,8 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
   const navItems: { key: StudentSection; label: string }[] = [
     { key: 'profile',       label: t('student.nav.profile') },
     { key: 'report',        label: t('student.nav.report') },
-    { key: 'notifications', label: '🔔 Notifications' },
+    { key: 'cases',         label: 'Mes dossiers' },
+    { key: 'notifications', label: 'Notifications' },
     { key: 'quiz',          label: t('student.nav.quiz') },
   ];
 

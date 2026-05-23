@@ -6,46 +6,40 @@ import ReporterHeader from '@/components/layout/ReporterHeader/ReporterHeader';
 interface RoleHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
-
   // Admin props
-  adminViewSection?: 'reports' | 'users' | 'stats';
-  adminSetViewSection?: (s: 'reports' | 'users' | 'stats') => void;
+  adminViewSection?: 'reports' | 'users' | 'stats' | 'classes';
+  adminSetViewSection?: (s: 'reports' | 'users' | 'stats' | 'classes') => void;
   adminFetchUsers?: () => void;
   adminSetSelected?: (r: any) => void;
   adminSetView?: (v: 'list' | 'detail') => void;
-
   // Student props
-  studentViewSection?: 'profile' | 'report' | 'notifications' | 'quiz';
-  studentSetViewSection?: (s: 'profile' | 'report' | 'notifications' | 'quiz') => void;
+  studentViewSection?: 'profile' | 'report' | 'notifications' | 'quiz' | 'cases';
+  studentSetViewSection?: (s: 'profile' | 'report' | 'notifications' | 'quiz' | 'cases') => void;
   studentNotifRefreshKey?: number;
-
-  reporterViewSection: 'profile' | 'report' | 'quiz';
-  reporterSetViewSection: (s: 'profile' | 'report' | 'quiz') => void;
+  // Reporter props
+  reporterViewSection?: 'profile' | 'report' | 'quiz';
+  reporterSetViewSection?: (s: 'profile' | 'report' | 'quiz') => void;
 }
 
 export default function RoleHeader({
   user,
   logoutUser,
-
   adminViewSection,
   adminSetViewSection,
   adminFetchUsers,
   adminSetSelected,
   adminSetView,
-
   studentViewSection,
   studentSetViewSection,
   studentNotifRefreshKey,
-
   reporterViewSection,
-  reporterSetViewSection
-
+  reporterSetViewSection,
 }: RoleHeaderProps) {
-	
   if (!user) return null;
 
   switch (user.role) {
     case 'admin':
+    case 'director':
       return (
         <AdminHeader
           user={user}
@@ -69,13 +63,13 @@ export default function RoleHeader({
       );
     case 'teacher':
       return (
-	  <ReporterHeader
+        <ReporterHeader
           user={user}
           logoutUser={logoutUser}
           viewSection={reporterViewSection!}
           setViewSection={reporterSetViewSection!}
         />
-	);
+      );
     default:
       return null;
   }

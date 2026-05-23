@@ -383,7 +383,7 @@ export default function AdminDashboard() {
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) {
       const formatted = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
-      content = `📅 ${formatted}\n\n${content}`;
+      content = ` ${formatted}\n\n${content}`;
     }
     try {
       await addNote(selected.id, content, type);
@@ -631,7 +631,7 @@ export default function AdminDashboard() {
           </Card>
           {isAdmin && (
             <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-              <CardHeader><CardTitle>📅 {t('admin.convocation.title')}</CardTitle></CardHeader>
+              <CardHeader><CardTitle> {t('admin.convocation.title')}</CardTitle></CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 mb-3">Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.</p>
                 <ConvocationSelector selected={selected} checkedIds={checkedConvocIds} onToggle={id => { setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); setConvocDetails(prev => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } })); }} />
@@ -668,7 +668,7 @@ export default function AdminDashboard() {
                             const details = convocDetails[personId];
                             if (!details?.date || !details?.message) continue;
                             const formatted = new Date(details.date).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
-                            await addNote(selected.id, `📅 ${formatted}\n\n${details.message}`, 'convocation', personId);
+                            await addNote(selected.id, ` ${formatted}\n\n${details.message}`, 'convocation', personId);
                           }
                           await loadNotes(selected.id); setCheckedConvocIds([]); setConvocDetails({}); setConvocSuccess(true);
                           setTimeout(() => setConvocSuccess(false), 3000);
@@ -763,7 +763,7 @@ export default function AdminDashboard() {
                         <div className="flex gap-4 text-xs text-gray-400">
                           <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
                           <span>🏫 {report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
-                          <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+                          <span> {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
                           {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
                           <span>{report.caseNumber}</span>
                         </div>

@@ -42,7 +42,6 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
       const data = await res.json();
       if (data.avatar) {
         setAvatar(data.avatar);
-        // Mettre à jour le localStorage
         const saved = localStorage.getItem('user');
         if (saved) {
           const u = JSON.parse(saved);
@@ -50,21 +49,22 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
           localStorage.setItem('user', JSON.stringify(u));
         }
       } else {
-        setError('Erreur lors de l\'upload');
+        setError("Erreur lors de l'upload");
       }
     } catch {
-      setError('Erreur lors de l\'upload');
+      setError("Erreur lors de l'upload");
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <main className="max-w-xl mx-auto mt-8 px-5 pb-10">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Mon profil</h2>
+    <main className="max-w-2xl mx-auto mt-8 px-5 pb-10">
+      <h2 className="text-2xl font-bold mb-2 text-gray-800">Mon profil</h2>
+      <p className="text-gray-500 text-sm mb-6">Vos informations personnelles</p>
 
       {/* Informations personnelles */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
+      <div className="bg-white rounded-xl px-6 py-5 shadow-sm mb-4">
         <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
 
         {/* Avatar */}
@@ -80,7 +80,6 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
               {user?.firstName?.[0]}{user?.lastName?.[0]}
             </div>
           )}
-
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -108,8 +107,8 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
               { label: 'Date de naissance', value: user?.studentProfile?.dateOfBirth ?? '—' },
             ].map(row => (
               <tr key={row.label} className="border-b border-gray-100">
-                <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                <td className="py-2 text-gray-700">{row.value}</td>
+                <td className="py-2 text-gray-400 font-semibold w-2/5 text-sm">{row.label}</td>
+                <td className="py-2 text-gray-700 text-sm">{row.value}</td>
               </tr>
             ))}
           </tbody>
@@ -117,7 +116,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
       </div>
 
       {/* Parents */}
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="bg-white rounded-xl px-6 py-5 shadow-sm">
         <h3 className="text-primary font-bold text-sm mb-4">👨‍👩‍👧 Parents / Responsables légaux</h3>
         {loadingParents ? (
           <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>
@@ -127,7 +126,7 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
           <div className="flex flex-col gap-4">
             {parents.map((parent, i) => (
               <div key={parent.id} className="bg-gray-50 rounded-lg p-4">
-                <p className="font-semibold text-gray-800 mb-2">
+                <p className="font-semibold text-gray-800 text-sm mb-2">
                   Parent {i + 1} — {parent.firstName} {parent.lastName}
                 </p>
                 <table className="w-full table-fixed text-sm">
@@ -138,8 +137,8 @@ export default function StudentProfile({ user, parents, loadingParents }: Studen
                       { label: 'Adresse',   value: parent.address ?? '—' },
                     ].map(row => (
                       <tr key={row.label} className="border-b border-gray-100">
-                        <td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                        <td className="py-1.5 text-gray-700">{row.value}</td>
+                        <td className="py-1.5 text-gray-400 font-semibold w-2/5 text-sm">{row.label}</td>
+                        <td className="py-1.5 text-gray-700 text-sm">{row.value}</td>
                       </tr>
                     ))}
                   </tbody>
