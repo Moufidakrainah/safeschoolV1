@@ -274,12 +274,8 @@ export function useQuizSocket(playerName: string | undefined) {
 
   function leaveRoom() {
     if (!joinedRoom) return;
-    if (!connected) {
-      resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
-      return;
-    }
     socketRef.current?.emit('quiz:leave', { roomId: joinedRoom });
-    // State reset is handled by the quiz:left event the server sends back
+    resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
   }
 
   function startGame() {

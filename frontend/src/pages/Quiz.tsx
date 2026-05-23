@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
-import Button from '../components/Button';
+import { Button } from '../components/ui/button';
 import Input from '../components/Input';
 import { useQuizSocket } from '../hooks/useQuizSocket';
 
