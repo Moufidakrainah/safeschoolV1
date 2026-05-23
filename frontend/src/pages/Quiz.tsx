@@ -193,7 +193,7 @@ export default function Quiz() {
               <h2 className="text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
 
               {/* Answer feedback */}
-              {questionState.answerResult && (
+              {isRevealing && questionState.answerResult && (
                 <p className={`text-sm font-semibold ${questionState.lastAnswerCorrect ? 'text-green-600' : 'text-red-500'}`}>
                   {questionState.answerResult}
                   {questionState.pointsEarned != null && questionState.pointsEarned > 0 && (
