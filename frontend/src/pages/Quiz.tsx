@@ -1,76 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io, Socket } from 'socket.io-client';
 import { useAuth } from '../context/AuthContext';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
-
-type QuestionPayload = {
-  roomId: string;
-  question: {
-    id: number;
-    text: string;
-    options: string[];
-  };
-  questionNumber: number;
-  totalQuestions: number;
-  timeLimitMs: number;
-  endsAt: number | null;
-};
-
-type AnswerResultPayload = {
-  roomId: string;
-  playerId: string;
-  questionId: number;
-  isCorrect: boolean;
-  pointValue: number;
-};
-
-type RevealPayload = {
-  roomId: string;
-  questionId: number;
-  correctIndex: number;
-  answerStatistics: {
-    index: number;
-    count: number;
-    percentage: number;
-  }[];
-  revealEndsAt: number;
-  revealDurationMs: number;
-};
-
-type Player = {
-  clientId: string;
-  name: string;
-  score: number;
-};
-
-type RoomSnapshot = {
-  roomId: string;
-  hostId: string;
-  status: string;
-  players: Player[];
-};
-
-type GamePhase = 'lobby' | 'playing' | 'over';
-
-type QuestionState = {
-  question: QuestionPayload['question'];
-  questionNumber: number;
-  totalQuestions: number;
-  endsAt: number | null;
-  hasAnswered: boolean;
-  selectedIndex: number | null;
-  correctIndex: number | null;
-  revealEndsAt: number | null;
-  answerStatistics: RevealPayload['answerStatistics'];
-  answerResult: string;
-  pointsEarned: number | null;
-} | null;
-
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ??
-  import.meta.env.VITE_API_URL ??
-  'http://localhost:5000';
+import Button from '../components/Button';
+import Input from '../components/Input';
+import { useQuizSocket } from '../hooks/useQuizSocket';
 
 const RANK_STYLES: Record<number, string> = {
   1: 'bg-amber-400 text-white',
@@ -82,213 +16,30 @@ export default function Quiz() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
   const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
+  const [roomCode, setRoomCode] = useState('');
 
   useEffect(() => {
     if (viewSection === 'profile') navigate('/reporter?section=profile');
     if (viewSection === 'report') navigate('/reporter?section=report');
   }, [viewSection, navigate]);
 
-  const socketRef = useRef<Socket | null>(null);
-  const [myClientId, setMyClientId] = useState<string | null>(null);
-  const [isHost, setIsHost] = useState(false);
-  const [roomCode, setRoomCode] = useState('');
-  const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [socketError, setSocketError] = useState<string>('');
-  const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
-  const [questionState, setQuestionState] = useState<QuestionState>(null);
-  const [timeLeftMs, setTimeLeftMs] = useState(0);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [finalLeaderboard, setFinalLeaderboard] = useState<Player[] | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function connectSocket() {
-      const socketProbeUrl = `${SOCKET_URL.replace(/\/$/, '')}/socket.io/?EIO=4&transport=polling&t=${Date.now()}`;
-
-      try {
-        const response = await fetch(socketProbeUrl);
-        if (!response.ok) throw new Error('Quiz server is unavailable.');
-      } catch {
-        if (!cancelled) {
-          setConnected(false);
-          setSocketError('Quiz server is unavailable.');
-        }
-        return;
-      }
-
-      if (cancelled) return;
-
-      const socket = io(SOCKET_URL, {
-        transports: ['websocket'],
-        reconnection: false,
-        timeout: 5000,
-      });
-
-      socketRef.current = socket;
-
-      socket.on('connect', () => {
-        setConnected(true);
-        setMyClientId(socket.id ?? null);
-        setSocketError('');
-      });
-
-      socket.on('disconnect', () => setConnected(false));
-
-      socket.on('connect_error', (error) => {
-        setConnected(false);
-        setSocketError(error.message);
-      });
-
-      socket.on('quiz:left', () => {
-        setRoomCode('');
-        setJoinedRoom(null);
-        setQuestionState(null);
-        setTimeLeftMs(0);
-        setGamePhase('lobby');
-        setPlayers([]);
-        setFinalLeaderboard(null);
-      });
-
-      socket.on('quiz:joined', (data: { roomId: string; hostId: string }) => {
-        setJoinedRoom(data.roomId);
-        setSocketError('');
-        setIsHost(data.hostId === socket.id);
-      });
-
-      socket.on('quiz:game:started', () => {
-        setGamePhase('playing');
-      });
-
-      socket.on('quiz:score:update', (data: RoomSnapshot) => {
-        if (data?.players) setPlayers(data.players);
-      });
-
-      socket.on('quiz:question', (data: QuestionPayload) => {
-        setQuestionState({
-          question: data.question,
-          questionNumber: data.questionNumber,
-          totalQuestions: data.totalQuestions,
-          endsAt: data.endsAt,
-          hasAnswered: false,
-          selectedIndex: null,
-          correctIndex: null,
-          revealEndsAt: null,
-          answerStatistics: [],
-          answerResult: '',
-          pointsEarned: null,
-        });
-        setTimeLeftMs(data.endsAt ? Math.max(0, data.endsAt - Date.now()) : data.timeLimitMs);
-      });
-
-      socket.on('quiz:question:reveal', (data: RevealPayload) => {
-        setQuestionState((prev) =>
-          prev && prev.question.id === data.questionId
-            ? { ...prev, correctIndex: data.correctIndex, revealEndsAt: data.revealEndsAt, answerStatistics: data.answerStatistics }
-            : prev
-        );
-      });
-
-      socket.on('quiz:game:over', (data: RoomSnapshot) => {
-        const sorted = [...(data?.players ?? [])].sort((a, b) => b.score - a.score);
-        setFinalLeaderboard(sorted);
-        setQuestionState(null);
-        setTimeLeftMs(0);
-        setGamePhase('over');
-      });
-
-      socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
-        setQuestionState((prev) =>
-          prev
-            ? {
-                ...prev,
-                answerResult: data.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse.',
-                pointsEarned: data.isCorrect ? data.pointValue : 0,
-              }
-            : prev
-        );
-      });
-
-      socket.on('quiz:join:ignored', (data) => {
-        if (data.reason === 'quiz-already-started') setSocketError('Le quiz a déjà commencé.');
-        else if (data.reason === 'room-is-full') setSocketError('Cette salle est pleine.');
-      });
-
-      socket.on('quiz:room:update', (data: RoomSnapshot) => {
-        if (data?.hostId === socket.id) setIsHost(true);
-        if (data?.players) setPlayers(data.players);
-      });
-    }
-
-    void connectSocket();
-
-    return () => {
-      cancelled = true;
-      socketRef.current?.disconnect();
-      socketRef.current = null;
-    };
-  }, []);
-
-  const revealEndsAt = questionState?.revealEndsAt ?? null;
-  const endsAt = questionState?.endsAt ?? null;
-  const activeDeadline = revealEndsAt ?? endsAt;
-
-  useEffect(() => {
-    if (!activeDeadline || gamePhase !== 'playing') {
-      setTimeLeftMs(0);
-      return;
-    }
-    const tick = () => setTimeLeftMs(Math.max(0, activeDeadline - Date.now()));
-    tick();
-    const intervalId = window.setInterval(tick, 200);
-    return () => window.clearInterval(intervalId);
-  }, [activeDeadline, gamePhase]);
-
-  function handleJoinRoom(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = roomCode.trim();
-    if (!connected) { setSocketError('Socket non connecté.'); return; }
-    if (!trimmed || trimmed.length < 3 || trimmed.length > 10) {
-      setSocketError('Le code doit faire entre 3 et 10 caractères.');
-      return;
-    }
-    socketRef.current?.emit('quiz:join', { roomId: trimmed, playerName: user?.firstName || undefined });
-  }
-
-  function handleLeaveRoom() {
-    if (gamePhase === 'over') {
-      setRoomCode('');
-      setJoinedRoom(null);
-      setQuestionState(null);
-      setTimeLeftMs(0);
-      setGamePhase('lobby');
-      setPlayers([]);
-      setFinalLeaderboard(null);
-      return;
-    }
-    if (!joinedRoom) return;
-    if (!connected) { setSocketError('Socket non connecté.'); return; }
-    socketRef.current?.emit('quiz:leave', { roomId: joinedRoom });
-  }
-
-  function handleStartGame() {
-    if (!joinedRoom) return;
-    if (!connected) { setSocketError('Socket non connecté.'); return; }
-    socketRef.current?.emit('quiz:start', { roomId: joinedRoom });
-  }
-
-  function handleAnswer(selectedIndex: number) {
-    if (!joinedRoom || !questionState) return;
-    if (questionState.hasAnswered || timeLeftMs <= 0) return;
-    if (questionState.revealEndsAt !== null) return;
-    socketRef.current?.emit('quiz:answer', {
-      roomId: joinedRoom,
-      questionId: questionState.question.id,
-      selectedIndex,
-    });
-    setQuestionState((prev) => prev ? { ...prev, hasAnswered: true, selectedIndex } : prev);
-  }
+  const {
+    connected,
+    reconnecting,
+    socketError,
+    myClientId,
+    isHost,
+    joinedRoom,
+    gamePhase,
+    questionState,
+    timeLeftMs,
+    players,
+    finalLeaderboard,
+    joinRoom,
+    leaveRoom,
+    startGame,
+    submitAnswer,
+  } = useQuizSocket(user?.firstName);
 
   const headerProps = { user, logoutUser, viewSection, setViewSection };
 
@@ -300,25 +51,23 @@ export default function Quiz() {
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Quiz</h1>
+            {reconnecting && <p className="text-sm text-amber-500 text-center">Reconnexion en cours…</p>}
             {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
-            <form onSubmit={handleJoinRoom} className="flex flex-col gap-3">
-              <label htmlFor="room-code" className="text-sm font-medium text-gray-700">Code de salle</label>
-              <input
-                id="room-code"
-                type="text"
-                maxLength={10}
+            <form
+              onSubmit={(e) => { e.preventDefault(); joinRoom(roomCode); }}
+              className="flex flex-col gap-3"
+            >
+              <Input
+                label="Code de salle"
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value)}
                 placeholder="Entrez le code"
-                className="w-full rounded-lg border border-gray-200 px-4 py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus:border-primary"
+                maxLength={10}
+                bordered
               />
-              <button
-                type="submit"
-                disabled={!connected}
-                className="rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
-              >
+              <Button type="submit" disabled={!connected} variant="primary">
                 Rejoindre
-              </button>
+              </Button>
             </form>
           </div>
         </div>
@@ -346,19 +95,12 @@ export default function Quiz() {
                 ))}
               </ul>
             )}
-            <button
-              onClick={handleStartGame}
-              disabled={!isHost}
-              className="rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover disabled:opacity-50"
-            >
-              {isHost ? 'Lancer le quiz' : 'En attente de l\'hôte…'}
-            </button>
-            <button
-              onClick={handleLeaveRoom}
-              className="rounded-full border border-gray-200 px-6 py-3 text-gray-700 font-semibold hover:bg-gray-50"
-            >
+            <Button onClick={startGame} disabled={!isHost} variant="primary">
+              {isHost ? 'Lancer le quiz' : "En attente de l'hôte…"}
+            </Button>
+            <Button onClick={leaveRoom} variant="ghost">
               Quitter la salle
-            </button>
+            </Button>
           </div>
         </div>
       </>
@@ -407,12 +149,9 @@ export default function Quiz() {
               </ol>
             )}
 
-            <button
-              onClick={handleLeaveRoom}
-              className="rounded-full bg-primary px-6 py-3 text-white font-semibold hover:bg-primary-hover"
-            >
-              Retour à l'accueil
-            </button>
+            <Button onClick={leaveRoom} variant="primary">
+              Quitter
+            </Button>
           </div>
         </div>
       </>
@@ -421,9 +160,9 @@ export default function Quiz() {
 
   // ── Playing
   const secondsLeft = Math.ceil(timeLeftMs / 1000);
-  const isRevealing = questionState?.revealEndsAt !== null && questionState?.revealEndsAt !== undefined;
-  const timerPct = questionState?.endsAt
-    ? Math.min(100, (timeLeftMs / (questionState.endsAt - (questionState.endsAt - 30_000))) * 100)
+  const isRevealing = questionState?.revealEndsAt != null;
+  const timerPct = questionState?.timeLimitMs
+    ? Math.min(100, (timeLeftMs / questionState.timeLimitMs) * 100)
     : 0;
 
   return (
@@ -455,7 +194,7 @@ export default function Quiz() {
 
               {/* Answer feedback */}
               {questionState.answerResult && (
-                <p className={`text-sm font-semibold ${questionState.pointsEarned ? 'text-green-600' : 'text-red-500'}`}>
+                <p className={`text-sm font-semibold ${questionState.lastAnswerCorrect ? 'text-green-600' : 'text-red-500'}`}>
                   {questionState.answerResult}
                   {questionState.pointsEarned != null && questionState.pointsEarned > 0 && (
                     <span className="ml-1 text-gray-500 font-normal">(+{questionState.pointsEarned} pts)</span>
@@ -470,6 +209,9 @@ export default function Quiz() {
               {!isRevealing && !questionState.hasAnswered && timeLeftMs <= 0 && (
                 <p className="text-sm text-gray-400">Temps écoulé. Prochaine question…</p>
               )}
+              {isRevealing && questionState.selectedIndex == null && (
+                <p className="text-sm text-red-500 font-semibold">Vous n'avez pas répondu.</p>
+              )}
               {isRevealing && (
                 <p className="text-sm text-gray-400">Prochaine question dans {secondsLeft}s</p>
               )}
@@ -477,25 +219,29 @@ export default function Quiz() {
               {/* Answer buttons */}
               <ul className="grid grid-cols-2 gap-3">
                 {questionState.question.options.map((opt, i) => {
-                  let cls = 'w-full rounded-2xl px-4 py-4 text-white font-semibold text-sm disabled:opacity-50 text-center flex items-center justify-center h-full min-h-[4rem] ';
-                  if (isRevealing) {
-                    if (i === questionState.correctIndex) cls += 'bg-green-500';
-                    else if (i === questionState.selectedIndex) cls += 'bg-red-400';
-                    else cls += 'bg-gray-300';
-                  } else {
-                    cls += questionState.selectedIndex === i
-                      ? 'bg-primary-hover'
-                      : 'bg-primary hover:bg-primary-hover';
-                  }
+                  const isCorrect = isRevealing && i === questionState.correctIndex;
+                  const isWrongSelected = isRevealing && i === questionState.selectedIndex && !isCorrect;
+                  const isNeutral = isRevealing && !isCorrect && !isWrongSelected;
+                  const isSelectedPreReveal = !isRevealing && questionState.selectedIndex === i;
+
+                  const variant = isCorrect ? 'success' : isWrongSelected ? 'danger' : 'primary';
+                  const extraClass = [
+                    'w-full min-h-[4rem] h-full flex items-center justify-center',
+                    isNeutral && 'bg-gray-300 hover:bg-gray-300',
+                    isSelectedPreReveal && 'bg-primary-hover hover:bg-primary-hover',
+                  ].filter(Boolean).join(' ');
+
                   return (
                     <li key={i} className="flex">
-                      <button
-                        onClick={() => handleAnswer(i)}
+                      <Button
+                        onClick={() => submitAnswer(i)}
                         disabled={questionState.hasAnswered || timeLeftMs <= 0 || isRevealing}
-                        className={cls}
+                        variant={variant}
+                        className={extraClass}
+                        type="button"
                       >
                         <span className="whitespace-normal break-words">{opt}</span>
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}
