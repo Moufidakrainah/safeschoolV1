@@ -253,11 +253,10 @@ export function useQuizSocket(playerName: string | undefined) {
 
   useEffect(() => {
     if (!activeDeadline || gamePhase !== 'playing') {
-      setTimeLeftMs(0);
-      return;
+      const id = window.setTimeout(() => setTimeLeftMs(0), 0);
+      return () => window.clearTimeout(id);
     }
     const tick = () => setTimeLeftMs(Math.max(0, activeDeadline - Date.now()));
-    tick();
     const id = window.setInterval(tick, 200);
     return () => window.clearInterval(id);
   }, [activeDeadline, gamePhase]);

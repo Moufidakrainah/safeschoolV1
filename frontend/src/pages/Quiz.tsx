@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
 import { Button } from '../components/ui/button';
-import Input from '../components/Input';
+import { Input } from '../components/ui/input';
 import { useQuizSocket } from '../hooks/useQuizSocket';
 
 const RANK_STYLES: Record<number, string> = {
@@ -57,14 +57,15 @@ export default function Quiz() {
               onSubmit={(e) => { e.preventDefault(); joinRoom(roomCode); }}
               className="flex flex-col gap-3"
             >
-              <Input
-                label="Code de salle"
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-                placeholder="Entrez le code"
-                maxLength={10}
-                bordered
-              />
+              <div className="flex flex-col gap-1 w-full">
+                <label className="text-gray-700 text-sm font-medium">Code de salle</label>
+                <Input
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  placeholder="Entrez le code"
+                  maxLength={10}
+                />
+              </div>
               <Button type="submit" disabled={!connected} variant="primary">
                 Rejoindre
               </Button>

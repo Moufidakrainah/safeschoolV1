@@ -123,7 +123,7 @@ export class QuizRealtimeGateway
 		}
 
 		if (result.status === 'joined') {
-			client.join(payload.roomId);
+			void client.join(payload.roomId);
 		}
 
 		if (result.snapshot) {
@@ -164,7 +164,7 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		client.leave(payload.roomId);
+		void client.leave(payload.roomId);
 
 		if (result.status === 'room-closed') {
 			this.server.to(payload.roomId).emit('quiz:room:closed', { roomId: payload.roomId });
