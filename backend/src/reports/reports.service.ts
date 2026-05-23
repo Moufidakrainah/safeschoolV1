@@ -46,7 +46,7 @@ export class ReportsService {
 
     const report = this.reportsRepository.create({
       title, description, grade, aiScore: finalScore, aiReason,
-      caseNumber, isAnonymous, student, status: ReportStatus.PENDING,
+      caseNumber, isAnonymous, student, status: ReportStatus.NEW,
     });
     const savedReport = await this.reportsRepository.save(report);
 
@@ -67,7 +67,7 @@ export class ReportsService {
 
   async findAll(): Promise<Report[]> {
     return this.reportsRepository.find({
-      relations: ['student', 'student.studentProfile', 'suspects', 'suspects.user'],
+      relations: ['student', 'student.studentProfile', 'student.studentProfile.class', 'student.staffProfile', 'suspects', 'suspects.user'],
     });
   }
 
@@ -81,7 +81,10 @@ export class ReportsService {
   async findOne(id: string): Promise<Report> {
     const report = await this.reportsRepository.findOne({
       where: { id },
-      relations: ['student', 'suspects', 'suspects.user'],
+      relations: ['student', 
+      'student.studentProfile',
+      'student.studentProfile.class',
+      'student.staffProfile',  'suspects', 'suspects.user'],
     });
     if (!report) throw new NotFoundException('Signalement introuvable');
     return report;
@@ -95,7 +98,7 @@ export class ReportsService {
   }): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade && updates.grade !== report.grade) {
-      const grades = [ReportGrade.FAIBLE, ReportGrade.MOYEN, ReportGrade.GRAVE, ReportGrade.CRITIQUE];
+      const grades = [ReportGrade.LOW, ReportGrade.MEDIUM, ReportGrade.HIGH, ReportGrade.CRITICAL];
       const oldIndex = grades.indexOf(report.grade);
       const newIndex = grades.indexOf(updates.grade);
       if (newIndex < oldIndex && !updates.gradeModificationReason) {
@@ -112,7 +115,7 @@ export class ReportsService {
 
   async escalate(id: string): Promise<Report> {
     const report = await this.findOne(id);
-    report.status = ReportStatus.ESCALATED;
+    report.status = ReportStatus.NEW;
     return this.reportsRepository.save(report);
   }
 

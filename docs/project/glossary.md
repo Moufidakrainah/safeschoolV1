@@ -11,10 +11,10 @@
 
 ## Gravite
 - Aucune (blanc)
-- Faible (jaune)
-- Moyen (orange)
-- Grave (rouge)
-- Critique (rouge tres fonce)
+- Faible : '#22c55e'
+- Moyen : '#eab308'
+- Grave : '#f97316'
+- Critique : '#dc2626'
 
 ## Role
 - Eleve (fait des signalements, s'inscrit aux ateliers, joue au quiz)

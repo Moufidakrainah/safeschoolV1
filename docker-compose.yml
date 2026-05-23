@@ -10,8 +10,8 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000
+    # BUGFIX: REACT_APP_API_URL supprimée — convention Create React App obsolète.
+    # Vite n'expose que les variables préfixées VITE_
     depends_on:
       - backend
     networks:
@@ -65,6 +65,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@safeschool.com
       PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
     depends_on:
       - database
     networks:
@@ -123,6 +125,7 @@ volumes:
   kibanadata:
   frontend_node_modules:
   backend_node_modules:
+  pgadmindata:
 
 networks:
   safeschool_network:

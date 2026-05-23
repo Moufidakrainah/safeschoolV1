@@ -4,6 +4,61 @@
 
 > Application de gestion des signalements de harcèlement scolaire
 
+---
+
+## Architecture réseau actuelle vs cible
+
+### État actuel (dev, HTTP)
+
+Chaque service expose directement son port à l'extérieur. Le navigateur parle à plusieurs
+serveurs différents :
+
+```
+Navigateur
+  ├── port 5173 → container frontend  (React / Vite)
+  ├── port 5000 → container backend   (NestJS)
+  ├── port 8080 → container pgAdmin   (admin BDD)
+  └── port 5601 → container Kibana    (logs)
+```
+
+Tout circule en HTTP clair. Les tokens JWT, les mots de passe, les données élèves sont
+lisibles sur le réseau.
+
+### État cible (prod, HTTPS avec reverse proxy nginx)
+
+Un seul point d'entrée : nginx. Le navigateur ne parle qu'à lui. nginx redirige ensuite
+les requêtes en interne, sur le réseau Docker privé.
+
+```
+Navigateur
+  └── port 443 (HTTPS) → nginx (reverse proxy)
+                              ├── /          → frontend (React)
+                              ├── /api/      → backend (NestJS)
+                              └── /ws/       → backend WebSocket (quiz)
+
+Réseau Docker interne (HTTP, pas exposé) :
+  nginx → frontend:5173
+  nginx → backend:3000
+```
+
+**Pourquoi nginx et pas directement chaque service ?**
+
+Un reverse proxy est un serveur qui se met devant tous les autres. Son rôle :
+- **Chiffrement TLS** : il gère le certificat HTTPS. Les services internes restent en HTTP
+  simple (le réseau Docker est privé, c'est acceptable).
+- **Point d'entrée unique** : un seul port exposé à l'extérieur au lieu de cinq.
+- **Headers WebSocket** : nginx transmet les headers `Upgrade` et `Connection` nécessaires
+  aux connexions WebSocket (quiz temps réel).
+
+C'est exactement le même concept que dans Inception : nginx devant WordPress + MariaDB.
+
+**Exigence du sujet** : la section "Technical requirements" précise :
+> *"Any connection to the backend, from a browser, from a script, from an external API, etc.,
+> must use HTTPS."*
+C'est une condition de non-rejet, pas un module optionnel.
+
+---
+
 ## Comment ça marche — Scénario complet
 
 > **Lotfi Bougrine (élève) envoie un signalement**
