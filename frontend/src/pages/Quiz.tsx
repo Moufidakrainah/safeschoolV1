@@ -78,6 +78,15 @@ export default function Quiz() {
                 Rejoindre
               </Button>
             </form>
+            <details className="group">
+              <summary className="cursor-pointer text-sm text-gray-400 hover:text-gray-600 select-none list-none flex items-center gap-1">
+                <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+                Comment jouer
+              </summary>
+              <p className="mt-2 text-xs text-gray-500 leading-relaxed">
+                Entrez un code de salle (3 à 10 caractères). Si vous êtes le premier à rejoindre cette salle, vous devenez l'hôte et pourrez lancer la partie quand tout le monde est prêt.
+              </p>
+            </details>
           </div>
         </div>
       </div>
@@ -104,6 +113,16 @@ export default function Quiz() {
                 ))}
               </ul>
             )}
+            <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Comment jouer</p>
+              <ul className="space-y-1 text-xs text-gray-600">
+                <li>▸ 10 questions, 2 réponses possibles — une seule est correcte</li>
+                <li>▸ Vous avez 30 secondes pour répondre à chaque question</li>
+                <li>▸ Chaque bonne réponse rapporte un nombre fixe de points</li>
+                <li>▸ Une seule tentative par question, pas de changement</li>
+                <li>▸ Celui avec le plus de points à la fin gagne !</li>
+              </ul>
+            </div>
             <Button onClick={startGame} disabled={!isHost} variant="primary">
               {isHost ? 'Lancer le quiz' : "En attente de l'hôte…"}
             </Button>
