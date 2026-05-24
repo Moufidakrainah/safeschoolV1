@@ -1,5 +1,0 @@
-# API Endpoints
-
-## Auth
-
-## Users

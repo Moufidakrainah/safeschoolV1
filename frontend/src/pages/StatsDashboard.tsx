@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { API_GRADE_BADGE_LABELS, API_REPORT_GRADES, SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '../utils/severity';
 import type { Report } from '../types';
+import { useMemo } from 'react';
+
 
 interface Props { reports: Report[] }
 
@@ -10,7 +12,8 @@ export default function StatsDashboard({ reports }: Props) {
   const [filterClass, setFilterClass] = useState('all');
   const [filterGrade, setFilterGrade] = useState('all');
 
-  const filtered = reports.filter(r => {
+  const filtered = useMemo(() => {
+  return reports.filter(r => {
     const date = new Date(r.createdAt);
     const now = new Date();
     if (period === '7')   return (now.getTime() - date.getTime()) <= 7 * 86400000;
@@ -19,10 +22,12 @@ export default function StatsDashboard({ reports }: Props) {
     if (period === '365') return (now.getTime() - date.getTime()) <= 365 * 86400000;
     return true;
   })
-    .filter(r => filterClass === 'all' || r.student?.studentProfile?.schoolClass === filterClass)
+    .filter(r => { const sc = r.student?.studentProfile?.schoolClass; const label = sc ? `${sc.level} ${sc.section}` : ''; return filterClass === 'all' || label === filterClass; })
     .filter(r => filterGrade === 'all' || r.grade === filterGrade);
+	}, [reports, period, filterClass, filterGrade]);
 
-  const gradeData = API_REPORT_GRADES.map((apiGrade) => {
+  const gradeData = useMemo(() => {
+  return API_REPORT_GRADES.map((apiGrade) => {
     const severity = severityFromApiGrade(apiGrade);
     return {
       name: SEVERITY_LABELS[severity],
@@ -30,38 +35,70 @@ export default function StatsDashboard({ reports }: Props) {
       color: SEVERITY_COLORS[severity],
     };
   }).filter(d => d.value > 0);
+  }, [filtered]);
 
-  const classes = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
-  const classData = classes.map(c => ({
+  const classes = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
+  const classData = useMemo(() => {
+  const classes = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
+
+  return classes.map(c => ({
     classe: c,
-    total:    filtered.filter(r => r.student?.studentProfile?.schoolClass === c).length,
-    critical: filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'critique').length,
-    high:     filtered.filter(r => r.student?.studentProfile?.schoolClass === c && r.grade === 'grave').length,
+    total:    filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c : false; }).length,
+    critical: filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'critical' : false; }).length,
+    high:     filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'high' : false; }).length,
   }));
+  }, [reports, filtered]);
 
-  const typeData = ['Physique', 'Verbal', 'Cyber', 'Exclusion sociale', 'Sexuel', 'Autre'].map(t => ({
-    type: t, count: filtered.filter(r => r.title.includes(t)).length,
-  })).filter(d => d.count > 0);
+ 
+  const typeData = useMemo(() => {
+  const types = ['physique', 'verbal', 'cyber', 'exclusion', 'sexuel'];
 
-  const statusData = [
-    { name: 'En attente', value: filtered.filter(r => r.status === 'pending').length,     color: '#eab308' },
-    { name: 'En cours',   value: filtered.filter(r => r.status === 'in_progress').length, color: '#0f3460' },
-    { name: 'Escaladé',   value: filtered.filter(r => r.status === 'escalated').length,   color: '#7c3aed' },
-    { name: 'Clôturé',    value: filtered.filter(r => r.status === 'closed').length,      color: '#22c55e' },
-    { name: 'Rejeté',     value: filtered.filter(r => r.status === 'rejected').length,    color: '#dc2626' },
-  ].filter(d => d.value > 0);
+  return types
+    .map(t => ({
+      type: t.charAt(0).toUpperCase() + t.slice(1),
+      count: filtered.filter(r => r.type === t).length,
+    }))
+    .filter(d => d.count > 0);
+}, [filtered]);
 
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
+
+
+const statusData = useMemo(() => {
+  const statuses = [
+    { name: 'En attente', key: 'pending',     color: '#eab308' },
+    { name: 'En cours',   key: 'in_progress', color: '#0f3460' },
+    { name: 'Clôturé',    key: 'closed',      color: '#22c55e' },
+    { name: 'Rejeté',     key: 'rejected',    color: '#dc2626' },
+  ];
+
+  return statuses
+    .map(s => ({
+      name: s.name,
+      value: filtered.filter(r => r.status === s.key).length,
+      color: s.color,
+    }))
+    .filter(d => d.value > 0);
+}, [filtered]);
+
+
+const last7Days = useMemo(() => {
+  return Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
     const dayStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+
     return {
       date: dayStr,
-      count: filtered.filter(r => new Date(r.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) === dayStr).length,
+      count: filtered.filter(r =>
+        new Date(r.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) === dayStr
+      ).length,
     };
   });
+}, [filtered]);
 
-  const allClasses = [...new Set(reports.map(r => r.student?.studentProfile?.schoolClass).filter(Boolean))];
+
+
+  const allClasses = [...new Set(reports.map(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` : null; }).filter(Boolean))];
 
   return (
     <main>

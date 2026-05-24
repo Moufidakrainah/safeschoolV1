@@ -4,7 +4,10 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "error": "Incorrect username or password"
+    "errorRequired": "Please fill in all fields.",
+    "errorEmailFormat": "Invalid email format.",
+    "errorPasswordLength": "The password must contain at least 6 characters.",
+    "error": "Incorrect credentials."
   },
   "nav": {
     "logout": "Log out"
@@ -44,7 +47,9 @@
       "critical": "Critical",
       "high": "Serious",
       "pending": "Pending",
-      "escalated": "Escalated"
+      "escalated": "Escalated",
+      "medium": "Medium",
+      "low": "Low"
     },
     "search": {
       "placeholder": "Search by name, title, description"
@@ -58,7 +63,8 @@
       "dateRange": "Date range",
       "dateFrom": "From date",
       "dateTo": "To date",
-      "reset": "Reset"
+      "reset": "Reset",
+      "victimPlaceholder": "Victim name..."
     },
     "status": {
       "pending": "Pending",
@@ -69,7 +75,6 @@
     },
     "detail": {
       "info": "Report information",
-      "titleField": "Title",
       "date": "Date",
       "class": "Class",
       "aiScore": "AI Score",
@@ -83,8 +88,14 @@
       "victim": "Victim",
       "suspects": "Suspect(s)",
       "noSuspect": "No suspect indicated",
-      "gradeModified": "Grade modified",
-      "suspectsCount": "suspect(s)"
+      "suspectsCount": "suspect(s)",
+      "type": "Type",
+      "reporter": "Reported as",
+      "victims": "Victim(s)",
+      "noVictim": "No victim indicated",
+      "victimLinked": "Linked to",
+      "reporterVictime": "Victim",
+      "reporterTemoin": "Witness"
     },
     "actions": {
       "groupLabel": "Report actions",
@@ -116,7 +127,6 @@
       "email": "Email",
       "password": "Password",
       "save": "Save",
-      "deleteConfirm": "Delete this user?",
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
@@ -127,30 +137,42 @@
         "staff": "Staff",
         "admin": "Admin",
         "director": "Director"
-      }
+      },
+      "errorEmailFormat": "Invalid email format.",
+      "errorPasswordLength": "The password must contain at least 6 characters.",
+      "deleteConfirm": "Do you really want to delete this user?",
+      "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
+      "deleteError": "An error occurred during deletion.",
+      "deleteSelf": "You cannot delete your own account"
+    },
+    "title": {
+      "oneReport": "Details of a report",
+      "allReports": "All reports"
     }
   },
   "badge": {
-    "critical":    "🔴 Critical",
-    "high":        "🟠 Serious",
-    "medium":      "🟡 Moderate",
-    "low":         "🟢 Minor",
-    "pending":     "⏳ Pending",
-    "in_progress": "🔄 In progress",
-    "escalated":   "🚨 Escalated",
-    "closed":      "✅ Closed",
-    "rejected":    "❌ Rejected"
+    "critical": "🔴 Critical",
+    "high": "🟠 High",
+    "medium": "🟡 Medium",
+    "low": "🟢 Low",
+    "new": "📄 New",
+    "in_progress": "📂 In progress",
+    "pending": "⏳ Pending",
+    "resolved": "✅ Resolved",
+    "false_report": "❌ False report",
+    "closed": "✅ Closed",
+    "rejected": "❌ Rejected"
   },
   "noteblock": {
-    "note":        "📝 Note",
-    "convocation": "📅 Summons"
+    "note": "📝 Note",
+    "convocation": " Summons"
   },
   "pagination": {
-    "nav":     "Pagination",
+    "nav": "Pagination",
     "summary": "{{totalItems}} results · Page {{currentPage}} of {{totalPages}}",
-    "prev":    "Previous page",
-    "next":    "Next page",
-    "page":    "Page {{n}}"
+    "prev": "Previous page",
+    "next": "Next page",
+    "page": "Page {{n}}"
   },
   "common": {
     "save": "Save",
@@ -159,23 +181,27 @@
     "loading": "Loading...",
     "previous": "Previous",
     "next": "Next",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "close": "Close",
+    "back": "Back"
   },
   "reporter": {
-	"nav": {
-		"ariaLabel": "Reporter navigation",
-		"profile": "My profile",
-		"report":   "Make a report",
-		"workshop": "Workshops",
-		"quiz":     "Quiz"
-	},
-	"profile": {
-		"title": "My profile",
-		"firstName": "First name",
-		"lastName": "Last name",
-		"email": "Email",
-		"role": "Role"
-	},
+    "nav": {
+      "ariaLabel": "Reporter navigation",
+      "profile": "My profile",
+      "report": "Make a report",
+      "workshop": "Workshops",
+      "quiz": "Quiz"
+    },
+    "profile": {
+      "title": "My profile",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "role": "Occupation",
+      "subject": "Subject",
+      "subjectUnknown": "Unknown"
+    },
     "roles": {
       "teacher": "Teacher",
       "staff": "School staff"
@@ -274,7 +300,49 @@
       "anonymousDesc": "my name will not be visible"
     },
     "submitting": "Sending...",
-    "submit": "Submit report"
+    "submit": "Submit report",
+    "submitError": "Submission failed. Check your connection and try again.",
+    "validation": {
+      "typeRequired": "Please select a type of bullying to continue.",
+      "descriptionRequired": "Please describe the facts to continue.",
+      "frequencyRequired": "Please indicate the frequency to continue."
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon": "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon": "This section will be available soon."
+    },
+    "title": {
+      "createAReport": "Create a report",
+      "reportCreated": "Report submitted"
+    }
+  },
+  "student": {
+    "nav": {
+      "ariaLabel": "Student navigation",
+      "profile": "My profile",
+      "report": "Make a report",
+      "workshop": "Workshops",
+      "quiz": "Quiz"
+    },
+    "profile": {
+      "title": "My profile",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "role": "Role"
+    },
+    "workshop": {
+      "title": "Workshops",
+      "soon": "This section will be available soon."
+    },
+    "quiz": {
+      "title": "Quiz",
+      "soon": "This section will be available soon."
+    }
   },
   "privacy": {
     "updated": "Last updated: April 2026",

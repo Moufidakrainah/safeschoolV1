@@ -1,703 +1,267 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { createReport, searchUsers, getReports, getNotifications, markNotificationRead, getNotes } from '../services/api';
-import { SEVERITY_BADGES, SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import type { Report, Note, UserSearchResult } from '../types';
+import {
+  getStudentParents, getNotifications, markNotificationRead,
+  getAllReports, getNotes,
+} from '../services/api';
+import type { Parent } from '../types';
+import StudentProfile from '../components/student/StudentProfile';
+import StudentForm from '../components/student/StudentForm';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
+import { Badge } from '@/components/ui/badge';
+import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+
+type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
+
+const statusToBadgeVariant = (status: string) => {
+  const map: Record<string, any> = {
+    new: 'new', in_progress: 'in_progress', pending: 'pending',
+    resolved: 'resolved', false_report: 'false_report',
+  };
+  return map[status] ?? 'new';
+};
+
+const SEVERITY_BADGES: Record<string, string> = {
+  critical: '🔴 Critique', high: '🟠 Élevé', medium: '🟡 Moyen', low: '🟢 Faible',
+};
+
+const MONTHS_FR: Record<string, number> = {
+  'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
+  'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12,
+};
+
+function parseConvocation(content: string) {
+  const dateMatch = content.match(/(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/);
+  const parts = content.split('\n\n');
+  const message = parts.slice(1).join('\n\n').trim();
+  if (!dateMatch) {
+    return { isPast: true, displayDate: content.split('\n')[0].replace('📅', '').trim(), message };
+  }
+  const [, day, monthStr, year, hours, minutes] = dateMatch;
+  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+  if (!monthNum) {
+    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message };
+  }
+  const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
+  const isPast = rdvDate < new Date();
+  const displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
+  return { isPast, displayDate, message };
+}
 
 export default function StudentDashboard() {
+  const { t } = useTranslation();
   const { user, logoutUser } = useAuth();
-  const [step, setStep] = useState(0); // 0 = accueil, 1-6 = étapes formulaire
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Données du formulaire
-  const [whoSignals, setWhoSignals] = useState('');
-  const [type, setType] = useState('');
-  const [description, setDescription] = useState('');
-  const [frequency, setFrequency] = useState('');
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Report | null>(null);
-  const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
-  const [suspectInput, setSuspectInput] = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
-  const [searchingUsers, setSearchingUsers] = useState(false);
-  const [myReports, setMyReports] = useState<Report[]>([]);
+  const [viewSection, setViewSection] = useState<StudentSection>(
+    (searchParams.get('section') as StudentSection) ?? 'report'
+  );
+
+  const [parents, setParents]               = useState<Parent[]>([]);
+  const [loadingParents, setLoadingParents] = useState(false);
+  const [notifRefreshKey, setNotifRefreshKey] = useState(0);
+  const [myReports, setMyReports]           = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
-  const [victimName, setVictimName] = useState('');
-  const [notifications, setNotifications] = useState<Note[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [victimInput, setVictimInput] = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
-  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
-  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
-
-  const handleSubmit = async () => {
-    setLoading(true);
-    try {
-      const title = `${type} - ${whoSignals}`;
-      const victimInfo = whoSignals === 'Je suis témoin' && victimName
-      ? ` | Victime : ${victimName}`
-      : '';
-      const fullDescription = `${description} (Fréquence: ${frequency})${victimInfo}`;
-
-      const suspectsData = suspects.map(s => ({
-        userId: s.id || undefined,
-        freeText: s.id ? undefined : `${s.firstName} ${s.lastName}`,
-      }));
-
-      const report = await createReport(
-        title,
-        fullDescription,
-        isAnonymous,
-        suspectsData,
-        frequency,
-        user?.studentProfile?.schoolClass || '',
-      );
-      setResult(report);
-      setStep(7);
-    } catch (err) {
-      console.error('Erreur envoi signalement');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchReportNotes = async (reportId: string) => {
-    try {
-      const data = await getNotes(reportId);
-      setReportNotes(prev => ({ ...prev, [reportId]: data }));
-    } catch (err) {
-      console.error('Erreur chargement notes', err);
-    }
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      const data = await getNotifications();
-      setNotifications(data);
-      const unread = data.filter((n: any) => !n.isRead).length;
-      setUnreadCount(unread);
-    } catch (err) {
-      console.error('Erreur notifications', err);
-    }
-  };
-
-  const fetchMyReports = async () => {
-    setLoadingReports(true);
-    try {
-      const data = await getReports();
-      setMyReports(data);
-      data.forEach((r: any) => fetchReportNotes(r.id));
-    } catch (err) {
-      console.error('Erreur chargement dossiers');
-    } finally {
-      setLoadingReports(false);
-    }
-  };
-
-  const handleSuspectSearch = async (value: string) => {
-    setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
-    setSearchingUsers(true);
-    try {
-      const results = await searchUsers(value);
-      setSuspectSuggestions(results);
-    } catch {
-      setSuspectSuggestions([]);
-    } finally {
-      setSearchingUsers(false);
-    }
-  };
-
-  const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
-    if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
-      setSuspects([...suspects, suspect]);
-    }
-    setSuspectInput('');
-    setSuspectSuggestions([]);
-  };
-
-  const removeSuspect = (index: number) => {
-    setSuspects(suspects.filter((_, i) => i !== index));
-  };
+  const [reportNotes, setReportNotes]       = useState<Record<string, any[]>>({});
+  // notifications non lues : { notifId → notification }
+  const [unreadNotifs, setUnreadNotifs]     = useState<Record<string, any>>({});
 
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
+    if (user?.id) {
+      setLoadingParents(true);
+      getStudentParents(user.id)
+        .then(data => setParents(data))
+        .catch(() => setParents([]))
+        .finally(() => setLoadingParents(false));
     }
-}, [user?.id]);
+  }, [user?.id]);
 
+  useEffect(() => {
+    if (viewSection === 'quiz') navigate('/quiz');
+  }, [viewSection, navigate]);
 
+  useEffect(() => {
+    if (viewSection !== 'cases' || !user?.id) return;
+    setLoadingReports(true);
 
-  // PAGE ACCUEIL
-  if (step === 0) return (
-  <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
-          <span style={{ fontWeight: 800, fontSize: '20px', color: '#1a1a2e' }}>Collège</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '14px', color: '#666' }}>{user?.firstName} {user?.lastName}</span>
-          
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowNotifications(!showNotifications)}
-              style={{ padding: '8px 12px', background: '#f0f4ff', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '16px', position: 'relative' }}>
-              🔔
-              {unreadCount > 0 && (
-                <span style={{ position: 'absolute', top: '-6px', right: '-6px', background: '#dc2626', color: 'white', borderRadius: '50%', width: '18px', height: '18px', fontSize: '11px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-                  {unreadCount}
-                </span>
-              )}
-            </button>
+    Promise.all([getAllReports(), getNotifications()])
+      .then(async ([all, notifs]) => {
+        const mine = all.filter((r: any) => r.reporter === 'victime');
+        setMyReports(mine);
 
-            {showNotifications && (
-              <div style={{ position: 'absolute', right: 0, top: '40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', width: '320px', zIndex: 100, maxHeight: '400px', overflowY: 'auto' }}>
-                <div style={{ padding: '16px', borderBottom: '1px solid #eee', fontWeight: 700, fontSize: '14px' }}>
-                  Notifications {unreadCount > 0 && <span style={{ color: '#dc2626' }}>({unreadCount} non lues)</span>}
-                </div>
-                {notifications.length === 0 ? (
-                  <p style={{ padding: '20px', color: '#aaa', textAlign: 'center', fontSize: '14px' }}>Aucune notification</p>
-                ) : (
-                  notifications.map((n: any) => (
-                    <div key={n.id} onClick={async () => { await markNotificationRead(n.id); fetchNotifications(); }}
-                      style={{ padding: '14px 16px', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', background: n.isRead ? 'white' : '#f0f4ff' }}>
-                      <p style={{ margin: '0 0 4px', fontSize: '13px', color: '#333' }}>{n.message}</p>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#aaa' }}>
-                        {new Date(n.createdAt).toLocaleDateString('fr-FR')} à {new Date(n.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+        const notesMap: Record<string, any[]> = {};
+        await Promise.all(
+          mine.map(async (r: any) => {
+            try {
+              const notes = await getNotes(r.id);
+              notesMap[r.id] = notes.filter((n: any) => n.type === 'convocation');
+            } catch {
+              notesMap[r.id] = [];
+            }
+          })
+        );
+        setReportNotes(notesMap);
 
-          <button onClick={logoutUser} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ddd', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}>
-            Déconnexion
-          </button>
-        </div>
-      </div>
+        // Map notifId → notif pour les non lues
+        const unreadMap: Record<string, any> = {};
+        notifs.filter((n: any) => !n.isRead).forEach((n: any) => {
+          unreadMap[n.id] = n;
+        });
+        setUnreadNotifs(unreadMap);
+      })
+      .catch(() => setMyReports([]))
+      .finally(() => setLoadingReports(false));
+  }, [viewSection, user?.id]);
 
-      <div style={{ background: 'linear-gradient(135deg, #e8f0fe, #f0f4ff)', padding: '48px 32px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <p style={{ color: '#0f3460', fontSize: '13px', fontWeight: 600, marginBottom: '12px' }}>
-            Collège Jeanne d'Arc — Dispositif anti-harcèlement
-          </p>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1a2e', marginBottom: '12px', lineHeight: 1.3 }}>
-            Tu vis ou tu témoines une situation de harcèlement ?
-          </h1>
-          <p style={{ color: '#0f3460', fontSize: '15px', marginBottom: '32px' }}>
-            Signale-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.
-          </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => setStep(1)} style={{
-              padding: '14px 32px', background: '#0f3460', color: 'white',
-              border: 'none', borderRadius: '8px', fontSize: '15px',
-              fontWeight: 600, cursor: 'pointer',
-            }}>
-              Faire un signalement
-            </button>
-            <button onClick={() => { fetchMyReports(); setStep(8); }} style={{
-              padding: '14px 32px', background: 'white', color: '#0f3460',
-              border: '2px solid #0f3460', borderRadius: '8px', fontSize: '15px',
-              fontWeight: 600, cursor: 'pointer',
-            }}>
-              Suivre mon dossier
-            </button>
-          </div>
-        </div>
-      </div>
+  // Trouver la notification non lue qui correspond à une convocation
+  // On compare le contenu de la note avec le message de la notification
+  const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
+    return Object.values(unreadNotifs).find((n: any) => {
+      if (n.report?.id !== reportId) return false;
+      // La notification contient le même contenu que la note (date + message)
+      const noteContent = note.content.replace('📅 ', '').trim();
+      const notifMsg = n.message.replace('Convocation : ', '').trim();
+      return notifMsg.includes(noteContent.split('\n\n')[0].trim()) ||
+             noteContent.includes(notifMsg.split('\n\n')[0].trim());
+    }) ?? null;
+  };
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
-        {[
-          { value: '24h', label: 'Délai de prise en charge', color: '#0f3460' },
-          { value: '100%', label: 'Confidentialité garantie', color: '#22c55e' },
-          { value: 'Anonymat', label: 'Option disponible', color: '#f97316' },
-        ].map(stat => (
-          <div key={stat.label} style={{ background: 'white', borderRadius: '12px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: stat.color }}>{stat.value}</div>
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>{stat.label}</div>
-          </div>
-        ))}
-      </div>
+  const handleConvocationClick = async (notif: any) => {
+    if (!notif) return;
+    try {
+      await markNotificationRead(notif.id);
+      setUnreadNotifs(prev => {
+        const updated = { ...prev };
+        delete updated[notif.id];
+        return updated;
+      });
+      setNotifRefreshKey(k => k + 1);
+    } catch {}
+  };
 
-        <div style={{ maxWidth: '600px', margin: '0 auto 40px', padding: '0 20px' }}>
-        <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px', fontWeight: 700 }}>Qui peut signaler ?</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '14px', color: '#444', alignItems: 'flex-start' }}>
-            <span>• Un élève (victime ou témoin)</span>
-            <span>• Un professeur</span>
-            <span>• personnel du collège</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  const unreadCount = Object.keys(unreadNotifs).length;
 
-  // PAGE CONFIRMATION
-  if (step === 7) return (
-    <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'white', borderRadius: '16px', padding: '40px', maxWidth: '500px', width: '100%', margin: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', textAlign: 'center' }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>✅</div>
-        <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Signalement envoyé</h2>
-        <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
-          Votre signalement a bien été reçu et sera traité dans les meilleurs délais.
-        </p>
-        {result && whoSignals === 'Je suis victime' && (
-          <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-            <p style={{ fontSize: '12px', color: '#666', margin: '0 0 4px' }}>Numéro de dossier</p>
-            <p style={{ fontSize: '20px', fontWeight: 700, color: '#0f3460', margin: 0 }}>{result.caseNumber}</p>
-            <p style={{ fontSize: '12px', color: '#666', margin: '8px 0 0' }}>Conservez ce numéro pour suivre l'avancement</p>
-          </div>
-        )}
+  return (
+    <>
+      <RoleHeader
+        user={user}
+        logoutUser={logoutUser}
+        studentViewSection={viewSection}
+        studentSetViewSection={setViewSection}
+        studentNotifRefreshKey={notifRefreshKey}
+      />
 
-        {result && whoSignals !== 'Je suis victime' && (
-          <div style={{ background: '#f0f4ff', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-            <p style={{ fontSize: '13px', color: '#444', margin: 0 }}>
-              ✉️ Votre signalement a bien été transmis à l'administration. Merci pour votre vigilance.
-            </p>
-          </div>
-        )}
-        <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', marginBottom: '24px', textAlign: 'left' }}>
-          <p style={{ fontWeight: 600, fontSize: '14px', margin: '0 0 12px' }}>Prochaines étapes</p>
-          {['Un référent vous est assigné sous 24h', 'Un entretien sera organisé', 'Vous serez informé(e) des mesures prises'].map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'flex-start', marginBottom: '8px', fontSize: '13px', color: '#555' }}>
-              <span style={{ background: '#0f3460', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', flexShrink: 0 }}>{i + 1}</span>
-              {s}
+      {viewSection === 'profile' && (
+        <StudentProfile user={user} parents={parents} loadingParents={loadingParents} />
+      )}
+
+      {viewSection === 'report' && <StudentForm user={user} />}
+
+      {viewSection === 'cases' && (
+        <main className="max-w-2xl mx-auto mt-8 px-5 pb-10">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiers</h2>
+          <p className="text-gray-500 text-sm mb-6">Suivi de vos signalements en cours</p>
+
+          {loadingReports ? (
+            <p className="text-center py-10 text-gray-400">Chargement...</p>
+          ) : myReports.length === 0 ? (
+            <div className="bg-white rounded-xl px-6 py-10 text-center shadow-sm">
+              <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
             </div>
-          ))}
-        </div>
-        <button onClick={() => { setStep(0); setResult(null); setType(''); setDescription(''); setFrequency(''); setWhoSignals(''); }}
-          style={{ padding: '12px 24px', background: '#0f3460', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600 }}>
-          Retour à l'accueil
-        </button>
-      </div>
-    </div>
-  );
-
-  // PAGE SUIVI DOSSIER
-if (step === 8) return (
-  <div style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-    <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
-        <span style={{ fontWeight: 800, fontSize: '20px', color: '#1a1a2e' }}>Collège</span>
-      </div>
-      <button onClick={() => setStep(0)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#666' }}>
-        ← Retour
-      </button>
-    </div>
-
-    <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
-      <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Mes dossiers</h2>
-      <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
-        Suivi de vos signalements en cours
-      </p>
-
-      {loadingReports ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Chargement...</div>
-      ) : myReports.length === 0 ? (
-        <div style={{ background: 'white', borderRadius: '12px', padding: '32px', textAlign: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <p style={{ color: '#666', fontSize: '14px' }}>Aucun signalement trouvé</p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {myReports
-            .filter((report: any) => !report.title.includes('Je suis témoin'))
-            .map((report: any) => {
-            const severity = severityFromApiGrade(report.grade);
-            return (
-            <div key={report.id} style={{
-              background: 'white', borderRadius: '12px',
-              padding: '20px 24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)',
-              borderLeft: `4px solid ${SEVERITY_COLORS[severity]}`,
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                    <span style={{ fontWeight: 700, fontSize: '15px', color: '#0f3460' }}>
-                      {report.caseNumber}
-                    </span>
-                    <span style={{
-                      background: SEVERITY_COLORS[severity],
-                      color: 'white', padding: '2px 10px',
-                      borderRadius: '12px', fontSize: '12px',
-                    }}>
-                      {SEVERITY_BADGES[severity]}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#333', marginBottom: '6px', fontWeight: 600 }}>
-                    {report.title}
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#666' }}>
-                    📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}
-                  </div>
-                </div>
-                <span style={{
-                  background: '#f3f4f6', color: '#555',
-                  padding: '4px 12px', borderRadius: '12px', fontSize: '12px',
-                  whiteSpace: 'nowrap',
-                }}>
-                  {report.status === 'pending' ? '⏳ En attente' :
-                   report.status === 'in_progress' ? '🔄 En cours' :
-                   report.status === 'escalated' ? '🚨 Escaladé' :
-                   report.status === 'closed' ? '✅ Clôturé' : '❌ Rejeté'}
-                </span>
-              </div>
-
-              {report.adminNote && (
-                <div style={{
-                  marginTop: '12px', background: '#f0f4ff',
-                  borderRadius: '8px', padding: '10px 14px',
-                  fontSize: '13px', color: '#444',
-                }}>
-                  💬 <strong>Note de l'administration :</strong> {report.adminNote}
-                </div>
-              )}
-              {reportNotes[report.id]?.filter((n: any) => n.type === 'convocation').map((note: any) => {
-                const MONTHS_FR: Record<string, number> = {
-                  'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
-                  'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12
-                };
-
-                const match = note.content.match(/Rendez-vous le (\d{2}) (\w+) (\d{4}) à (\d{2})h(\d{2})/);
-                let isPast = true;
-                let displayDate = '';
-                let message = note.content;
-
-                if (match) {
-                  const [, day, monthStr, year, hours, minutes] = match;
-                  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
-                  const yearNum = Number(year);
-
-                  // Ignorer les dates corrompues (année aberrante)
-                  if (monthNum && yearNum >= 2020 && yearNum <= 2100) {
-                    const rdvDate = new Date(yearNum, monthNum - 1, Number(day), Number(hours), Number(minutes));
-                    isPast = rdvDate < new Date();
-                    displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
-                    const msgMatch = note.content.match(/Rendez-vous le .+?\. (.+)/s);
-                    message = msgMatch ? msgMatch[1] : '';
-                  }
-                }
+          ) : (
+            <div className="flex flex-col gap-4">
+              {myReports.map((report: any) => {
+                const severity = severityFromApiGrade(report.grade);
+                const convocations = reportNotes[report.id] ?? [];
+                // Nombre de notifs non lues pour ce dossier
+                const reportUnreadCount = Object.values(unreadNotifs).filter(
+                  (n: any) => n.report?.id === report.id
+                ).length;
 
                 return (
-                  <div key={note.id} style={{
-                    marginTop: '10px',
-                    background: isPast ? '#f9f9f9' : '#f0f4ff',
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    fontSize: '13px',
-                    borderLeft: `3px solid ${isPast ? '#ccc' : '#7c3aed'}`,
-                  }}>
-                    {!displayDate ? (
-                      // Pas de date parseable → afficher le contenu brut
-                      <span style={{ color: '#0f3460' }}>📅 Convocation : {note.content}</span>
-                    ) : isPast ? (
-                      <span style={{ color: '#888' }}>
-                        📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
-                      </span>
+                  <div
+                    key={report.id}
+                    className="bg-white rounded-xl px-6 py-5 shadow-sm"
+                    style={{ borderLeft: `4px solid ${SEVERITY_COLORS[severity]}` }}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-sm text-primary">{report.caseNumber}</span>
+                          <span className="text-white text-xs px-3 py-0.5 rounded-full"
+                            style={{ background: SEVERITY_COLORS[severity] }}>
+                            {SEVERITY_BADGES[severity]}
+                          </span>
+                          {reportUnreadCount > 0 && (
+                            <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                              {reportUnreadCount}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-700 font-semibold mb-1 capitalize">
+                          {report.type} — Je suis victime
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                        </div>
+                      </div>
+                      <Badge variant={statusToBadgeVariant(report.status)} />
+                    </div>
+
+                    {convocations.length === 0 ? (
+                      <p className="text-xs text-gray-400 italic">Aucune convocation pour ce dossier.</p>
                     ) : (
-                      <span style={{ color: '#0f3460' }}>
-                        📅 Convocation : Vous êtes convoqué(e) le <strong>{displayDate}</strong>{message ? ` — ${message}` : ''}
-                      </span>
+                      <div className="flex flex-col gap-2 mt-2">
+                        {convocations.map((note: any) => {
+                          const { isPast, displayDate, message } = parseConvocation(note.content);
+                          const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
+                          const isNew = !!unreadNotif;
+
+                          return (
+                            <div
+                              key={note.id}
+                              onClick={() => isNew && handleConvocationClick(unreadNotif)}
+                              className={`rounded-lg px-4 py-3 text-sm transition-all ${
+                                isPast ? 'bg-gray-50' :
+                                isNew ? 'bg-purple-50 cursor-pointer hover:bg-purple-100' :
+                                'bg-purple-50'
+                              }`}
+                              style={{ borderLeft: `3px solid ${isPast ? '#d1d5db' : '#7c3aed'}` }}
+                            >
+                              {isPast ? (
+                                <p className="text-gray-400">
+                                  📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                                </p>
+                              ) : (
+                                <div>
+                                  <p className={`text-purple-700 ${isNew ? 'font-bold' : 'font-semibold'}`}>
+                                    📅 Vous êtes convoqué(e) le <strong>{displayDate}</strong>
+                                    {isNew && (
+                                      <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                                        Nouveau
+                                      </span>
+                                    )}
+                                  </p>
+                                  {message && (
+                                    <p className="text-gray-600 mt-1 text-xs whitespace-pre-line">{message}</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 );
               })}
             </div>
-          )})}
-        </div>
+          )}
+        </main>
       )}
-    </div>
-  </div>
-);
-
-  // FORMULAIRE — barre de progression
-  const steps = ['Qui signale', 'Type', 'Faits', 'Personnes', 'Preuves', 'Validation'];
-
-  return (
-    <main style={{ minHeight: '100vh', background: '#f5f7fa', fontFamily: 'Segoe UI, sans-serif' }}>
-      <div style={{ background: 'white', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <span style={{ fontWeight: 800, fontSize: '20px', color: '#0f3460' }}>Signalement</span>
-          <span style={{ fontWeight: 800, fontSize: '20px', color: '#1a1a2e' }}>Collège</span>
-        </div>
-        <button onClick={() => setStep(0)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', color: '#666' }}>
-          Annuler
-        </button>
-      </div>
-
-      <div style={{ background: 'white', padding: '16px 32px', borderBottom: '1px solid #eee' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', gap: '8px' }}>
-          {steps.map((s, i) => (
-            <div key={s} style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', fontWeight: step === i + 1 ? 700 : 400, color: step === i + 1 ? '#0f3460' : step > i + 1 ? '#22c55e' : '#aaa' }}>
-                {s}
-              </div>
-              <div style={{ height: '3px', borderRadius: '2px', marginTop: '4px', background: step > i + 1 ? '#22c55e' : step === i + 1 ? '#0f3460' : '#e0e0e0' }} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div style={{ maxWidth: '600px', margin: '32px auto', padding: '0 20px' }}>
-        <div style={{ background: 'white', borderRadius: '16px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-
-          {step === 1 && (
-            <div>
-              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Qui signale ?</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne ta situation</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {['Je suis victime', 'Je suis témoin',].map(option => (
-                  <div key={option} onClick={() => setWhoSignals(option)} style={{
-                    padding: '16px', borderRadius: '8px', cursor: 'pointer',
-                    border: `2px solid ${whoSignals === option ? '#0f3460' : '#e0e0e0'}`,
-                    background: whoSignals === option ? '#f0f4ff' : 'white',
-                    fontSize: '14px', fontWeight: whoSignals === option ? 600 : 400,
-                  }}>
-                    {option}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div>
-              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Quel type de harcèlement ?</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Sélectionne le type qui correspond le mieux</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {[
-                  { label: 'Physique', sub: 'Coups, bousculades', icon: '✋' },
-                  { label: 'Verbal', sub: 'Insultes, moqueries', icon: '💬' },
-                  { label: 'Cyber', sub: 'Réseaux, SMS', icon: '📱' },
-                  { label: 'Exclusion sociale', sub: 'Mise à l\'écart', icon: '🚫' },
-                  { label: 'Sexuel', sub: 'Gestes, remarques', icon: '⚠️' },
-                  { label: 'Autre', sub: 'Décrire ci-dessous', icon: '...' },
-                ].map(t => (
-                  <div key={t.label} onClick={() => setType(t.label)} style={{
-                    padding: '16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'center',
-                    border: `2px solid ${type === t.label ? '#0f3460' : '#e0e0e0'}`,
-                    background: type === t.label ? '#f0f4ff' : 'white',
-                  }}>
-                    <div style={{ fontSize: '24px', marginBottom: '4px' }}>{t.icon}</div>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a2e' }}>{t.label}</div>
-                    <div style={{ fontSize: '11px', color: '#888' }}>{t.sub}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div>
-              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Décris les faits</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Explique ce qui s'est passé</p>
-              {whoSignals === 'Je suis témoin' && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
-                    Nom de la victime
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  value={victimInput}
-                  onChange={async (e) => {
-                    setVictimInput(e.target.value);
-                    setSelectedVictim(null);
-                    setVictimName(e.target.value);
-                    if (e.target.value.length >= 2) {
-                      const results = await searchUsers(e.target.value);
-                      setVictimSuggestions(results);
-                    } else {
-                      setVictimSuggestions([]);
-                    }
-                  }}
-                  placeholder="Rechercher par nom ou prénom..."
-                  style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
-                />
-                {victimSuggestions.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', borderRadius: '8px', zIndex: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0' }}>
-                    {victimSuggestions.map(s => (
-                      <div key={s.id} onClick={() => {
-                        setSelectedVictim(s);
-                        setVictimName(`${s.firstName} ${s.lastName}`);
-                        setVictimInput(`${s.firstName} ${s.lastName}`);
-                        setVictimSuggestions([]);
-                      }}
-                        style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                        <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
-                        <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {selectedVictim && (
-                <div style={{ marginTop: '8px', background: '#f0fff4', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', color: '#22c55e', display: 'inline-block' }}>
-                  ✅ {selectedVictim.firstName} {selectedVictim.lastName} sélectionné(e)
-                </div>
-              )}
-                </div>
-              )} 
-              <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                placeholder="Décris ce qui s'est passé, quand, où et qui était impliqué..."
-                rows={5}
-                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'inherit', marginBottom: '20px' }}
-              />
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '14px', color: '#333' }}>
-                Fréquence des actes
-              </label>
-              <select value={frequency} onChange={e => setFrequency(e.target.value)}
-                style={{ width: '100%', padding: '12px 16px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white' }}>
-                <option value="">Sélectionner...</option>
-                <option value="Une fois">Une fois</option>
-                <option value="Deux fois">Deux fois</option>
-                <option value="Trois fois ou plus">Trois fois ou plus</option>
-                <option value="Tous les jours">Tous les jours</option>
-              </select>
-            </div>
-          )}
-
-        {step === 4 && (
-          <div>
-            <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Personnes impliquées</h2>
-            <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>
-              Indique les personnes soupçonnées — cette information est confidentielle
-            </p>
-
-            <div style={{ position: 'relative', marginBottom: '16px' }}>
-              <input
-                type="text"
-                value={suspectInput}
-                onChange={e => handleSuspectSearch(e.target.value)}
-                placeholder="Rechercher par nom ou prénom..."
-                style={{
-                  width: '100%', padding: '12px 16px',
-                  border: '2px solid #e0e0e0', borderRadius: '8px',
-                  fontSize: '14px', outline: 'none', boxSizing: 'border-box',
-                }}
-                onFocus={e => e.target.style.borderColor = '#0f3460'}
-                onBlur={e => e.target.style.borderColor = '#e0e0e0'}
-              />
-
-              {suspectSuggestions.length > 0 && (
-                <div style={{
-                  position: 'absolute', top: '100%', left: 0, right: 0,
-                  background: 'white', borderRadius: '8px', zIndex: 10,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.12)', border: '1px solid #e0e0e0',
-                }}>
-                  {suspectSuggestions.map(s => (
-                    <div key={s.id} onClick={() => addSuspect(s)}
-                      style={{ padding: '12px 16px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f0f0f0' }}
-                      onMouseEnter={e => (e.currentTarget.style.background = '#f0f4ff')}
-                      onMouseLeave={e => (e.currentTarget.style.background = 'white')}>
-                      <span style={{ fontWeight: 600 }}>{s.firstName} {s.lastName}</span>
-                      <span style={{ color: '#888', fontSize: '12px', marginLeft: '8px' }}>({s.role})</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {suspectInput.length >= 2 && suspectSuggestions.length === 0 && !searchingUsers && (
-              <button onClick={() => addSuspect({ firstName: suspectInput, lastName: '' })}
-                style={{ padding: '8px 16px', background: '#f0f4ff', border: '1px solid #0f3460', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#0f3460', marginBottom: '16px' }}>
-                + Ajouter "{suspectInput}" comme soupçonné
-              </button>
-            )}
-
-            {suspects.length > 0 && (
-              <div style={{ marginTop: '16px' }}>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: '#333', marginBottom: '8px' }}>
-                  Soupçonnés ajoutés :
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {suspects.map((s, i) => (
-                    <div key={i} style={{
-                      display: 'flex', alignItems: 'center', gap: '8px',
-                      background: '#f0f4ff', padding: '6px 12px', borderRadius: '20px',
-                      fontSize: '13px', color: '#0f3460',
-                    }}>
-                      <span>{s.firstName} {s.lastName}</span>
-                      <span onClick={() => removeSuspect(i)}
-                        style={{ cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>×</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {suspects.length === 0 && (
-              <p style={{ fontSize: '13px', color: '#aaa', textAlign: 'center', marginTop: '16px' }}>
-                Aucun soupçonné ajouté — tu peux passer cette étape
-              </p>
-            )}
-          </div>
-        )}
-
-          {step === 5 && (
-            <div>
-              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Preuves</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Photos, captures d'écran, etc.</p>
-              <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', fontSize: '14px', color: '#666', textAlign: 'center' }}>
-                🚧 Cette fonctionnalité sera disponible prochainement
-              </div>
-            </div>
-          )}
-
-          {step === 6 && (
-            <div>
-              <h2 style={{ color: '#1a1a2e', marginBottom: '8px' }}>Validation</h2>
-              <p style={{ color: '#666', fontSize: '14px', marginBottom: '24px' }}>Vérifie et envoie ton signalement</p>
-              <div style={{ background: '#f9f9f9', borderRadius: '8px', padding: '16px', marginBottom: '20px', fontSize: '14px' }}>
-                <p><strong>Qui signale :</strong> {whoSignals}</p>
-                <p><strong>Type :</strong> {type}</p>
-                <p><strong>Description :</strong> {description}</p>
-                <p><strong>Fréquence :</strong> {frequency}</p>
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '14px', marginBottom: '20px' }}>
-                <input type="checkbox" checked={isAnonymous} onChange={e => setIsAnonymous(e.target.checked)}
-                  style={{ width: '18px', height: '18px' }} />
-                <span><strong>Signalement anonyme</strong> — mon nom ne sera pas visible</span>
-              </label>
-            </div>
-          )}
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '32px' }}>
-            <button onClick={() => setStep(s => s - 1)}
-              style={{ padding: '12px 24px', background: 'white', border: '2px solid #e0e0e0', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: 600, color: '#333', }}>
-              Précédent
-            </button>
-            {step < 6 ? (
-              <button onClick={() => setStep(s => s + 1)}
-                disabled={
-                  (step === 1 && !whoSignals) ||
-                  (step === 2 && !type) ||
-                  (step === 3 && (!description || !frequency))
-                }
-                style={{
-                  padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
-                  border: 'none', cursor: 'pointer',
-                  background: (step === 1 && !whoSignals) || (step === 2 && !type) || (step === 3 && (!description || !frequency)) ? '#ccc' : '#0f3460',
-                  color: 'white', 
-                }}>
-                Suivant →
-              </button>
-            ) : (
-              <button onClick={handleSubmit} disabled={loading}
-                style={{ padding: '12px 24px', background: loading ? '#ccc' : '#22c55e', color: 'white', border: 'none', borderRadius: '8px', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '14px', fontWeight: 600 }}>
-                {loading ? 'Envoi...' : 'Envoyer le signalement ✓'}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </main>
+    </>
   );
 }

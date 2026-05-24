@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import Header from '../Header/Header';
 import type { AuthUser } from '../../../types';
 
-type ReporterSection = 'profile' | 'report' | 'workshop' | 'quiz';
+type ReporterSection = 'profile' | 'report' | 'quiz';
 
 interface ReporterHeaderProps {
   user: AuthUser | null;
@@ -22,7 +22,6 @@ export default function ReporterHeader({
   const navItems: { key: ReporterSection; label: string }[] = [
 	{ key: 'profile'  as const, label: t('reporter.nav.profile') },
     { key: 'report',   label: t('reporter.nav.report') },
-    { key: 'workshop', label: t('reporter.nav.workshop') },
     { key: 'quiz',     label: t('reporter.nav.quiz') },
   ];
 
@@ -31,10 +30,10 @@ export default function ReporterHeader({
       <Header user={user} logoutUser={logoutUser} />
 
       <nav
-        className="bg-primary px-8 py-4 flex items-center gap-8"
+        className="bg-primary px-8 py-0 flex items-center gap-8"
         aria-label={t('reporter.nav.ariaLabel')}
       >
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-8" />
+        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-16" />
         {navItems.map(item => (
           <button
             key={item.key}

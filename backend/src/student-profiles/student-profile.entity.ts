@@ -1,14 +1,30 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { User } from '../users/user.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { Parent } from "../parents/parent.entity";
+import { SchoolClass } from "../classes/school-class.entity";
 
-@Entity('student_profiles')
+@Entity("student_profiles")
 export class StudentProfile {
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column({ nullable: true }) parentEmail: string;
-  @Column({ nullable: true }) parentPhone: string;
-  @Column({ name: 'class', nullable: true }) schoolClass: string;
-  @Column({ nullable: true }) dateOfBirth: string;
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date;
+
+  @ManyToOne(() => SchoolClass, { nullable: true, eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'classId' })
+  schoolClass: SchoolClass | null;
+
   @OneToOne(() => User, (user) => user.studentProfile)
   @JoinColumn()
   user: User;
+
+  @ManyToMany(() => Parent, (parent) => parent.students)
+  parents: Parent[];
 }

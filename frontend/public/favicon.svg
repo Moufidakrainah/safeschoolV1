@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 680 680">
+  <rect width="680" height="680" fill="#0f3460" rx="120"/>
+  <path d="M340 120 L500 180 L500 340 Q500 460 340 560 Q180 460 180 340 L180 180 Z"
+        fill="#1a5fa8" stroke="#ffffff" stroke-width="8"/>
+  <text x="295" y="390" font-family="Arial, sans-serif" font-size="140" font-weight="700"
+        fill="white" text-anchor="middle">S</text>
+  <text x="395" y="390" font-family="Arial, sans-serif" font-size="140" font-weight="700"
+        fill="white" text-anchor="middle">S</text>
+</svg>

@@ -1,23 +1,23 @@
 import { colors } from './colors';
 
 export const GRADE_COLORS: Record<string, string> = {
-  critique: colors.critique.light,
-  grave:    colors.grave.main,
-  moyen:    colors.moyen.main,
-  faible:   colors.faible.main,
+  critical: colors.critical.light,
+  high:     colors.high.main,
+  medium:   colors.medium.main,
+  low:      colors.low.main,
 };
 
 export const GRADE_LABELS: Record<string, string> = {
-  critique: '🔴 Critique',
-  grave:    '🟠 Grave',
-  moyen:    '🟡 Moyen',
-  faible:   '🟢 Faible',
+  critical: '🔴 Critical',
+  high:     '🟠 High',
+  medium:   '🟡 Medium',
+  low:      '🟢 Low',
 };
 
 export const STATUS_LABELS: Record<string, string> = {
-  pending:     '⏳ En attente',
-  in_progress: '🔄 En cours',
-  escalated:   '🚨 Escaladé',
-  closed:      '✅ Clôturé',
-  rejected:    '❌ Rejeté',
+  new:          '📄 Nouveau',
+  in_progress:  '🔄 En cours',
+  pending:      '⏳ En attente',
+  resolved:     '✅ Résolu',
+  false_report: '❌ Faux signalement',
 };

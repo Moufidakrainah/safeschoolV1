@@ -9,9 +9,9 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000
+      - frontend_node_modules:/app/node_modules
+    # BUGFIX: REACT_APP_API_URL supprimée — convention Create React App obsolète.
+    # Vite n'expose que les variables préfixées VITE_
     depends_on:
       - backend
     networks:
@@ -25,8 +25,8 @@ services:
     ports:
       - "5000:3000"
     volumes:
+      - backend_node_modules:/app/node_modules
       - ./backend:/app
-      - /app/node_modules
     env_file:
       - .env
     depends_on:
@@ -65,6 +65,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@safeschool.com
       PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
     depends_on:
       - database
     networks:
@@ -96,6 +98,7 @@ services:
       - "5044:5044"
     volumes:
       - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
+      #  logstash_data:/usr/share/logstash/data 
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -121,7 +124,62 @@ volumes:
   pgdata:
   esdata:
   kibanadata:
+  frontend_node_modules:
+  backend_node_modules:
+  pgadmindata:
 
 networks:
   safeschool_network:
     driver: bridge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    

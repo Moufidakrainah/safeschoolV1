@@ -1,36 +1,50 @@
-// ─── Types partagés du frontend ───────────────────────────────────────────────
-// Ces types correspondent aux données renvoyées par l'API backend.
-// Ils doivent être utilisés dans toutes les pages et composants à la place de `any`.
+/* Definit report, user, note .., si on change lAPI o met ajour ici en premier */
+export type UserRole = 'student' | 'admin' | 'director' | 'teacher';
+export type ReportGrade  = 'critical' | 'high' | 'medium' | 'low';
+export type ReportStatus = 'pending' | 'in_progress' | 'closed' | 'rejected';
+export type ReportType   = 'physique' | 'verbal' | 'cyber' | 'exclusion' | 'sexuel';
+export type Reporter     = 'victime' | 'temoin';
 
-// ─── Utilisateur (repris depuis AuthContext pour éviter la duplication) ───────
-export type UserRole = 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+export interface SchoolClass {
+  id: string;
+  level: string;    
+  section: string;  
+}
 
+/* Utilisateur connecte (retourne par /auth/login) */
 export interface AuthUser {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
   role: UserRole;
+  avatar?: string | null;
   studentProfile?: {
     id: string;
-    schoolClass: string;
-    parentEmail: string;
-    parentPhone: string;
+    schoolClass: SchoolClass | null;
     dateOfBirth: string;
+  } | null;
+  staffProfile?: {
+    id: string;
+    profession: string;
+    subject: string | null;
   } | null;
 }
 
-// ─── Utilisateur dans les listes admin ───────────────────────────────────────
+/* Utilisateur dans la liste admin */
 export interface AdminUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   role: UserRole;
-  studentProfile?: { schoolClass: string } | null;
+  avatar?: string | null;
+  studentProfile?: { 
+    schoolClass: SchoolClass | null 
+  } | null;
 }
 
-// ─── Résultat de recherche d'utilisateur (autocomplete) ──────────────────────
+/*Resultat de recherche utilisateur (autocomplete) */
 export interface UserSearchResult {
   id: string;
   firstName: string;
@@ -38,20 +52,38 @@ export interface UserSearchResult {
   role: UserRole;
 }
 
-// ─── Suspect dans un signalement ─────────────────────────────────────────────
+/*Suspect dans un signalement */
 export interface ReportSuspect {
-  id?: string;
-  user?: { firstName: string; lastName: string };
-  freeText?: string;
+  id: string;
+  freeText: string;
+  resolvedUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+  } | null;
 }
 
-// ─── Payload envoyé à l'API lors de la création d'un signalement ─────────────
+/* Victime dans un signalement */
+export interface ReportVictim {
+  id: string;
+  freeText: string;
+  resolvedUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  } | null;
+}
+
+/* Payload envoye a l API lors de la creation */
 export interface SuspectInput {
-  userId?: string;
-  freeText?: string;
+  freeText: string;
+}
+export interface VictimInput {
+  freeText: string;
 }
 
-// ─── Note administrative ──────────────────────────────────────────────────────
+/* Note administrative */
 export interface Note {
   id: string;
   type: 'note' | 'convocation';
@@ -60,24 +92,46 @@ export interface Note {
   author?: { firstName: string; lastName: string };
 }
 
-// ─── Signalement ─────────────────────────────────────────────────────────────
+/* Profil staff/enseignant */
+export interface StaffProfile {
+  id: string;
+  profession: string;
+  subject: string | null;
+}
+
+/* Parent d un eleve */
+export interface Parent {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string | null;
+  address: string | null;
+}
+
+/* Signalement */
 export interface Report {
   id: string;
-  caseNumber: number;
-  title: string;
+  caseNumber: string;
+  type: ReportType;
+  reporter: Reporter;
   description: string;
-  status: 'pending' | 'in_progress' | 'escalated' | 'closed' | 'rejected';
-  grade: string;
+  status: ReportStatus
+  grade: ReportGrade;
   isAnonymous: boolean;
   createdAt: string;
   aiScore?: number;
   aiReason?: string;
+  adminNote?: string;
   student?: {
     id: string;
     firstName: string;
     lastName: string;
     role: UserRole;
-    studentProfile?: { schoolClass: string } | null;
+    studentProfile?: {
+      schoolClass: SchoolClass | null;
+    } | null;
   };
   suspects: ReportSuspect[];
+  victims: ReportVictim[];
 }
