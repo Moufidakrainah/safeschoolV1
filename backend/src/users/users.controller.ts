@@ -34,6 +34,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "./users.service";
+import { validateUserFields } from "./user-validation";
 import { validateUUID } from "../utils/validate-uuid";
 
 // Toutes les routes commencent par /users
@@ -205,6 +206,15 @@ export class UsersController {
     if (req.user.role !== "admin") {
       throw new ForbiddenException("Seul l'admin peut créer des utilisateurs");
     }
+    const error = validateUserFields({
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      password: dto.password,
+      currentFirstName: dto.firstName,
+      currentLastName: dto.lastName,
+    });
+    if (error) throw new BadRequestException(error);
     return this.usersService.createByAdmin(dto);
   }
 
@@ -264,6 +274,7 @@ curl -X PATCH "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006"
       lastName?: string;
       role?: string;
       schoolClass?: string;
+      password?: string;
     },
   ) {
     validateUUID(id);
@@ -272,6 +283,13 @@ curl -X PATCH "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006"
         "Seul l'admin peut modifier des utilisateurs",
       );
     }
+    const error = validateUserFields({
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      password: dto.password,
+    });
+    if (error) throw new BadRequestException(error);
     return this.usersService.updateByAdmin(id, dto);
   }
 
