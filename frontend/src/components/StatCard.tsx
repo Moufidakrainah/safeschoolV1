@@ -8,9 +8,9 @@ interface StatCardProps {
 }
 
 export default function StatCard({ label, value, color, active, onClick, activeTextColor = 'white' }: StatCardProps) {
-  const backgroundColor = active
-    ? color
-    : `color-mix(in oklab, ${color} 18%, white)`;
+//   const backgroundColor = active
+//     ? color
+//     : `color-mix(in oklab, ${color} 18%, white)`;
 
   const borderColor = active
     ? `color-mix(in oklab, ${color} 60%, black)`
@@ -27,7 +27,8 @@ export default function StatCard({ label, value, color, active, onClick, activeT
       aria-label={onClick ? `${label} : ${value}` : undefined}
       aria-pressed={onClick ? active : undefined}
       style={{
-        backgroundColor,
+        // backgroundColor,
+        backgroundColor: active ? color : '#f3f4f6',
         border: `1px solid ${borderColor}`,
         color: textColor,
       }}
