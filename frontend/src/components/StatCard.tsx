@@ -20,9 +20,9 @@ export default function StatCard({ label, value, color, active, onClick }: StatC
         backgroundColor: active ? color : '#f3f4f6',
         color: active ? '#f3f4f6' : color,
       }}
-      className={`p-3 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-105' : 'scale-100'}`}
+      className={`p-1 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-105' : 'scale-100'}`}
     >
-      <div className={`text-3xl font-bold ${active ? 'text-white' : ''}`} aria-hidden="true">{value}</div>
+      <div className={`text-1xl font-bold ${active ? 'text-white' : ''}`} aria-hidden="true">{value}</div>
       <div className={`text-sm mt-1 ${active ? 'text-white' : ''}`} aria-hidden="true">{label}</div>
     </div>
   );

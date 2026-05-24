@@ -50,7 +50,7 @@
     },
     "stats": {
       "groupLabel": "Statistiques des signalements",
-      "total": "Total",
+      "total": "Toutes les gravités",
       "critical": "Critique",
       "high": "Grave",
       "pending": "En attente",

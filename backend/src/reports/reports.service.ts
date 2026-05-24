@@ -8,10 +8,7 @@ import { Repository } from "typeorm";
 import { Report, ReportGrade, ReportStatus } from "./report.entity";
 import { User } from "../users/user.entity";
 import { ReportSuspect } from "./report-suspect.entity";
-<<<<<<< HEAD
-=======
 import { ReportVictim } from "./report-victim.entity";
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
@@ -20,16 +17,10 @@ import { NotificationsService } from "../notifications/notifications.service";
 export class ReportsService {
   constructor(
     @InjectRepository(Report) private reportsRepository: Repository<Report>,
-<<<<<<< HEAD
-    @InjectRepository(ReportSuspect)
-    private suspectsRepository: Repository<ReportSuspect>,
-=======
     @InjectRepository(ReportSuspect) private suspectsRepository: Repository<ReportSuspect>,
     @InjectRepository(ReportVictim) private victimsRepository: Repository<ReportVictim>,
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     private scoringService: ScoringService,
-    @InjectRepository(ReportNote)
-    private notesRepository: Repository<ReportNote>,
+    @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
     private notificationsService: NotificationsService,
   ) {}
 
@@ -39,18 +30,6 @@ export class ReportsService {
     description: string,
     isAnonymous: boolean,
     student: User,
-<<<<<<< HEAD
-    suspects: { userId?: string; freeText?: string }[] = [],
-    frequency = "",
-    schoolClass = "",
-  ): Promise<Report> {
-    const { finalScore, grade, aiScore, aiReason } =
-      await this.scoringService.calculateScore(
-        title,
-        description,
-        frequency,
-        schoolClass,
-=======
     suspects: { freeText: string }[] = [],
     victims: { freeText: string }[] = [],
     frequency = "",
@@ -59,7 +38,6 @@ export class ReportsService {
       await this.scoringService.calculateScore(
         type, description, frequency,
         (student as any).studentProfile?.schoolClass?.level ?? "",
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
         suspects,
       );
 
@@ -77,34 +55,14 @@ export class ReportsService {
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
 
     const report = this.reportsRepository.create({
-<<<<<<< HEAD
-      title,
-      description,
-      grade,
-      aiScore: finalScore,
-      aiReason,
-      caseNumber,
-      isAnonymous,
-      student,
-      status: ReportStatus.NEW,
-=======
       type, reporter, description, grade,
       aiScore: finalScore, aiReason,
       caseNumber, isAnonymous, student,
       status: ReportStatus.PENDING,
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     });
     const savedReport = await this.reportsRepository.save(report);
 
     for (const suspect of suspects) {
-<<<<<<< HEAD
-      const reportSuspect = this.suspectsRepository.create({
-        report: savedReport,
-        user: suspect.userId ? ({ id: suspect.userId } as User) : undefined,
-        freeText: suspect.freeText,
-      });
-      await this.suspectsRepository.save(reportSuspect);
-=======
       await this.suspectsRepository.save(
         this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
       );
@@ -126,34 +84,20 @@ export class ReportsService {
       await this.victimsRepository.save(
         this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })
       );
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     }
 
     return this.reportsRepository.findOne({
       where: { id: savedReport.id },
-<<<<<<< HEAD
-      relations: ["suspects", "suspects.user"],
-=======
       relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     }) as Promise<Report>;
   }
 
   async findAll(): Promise<Report[]> {
     return this.reportsRepository.find({
       relations: [
-<<<<<<< HEAD
-        "student",
-        "student.studentProfile",
-        "student.studentProfile.class",
-        "student.staffProfile",
-        "suspects",
-        "suspects.user",
-=======
         "student", "student.studentProfile", "student.studentProfile.schoolClass",
         "suspects", "suspects.resolvedUser",
         "victims", "victims.resolvedUser",
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
       ],
     });
   }
@@ -161,11 +105,7 @@ export class ReportsService {
   async findByStudent(studentId: string): Promise<Report[]> {
     return this.reportsRepository.find({
       where: { student: { id: studentId } },
-<<<<<<< HEAD
-      relations: ["suspects", "suspects.user"],
-=======
       relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     });
   }
 
@@ -173,18 +113,9 @@ export class ReportsService {
     const report = await this.reportsRepository.findOne({
       where: { id },
       relations: [
-<<<<<<< HEAD
-        "student",
-        "student.studentProfile",
-        "student.studentProfile.class",
-        "student.staffProfile",
-        "suspects",
-        "suspects.user",
-=======
         "student", "student.studentProfile", "student.studentProfile.schoolClass",
         "suspects", "suspects.resolvedUser",
         "victims", "victims.resolvedUser",
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
       ],
     });
     if (!report) throw new NotFoundException("Signalement introuvable");
@@ -193,53 +124,14 @@ export class ReportsService {
 
   async update(
     id: string,
-<<<<<<< HEAD
-    updates: {
-      status?: ReportStatus;
-      grade?: ReportGrade;
-      adminNote?: string;
-      gradeModificationReason?: string;
-    },
-  ): Promise<Report> {
-    const report = await this.findOne(id);
-    if (updates.grade && updates.grade !== report.grade) {
-      const grades = [
-        ReportGrade.LOW,
-        ReportGrade.MEDIUM,
-        ReportGrade.HIGH,
-        ReportGrade.CRITICAL,
-      ];
-      const oldIndex = grades.indexOf(report.grade);
-      const newIndex = grades.indexOf(updates.grade);
-      if (newIndex < oldIndex && !updates.gradeModificationReason) {
-        throw new ForbiddenException(
-          "Une justification est obligatoire pour baisser le grade",
-        );
-      }
-      report.grade = updates.grade;
-      report.gradeModified = true;
-      if (updates.gradeModificationReason)
-        report.gradeModificationReason = updates.gradeModificationReason;
-    }
-=======
     updates: { status?: ReportStatus; grade?: ReportGrade },
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade) report.grade = updates.grade;
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     if (updates.status) report.status = updates.status;
     return this.reportsRepository.save(report);
   }
 
-<<<<<<< HEAD
-  async escalate(id: string): Promise<Report> {
-    const report = await this.findOne(id);
-    report.status = ReportStatus.NEW;
-    return this.reportsRepository.save(report);
-  }
-
-=======
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   async addNote(
     reportId: string,
     content: string,
@@ -255,25 +147,12 @@ export class ReportsService {
       if (targetRole === "victime" || targetRole === "temoin") {
         if (report.student?.id) {
           await this.notificationsService.create(
-<<<<<<< HEAD
-            report.student.id,
-            reportId,
-            `📅 Convocation : ${content}`,
-=======
             report.student.id, reportId, `Convocation : ${content}`,
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
         const suspectIndex = parseInt(targetRole.split("_")[1]);
         const suspect = report.suspects?.[suspectIndex];
-<<<<<<< HEAD
-        if (suspect?.user?.id) {
-          await this.notificationsService.create(
-            suspect.user.id,
-            reportId,
-            `📅 Convocation : ${content}`,
-=======
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
@@ -285,28 +164,11 @@ export class ReportsService {
         if (victim?.resolvedUser?.id) {
           await this.notificationsService.create(
             victim.resolvedUser.id, reportId, `Convocation : ${content}`,
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
           );
         }
       } else {
         if (report.student?.id) {
           await this.notificationsService.create(
-<<<<<<< HEAD
-            report.student.id,
-            reportId,
-            `📅 Convocation : ${content}`,
-          );
-        }
-        if (report.suspects) {
-          for (const suspect of report.suspects) {
-            if (suspect.user?.id) {
-              await this.notificationsService.create(
-                suspect.user.id,
-                reportId,
-                `📅 Convocation : ${content}`,
-              );
-            }
-=======
             report.student.id, reportId, `Convocation : ${content}`,
           );
         }
@@ -315,7 +177,6 @@ export class ReportsService {
             await this.notificationsService.create(
               suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
             );
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
           }
         }
       }

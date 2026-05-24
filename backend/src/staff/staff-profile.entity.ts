@@ -8,11 +8,7 @@ import {
   JoinTable,
 } from "typeorm";
 import { User } from "../users/user.entity";
-<<<<<<< HEAD
-import { SchoolClass } from "../classes/class.entity";
-=======
 import { SchoolClass } from "../classes/school-class.entity";
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 
 @Entity("staff_profiles")
 export class StaffProfile {

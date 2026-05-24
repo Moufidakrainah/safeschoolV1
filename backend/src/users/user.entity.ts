@@ -1,24 +1,13 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  OneToMany,
-  OneToOne,
-} from "typeorm";
-import { Report } from "../reports/report.entity";
-import { StudentProfile } from "../student-profiles/student-profile.entity";
-import { StaffProfile } from "../staff/staff-profile.entity";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import { Report } from '../reports/report.entity';
+import { StudentProfile } from '../student-profiles/student-profile.entity';
+import { StaffProfile } from '../staff/staff-profile.entity';
 
 export enum UserRole {
   STUDENT = "student",
   ADMIN = "admin",
   DIRECTOR = "director",
   TEACHER = "teacher",
-<<<<<<< HEAD
-  STAFF = "staff",
-=======
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 }
 
 @Entity("users")
@@ -37,8 +26,6 @@ export class User {
   @CreateDateColumn() createdAt: Date;
   @Column({ nullable: true }) avatar: string;
   @OneToMany(() => Report, (report) => report.student) reports: Report[];
-  @OneToOne(() => StudentProfile, (profile) => profile.user)
-  studentProfile: StudentProfile;
-  @OneToOne(() => StaffProfile, (staffProfile) => staffProfile.user)
-  staffProfile: StaffProfile;
+  @OneToOne(() => StudentProfile, profile => profile.user) studentProfile: StudentProfile;
+  @OneToOne(() => StaffProfile, staffProfile => staffProfile.user) staffProfile: StaffProfile;
 }

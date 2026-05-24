@@ -5,10 +5,7 @@ import {
   Patch,
   Param,
   Body,
-<<<<<<< HEAD
-=======
   Query,
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   Request,
   UseGuards,
   ForbiddenException,
@@ -40,17 +37,9 @@ export class ReportsController {
 
   @Post()
   async create(@Body() dto: CreateReportDto, @Request() req) {
-<<<<<<< HEAD
-    const allowedRoles = ["student", "teacher", "staff"];
-    if (!allowedRoles.includes(req.user.role)) {
-      throw new ForbiddenException(
-        "Only student, teacher and staff can create a report",
-      );
-=======
     const allowedRoles = ["student", "teacher"];
     if (!allowedRoles.includes(req.user.role)) {
       throw new ForbiddenException("Only student, teacher and staff can create a report");
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     }
     return this.reportsService.create(
       dto.type,
@@ -59,13 +48,8 @@ export class ReportsController {
       dto.isAnonymous,
       req.user,
       dto.suspects || [],
-<<<<<<< HEAD
-      dto.frequency || "",
-      dto.schoolClass || "",
-=======
       dto.victims || [],
       dto.frequency || "",
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     );
   }
 
@@ -77,37 +61,6 @@ export class ReportsController {
     return this.reportsService.findAll();
   }
 
-<<<<<<< HEAD
-  // Utile ?
-  //   @Get(':id')
-  //   async findOne(@Param('id') id: string, @Request() req) {
-  //     validateUUID(id);
-  //     const report = await this.reportsService.findOne(id);
-  //     if (req.user.role === 'student' && report.student.id !== req.user.id) {
-  //       throw new ForbiddenException('Access denied');
-  //     }
-  //     return report;
-  //   }
-
-  @Patch(":id")
-  async update(
-    @Param("id") id: string,
-    @Body() dto: UpdateReportDto,
-    @Request() req,
-  ) {
-    validateUUID(id);
-    if (req.user.role === "student")
-      throw new ForbiddenException("Access denied");
-    return this.reportsService.update(id, dto);
-  }
-
-  //   @Patch(':id/escalate')
-  //   async escalate(@Param('id') id: string, @Request() req) {
-  //     if (req.user.role !== 'admin') throw new ForbiddenException('Access denied');
-  //     return this.reportsService.escalate(id);
-  //   }
-
-=======
   @Get("victims/search")
   async searchByVictim(@Query("name") name: string, @Request() req) {
     if (req.user.role !== "admin" && req.user.role !== "director") {
@@ -162,18 +115,12 @@ export class ReportsController {
     return this.reportsService.update(id, dto);
   }
 
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   @Get(":id/notes")
   async getNotes(@Param("id") id: string, @Request() req) {
     validateUUID(id);
     if (req.user.role === "student") {
       const report = await this.reportsService.findOne(id);
-<<<<<<< HEAD
-      if (report.student.id !== req.user.id)
-        throw new ForbiddenException("Access denied");
-=======
       if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
       const notes = await this.reportsService.getNotes(id);
       return notes.filter((n: any) => n.type === "convocation");
     }
@@ -187,19 +134,7 @@ export class ReportsController {
     @Request() req,
   ) {
     validateUUID(id);
-<<<<<<< HEAD
-    if (req.user.role === "student")
-      throw new ForbiddenException("Access denied");
-    return this.reportsService.addNote(
-      id,
-      dto.content,
-      dto.type || "note",
-      req.user,
-      dto.targetRole,
-    );
-=======
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
     return this.reportsService.addNote(id, dto.content, dto.type || "note", req.user, dto.targetRole);
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   }
 }

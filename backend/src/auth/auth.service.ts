@@ -12,10 +12,6 @@ export class AuthService {
 
   async login(email: string, password: string) {
     const user = await this.usersService.findByEmailWithProfile(email);
-<<<<<<< HEAD
-    console.log("USER FROM DB:", user); // ← très important
-=======
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     if (!user)
       throw new UnauthorizedException("Email ou mot de passe incorrect");
     const isMatch = await bcrypt.compare(password, user.password);

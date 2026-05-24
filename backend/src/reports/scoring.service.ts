@@ -41,25 +41,13 @@ export class ScoringService {
   }
 
   private async scoreRecidive(
-<<<<<<< HEAD
-    suspects: { userId?: string; freeText?: string }[],
-=======
     suspects: { freeText: string }[],
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   ): Promise<number> {
     if (!suspects || suspects.length === 0) return 0;
     let maxCount = 0;
     for (const suspect of suspects) {
       let count = 0;
-<<<<<<< HEAD
-      if (suspect.userId) {
-        count = await this.suspectsRepository.count({
-          where: { user: { id: suspect.userId } },
-        });
-      } else if (suspect.freeText) {
-=======
       if (suspect.freeText) {
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
         count = await this.suspectsRepository.count({
           where: { freeText: suspect.freeText },
         });
@@ -78,44 +66,6 @@ export class ScoringService {
     reason: string;
   } {
     const text = description.toLowerCase();
-<<<<<<< HEAD
-    if (
-      text.includes("suicid") ||
-      text.includes("me tuer") ||
-      text.includes("mourir") ||
-      text.includes("menace") ||
-      text.includes("frapper") ||
-      text.includes("tuer")
-    ) {
-      return {
-        score: 20,
-        urgency: true,
-        reason: "Menace physique ou idées suicidaires détectées",
-      };
-    }
-    if (
-      text.includes("peur") ||
-      text.includes("aide") ||
-      text.includes("souffre") ||
-      text.includes("pleure") ||
-      text.includes("seul") ||
-      text.includes("malheureux")
-    ) {
-      return {
-        score: 10,
-        urgency: false,
-        reason: "Détresse émotionnelle détectée",
-      };
-    }
-    if (
-      text.includes("insulte") ||
-      text.includes("menace verbale") ||
-      text.includes("crier") ||
-      text.includes("humili")
-    ) {
-      return { score: 5, urgency: false, reason: "Menace verbale détectée" };
-    }
-=======
     const match = (patterns: RegExp[]) => patterns.some(p => p.test(text));
 
     // ── Urgence : violence physique ou idées suicidaires ──────────────────
@@ -224,7 +174,6 @@ export class ScoringService {
     if (match(exclusionPatterns)) {
       return { score: 3,  urgency: false, reason: "Exclusion sociale détectée" };
     }
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     return { score: 0, urgency: false, reason: "Situation banale" };
   }
 
@@ -284,11 +233,7 @@ Signalement : "${description}"`,
     description: string,
     frequency: string,
     schoolClass: string,
-<<<<<<< HEAD
-    suspects: { userId?: string; freeText?: string }[],
-=======
     suspects: { freeText: string }[],
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   ): Promise<{
     finalScore: number;
     grade: ReportGrade;

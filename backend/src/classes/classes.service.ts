@@ -1,11 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-<<<<<<< HEAD
-import { SchoolClass } from "./class.entity";
-=======
 import { SchoolClass } from "./school-class.entity";
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 
 @Injectable()
 export class ClassesService {
@@ -31,10 +27,7 @@ export class ClassesService {
     return schoolClass;
   }
 
-  async update(
-    id: string,
-    dto: { level?: string; section?: string },
-  ): Promise<SchoolClass> {
+  async update(id: string, dto: { level?: string; section?: string }): Promise<SchoolClass> {
     const schoolClass = await this.findOne(id);
     if (dto.level) schoolClass.level = dto.level;
     if (dto.section) schoolClass.section = dto.section;

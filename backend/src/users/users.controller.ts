@@ -24,9 +24,6 @@ import {
   UseGuards,
   Request,
   ForbiddenException,
-<<<<<<< HEAD
-} from "@nestjs/common";
-=======
   UseInterceptors,
   UploadedFile,
   BadRequestException,
@@ -35,7 +32,6 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import * as path from "path";
 import * as fs from "fs";
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "./users.service";
 import { validateUUID } from "../utils/validate-uuid";
@@ -347,15 +343,12 @@ curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006
     }
     return this.usersService.deleteByAdmin(id, req.user.id);
   }
-  @Get(":id/can-delete")
-  async canDelete(@Request() req, @Param("id") id: string) {
-    validateUUID(id);
-    if (req.user.role !== "admin") throw new ForbiddenException();
-    return this.usersService.canDelete(id);
-  }
+@Get(':id/can-delete')
+async canDelete(@Request() req, @Param('id') id: string) {
+  validateUUID(id);
+  if (req.user.role !== 'admin') throw new ForbiddenException();
+  return this.usersService.canDelete(id);
 }
-<<<<<<< HEAD
-=======
 
   @Post(':id/avatar')
   @UseInterceptors(FileInterceptor('avatar', {
@@ -400,4 +393,3 @@ curl -X DELETE "http://localhost:5000/users/a0b1c2d3-0000-0000-0000-000000000006
   }
 
 }
->>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
