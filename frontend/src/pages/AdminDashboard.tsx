@@ -78,6 +78,7 @@ export default function AdminDashboard() {
   const [showUserForm, setShowUserForm] = useState(false);
   const [usersSearch, setUsersSearch] = useState('');
   const [usersSort, setUsersSort] = useState<'asc' | 'desc' | 'date'>('asc');
+  const [usersRoleFilter, setUsersRoleFilter] = useState<string>('all');
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
@@ -221,9 +222,23 @@ export default function AdminDashboard() {
 
   const validateField = (field: string, value: string) => {
     let message = '';
-    if (!value.trim() && field !== 'password') message = t('admin.users.errorRequired');
-    else if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
-    else if (field === 'password' && value.length > 0 && value.length < 6) message = t('admin.users.errorPasswordLength');
+    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
+    if (field === 'firstName' || field === 'lastName') {
+      if (!value.trim()) message = t('admin.users.errorRequired');
+      else if (!nameRegex.test(value)) message = 'Lettres, apostrophes ou tirets uniquement (max 20 caractères)';
+    } else if (field === 'email') {
+      if (!value.trim()) message = t('admin.users.errorRequired');
+      else if (value.length > 50) message = 'Email trop long (max 50 caractères)';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
+    } else if (field === 'password' && value.length > 0) {
+      if (value.length < 12) message = 'Minimum 12 caractères';
+      else if (!/[0-9]/.test(value)) message = 'Au moins un chiffre requis';
+      else if (!/[a-z]/.test(value)) message = 'Au moins une minuscule requise';
+      else if (!/[A-Z]/.test(value)) message = 'Au moins une majuscule requise';
+      else if (!/[^a-zA-Z0-9]/.test(value)) message = 'Au moins un caractère spécial requis';
+      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le prénom';
+      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le nom';
+    }
     setErrors(prev => ({ ...prev, [field]: message }));
   };
 
@@ -277,7 +292,7 @@ export default function AdminDashboard() {
       <div><Label className="text-white text-sm">{t('admin.users.firstName')}</Label><Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />{errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.lastName')}</Label><Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />{errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.email')}</Label><Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />{errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />{errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}</div>
+      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
       <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
         <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -298,7 +313,12 @@ export default function AdminDashboard() {
       )}
       {userForm.role === 'teacher' && (
         <>
-          <div><Label className="text-white text-sm">Matière enseignée</Label><Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value }))} placeholder="ex: Mathématiques" className="bg-white mt-1" /></div>
+          <div>
+            <Label className="text-white text-sm">Matière enseignée</Label>
+            <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
+            <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
+            {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}
+          </div>
           <div>
             <Label className="text-white text-sm mb-2 block">Classes où il intervient</Label>
             <div className="flex flex-wrap gap-2">
@@ -627,7 +647,25 @@ export default function AdminDashboard() {
                 <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "student", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
               </div>
             </div>
-            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-4" />
+            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-3" />
+            <div className="flex justify-center gap-3 mb-4 flex-wrap">
+              {[
+                { key: 'all',     label: 'Tous',       color: '#1a1a2e' },
+                { key: 'student', label: '🎒 Élèves',  color: '#3b82f6' },
+                { key: 'teacher', label: '📚 Profs',   color: '#8b5cf6' },
+                { key: 'admin',   label: '🛡️ Admins',  color: '#0f3460' },
+              ].map(r => (
+                <button key={r.key} onClick={() => setUsersRoleFilter(r.key)}
+                  className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
+                  style={{
+                    background: usersRoleFilter === r.key ? r.color : 'transparent',
+                    color: usersRoleFilter === r.key ? 'white' : r.color,
+                    border: `2px solid ${r.color}`,
+                  }}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
             {showUserForm && (
               <Card className="mb-5"><CardContent className="pt-6">
                 <h3 className="font-bold mb-4">{editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
@@ -639,7 +677,7 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {[...users].sort((a, b) => {
+                {[...users].filter(u => usersRoleFilter === "all" || u.role === usersRoleFilter).sort((a, b) => {
                   if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
                   if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
                   if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
