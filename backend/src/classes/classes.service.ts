@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SchoolClass } from "./school-class.entity";
@@ -36,6 +36,16 @@ export class ClassesService {
 
   async remove(id: string): Promise<void> {
     const schoolClass = await this.findOne(id);
+    // Vérifier qu'il n'y a pas d'élèves dans cette classe
+    const studentCount = await this.classRepo
+      .createQueryBuilder('class')
+      .leftJoin('student_profiles', 'sp', 'sp."classId" = class.id')
+      .where('class.id = :id', { id })
+      .andWhere('sp.id IS NOT NULL')
+      .getCount();
+    if (studentCount > 0) {
+      throw new BadRequestException('CLASS_HAS_STUDENTS');
+    }
     await this.classRepo.remove(schoolClass);
   }
 }
