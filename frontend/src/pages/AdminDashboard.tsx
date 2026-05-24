@@ -283,7 +283,7 @@ export default function AdminDashboard() {
     if (!selected) return;
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
-    if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `📅 ${f}\n\n${content}`; }
+    if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
@@ -386,7 +386,7 @@ export default function AdminDashboard() {
                     {selected.victims?.map(v => (
                       <li key={v.id} className="text-sm">
                         <div className="flex items-center justify-between"><span className="text-blue-600 font-medium">{v.freeText}</span>{isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === v.id ? null : v.id); setSuspectSearch(''); setSuspectResults([]); }}>{v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}</div>
-                        {v.resolvedUser && <p className="text-xs text-green-600 mt-0.5">✅ {v.resolvedUser.firstName} {v.resolvedUser.lastName}</p>}
+                        {v.resolvedUser && <p className="text-xs text-green-600 mt-0.5">{v.resolvedUser.firstName} {v.resolvedUser.lastName}</p>}
                         {isAdmin && activeSuspect === v.id && (
                           <div className="mt-2 border rounded-lg p-2 bg-white">
                             <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
@@ -405,7 +405,7 @@ export default function AdminDashboard() {
                       {selected.suspects.map(s => (
                         <li key={s.id} className="text-sm">
                           <div className="flex items-center justify-between"><span className="text-red-500 font-medium">{s.freeText}</span>{isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === s.id ? null : s.id); setSuspectSearch(''); setSuspectResults([]); }}>{s.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}</div>
-                          {s.resolvedUser && <div className="flex items-center gap-2 text-xs text-green-600 mt-0.5">✅ {s.resolvedUser.firstName} {s.resolvedUser.lastName}{isAdmin && <button className="text-red-400 hover:underline" onClick={() => handleResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}</div>}
+                          {s.resolvedUser && <div className="flex items-center gap-2 text-xs text-green-600 mt-0.5">{s.resolvedUser.firstName} {s.resolvedUser.lastName}{isAdmin && <button className="text-red-400 hover:underline" onClick={() => handleResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}</div>}
                           {isAdmin && activeSuspect === s.id && (
                             <div className="mt-2 border rounded-lg p-2 bg-white">
                               <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
@@ -425,7 +425,7 @@ export default function AdminDashboard() {
             <CardContent><p className="text-sm text-gray-700 leading-7">{selected.description}</p></CardContent>
           </Card>
           <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-            <CardHeader><CardTitle>📝 {t('admin.notes.title')}</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{t('admin.notes.title')}</CardTitle></CardHeader>
             <CardContent>
               {notes.length > 0 ? <div className="flex flex-col gap-3 mb-5">{notes.map(note => <NoteBlock key={note.id} note={note} />)}</div> : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
               {isAdmin && <div className="flex flex-col gap-2"><Textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder={t('admin.notes.placeholder')} className="resize-y" /><Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button></div>}
@@ -433,7 +433,7 @@ export default function AdminDashboard() {
           </Card>
           {isAdmin && (
             <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-              <CardHeader><CardTitle>📅 {t('admin.convocation.title')}</CardTitle></CardHeader>
+              <CardHeader><CardTitle>{t('admin.convocation.title')}</CardTitle></CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 mb-3">Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.</p>
                 <ConvocationSelector selected={selected} checkedIds={checkedConvocIds} onToggle={id => { setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); setConvocDetails(prev => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } })); }} />
@@ -444,16 +444,16 @@ export default function AdminDashboard() {
                       return (
                         <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                           <p className="text-xs font-semibold text-primary mb-2">
-                            {personId === 'alerteur' ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}` :
+                            {personId === 'alerteur' ? `${selected.student?.firstName} ${selected.student?.lastName}` :
                              personId.startsWith('victim_') ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`}`; })() :
-                             personId.startsWith('suspect_') ? (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })() : personId}
+                             personId.startsWith('suspect_') ? (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })() : personId}
                           </p>
                           <div className="mb-2"><Label className="text-xs text-gray-500 mb-1 block">Date et heure</Label><Input type="datetime-local" value={details.date} min={new Date().toISOString().slice(0,16)} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />{details.date && new Date(details.date) <= new Date() && <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>}</div>
                           <Textarea rows={2} placeholder="Message de convocation..." value={details.message} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value } }))} className="resize-y" />
                         </div>
                       );
                     })}
-                    {convocSuccess && <p className="text-green-600 text-sm">✅ Convocations envoyées avec succès !</p>}
+                    {convocSuccess && <p className="text-green-600 text-sm">Convocations envoyées avec succès !</p>}
                     <Button disabled={sendingConvoc || checkedConvocIds.some(id => !convocDetails[id]?.date || !convocDetails[id]?.message || new Date(convocDetails[id].date) <= new Date())}
                       onClick={async () => {
                         setSendingConvoc(true); setConvocSuccess(false);
@@ -462,13 +462,13 @@ export default function AdminDashboard() {
                             const d = convocDetails[personId];
                             if (!d?.date || !d?.message) continue;
                             const f = new Date(d.date).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
-                            await addNote(selected.id, `📅 ${f}\n\n${d.message}`, 'convocation', personId);
+                            await addNote(selected.id, `${f}\n\n${d.message}`, 'convocation', personId);
                           }
                           await loadNotes(selected.id); setCheckedConvocIds([]); setConvocDetails({}); setConvocSuccess(true);
                           setTimeout(() => setConvocSuccess(false), 3000);
                         } finally { setSendingConvoc(false); }
                       }}
-                    >{sendingConvoc ? 'Envoi...' : `📤 Envoyer ${checkedConvocIds.length} convocation(s)`}</Button>
+                    >{sendingConvoc ? 'Envoi...' : `Envoyer ${checkedConvocIds.length} convocation(s)`}</Button>
                   </div>
                 )}
               </CardContent>
@@ -502,7 +502,7 @@ export default function AdminDashboard() {
         {viewSection === 'reports' && (
           <>
             <div className="grid grid-cols-5 gap-4 mb-8">
-              <StatCard label={t('admin.stats.total')}    value={stats.total}    color="#1a1a2e"                  active={filterGrade === 'all'}      onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
+              <StatCard label={t('admin.stats.total')}    value={stats.total}    color={SEVERITY_COLORS.all}      active={filterGrade === 'all'}      activeTextColor="var(--foreground)" onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical} active={filterGrade === 'critical'} onClick={() => { setFilterGrade('critical'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'high'}     onClick={() => { setFilterGrade('high'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'medium'}   onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }} />
@@ -521,7 +521,13 @@ export default function AdminDashboard() {
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
               </div>
             </div>
-            <div className="flex justify-center gap-3 mb-4 flex-wrap">{(['new','in_progress','pending','resolved','false_report'] as BadgeVariant[]).map(s => <Badge key={s} variant={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }} />)}</div>
+            <div className="flex justify-center gap-3 mb-4 flex-wrap">
+
+              <Badge variant={'total'} onClick={() => { setFilterStatus('all'); setCurrentPage(1); }} />
+            {(['new','in_progress','pending','resolved','false_report'] as BadgeVariant[]).map(s => 
+            <Badge key={s} variant={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }} />)}</div>
+
+
             <div className="flex justify-center mb-4"><Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button></div>
             {loading ? <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p> : filtered.length === 0 ? <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p> : (
               <ul className="flex flex-col gap-3">
@@ -535,10 +541,10 @@ export default function AdminDashboard() {
                         <span className="font-bold text-sm text-primary">{report.type} — {report.reporter}</span>
                         <p className="text-xs text-gray-600 mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0,120)}...` : report.description}</p>
                         <div className="flex gap-4 text-xs text-gray-400">
-                          <span>👤 {report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
-                          <span>🏫 {report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
-                          <span>📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
-                          {report.suspects?.length > 0 && <span>⚠️ {report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
+                          <span>{report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
+                          <span>{report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
+                          <span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+                          {report.suspects?.length > 0 && <span>{report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
                           <span>{report.caseNumber}</span>
                         </div>
                       </div>
@@ -651,9 +657,9 @@ export default function AdminDashboard() {
             <div className="flex justify-center gap-3 mb-4 flex-wrap">
               {[
                 { key: 'all',     label: 'Tous',       color: '#1a1a2e' },
-                { key: 'student', label: '🎒 Élèves',  color: '#3b82f6' },
-                { key: 'teacher', label: '📚 Profs',   color: '#8b5cf6' },
-                { key: 'admin',   label: '🛡️ Admins',  color: '#0f3460' },
+                { key: 'student', label: 'Élèves',  color: '#3b82f6' },
+                { key: 'teacher', label: 'Profs',   color: '#8b5cf6' },
+                { key: 'admin',   label: 'Admins',  color: '#0f3460' },
               ].map(r => (
                 <button key={r.key} onClick={() => setUsersRoleFilter(r.key)}
                   className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all"

@@ -292,11 +292,11 @@ const { t } = useTranslation();
 
             <KitSection label="StatCard">
               <div className="grid grid-cols-5 gap-4">
-                <StatCard label={t('badge.total')}      value={42} color="#1a1a2e" />
+                <StatCard label={t('badge.total')}      value={42} color={SEVERITY_COLORS.all} activeTextColor="var(--foreground)" />
                 <StatCard label={t('badge.critical')}   value={3}  color={SEVERITY_COLORS.critical} active />
-                <StatCard label={t('badge.high')}      value={7}  color={SEVERITY_COLORS.high} />
-                <StatCard label={t('badge.medium')}      value={8}  color={SEVERITY_COLORS.medium} />
-                <StatCard label={t('badge.low')} value={12} color={SEVERITY_COLORS.low} />
+                <StatCard label={t('badge.high')}       value={7}  color={SEVERITY_COLORS.high} />
+                <StatCard label={t('badge.medium')}     value={8}  color={SEVERITY_COLORS.medium} />
+                <StatCard label={t('badge.low')}        value={12} color={SEVERITY_COLORS.low} />
               </div>
             </KitSection>
 

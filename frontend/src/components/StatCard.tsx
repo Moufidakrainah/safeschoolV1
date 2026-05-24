@@ -4,9 +4,20 @@ interface StatCardProps {
   color: string;
   active?: boolean;
   onClick?: () => void;
+  activeTextColor?: string;
 }
 
-export default function StatCard({ label, value, color, active, onClick }: StatCardProps) {
+export default function StatCard({ label, value, color, active, onClick, activeTextColor = 'white' }: StatCardProps) {
+  const backgroundColor = active
+    ? color
+    : `color-mix(in oklab, ${color} 18%, white)`;
+
+  const borderColor = active
+    ? `color-mix(in oklab, ${color} 60%, black)`
+    : `color-mix(in oklab, ${color} 35%, white)`;
+
+  const textColor = active ? activeTextColor : 'var(--foreground)';
+
   return (
     <div
       onClick={onClick}
@@ -16,14 +27,14 @@ export default function StatCard({ label, value, color, active, onClick }: StatC
       aria-label={onClick ? `${label} : ${value}` : undefined}
       aria-pressed={onClick ? active : undefined}
       style={{
-        borderBottom: `5px solid ${active ? color : 'transparent'}`,
-        backgroundColor: active ? color : '#f3f4f6',
-        color: active ? '#f3f4f6' : color,
+        backgroundColor,
+        border: `1px solid ${borderColor}`,
+        color: textColor,
       }}
-      className={`p-1 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-105' : 'scale-100'}`}
+      className={`p-1 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-105 shadow-sm' : 'scale-100'}`}
     >
-      <div className={`text-1xl font-bold ${active ? 'text-white' : ''}`} aria-hidden="true">{value}</div>
-      <div className={`text-sm mt-1 ${active ? 'text-white' : ''}`} aria-hidden="true">{label}</div>
+      <div className="pt-1 text-1xl font-bold" aria-hidden="true">{value}</div>
+      <div className="text-sm mt-1" aria-hidden="true">{label}</div>
     </div>
   );
 }
