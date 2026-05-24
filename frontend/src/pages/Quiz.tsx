@@ -54,9 +54,9 @@ export default function Quiz() {
   // ── Lobby: join screen
   if (!joinedRoom) {
     return (
-      <>
+      <div className="flex flex-col flex-1 min-h-0">
         <RoleHeader {...headerProps} />
-        <div className="flex items-center justify-center min-h-screen bg-surface">
+        <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Quiz</h1>
             {reconnecting && <p className="text-sm text-amber-500 text-center">Reconnexion en cours…</p>}
@@ -80,16 +80,16 @@ export default function Quiz() {
             </form>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   // ── Waiting room
   if (gamePhase === 'lobby') {
     return (
-      <>
+      <div className="flex flex-col flex-1 min-h-0">
         <RoleHeader {...headerProps} />
-        <div className="flex items-center justify-center min-h-screen bg-surface">
+        <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Salle : {joinedRoom}</h1>
             {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
@@ -107,12 +107,12 @@ export default function Quiz() {
             <Button onClick={startGame} disabled={!isHost} variant="primary">
               {isHost ? 'Lancer le quiz' : "En attente de l'hôte…"}
             </Button>
-            <Button onClick={leaveRoom} variant="ghost">
+            <Button onClick={leaveRoom} variant="primary">
               Quitter la salle
             </Button>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -120,9 +120,9 @@ export default function Quiz() {
   if (gamePhase === 'over') {
     const board = finalLeaderboard ?? [];
     return (
-      <>
+      <div className="flex flex-col flex-1 min-h-0">
         <RoleHeader {...headerProps} />
-        <div className="flex items-center justify-center min-h-screen bg-surface py-8">
+        <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
           <div className="w-full max-w-md rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-6">
             <div className="text-center">
               <h1 className="text-2xl font-black text-gray-900">Résultats finaux</h1>
@@ -163,7 +163,7 @@ export default function Quiz() {
             </Button>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
@@ -175,9 +175,9 @@ export default function Quiz() {
     : 0;
 
   return (
-    <>
+    <div className="flex flex-col flex-1 min-h-0">
       <RoleHeader {...headerProps} />
-      <div className="flex items-center justify-center min-h-screen bg-surface py-8">
+      <div className="flex items-center justify-center flex-1 bg-surface py-8 overflow-y-auto">
         <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
 
           {/* Header row */}
@@ -302,6 +302,6 @@ export default function Quiz() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
