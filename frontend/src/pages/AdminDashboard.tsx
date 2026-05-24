@@ -77,6 +77,8 @@ export default function AdminDashboard() {
   const [usersTotal, setUsersTotal]     = useState(0);
   const [showUserForm, setShowUserForm] = useState(false);
   const [usersSearch, setUsersSearch] = useState('');
+  const [usersSort, setUsersSort] = useState<'asc' | 'desc' | 'date'>('asc');
+  const [usersRoleFilter, setUsersRoleFilter] = useState<string>('all');
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
@@ -210,7 +212,7 @@ export default function AdminDashboard() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
-    try { await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null); }
+    try { await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null); setSelectedUser(null); navigate('/dashboard?section=users', { replace: true }); }
     catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.message ?? '';
       if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
@@ -220,9 +222,23 @@ export default function AdminDashboard() {
 
   const validateField = (field: string, value: string) => {
     let message = '';
-    if (!value.trim() && field !== 'password') message = t('admin.users.errorRequired');
-    else if (field === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
-    else if (field === 'password' && value.length > 0 && value.length < 6) message = t('admin.users.errorPasswordLength');
+    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
+    if (field === 'firstName' || field === 'lastName') {
+      if (!value.trim()) message = t('admin.users.errorRequired');
+      else if (!nameRegex.test(value)) message = 'Lettres, apostrophes ou tirets uniquement (max 20 caractères)';
+    } else if (field === 'email') {
+      if (!value.trim()) message = t('admin.users.errorRequired');
+      else if (value.length > 50) message = 'Email trop long (max 50 caractères)';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
+    } else if (field === 'password' && value.length > 0) {
+      if (value.length < 12) message = 'Minimum 12 caractères';
+      else if (!/[0-9]/.test(value)) message = 'Au moins un chiffre requis';
+      else if (!/[a-z]/.test(value)) message = 'Au moins une minuscule requise';
+      else if (!/[A-Z]/.test(value)) message = 'Au moins une majuscule requise';
+      else if (!/[^a-zA-Z0-9]/.test(value)) message = 'Au moins un caractère spécial requis';
+      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le prénom';
+      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le nom';
+    }
     setErrors(prev => ({ ...prev, [field]: message }));
   };
 
@@ -276,7 +292,7 @@ export default function AdminDashboard() {
       <div><Label className="text-white text-sm">{t('admin.users.firstName')}</Label><Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />{errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.lastName')}</Label><Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />{errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.email')}</Label><Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />{errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />{errors.password && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorPasswordLength')}</p>}</div>
+      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
       <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
         <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -297,7 +313,12 @@ export default function AdminDashboard() {
       )}
       {userForm.role === 'teacher' && (
         <>
-          <div><Label className="text-white text-sm">Matière enseignée</Label><Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value }))} placeholder="ex: Mathématiques" className="bg-white mt-1" /></div>
+          <div>
+            <Label className="text-white text-sm">Matière enseignée</Label>
+            <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
+            <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
+            {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}
+          </div>
           <div>
             <Label className="text-white text-sm mb-2 block">Classes où il intervient</Label>
             <div className="flex flex-wrap gap-2">
@@ -534,7 +555,23 @@ export default function AdminDashboard() {
         {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
           <section className="max-w-xl mx-auto">
-            <Button variant="ghost" className="mb-4" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>← Retour à la liste</Button>
+            <div className="flex justify-between items-center mb-4">
+              <Button variant="ghost" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>← Retour à la liste</Button>
+              <div className="flex gap-2">
+                <Button variant="ghost" disabled={users.findIndex(u => u.id === selectedUser.id) === 0}
+                  onClick={() => {
+                    const idx = users.findIndex(u => u.id === selectedUser.id);
+                    const prev = users[idx - 1];
+                    if (prev) { setSelectedUser(prev); setEditMode(false); navigate(`/dashboard?section=users&userId=${prev.id}`, { replace: true }); setUserForm({ firstName: prev.firstName, lastName: prev.lastName, email: prev.email, password: '', role: prev.role, classId: prev.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] }); setProfileParents([]); setProfileStaff(null); }
+                  }}>← Précédent</Button>
+                <Button variant="ghost" disabled={users.findIndex(u => u.id === selectedUser.id) === users.length - 1}
+                  onClick={() => {
+                    const idx = users.findIndex(u => u.id === selectedUser.id);
+                    const next = users[idx + 1];
+                    if (next) { setSelectedUser(next); setEditMode(false); navigate(`/dashboard?section=users&userId=${next.id}`, { replace: true }); setUserForm({ firstName: next.firstName, lastName: next.lastName, email: next.email, password: '', role: next.role, classId: next.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] }); setProfileParents([]); setProfileStaff(null); }
+                  }}>Suivant →</Button>
+              </div>
+            </div>
             <Card><CardContent className="pt-6">
               <div className="flex flex-col items-center gap-3 mb-6">
                 <div className="relative">
@@ -601,9 +638,34 @@ export default function AdminDashboard() {
           <section>
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-xl font-bold text-gray-800">👥 {t("admin.users.title")}</h2>
-              <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "student", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
+              <div className="flex items-center gap-2">
+                <select value={usersSort} onChange={e => setUsersSort(e.target.value as any)} className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
+                  <option value="asc">A → Z</option>
+                  <option value="desc">Z → A</option>
+                  <option value="date">Date création</option>
+                </select>
+                <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "student", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
+              </div>
             </div>
-            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-4" />
+            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-3" />
+            <div className="flex justify-center gap-3 mb-4 flex-wrap">
+              {[
+                { key: 'all',     label: 'Tous',       color: '#1a1a2e' },
+                { key: 'student', label: '🎒 Élèves',  color: '#3b82f6' },
+                { key: 'teacher', label: '📚 Profs',   color: '#8b5cf6' },
+                { key: 'admin',   label: '🛡️ Admins',  color: '#0f3460' },
+              ].map(r => (
+                <button key={r.key} onClick={() => setUsersRoleFilter(r.key)}
+                  className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
+                  style={{
+                    background: usersRoleFilter === r.key ? r.color : 'transparent',
+                    color: usersRoleFilter === r.key ? 'white' : r.color,
+                    border: `2px solid ${r.color}`,
+                  }}>
+                  {r.label}
+                </button>
+              ))}
+            </div>
             {showUserForm && (
               <Card className="mb-5"><CardContent className="pt-6">
                 <h3 className="font-bold mb-4">{editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
@@ -615,7 +677,12 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {users.map(u => (
+                {[...users].filter(u => usersRoleFilter === "all" || u.role === usersRoleFilter).sort((a, b) => {
+                  if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+                  if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
+                  if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                  return 0;
+                }).map(u => (
                   <li key={u.id}>
                     <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={async () => {
                       const freshUsers = await getAllUsers(usersPage, 5);
@@ -645,17 +712,6 @@ export default function AdminDashboard() {
               </ul>
             )}
             <Pagination currentPage={usersPage} totalPages={usersTotalPages} totalItems={usersTotal} onPageChange={(pg) => { setUsersPage(pg); fetchUsers(pg); }} />
-            {deleteTarget && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-                  <p className="text-sm text-gray-600 mb-4">{deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}</p>
-                  <div className="flex justify-end gap-3">
-                    <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); }} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">{isBlocked ? t('common.close') : t('common.cancel')}</button>
-                    {!isBlocked && <button onClick={confirmDelete} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">{isDeleting ? t('common.loading') : t('common.delete')}</button>}
-                  </div>
-                </div>
-              </div>
-            )}
           </section>
         )}
 
@@ -665,6 +721,19 @@ export default function AdminDashboard() {
         {/* ── Classes ── */}
         {viewSection === 'classes' && isAdmin && <AdminClasses />}
 
+
+        {/* ── Modale suppression utilisateur ── */}
+        {deleteTarget && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+              <p className="text-sm text-gray-600 mb-4">{deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); setDeleteError(''); }} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">{isBlocked ? t('common.close') : t('common.cancel')}</button>
+                {!isBlocked && <button onClick={confirmDelete} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">{isDeleting ? t('common.loading') : t('common.delete')}</button>}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
