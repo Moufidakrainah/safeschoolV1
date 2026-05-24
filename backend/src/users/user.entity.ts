@@ -15,7 +15,10 @@ export enum UserRole {
   ADMIN = "admin",
   DIRECTOR = "director",
   TEACHER = "teacher",
+<<<<<<< HEAD
   STAFF = "staff",
+=======
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
 }
 
 @Entity("users")
@@ -32,6 +35,7 @@ export class User {
   @Column() firstName: string;
   @Column() lastName: string;
   @CreateDateColumn() createdAt: Date;
+  @Column({ nullable: true }) avatar: string;
   @OneToMany(() => Report, (report) => report.student) reports: Report[];
   @OneToOne(() => StudentProfile, (profile) => profile.user)
   studentProfile: StudentProfile;

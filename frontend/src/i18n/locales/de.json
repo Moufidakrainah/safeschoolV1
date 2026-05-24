@@ -47,7 +47,9 @@
       "critical": "Kritisch",
       "high": "Ernst",
       "pending": "Ausstehend",
-      "escalated": "Eskaliert"
+      "escalated": "Eskaliert",
+      "medium": "Mittel",
+      "low": "Niedrig"
     },
     "search": {
       "placeholder": "Nach Name, Titel, Beschreibung suchen"
@@ -61,18 +63,18 @@
       "dateRange": "Datumsbereich",
       "dateFrom": "Von Datum",
       "dateTo": "Bis Datum",
-      "reset": "Zurücksetzen"
+      "reset": "Zurücksetzen",
+      "victimPlaceholder": "Name des Opfers..."
     },
     "status": {
-      "new": "Neu",
-      "in_progress": "Im Gange",
-      "pending": "In der Warteschleife",
-      "resolved": "Gelöst",
-      "false_report": "Falschmeldung"
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "escalated": "Eskaliert",
+      "closed": "Geschlossen",
+      "rejected": "Abgelehnt"
     },
     "detail": {
       "info": "Meldungsinformationen",
-      "titleField": "Titel",
       "date": "Datum",
       "class": "Klasse",
       "aiScore": "KI-Score",
@@ -86,8 +88,14 @@
       "victim": "Opfer",
       "suspects": "Verdächtige(r)",
       "noSuspect": "Kein Verdächtiger angegeben",
-      "gradeModified": "Note geändert",
-      "suspectsCount": "Verdächtige(r)"
+      "suspectsCount": "Verdächtige(r)",
+      "type": "Typ",
+      "reporter": "Gemeldet als",
+      "victims": "Opfer",
+      "noVictim": "Kein Opfer angegeben",
+      "victimLinked": "Verknüpft mit",
+      "reporterVictime": "Opfer",
+      "reporterTemoin": "Zeuge"
     },
     "actions": {
       "groupLabel": "Aktionen zur Meldung",
@@ -144,18 +152,20 @@
   },
   "badge": {
     "critical": "🔴 Kritisch",
-    "high": "🟠 Ernst",
-    "medium": "🟡 Mäßig",
-    "low": "🟢 Gering",
+    "high": "🟠 Hoch",
+    "medium": "🟡 Mittel",
+    "low": "🟢 Niedrig",
     "new": "📄 Neu",
-    "in_progress": "📂 Im Gange",
-    "pending": "⏳ In der Warteschleife",
+    "in_progress": "📂 In Bearbeitung",
+    "pending": "⏳ Ausstehend",
     "resolved": "✅ Gelöst",
-    "false_report": "❌ Falschmeldung"
+    "false_report": "❌ Falscher Bericht",
+    "closed": "✅ Geschlossen",
+    "rejected": "❌ Abgelehnt"
   },
   "noteblock": {
     "note": "📝 Notiz",
-    "convocation": "📅 Vorladung"
+    "convocation": " Vorladung"
   },
   "pagination": {
     "nav": "Seitennavigation",
@@ -172,7 +182,8 @@
     "previous": "Zurück",
     "next": "Weiter",
     "error": "Ein Fehler ist aufgetreten",
-    "close": "Schließen"
+    "close": "Schließen",
+    "back": "Zurück"
   },
   "privacy": {
     "updated": "Letzte Aktualisierung: April 2026",
@@ -367,12 +378,6 @@
     "s6": {
       "title": "6. Änderungen dieser Bedingungen",
       "body": "Diese Nutzungsbedingungen können von der Verwaltung jederzeit aktualisiert werden. Nutzer werden über wesentliche Änderungen informiert. Die weitere Nutzung der Anwendung nach der Benachrichtigung gilt als Zustimmung zu den überarbeiteten Bedingungen."
-    }
-  },
-  "student": {
-    "step1": {
-      "victim": "Ich bin ein Opfer",
-      "witness": "Ich bin ein Zeuge"
     }
   }
 }

@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+<<<<<<< HEAD
   ManyToOne,
   ManyToMany,
 } from "typeorm";
@@ -18,9 +19,24 @@ export class StudentProfile {
 
   @ManyToOne(() => SchoolClass, (cls) => cls.students, { nullable: true })
   class: SchoolClass;
+=======
+  ManyToMany,
+  ManyToOne,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { Parent } from "../parents/parent.entity";
+import { SchoolClass } from "../classes/school-class.entity";
 
-  @Column({ nullable: true })
-  dateOfBirth: string;
+@Entity("student_profiles")
+export class StudentProfile {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date;
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
+
+  @ManyToOne(() => SchoolClass, { nullable: true, eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'classId' })
+  schoolClass: SchoolClass | null;
 
   @OneToOne(() => User, (user) => user.studentProfile)
   @JoinColumn()

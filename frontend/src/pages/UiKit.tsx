@@ -10,6 +10,7 @@ import { Badge  as ShadBadge }    from '@/components/ui/badge';
 import { Input  as ShadInput }    from '@/components/ui/input';
 import { Label }                  from '@/components/ui/label';
 import { Separator }              from '@/components/ui/separator';
+import { Badge }              from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -28,10 +29,12 @@ import {
 } from '@/components/ui/select';
 
 // Composants app custom
-import AppBadge    from '../components/Badge';
+// import AppBadge    from '../components/ASupprimerBadge';
 import StatCard    from '../components/StatCard';
 import NoteBlock   from '../components/NoteBlock';
 
+import { useTranslation } from 'react-i18next';
+import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 
@@ -70,6 +73,8 @@ function PreviewBox({ className = '', children }: { className?: string; children
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export default function UiKit() {
+const { t } = useTranslation();
+	
   return (
     <main className="min-h-screen bg-surface px-5 py-8 text-gray-900">
       <div className="mx-auto flex max-w-5xl flex-col gap-10">
@@ -260,23 +265,14 @@ export default function UiKit() {
               </PreviewBox>
             </KitSection>
 
-            <KitSection label="AppBadge — Sévérité">
+            <KitSection label="Badge — Statut">
               <PreviewBox className="flex flex-wrap gap-2">
-                <AppBadge variant="critical" />
-                <AppBadge variant="high" />
-                <AppBadge variant="medium" />
-                <AppBadge variant="low" />
-              </PreviewBox>
-            </KitSection>
-
-            <KitSection label="AppBadge — Statut">
-              <PreviewBox className="flex flex-wrap gap-2">
-                <AppBadge variant="pending" />
-                <AppBadge variant="in_progress" />
-                <AppBadge variant="escalated" />
-                <AppBadge variant="closed" />
-                <AppBadge variant="rejected" />
-                <AppBadge variant="default" />
+                <Badge variant="new" />
+                <Badge variant="in_progress" />
+                <Badge variant="pending" />
+                <Badge variant="resolved" />
+                <Badge variant="false_report" />
+                {/* <Badge variant="default" /> */}
               </PreviewBox>
             </KitSection>
 
@@ -286,7 +282,7 @@ export default function UiKit() {
                   <p className="text-sm text-gray-700">Carte simple (sans bordure)</p>
                 </ShadCard>
                 <ShadCard className="p-6 shadow-sm" style={{ borderLeft: '5px solid #CC0000' }}>
-                  <p className="text-sm text-gray-700">Bordure gauche — critique</p>
+                  <p className="text-sm text-gray-700">Bordure gauche — critical</p>
                 </ShadCard>
                 <ShadCard className="p-6 shadow-sm" style={{ borderLeft: '5px solid #FF914D' }}>
                   <p className="text-sm text-gray-700">Bordure gauche — grave</p>
@@ -295,11 +291,12 @@ export default function UiKit() {
             </KitSection>
 
             <KitSection label="StatCard">
-              <div className="grid grid-cols-4 gap-4">
-                <StatCard label="Total"      value={42} color="#1a1a2e" />
-                <StatCard label="Critique"   value={3}  color="#CC0000" active />
-                <StatCard label="Grave"      value={7}  color="#FF914D" />
-                <StatCard label="En attente" value={12} color="#eab308" />
+              <div className="grid grid-cols-5 gap-4">
+                <StatCard label={t('badge.total')}      value={42} color="#1a1a2e" />
+                <StatCard label={t('badge.critical')}   value={3}  color={SEVERITY_COLORS.critical} active />
+                <StatCard label={t('badge.high')}      value={7}  color={SEVERITY_COLORS.high} />
+                <StatCard label={t('badge.medium')}      value={8}  color={SEVERITY_COLORS.medium} />
+                <StatCard label={t('badge.low')} value={12} color={SEVERITY_COLORS.low} />
               </div>
             </KitSection>
 

@@ -1,19 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-// ============================================================
-// NOTEBLOCK
-//
-// Affiche une note administrative ou une convocation dans la vue détail
-// d'un signalement.
-//
-// Props :
-//   note : objet note avec { type, createdAt, author?, content }
-//          type : 'note' | 'convocation'
-//
-// Utilisation :
-//   {notes.map((note) => <NoteBlock key={note.id} note={note} />)}
-// ============================================================
-
 interface NoteBlockProps {
   note: {
     id?: string;

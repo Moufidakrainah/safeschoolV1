@@ -14,17 +14,13 @@ import { StudentProfilesService } from "./student-profiles.service";
 import { validateUUID } from "../utils/validate-uuid";
 
 class CreateProfileDto {
-  parentEmail: string;
-  parentPhone: string;
-  schoolClass: string;
+  classId: string;
   dateOfBirth: string;
   userId: string;
 }
 
 class UpdateProfileDto {
-  parentEmail?: string;
-  parentPhone?: string;
-  schoolClass?: string;
+  classId?: string;
   dateOfBirth?: string;
 }
 
@@ -37,6 +33,7 @@ export class StudentProfilesController {
 
   @Post()
   async create(@Body() dto: CreateProfileDto, @Request() req) {
+<<<<<<< HEAD
     if (req.user.role !== "admin")
       throw new ForbiddenException("Accès réservé à l'admin");
     return this.studentProfilesService.create(
@@ -44,6 +41,10 @@ export class StudentProfilesController {
       dto.dateOfBirth,
       dto.userId,
     );
+=======
+    if (req.user.role !== 'admin') throw new ForbiddenException('Accès réservé à l\'admin');
+    return this.studentProfilesService.create(dto.classId, dto.dateOfBirth, dto.userId);
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   }
 
   @Get()
@@ -53,20 +54,30 @@ export class StudentProfilesController {
     return this.studentProfilesService.findAll();
   }
 
+<<<<<<< HEAD
   // Récupère le profil d'un élève avec ses parents
   // Accessible par l'admin, le directeur, ou l'élève lui-même
   @Get(":userId")
   async findOne(@Param("userId") userId: string, @Request() req) {
+=======
+  @Get(':userId')
+  async findOne(@Param('userId') userId: string, @Request() req) {
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     validateUUID(userId);
     if (req.user.role === "student" && req.user.id !== userId)
       throw new ForbiddenException("Accès refusé");
     return this.studentProfilesService.findByUserId(userId);
   }
 
+<<<<<<< HEAD
   // Récupère uniquement les parents d'un élève
   // Accessible par l'admin, le directeur, ou l'élève lui-même
   @Get("parents/:userId")
   async getParents(@Param("userId") userId: string, @Request() req) {
+=======
+  @Get('parents/:userId')
+  async getParents(@Param('userId') userId: string, @Request() req) {
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     validateUUID(userId);
     if (req.user.role === "student" && req.user.id !== userId)
       throw new ForbiddenException("Accès refusé");

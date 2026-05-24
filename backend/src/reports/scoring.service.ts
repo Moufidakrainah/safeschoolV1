@@ -41,17 +41,25 @@ export class ScoringService {
   }
 
   private async scoreRecidive(
+<<<<<<< HEAD
     suspects: { userId?: string; freeText?: string }[],
+=======
+    suspects: { freeText: string }[],
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   ): Promise<number> {
     if (!suspects || suspects.length === 0) return 0;
     let maxCount = 0;
     for (const suspect of suspects) {
       let count = 0;
+<<<<<<< HEAD
       if (suspect.userId) {
         count = await this.suspectsRepository.count({
           where: { user: { id: suspect.userId } },
         });
       } else if (suspect.freeText) {
+=======
+      if (suspect.freeText) {
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
         count = await this.suspectsRepository.count({
           where: { freeText: suspect.freeText },
         });
@@ -70,6 +78,7 @@ export class ScoringService {
     reason: string;
   } {
     const text = description.toLowerCase();
+<<<<<<< HEAD
     if (
       text.includes("suicid") ||
       text.includes("me tuer") ||
@@ -106,6 +115,116 @@ export class ScoringService {
     ) {
       return { score: 5, urgency: false, reason: "Menace verbale détectée" };
     }
+=======
+    const match = (patterns: RegExp[]) => patterns.some(p => p.test(text));
+
+    // ── Urgence : violence physique ou idées suicidaires ──────────────────
+    const urgencePatterns = [
+      // Idées suicidaires
+      /suicid/,
+      /me tuer|envie de mourir|veux mourir|veut mourir/,
+      /mourir|la mort|en finir/,
+      /plus vivre|plus envie de vivre/,
+
+      // Violence physique
+      /frapp/,            // frappe, frapper, frappé, frappée, frappent
+      /cogn/,             // cogner, cogné
+      /coup[s ]|coup$/,   // coup, coups
+      /battre|me bat |me batt/,
+      /bless/,            // blesser, blessé
+      /agress/,           // agresser, agression
+      /violen/,           // violence, violent
+      /attaqu/,           // attaquer, attaque
+      /pouss/,            // pousser, poussé, pousse
+      /gifle|giffl/,      // gifle, giflé
+      /étrangl/,          // étrangler
+      /crach/,            // cracher, craché
+
+      // Menaces graves
+      /menaç|je vais te/,
+      /te tuer|te frapper|te casser/,
+      /si tu parles|si tu le dis/,
+
+      // Harcèlement sexuel
+      /touch.*corps|corps.*touch/,
+      /geste déplacé|remarque.*corps/,
+      /harcèlement sexuel|agression sexuelle/,
+    ];
+
+    // ── Détresse émotionnelle ─────────────────────────────────────────────
+    const detressePatterns = [
+      // Peur et anxiété
+      /\bpeur\b|apeur/,
+      /anxieu|angoiss/,
+      /stressé|stress/,
+      /tremble|trembl/,
+
+      // Tristesse et isolement
+      /pleur/,            // pleurer, pleure, pleuré
+      /triste|tristesse/,
+      /déprim|dépress/,
+      /malheur/,
+      /souffr/,
+      /\bseul[e ]?\b|isolé|mis à l.écart/,
+      /personne ne m.aime|personne ne me parle/,
+
+      // Mal-être scolaire
+      /plus envie d.aller|peur d.aller|j.ose pas aller/,
+      /mal à l.aise|pas bien|très mal/,
+      /honte/,
+      /plus dormir|ne dors plus|cauchemar/,
+      /ne mange plus|ne mange pas/,
+
+      // Demande d.aide
+      /aidez.moi|besoin d.aide|au secours/,
+      /\baide\b/,
+    ];
+
+    // ── Menace verbale ────────────────────────────────────────────────────
+    const verbalePatterns = [
+      // Insultes
+      /insult/,
+      /traite.*nom|noms|tous les noms/,
+      /gros mot|grossièreté/,
+      /racis|racist|discrimin/,
+      /moque|rigoler de moi|rient de moi/,
+
+      // Humiliation
+      /humili/,
+      /ridiculis|se fout de moi/,
+      /surnom|appell.*méchant/,
+      /imit/,             // imiter, imitation
+
+      // Menace verbale
+      /menace verbal|crier|hurler/,
+      /réputation|répand.*rumeur|rumeur/,
+      /dit.*mensonge|ment sur moi/,
+    ];
+
+    // ── Exclusion sociale ─────────────────────────────────────────────────
+    const exclusionPatterns = [
+      /refuse.*s.asseoir|ne veut pas.*asseoir/,
+      /exclure|exclu[e ]|mis à l.écart/,
+      /personne ne me parle|plus personne/,
+      /seul.*cantine|mange seul/,
+      /groupe.*travail|refus.*groupe/,
+      /ignor/,            // ignorer, ignoré
+      /ostracis/,
+    ];
+
+    if (match(urgencePatterns)) {
+      return { score: 20, urgency: true,  reason: "Menace physique / idées suicidaires détectées" };
+    }
+    if (match(detressePatterns)) {
+      return { score: 10, urgency: false, reason: "Détresse émotionnelle détectée" };
+    }
+    if (match(verbalePatterns)) {
+      return { score: 5,  urgency: false, reason: "Menace verbale détectée" };
+    }
+    if (match(exclusionPatterns)) {
+      return { score: 3,  urgency: false, reason: "Exclusion sociale détectée" };
+    }
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
     return { score: 0, urgency: false, reason: "Situation banale" };
   }
 
@@ -148,13 +267,14 @@ Signalement : "${description}"`,
       );
       const data = await response.json();
       const text = data.choices[0].message.content.trim();
-      const parsed = JSON.parse(text);
+      const jsonMatch = text.match(/{[\s\S]*?}/);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
       return {
         score: parsed.score ?? 0,
         urgency: parsed.urgency ?? false,
         reason: parsed.reason ?? "",
       };
-    } catch {
+    } catch (err) {
       return this.scoreAIFallback(description);
     }
   }
@@ -164,7 +284,11 @@ Signalement : "${description}"`,
     description: string,
     frequency: string,
     schoolClass: string,
+<<<<<<< HEAD
     suspects: { userId?: string; freeText?: string }[],
+=======
+    suspects: { freeText: string }[],
+>>>>>>> 857fb437763aac2bda1f5c81879bb935f61a291e
   ): Promise<{
     finalScore: number;
     grade: ReportGrade;

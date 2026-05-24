@@ -1,5 +1,5 @@
+/* stocke l utilisateur connecte. Disponible partout via useAuth() */
 import { createContext, useContext, useState } from 'react';
-// FIX: ReactNode must be imported as a type because verbatimModuleSyntax is enabled.
 import type { ReactNode } from 'react';
 
 interface User {
@@ -7,17 +7,18 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'student' | 'admin' | 'director' | 'teacher' | 'staff';
+  role: 'student' | 'admin' | 'director' | 'teacher';
+  avatar?: string | null;
   studentProfile?: {
     id: string;
-    schoolClass: string;
+    schoolClass: { id: string; level: string; section: string } | null;
     dateOfBirth: string;
   } | null;
   staffProfile?: {
     id: string;
-    role: string;
-    subject?:string;
-  }
+    profession: string;
+    subject?: string;
+  } | null;
 }
 
 interface AuthContextType {
@@ -35,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
 
   const loginUser = (token: string, user: User) => {
