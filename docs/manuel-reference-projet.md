@@ -1530,7 +1530,7 @@ La StatCard est un bouton de filtre. Les 3 premières filtrent par **grade** (va
 {notes.map(note => <NoteBlock key={note.id} note={note} />)}
 ```
 
-Les labels "📝 Note" / "📅 Convocation" sont gérés via `t('noteblock.note')` et `t('noteblock.convocation')`.
+Les labels "📝 Note" / " Convocation" sont gérés via `t('noteblock.note')` et `t('noteblock.convocation')`.
 
 ### Pagination
 

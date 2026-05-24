@@ -1,52 +1,67 @@
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@/lib/utils"
+import { useTranslation } from 'react-i18next';
+
+export type BadgeVariant =
+  | 'critical' | 'high' | 'medium' | 'low'
+  | 'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
+
+const variantI18nKeys: Record<BadgeVariant, string> = {
+  critical:     'badge.critical',
+  high:         'badge.high',
+  medium:       'badge.medium',
+  low:          'badge.low',
+  new:          'badge.new',
+  in_progress:  'badge.in_progress',
+  pending:      'badge.pending',
+  resolved:     'badge.resolved',
+  false_report: 'badge.false_report',
+};
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "inline-flex items-center justify-center rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        secondary:
-          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
-        destructive:
-          "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
-        outline:
-          "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
-        ghost:
-          "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+        critical:     'bg-critical text-white',
+        high:         'bg-high text-gray-900',
+        medium:       'bg-medium text-gray-900',
+        low:          'bg-low text-gray-900',
+        new:          'bg-sky-100 text-sky-700',
+        in_progress:  'bg-amber-100 text-amber-700',
+        pending:      'bg-teal-100 text-teal-700',
+        resolved:     'bg-lime-100 text-lime-700',
+        false_report: 'bg-rose-100 text-rose-700',
       },
     },
-    defaultVariants: {
-      variant: "default",
-    },
+    defaultVariants: { variant: "new" },
   }
 )
 
-function Badge({
-  className,
-  variant = "default",
-  render,
-  ...props
-}: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
-  return useRender({
-    defaultTagName: "span",
-    props: mergeProps<"span">(
-      {
-        className: cn(badgeVariants({ variant }), className),
-      },
-      props
-    ),
-    render,
-    state: {
-      slot: "badge",
-      variant,
-    },
-  })
+interface BadgeProps
+  extends React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {
+  label?: string;
+  onClick?: () => void;
 }
 
-export { Badge, badgeVariants }
+export function Badge({ className, variant = "new", label, onClick, ...props }: BadgeProps) {
+  const { t } = useTranslation();
+  const key = variantI18nKeys[variant ?? 'new'];
+  return (
+    <span
+      className={cn(
+        badgeVariants({ variant }),
+        onClick ? 'cursor-pointer hover:opacity-80' : '',
+        className
+      )}
+      onClick={onClick}
+      {...props}
+    >
+      {label ?? (key ? t(key) : '')}
+    </span>
+  );
+}
+
+// Export par défaut pour compatibilité
+export default Badge;

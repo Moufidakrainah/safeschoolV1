@@ -1,72 +1,73 @@
-import { useState } from "react";
-import { Checkbox } from "../components/ui/checkbox";
+import { Checkbox } from "./ui/checkbox";
 
-export default function ConvocationSelector({ selected, onSend} : 
-{
-	selected: any;
-	onSend: (date: string, message: string, targetRole: string[]) => Promise<void>;
-})
-{
-	if (!selected) return null;
+interface ConvocationSelectorProps {
+  selected: any;
+  checkedIds: string[];
+  onToggle: (id: string) => void;
+}
 
+export default function ConvocationSelector({ selected, checkedIds, onToggle }: ConvocationSelectorProps) {
+  if (!selected) return null;
 
-	const people = [];
+  const people: { id: string; role: string; fullName: string }[] = [];
 
-	console.log(!selected.isAnonymous);
+  // Alerteur (si pas anonyme)
+  if (!selected.isAnonymous && selected.student) {
+    people.push({
+      id: 'alerteur',
+      role: selected.reporter === 'victime' ? 'Victime / Alerteur' : 'Alerteur',
+      fullName: `${selected.student.firstName} ${selected.student.lastName}`,
+    });
+  }
 
-	// --- Alerteur (si pas anonyme) ---
-	if (!selected.isAnonymous && selected.student?.reporter) {
-		people.push({
-			id: "alerteur",
-			role: "Alerteur",
-			fullName: `${reporter.firstName} ${reporter.lastName}`,
-		});
-	}
-		
-	// console.log(!selected.isAnonymous);
+  // Victimes liées — tous les cas (victime ou temoin)
+  // Exclure la victime auto-ajoutée = l'alerteur lui-même
+  const extraVictims = selected.victims
+    ?.filter((v: any) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
 
-	// --- Victime ---
-	let victimName = "";
-	
-	if (selected.title?.includes("Je suis témoin")) {
-		const match = selected.description?.match(/\| Victime : (.+?)(\||$)/);
-			victimName = match ? match[1].trim() : "Victime inconnue";
-	} else {
-		// Cas : l’alerteur est victime
-		victimName = selected.isAnonymous
-		? "Anonyme"
-		: `${selected.student?.firstName} ${selected.student?.lastName}`;
-	}
+  extraVictims.forEach((v: any, i: number) => {
+    people.push({
+      id: `victim_${i}`,
+      role: extraVictims.length > 1 ? `Victime ${i + 1}` : 'Victime',
+      fullName: `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`,
+    });
+  });
 
-	people.push({
-		id: "victime",
-		role: "Victime",
-		fullName: victimName,
-	});
+  // Suspects liés uniquement
+  selected.suspects
+    ?.filter((s: any) => s.resolvedUser)
+    .forEach((s: any, i: number) => {
+      const linkedSuspects = selected.suspects.filter((s: any) => s.resolvedUser);
+      people.push({
+        id: `suspect_${i}`,
+        role: linkedSuspects.length > 1 ? `Suspect ${i + 1}` : 'Suspect',
+        fullName: `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`,
+      });
+    });
 
-	// --- Suspects ---
-	selected.suspects?.forEach((s, i) => {
-		const fullName = s.user
-			? `${s.user.firstName} ${s.user.lastName}`
-			: s.freeText;
+  if (people.length === 0) {
+    return (
+      <p className="text-sm text-gray-400 mb-4">
+        Aucune personne à convoquer — liez d'abord les suspects/victimes à un élève.
+      </p>
+    );
+  }
 
-		people.push({
-			id: `suspect_${i}`,
-			role: selected.suspects.length > 1 ? `Suspect ${i + 1}` : "Suspect",
-			fullName,
-		});
-	});
-
-	return (
-		<div className="flex flex-col gap-3 mb-5">
-			{people.map(p => (
-			<div key={p.id} className="flex items-center gap-2">
-			<Checkbox id={p.id} />
-			<label htmlFor={p.id} className="text-sm cursor-pointer">
-				<strong>{p.role}</strong> — {p.fullName}
-			</label>
-			</div>
-		))}
-		</div>
-	);
+  return (
+    <div className="flex flex-col gap-3 mb-5">
+      <p className="text-xs font-semibold text-gray-500 mb-1">Sélectionner les destinataires :</p>
+      {people.map(p => (
+        <div key={p.id} className="flex items-center gap-2">
+          <Checkbox
+            id={p.id}
+            checked={checkedIds.includes(p.id)}
+            onCheckedChange={() => onToggle(p.id)}
+          />
+          <label htmlFor={p.id} className="text-sm cursor-pointer">
+            <strong>{p.role}</strong> — {p.fullName}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
 }

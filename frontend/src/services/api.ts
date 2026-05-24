@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { SuspectInput } from '../types';
+import type { SuspectInput, VictimInput } from '../types';
 
 const api = axios.create({ baseURL: 'http://localhost:5000' });
 
@@ -15,18 +15,20 @@ export const login = async (email: string, password: string) =>
 export const register = async (email: string, password: string, firstName: string, lastName: string) =>
   (await api.post('/auth/register', { email, password, firstName, lastName })).data;
 
-export const getReports = async () => (await api.get('/reports')).data;
-
 export const getAllReports = async () => (await api.get('/reports')).data;
 
-export const createReport = async (title: string, description: string, isAnonymous: boolean, suspects: SuspectInput[], frequency: string, schoolClass: string) =>
-  (await api.post('/reports', { title, description, isAnonymous, suspects, frequency, schoolClass })).data;
+export const createReport = async (
+  type: string,
+  reporter: string,
+  description: string,
+  isAnonymous: boolean,
+  suspects: SuspectInput[],
+  victims: VictimInput[],
+  frequency: string,
+) => (await api.post('/reports', { type, reporter, description, isAnonymous, suspects, victims, frequency })).data;
 
 export const updateReport = async (id: string, updates: object) =>
   (await api.patch(`/reports/${id}`, updates)).data;
-
-export const escalateReport = async (id: string) =>
-  (await api.patch(`/reports/${id}/escalate`)).data;
 
 export const searchUsers = async (query: string) =>
   (await api.get(`/users/search?q=${query}`)).data;
@@ -46,31 +48,55 @@ export const markNotificationRead = async (id: string) =>
 
 export const getAllUsers = async () => (await api.get('/users')).data.data;
 
-export const createUser = async (dto: Record<string, string>) => (await api.post('/users', dto)).data;
+export const createUser = async (dto: Record<string, string>) =>
+  (await api.post('/users', dto)).data;
 
-export const updateUser = async (id: string, dto: Record<string, string>) => (await api.patch(`/users/${id}`, dto)).data;
+export const updateUser = async (id: string, dto: Record<string, string>) =>
+  (await api.patch(`/users/${id}`, dto)).data;
 
 export const deleteUser = async (id: string) => {
   try {
-    const res = await api.delete(`/users/${id}`);
-    return res.data;
+    return (await api.delete(`/users/${id}`)).data;
   } catch (err: any) {
-    const message = err.response?.data?.message || "DELETE_FAILED";
+    const message = err.response?.data?.message || 'DELETE_FAILED';
     throw new Error(message);
   }
 };
 
-// Récupère les parents liés à un élève
+export const checkCanDeleteUser = async (id: string) =>
+  (await api.get(`/users/${id}/can-delete`)).data;
+
 export const getStudentParents = async (userId: string) =>
   (await api.get(`/student-profiles/parents/${userId}`)).data;
 
 export const getStaffProfile = async (userId: string) =>
   (await api.get(`/staff-profiles/by-user/${userId}`)).data;
 
-export const checkCanDeleteUser = async (id: string) => {
-  const res = await api.get(`/users/${id}/can-delete`);
-  return res.data;
-  
-};
+export const getClasses = async () =>
+  (await api.get('/classes')).data;
+
+export const createClass = async (level: string, section: string) =>
+  (await api.post('/classes', { level, section })).data;
+
+export const updateClass = async (id: string, level: string, section: string) =>
+  (await api.patch(`/classes/${id}`, { level, section })).data;
+
+export const deleteClass = async (id: string) =>
+  (await api.delete(`/classes/${id}`)).data;
+
+export const assignStudentToClass = async (userId: string, classId: string) =>
+  (await api.patch(`/users/${userId}`, { classId })).data;
+
+export const resolveSuspect = async (suspectId: string, resolvedUserId: string | null) =>
+  (await api.patch(`/reports/suspects/${suspectId}/resolve`, { resolvedUserId })).data;
+
+export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
+  (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
+
+export const createStaffProfile = async (dto: Record<string, any>) =>
+  (await api.post('/staff-profiles', dto)).data;
+
+export const updateStaffProfile = async (id: string, dto: Record<string, any>) =>
+  (await api.patch(`/staff-profiles/${id}`, dto)).data;
 
 export default api;

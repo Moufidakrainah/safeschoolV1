@@ -1,5 +1,5 @@
-import * as net from 'net';
-import TransportStream, { TransportStreamOptions } from 'winston-transport';
+import * as net from "net";
+import TransportStream, { TransportStreamOptions } from "winston-transport";
 
 interface LogstashTransportOptions extends TransportStreamOptions {
   host: string;
@@ -29,21 +29,24 @@ export class LogstashTransport extends TransportStream {
         this.buffer = [];
       }
     });
-    this.client.on('error', () => {
+    this.client.on("error", () => {
       this.connected = false;
       setTimeout(() => this.connect(), 5000);
     });
-    this.client.on('close', () => { this.connected = false; });
+    this.client.on("close", () => {
+      this.connected = false;
+    });
   }
 
   log(info: any, callback: () => void): void {
-    setImmediate(() => this.emit('logged', info));
-    const message = JSON.stringify({
-      ...info,
-      application: 'safeschool-backend',
-      environment: process.env.NODE_ENV || 'development',
-      timestamp: new Date().toISOString(),
-    }) + '\n';
+    setImmediate(() => this.emit("logged", info));
+    const message =
+      JSON.stringify({
+        ...info,
+        application: "safeschool-backend",
+        environment: process.env.NODE_ENV || "development",
+        timestamp: new Date().toISOString(),
+      }) + "\n";
 
     if (this.connected && this.client) {
       this.client.write(message);

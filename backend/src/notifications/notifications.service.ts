@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Notification } from './notification.entity';
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Notification } from "./notification.entity";
 
 @Injectable()
 export class NotificationsService {
@@ -10,7 +10,11 @@ export class NotificationsService {
     private notificationsRepository: Repository<Notification>,
   ) {}
 
-  async create(userId: string, reportId: string, message: string): Promise<Notification> {
+  async create(
+    userId: string,
+    reportId: string,
+    message: string,
+  ): Promise<Notification> {
     const notification = this.notificationsRepository.create({
       user: { id: userId },
       report: { id: reportId },
@@ -21,16 +25,16 @@ export class NotificationsService {
 
   async getForUser(userId: string): Promise<Notification[]> {
     return this.notificationsRepository
-      .createQueryBuilder('notification')
-      .leftJoinAndSelect('notification.report', 'report')
+      .createQueryBuilder("notification")
+      .leftJoinAndSelect("notification.report", "report")
       .where('notification."userId" = :userId', { userId })
-      .orderBy('notification."createdAt"', 'DESC')
+      .orderBy('notification."createdAt"', "DESC")
       .getMany();
   }
 
   async countUnread(userId: string): Promise<number> {
     return this.notificationsRepository
-      .createQueryBuilder('notification')
+      .createQueryBuilder("notification")
       .where('notification."userId" = :userId', { userId })
       .andWhere('notification."isRead" = false')
       .getCount();

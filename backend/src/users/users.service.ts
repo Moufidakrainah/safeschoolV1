@@ -5,7 +5,7 @@ import { StudentProfile } from '../student-profiles/student-profile.entity';
 import * as bcrypt from 'bcrypt';
 import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Report } from '../reports/report.entity';
-import { SchoolClass } from '../classes/class.entity';
+import { SchoolClass } from '../classes/school-class.entity';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +23,7 @@ constructor(
   @InjectRepository(Report)
   private reportRepository: Repository<Report>,
   @InjectRepository(SchoolClass)
-  private classRepository: Repository<SchoolClass>,
+  private classesRepository: Repository<SchoolClass>,
 ) {}
 
 
@@ -33,7 +33,7 @@ constructor(
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
+	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
     //   relations: ['studentProfile', 'staffProfile'],
     });
   }
@@ -43,9 +43,8 @@ constructor(
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt'],
-      relations: ['studentProfile'],
-    //   relations: ['studentProfile', 'staffProfile'],
+	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
+      relations: ['studentProfile', 'studentProfile.schoolClass', 'staffProfile'],
     });
   }
 
@@ -54,7 +53,7 @@ constructor(
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
-      relations: ['studentProfile'],
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
     });
   }
 
@@ -62,13 +61,25 @@ constructor(
   // role     : filtrer par rôle (optionnel)
   // page     : numéro de page (défaut 1)
   // limit    : nombre de résultats par page (défaut 10)
-  async findAll(role?: string, page = 1, limit = 10): Promise<{ data: User[]; total: number; page: number; totalPages: number }> {
-    const query = this.usersRepository.createQueryBuilder('user')
-      .leftJoinAndSelect('user.studentProfile', 'studentProfile');
+  async findAll(
+    role?: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    data: User[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const query = this.usersRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.studentProfile", "studentProfile")
+      .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
+      .leftJoinAndSelect("user.staffProfile", "staffProfile");
 
     // Si un rôle est précisé, on filtre par ce rôle
     if (role) {
-      query.where('user.role = :role', { role });
+      query.where("user.role = :role", { role });
     }
 
     // Pagination : on saute les résultats des pages précédentes
@@ -91,10 +102,16 @@ constructor(
   // On exclut les admins et directeurs des résultats
   async search(query: string): Promise<User[]> {
     return this.usersRepository
-      .createQueryBuilder('user')
-      .where('LOWER(user.firstName) LIKE LOWER(:query)', { query: `%${query}%` })
-      .orWhere('LOWER(user.lastName) LIKE LOWER(:query)', { query: `%${query}%` })
-      .andWhere('user.role NOT IN (:...roles)', { roles: ['admin', 'director'] })
+      .createQueryBuilder("user")
+      .where("LOWER(user.firstName) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .andWhere("user.role NOT IN (:...roles)", {
+        roles: ["admin", "director"],
+      })
       .limit(5)
       .getMany();
   }
@@ -102,124 +119,130 @@ constructor(
   // ── Créer un utilisateur (par un admin) ───────────────────────────────────
   // On vérifie que l'email n'existe pas déjà avant de créer
   // Si c'est un élève et qu'une classe est fournie, on crée aussi son profil
-  async create(email: string, password: string, firstName: string, lastName: string, role: UserRole = UserRole.STUDENT): Promise<User> {
+  async create(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    role: UserRole = UserRole.STUDENT,
+  ): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
-    const user = this.usersRepository.create({ email, password: hashed, firstName, lastName, role });
+    const user = this.usersRepository.create({
+      email,
+      password: hashed,
+      firstName,
+      lastName,
+      role,
+    });
     return this.usersRepository.save(user);
   }
 
   // ── Créer un utilisateur via l'interface admin ────────────────────────────
-  
   async createByAdmin(dto: {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  schoolClass?: string; // ici c'est l'id de la classe
-}): Promise<User> {
-
-  // Vérifier email
-  const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
-  if (existing) throw new ConflictException('Cet email est déjà utilisé');
-
-  // Créer l'utilisateur
-  const hashed = await bcrypt.hash(dto.password, 10);
-  const user = this.usersRepository.create({
-    email: dto.email,
-    password: hashed,
-    firstName: dto.firstName,
-    lastName: dto.lastName,
-    role: dto.role as UserRole,
-  });
-  const saved = await this.usersRepository.save(user);
-
-  // Si c'est un élève → créer le profil
-  if (dto.role === 'student' && dto.schoolClass) {
-    const schoolClass = await this.classRepository.findOneBy({ id: dto.schoolClass });
-    if (!schoolClass) throw new NotFoundException('Classe introuvable');
-
-    const profile = this.studentProfileRepository.create({
-      user: saved,
-      class: schoolClass,
+    email: string;
+    password: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    classId?: string;
+  }): Promise<User> {
+    // Vérifier que l'email n'est pas déjà utilisé
+    const existing = await this.usersRepository.findOne({
+      where: { email: dto.email },
     });
+    if (existing) throw new ConflictException("Cet email est déjà utilisé");
 
-    await this.studentProfileRepository.save(profile);
+    const hashed = await bcrypt.hash(dto.password, 10);
+    const user = this.usersRepository.create({
+      email: dto.email,
+      password: hashed,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role: dto.role as UserRole,
+    });
+    const saved = await this.usersRepository.save(user);
+
+    // Si c'est un élève avec une classe, on crée son profil élève
+    if (dto.role === 'student') {
+      const schoolClass = dto.classId
+        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
+        : null;
+      const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
+      await this.studentProfileRepository.save(profile);
+    }
+
+    return saved;
   }
-
-  return saved;
-}
-
-
 
   // ── Modifier un utilisateur (par un admin) ────────────────────────────────
   // On vérifie que le nouvel email n'est pas déjà utilisé par quelqu'un d'autre
-  
-  async updateByAdmin(id: string, dto: {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  role?: string;
-  schoolClass?: string; // id de la classe
-}): Promise<User> {
+  async updateByAdmin(
+    id: string,
+    dto: {
+      email?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: string;
+      classId?: string;
+    },
+  ): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
+    });
+    if (!user) throw new NotFoundException("Utilisateur introuvable");
 
-  const user = await this.usersRepository.findOne({
-    where: { id },
-    relations: ['studentProfile'],
-  });
-  if (!user) throw new NotFoundException('Utilisateur introuvable');
-
-  // Email
-  if (dto.email && dto.email !== user.email) {
-    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
-    if (existing) throw new ConflictException('Cet email est déjà utilisé');
-    user.email = dto.email;
-  }
-
-  if (dto.firstName) user.firstName = dto.firstName;
-  if (dto.lastName)  user.lastName  = dto.lastName;
-  if (dto.role)      user.role      = dto.role as UserRole;
-
-  const saved = await this.usersRepository.save(user);
-
-  // Mise à jour du profil élève
-  if (dto.schoolClass) {
-    const schoolClass = await this.classRepository.findOneBy({ id: dto.schoolClass });
-    if (!schoolClass) throw new NotFoundException('Classe introuvable');
-
-    if (user.studentProfile) {
-      user.studentProfile.class = schoolClass;
-      await this.studentProfileRepository.save(user.studentProfile);
-    } else {
-      const profile = this.studentProfileRepository.create({
-        user: saved,
-        class: schoolClass,
+    // Si on change l'email, vérifier qu'il n'est pas déjà pris par un autre user
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.usersRepository.findOne({
+        where: { email: dto.email },
       });
-      await this.studentProfileRepository.save(profile);
+      if (existing) throw new ConflictException("Cet email est déjà utilisé");
+      user.email = dto.email;
     }
+
+    if (dto.firstName) user.firstName = dto.firstName;
+    if (dto.lastName) user.lastName = dto.lastName;
+    if (dto.role) user.role = dto.role as UserRole;
+
+    const saved = await this.usersRepository.save(user);
+
+    // Mettre à jour ou créer le profil élève si une classe est fournie
+    if (dto.classId !== undefined) {
+      const schoolClass = dto.classId
+        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
+        : null;
+      if (user.studentProfile) {
+        user.studentProfile.schoolClass = schoolClass;
+        await this.studentProfileRepository.save(user.studentProfile);
+      } else {
+        const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
+        await this.studentProfileRepository.save(profile);
+      }
+    }
+
+    return saved;
   }
-
-  return saved;
-}
-
-
 
   // ── Changer le mot de passe d'un utilisateur ──────────────────────────────
   // Accessible par l'admin (pour n'importe quel user)
   // Accessible par l'utilisateur lui-même (pour son propre compte)
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (!user) throw new NotFoundException("Utilisateur introuvable");
 
     // Vérifier que le mot de passe fait au moins 6 caractères
-    if (newPassword.length < 6) throw new ForbiddenException('Le mot de passe doit faire au moins 6 caractères');
+    if (newPassword.length < 6)
+      throw new ForbiddenException(
+        "Le mot de passe doit faire au moins 6 caractères",
+      );
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
     // On utilise une requête directe pour contourner le select: false sur password
     await this.usersRepository.query(
       `UPDATE users SET password = $1 WHERE id = $2`,
-      [hashed, id]
+      [hashed, id],
     );
   }
 
@@ -259,7 +282,7 @@ constructor(
 //   const hasReports = await this.reportRepository.count({
 //     where: [
 //       { student: { id } },
-//       { suspects: { user: { id } } },
+//       { suspects: { resolvedUser: { id } } },
 //     ]
 //   });
 
@@ -283,7 +306,7 @@ async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
   const hasReports = await this.reportRepository.count({
     where: [
       { student: { id } },
-      { suspects: { user: { id } } },
+      { suspects: { resolvedUser: { id } } },
     ]
   });
 
@@ -304,7 +327,7 @@ async canDelete(id: string): Promise<{ deletable: boolean }> {
   const hasReports = await this.reportRepository.count({
     where: [
       { student: { id } },
-      { suspects: { user: { id } } },
+      { suspects: { resolvedUser: { id } } },
     ]
   });
   return { deletable: hasReports === 0 };
@@ -316,4 +339,15 @@ async canDelete(id: string): Promise<{ deletable: boolean }> {
 
 
 
+
+  async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
+    // Supprimer l'ancien fichier si il existe
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (user?.avatar && user.avatar !== filename) {
+      const oldPath = require('path').join(process.cwd(), 'uploads', 'avatars', user.avatar);
+      try { require('fs').unlinkSync(oldPath); } catch {}
+    }
+    await this.usersRepository.update(id, { avatar: filename });
+    return { avatar: filename };
+  }
 }

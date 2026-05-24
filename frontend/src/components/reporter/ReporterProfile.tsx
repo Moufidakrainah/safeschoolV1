@@ -1,14 +1,3 @@
-/**
- * ReporterProfile — section "Mon profil" du ReporterDashboard.
- *
- * Affiche deux blocs :
- *   - Informations personnelles (prénom, nom, email de l'utilisateur connecté)
- *   - Profil professionnel (profession, matière, classes) chargé depuis l'API
- *
- * Ce composant est purement présentationnel : il reçoit les données en props
- * et ne fait aucun appel réseau lui-même. Le chargement est géré par le parent.
- */
-
 import { useTranslation } from 'react-i18next';
 import type { AuthUser } from '../../types';
 import { Card } from '../ui/card';

@@ -47,7 +47,9 @@
       "critical": "Critical",
       "high": "Serious",
       "pending": "Pending",
-      "escalated": "Escalated"
+      "escalated": "Escalated",
+      "medium": "Medium",
+      "low": "Low"
     },
     "search": {
       "placeholder": "Search by name, title, description"
@@ -61,18 +63,18 @@
       "dateRange": "Date range",
       "dateFrom": "From date",
       "dateTo": "To date",
-      "reset": "Reset"
+      "reset": "Reset",
+      "victimPlaceholder": "Victim name..."
     },
     "status": {
-      "new": "New",
-      "in_progress": "In progress",
       "pending": "Pending",
-      "resolved": "Resolved",
-      "false_report": "False report"
+      "in_progress": "In progress",
+      "escalated": "Escalated",
+      "closed": "Closed",
+      "rejected": "Rejected"
     },
     "detail": {
       "info": "Report information",
-      "titleField": "Title",
       "date": "Date",
       "class": "Class",
       "aiScore": "AI Score",
@@ -86,8 +88,14 @@
       "victim": "Victim",
       "suspects": "Suspect(s)",
       "noSuspect": "No suspect indicated",
-      "gradeModified": "Grade modified",
-      "suspectsCount": "suspect(s)"
+      "suspectsCount": "suspect(s)",
+      "type": "Type",
+      "reporter": "Reported as",
+      "victims": "Victim(s)",
+      "noVictim": "No victim indicated",
+      "victimLinked": "Linked to",
+      "reporterVictime": "Victim",
+      "reporterTemoin": "Witness"
     },
     "actions": {
       "groupLabel": "Report actions",
@@ -144,18 +152,20 @@
   },
   "badge": {
     "critical": "🔴 Critical",
-    "high": "🟠 Serious",
-    "medium": "🟡 Moderate",
-    "low": "🟢 Minor",
+    "high": "🟠 High",
+    "medium": "🟡 Medium",
+    "low": "🟢 Low",
     "new": "📄 New",
     "in_progress": "📂 In progress",
     "pending": "⏳ Pending",
     "resolved": "✅ Resolved",
-    "false_report": "❌ False report"
+    "false_report": "❌ False report",
+    "closed": "✅ Closed",
+    "rejected": "❌ Rejected"
   },
   "noteblock": {
     "note": "📝 Note",
-    "convocation": "📅 Summons"
+    "convocation": " Summons"
   },
   "pagination": {
     "nav": "Pagination",
@@ -172,7 +182,8 @@
     "previous": "Previous",
     "next": "Next",
     "error": "An error occurred",
-    "close": "Close"
+    "close": "Close",
+    "back": "Back"
   },
   "reporter": {
     "nav": {
@@ -331,10 +342,6 @@
     "quiz": {
       "title": "Quiz",
       "soon": "This section will be available soon."
-    },
-    "step1": {
-      "victim": "I am a victim",
-      "witness": "I am a witness"
     }
   },
   "privacy": {
