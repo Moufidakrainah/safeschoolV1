@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useQuizSocket } from '../hooks/useQuizSocket';
@@ -15,13 +15,14 @@ const RANK_STYLES: Record<number, string> = {
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>('quiz');
+  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz' | 'cases'>('quiz');
   const [roomCode, setRoomCode] = useState('');
 
   useEffect(() => {
-    if (viewSection === 'profile') navigate('/reporter?section=profile');
-    if (viewSection === 'report') navigate('/reporter?section=report');
-  }, [viewSection, navigate]);
+    if (viewSection === 'quiz') return;
+    const base = user?.role === 'student' ? '/student' : '/reporter';
+    navigate(`${base}?section=${viewSection}`);
+  }, [viewSection, navigate, user?.role]);
 
   const {
     connected,
@@ -41,13 +42,20 @@ export default function Quiz() {
     submitAnswer,
   } = useQuizSocket(user?.firstName);
 
-  const headerProps = { user, logoutUser, viewSection, setViewSection };
+  const headerProps = {
+    user,
+    logoutUser,
+    reporterViewSection: viewSection as 'profile' | 'report' | 'quiz',
+    reporterSetViewSection: setViewSection as (s: 'profile' | 'report' | 'quiz') => void,
+    studentViewSection: viewSection,
+    studentSetViewSection: setViewSection,
+  };
 
   // ── Lobby: join screen
   if (!joinedRoom) {
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Quiz</h1>
@@ -80,7 +88,7 @@ export default function Quiz() {
   if (gamePhase === 'lobby') {
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Salle : {joinedRoom}</h1>
@@ -113,7 +121,7 @@ export default function Quiz() {
     const board = finalLeaderboard ?? [];
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface py-8">
           <div className="w-full max-w-md rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-6">
             <div className="text-center">
@@ -168,7 +176,7 @@ export default function Quiz() {
 
   return (
     <>
-      <ReporterHeader {...headerProps} />
+      <RoleHeader {...headerProps} />
       <div className="flex items-center justify-center min-h-screen bg-surface py-8">
         <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
 

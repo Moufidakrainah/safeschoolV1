@@ -17,13 +17,13 @@ import { QuizRealtimeModule } from './quiz-realtime/quiz-realtime.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'database',
-      port: parseInt(process.env.DB_PORT ?? '5432', 10),
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'changeme',
-      database: process.env.DB_NAME || 'safeschool',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      type: "postgres",
+      host: process.env.DB_HOST || "database",
+      port: parseInt(process.env.DB_PORT ?? "5432", 10),
+      username: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "changeme",
+      database: process.env.DB_NAME || "safeschool",
+      entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,
     }),
     LoggerModule,
@@ -40,6 +40,6 @@ import { QuizRealtimeModule } from './quiz-realtime/quiz-realtime.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(HttpLoggerMiddleware).forRoutes('*');
+    consumer.apply(HttpLoggerMiddleware).forRoutes("*");
   }
 }

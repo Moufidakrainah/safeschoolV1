@@ -1,3 +1,4 @@
+/*Routes : redirige selon le role */
 import type { ReactElement } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -24,7 +25,7 @@ function HomeRedirect() {
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (user?.role === 'student') return <Navigate to="/student" />;
   if (user?.role === 'admin' || user?.role === 'director') return <Navigate to="/dashboard" />;
-  if (user?.role === 'teacher' || user?.role === 'staff') return <Navigate to="/reporter" />;
+  if (user?.role === 'teacher') return <Navigate to="/reporter" />;
   return <Navigate to="/login" />;
 }
 
@@ -41,13 +42,12 @@ function DevBar() {
     { to: '/login',  label: 'login'  },
   ];
 
-  type SimRole = 'admin' | 'director' | 'student' | 'teacher' | 'staff';
+  type SimRole = 'admin' | 'director' | 'student' | 'teacher';
   const roles: { role: SimRole; page: string }[] = [
     { role: 'admin',    page: '/dashboard' },
     { role: 'director', page: '/dashboard' },
     { role: 'student',  page: '/student'   },
     { role: 'teacher',  page: '/reporter'  },
-    { role: 'staff',    page: '/reporter'  },
   ];
 
   function simulateRole(role: SimRole, page: string) {
@@ -106,7 +106,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/ui-kit" element={<UiKit />} />
           <Route path="/reporter" element={
-            <ProtectedRoute roles={['teacher', 'staff']}>
+            <ProtectedRoute roles={['teacher']}>
               <ReporterDashboard />
             </ProtectedRoute>
           } />
@@ -121,7 +121,7 @@ export default function App() {
             </ProtectedRoute>
           } />
           <Route path="/quiz" element={
-            <ProtectedRoute roles={['student', 'teacher', 'staff']}>
+            <ProtectedRoute roles={['student', 'teacher']}>
               <Quiz />
             </ProtectedRoute>
           } />

@@ -5,7 +5,7 @@ import { UsersController } from './users.controller';
 import { User } from './user.entity';
 import { StudentProfile } from '../student-profiles/student-profile.entity';
 import { Report } from '../reports/report.entity';
-import { SchoolClass } from '../classes/class.entity';
+import { SchoolClass } from '../classes/school-class.entity';
 import { StaffProfile } from '../staff/staff-profile.entity';
 
 @Module({
