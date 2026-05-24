@@ -35,6 +35,8 @@ export function validateUserFields(dto: {
   if (dto.password !== undefined && dto.password.length > 0) {
     if (dto.password.length < 12)
       return 'Le mot de passe doit contenir au moins 12 caractères';
+    if (dto.password.length > 20)
+      return 'Le mot de passe ne peut pas dépasser 20 caractères';
     if (!/[0-9]/.test(dto.password))
       return 'Le mot de passe doit contenir au moins un chiffre';
     if (!/[a-z]/.test(dto.password))
