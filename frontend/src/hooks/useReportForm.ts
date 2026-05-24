@@ -60,7 +60,7 @@ export function useReportForm(
 
   const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description || !frequency));
+    (step === 2 && (!description.trim() || !frequency));
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
@@ -137,7 +137,7 @@ export function useReportForm(
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(1);
+    setStep(0);
     setType('');
     setDescription('');
     setFrequency('');

@@ -20,6 +20,9 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 9. [Flux complet de A à Z](#9-flux-complet-de-a-à-z)
 10. [WebSockets — le module Quiz temps réel](#10-websockets--le-module-quiz-temps-réel)
 11. [Next.js, NestJS, Node.js — les confondre et les distinguer](#11-nextjs-nestjs-nodejs--les-confondre-et-les-distinguer)
+12. [shadcn/ui — ajouter et migrer des composants](#12-shadcnui--ajouter-et-migrer-des-composants)
+13. [CORS — autoriser le frontend à parler au backend](#13-cors--autoriser-le-frontend-à-parler-au-backend)
+14. [Validation des formulaires côté frontend](#14-validation-des-formulaires-côté-frontend)
 
 ---
 
@@ -225,6 +228,42 @@ Docker interroge Postgres toutes les 5 secondes. Une fois que `pg_isready` répo
 
 Tous les services partagent le même réseau Docker privé. Dans ce réseau, chaque service est accessible via son **nom** (pas son IP). Le backend peut donc appeler `database:5432` directement — Docker résout `database` en l'IP interne du conteneur Postgres.
 
+Les IP internes (ex : 172.18.0.8) sont **attribuées dynamiquement** par Docker à chaque démarrage. Elles peuvent changer si tu recrées les conteneurs. On ne s'y fie jamais pour communiquer entre services — on utilise les noms de service à la place.
+
+Le driver `bridge` est le type de réseau utilisé : il crée un réseau privé isolé sur la machine hôte, avec un routage interne géré par Docker. Les conteneurs ne sont pas accessibles depuis l'extérieur sauf via un port mapping explicite (`ports:`).
+
+### `REACT_APP_API_URL`
+
+Dans `docker-compose.yml`, le service frontend déclarait :
+```yaml
+environment:
+  - REACT_APP_API_URL=http://localhost:5000
+```
+`REACT_APP_*` est la convention de **Create React App (CRA)**. Ce projet utilise **Vite**, qui exige le préfixe `VITE_` et la syntaxe `import.meta.env.VITE_XXX`. Le code frontend utilise `import.meta.env.VITE_API_URL` (visible dans `Quiz.tsx`). Cette variable n'est définie nulle part → la variable `REACT_APP_API_URL` dans docker-compose.yml est silencieusement ignorée et n'a aucun effet (supprimee)
+
+### Dev vs Production — ce qui tourne vs ce qu'on livre
+
+| | Dev (aujourd'hui) | Production livrée |
+|---|---|---|
+| Commande | `npm run dev` → Vite dev server | `npm run build` → génère des fichiers statiques dans `dist/` |
+| Ce qui tourne | Serveur Node dans le conteneur | Fichiers HTML/CSS/JS servis par nginx |
+| Prettier, ESLint, TypeScript | ✅ utilisés pendant le dev | ❌ absents du livrable |
+| React, tailwindcss, etc. | ✅ utilisés | ✅ compilés dans le bundle JS |
+| Hot reload, source maps | ✅ | ❌ |
+| node_modules | Présent dans le conteneur Docker | Absent — le build n'en a plus besoin |
+| Taille | ~500 Mo (node_modules) | ~1-5 Mo (juste HTML/CSS/JS compilé) |
+
+**C'est quoi `dist/` ?**  
+Quand tu fais `npm run build`, Vite lit tout ton code React/TypeScript, le compile, le minifie (rend illisible mais léger), et produit un dossier `dist/` avec quelques fichiers :
+```
+dist/
+  index.html
+  assets/
+    main-abc123.js   ← tout ton code React compilé en un seul fichier
+    main-def456.css  ← tout ton CSS compilé
+```
+C'est tout ce dont nginx a besoin pour servir l'application. Plus de Node, plus de TypeScript, juste des fichiers statiques.
+
 ### Les Dockerfiles
 
 **Frontend** (`frontend/Dockerfile`) :
@@ -236,6 +275,16 @@ RUN npm install        # installe
 COPY . .               # copie le code
 EXPOSE 5173            # déclare le port
 CMD ["npm", "run", "dev", "--", "--host"]  # démarre Vite en mode dev
+```
+
+**Décortiqué : `CMD ["npm", "run", "dev", "--", "--host"]`**
+
+```
+npm run dev   → exécute le script "dev" défini dans package.json, soit "vite"
+--            → séparateur : tout ce qui suit est passé directement à vite, pas à npm
+--host        → option Vite : écoute sur toutes les interfaces réseau (0.0.0.0)
+               sans ça, Vite n'accepte que les connexions depuis l'intérieur du conteneur
+               → inaccessible depuis le navigateur sur la machine hôte
 ```
 
 **Backend** (`backend/Dockerfile`) :
@@ -532,11 +581,12 @@ Le `JwtAuthGuard` est appliqué à toutes les routes qui nécessitent une authen
 
 #### Pourquoi React et pas Vue ou Svelte
 
-Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour trois raisons : l'écosystème TypeScript est mature (types officiels, excellent support dans les outils), la courbe d'apprentissage est compatible avec le niveau de l'équipe en début de projet, et la documentation officielle (`react.dev`) est de haute qualité.
+Le sujet ft_transcendence version 21.1 exige un **framework frontend JavaScript moderne**. React a été retenu pour son écosystème TypeScript mature (types officiels, excellent support dans les outils) et sa documentation officielle (`react.dev`) de qualité.
 
 #### Pourquoi Tailwind et pas Bootstrap
 
-Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles — ce qui annule son intérêt. Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
+Bootstrap fournit des composants pré-stylés avec leurs propres décisions visuelles (boutons arrondis, palette de couleurs fixe, typographie imposée). Pour un projet avec une identité visuelle définie (`primary`, `critical`, une palette accessible), Bootstrap obligerait à surcharger ses styles, ce qui n'est pas ideal.
+Tailwind est un framework utilitaire : il ne fournit pas de composants, seulement des classes atomiques. Chaque composant UI (`Button.tsx`, `Card.tsx`, etc.) est construit from scratch avec les tokens du projet, ce qui garantit la cohérence sans conflits de styles.
 
 #### La question est légitime : au démarrage, tout cela ressemble à de la complexité ajoutée. Cette section explique ce que chaque outil résout concrètement.
 
@@ -2826,13 +2876,6 @@ WebSocket est un protocole **bidirectionnel persistant** : une seule connexion r
 - La référence au socket est stockée dans un `useRef` (pas un `useState`) pour éviter les re-renders à chaque message reçu.
 - Les événements entrants (`question`, `leaderboard`, `gameEnd`) déclenchent des mises à jour d'état React.
 
-### Points d'attention actuels
-
-| Problème | Impact | Référence |
-|---|---|---|
-| `SOCKET_URL` codé en dur (`http://localhost:5000`) | La connexion échoue hors de la machine de développement — le sujet exige HTTPS | `Quiz.tsx` ligne ~8 |
-| Bug room cleanup | La room n'est pas nettoyée correctement quand un quiz se termine | Documenté dans le dernier commit de `feat/quiz` |
-
 ### Socket.io vs WebSocket natif
 
 Socket.io est une bibliothèque construite au-dessus des WebSockets natifs. Elle ajoute : reconnexion automatique, rooms (groupes de clients), namespaces, et un système d'événements nommés (`emit('question', data)`) plus lisible que les messages bruts. NestJS intègre nativement Socket.io via `@WebSocketGateway()`.
@@ -2878,6 +2921,119 @@ Vite compile et sert des fichiers statiques. Le frontend n'a pas de processus se
 
 Dans l'architecture SafeSchool, l'équivalent fonctionnel est simplement un `useEffect` qui appelle l'API NestJS — le résultat est le même (données chargées et affichées), mais le rendu se fait dans le navigateur plutôt que sur le serveur.
 
+---
+
+## 12. shadcn/ui — ajouter et migrer des composants
+
+### Ce qu'est shadcn
+
+shadcn/ui n'est pas une librairie installée comme dépendance (pas de `node_modules/shadcn`). C'est un **générateur de code** : il copie le code source du composant directement dans ton projet sous `src/components/ui/`. Tu possèdes le code, tu peux le modifier.
+
+Le projet utilise la variante **Base UI** (configurée dans `components.json` : `"style": "base-nova"`), qui s'appuie sur `@base-ui/react` — plus accessible et plus moderne que l'ancienne variante Radix UI.
+
+### Vérifier si un composant existe déjà
+
+Avant toute chose, regarder ce qui est déjà installé :
+
+```
+src/components/ui/
+├── avatar.tsx
+├── badge.tsx
+├── button.tsx
+├── card.tsx
+├── input.tsx
+├── label.tsx
+├── select.tsx
+├── separator.tsx
+└── tabs.tsx
+```
+
+Si le composant est là → passer directement à la migration d'imports.
+
+### Installer un nouveau composant via le CLI
+
+Le CLI doit être exécuté **dans le conteneur frontend** (pas sur la machine hôte) car les dépendances npm s'installent là où tourne le projet.
+
+```bash
+# Entrer dans le conteneur frontend
+docker exec -it transcendence-frontend-1 sh
+
+# Installer le composant (exemple : dialog)
+pnpm dlx shadcn@latest add dialog
+# Ceci ne fonctionne pas pour moi. J'ai fait npx shadcn@latest add table et ca a installe dans frontend/@/components/ui
+
+
+# Quitter le conteneur
+exit
+```
+
+Le CLI va :
+1. Créer `src/components/ui/dialog.tsx`
+2. Installer les dépendances npm nécessaires dans le conteneur
+3. Respecter la config de `components.json` (style Base UI, chemins d'alias, etc.)
+
+> **Ne jamais copier-coller du code depuis le site web shadcn** — le CLI garantit la cohérence avec la config du projet.
+
+### Migrer un composant maison vers shadcn
+
+**Règle générale** : on ne jette pas le JSX, on change uniquement les imports et on adapte les props si nécessaire.
+
+**Étape 1 — Trouver tous les fichiers qui importent l'ancien composant :**
+
+En cherchant dans VS Code (Ctrl+Shift+F) ou via grep : `import Card from '.*Card'`
+
+**Étape 2 — Comparer les props des deux versions :**
+
+| Prop maison | Equivalent shadcn |
+|---|---|
+| `variant="primary"` | `variant="default"` (ou alias ajouté dans `ui/button.tsx`) |
+| `className="..."` | identique, shadcn accepte toujours `className` |
+| `fullWidth` | remplacer par `className="w-full"` |
+| prop spécifique (ex: `borderColor`) | passer via `style={{ borderLeft: ... }}` |
+
+**Étape 3 — Changer les imports :**
+
+```tsx
+// Avant (composant maison)
+import Button from '../Button';
+
+// Après (shadcn — export nommé, pas default)
+import { Button } from '../ui/button';
+```
+
+**Étape 4 — Corriger les props incompatibles** dans le JSX si nécessaire.
+
+### Ajouter une variante personnalisée à un composant shadcn
+
+Dans `src/components/ui/button.tsx`, dans le bloc `cva(...)` :
+
+```tsx
+variant: {
+  default: "bg-primary ...",
+  // Ajouter ici :
+  success: "bg-success text-success-foreground hover:bg-success/90",
+}
+```
+
+Pour que la couleur soit dans le design system (et pas hardcodée) :
+1. Ajouter la variable CSS dans `src/index.css` dans `:root` et `.dark`
+2. L'exposer dans `@theme inline` pour Tailwind
+3. L'utiliser dans le composant via `bg-success`
+
+### Règle de nommage
+
+Les composants shadcn dans `/ui/` sont des **exports nommés** (avec accolades) :
+```tsx
+import { Button } from '../ui/button';       // ✅
+import { Card, CardHeader, CardContent } from '../ui/card';  // ✅
+import Button from '../ui/button';            // ❌ ne fonctionne pas
+```
+
+Les composants maison dans `/components/` sont des **exports default** :
+```tsx
+import Badge from '../components/Badge';     // ✅ (composant métier, pas shadcn)
+```
+
 ### Tableau récapitulatif — qui fait quoi dans ce projet
 
 | Ce qui tourne | Où | Technologie |
@@ -2887,4 +3043,125 @@ Dans l'architecture SafeSchool, l'équivalent fonctionnel est simplement un `use
 | API REST | Conteneur Docker backend | NestJS sur Node.js |
 | Base de données | Conteneur Docker database | PostgreSQL |
 | Logs | Conteneurs ELK | Elasticsearch + Logstash + Kibana |
+
+---
+
+## 13. CORS — autoriser le frontend à parler au backend
+
+### Le problème
+
+Le navigateur applique la **Same-Origin Policy** : une page chargée depuis une origine (domaine + port) ne peut pas faire de requêtes vers une autre origine sans autorisation explicite.
+
+Dans SafeSchool :
+- Frontend : `http://localhost:5173` (Vite)
+- Backend : `http://localhost:3000` (NestJS, exposé en :5000 côté hôte)
+
+Ce sont **deux origines différentes** (le port change). Sans CORS configuré, le navigateur bloque toutes les réponses avec l'erreur :
+
+```
+Access to fetch at 'http://localhost:3000/reports' from origin
+'http://localhost:5173' has been blocked by CORS policy.
+```
+
+> Important : ce n'est pas le backend qui est bloqué. La requête arrive bien au backend — mais le **navigateur** refuse de donner la réponse au JavaScript de la page.
+
+### La solution : `enableCors()` dans NestJS
+
+**Fichier** : `backend/src/main.ts`
+
+```ts
+app.enableCors({
+  origin: 'http://localhost:5173',   // seul le frontend est autorisé
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+```
+
+Cela demande à NestJS d'ajouter les headers CORS à chaque réponse HTTP.
+
+### Ce qui se passe concrètement
+
+Pour les requêtes avec headers personnalisés (comme `Authorization`), le navigateur envoie d'abord une **preflight request** (méthode `OPTIONS`) pour demander la permission :
+
+```
+# 1. Preflight automatique du navigateur
+OPTIONS /reports HTTP/1.1
+Origin: http://localhost:5173
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Authorization
+
+# 2. Réponse du backend avec l'autorisation
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: http://localhost:5173
+Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
+Access-Control-Allow-Headers: Content-Type, Authorization
+
+# 3. Le navigateur autorise la vraie requête GET /reports
+```
+
+### Pourquoi `Authorization` est dans `allowedHeaders`
+
+Le header `Authorization` porte le token JWT (`Bearer <token>`). Sans lui dans la liste, le navigateur refuserait la preflight et les requêtes authentifiées seraient toutes bloquées.
+
+### En production
+
+`origin: 'http://localhost:5173'` est codé en dur. En production il faudra remplacer par l'URL réelle du frontend ou utiliser une variable d'environnement :
+
+```ts
+app.enableCors({
+  origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
+```
+
+---
+
+## 14. Validation des formulaires côté frontend
+
+### État actuel : validation custom, sans librairie
+
+Les formulaires de SafeSchool (`ReporterForm`, `StudentForm`) utilisent une **validation manuelle** — pas de react-hook-form, pas de Zod, pas de Yup. La logique est simple et suffisante pour le projet.
+
+### Comment ça fonctionne
+
+Chaque formulaire maintient un état `showErrors` (booléen). Les messages d'erreur sont affichés conditionnellement quand `showErrors === true` et que le champ est vide.
+
+```tsx
+// État
+const [showErrors, setShowErrors] = useState(false);
+
+// Bouton "Suivant" ou "Envoyer"
+if (isNextDisabled) {
+  setShowErrors(true);   // déclenche l'affichage des erreurs
+  return;
+}
+setShowErrors(false);    // reset si tout est valide
+```
+
+```tsx
+{/* Message d'erreur conditionnel */}
+{showErrors && !description && (
+  <p role="alert" className="text-sm text-red-600">
+    ⚠️ {t('reporter.validation.descriptionRequired')}
+  </p>
+)}
+```
+
+### Champs validés
+
+| Formulaire | Champs obligatoires |
+|---|---|
+| `ReporterForm` | Type d'incident, Description, Fréquence |
+| `StudentForm` | Type d'incident, Description, Fréquence |
+
+### Accessibilité
+
+- Les champs obligatoires portent `aria-required="true"`
+- Les messages d'erreur utilisent `role="alert"` (annoncés par les lecteurs d'écran)
+- Les erreurs sont traduites via `react-i18next` (clés dans `reporter.validation.*`)
+
+### Ce qu'on n'a pas (et pourquoi c'est OK)
+
+**react-hook-form + Zod** est la solution standard en production — elle gère la validation en temps réel, les types TypeScript automatiques depuis le schéma, le `watch`, etc. Pour SafeSchool, les formulaires sont simples (3-4 champs) et la validation au clic suffit. C'est un choix délibéré de ne pas sur-ingénier.
 
