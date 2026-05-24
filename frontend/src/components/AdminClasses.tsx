@@ -39,9 +39,9 @@ export default function AdminClasses() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [cls, usr] = await Promise.all([getClasses(), getAllUsers()]);
+      const [cls, usr] = await Promise.all([getClasses(), getAllUsers(1, 100)]);
       setClasses(cls);
-      const allUsers = Array.isArray(usr) ? usr : [];
+      const allUsers = Array.isArray(usr) ? usr : Array.isArray(usr?.data) ? usr.data : [];
       setStudents(allUsers.filter((u: any) => u.role === 'student'));
     } catch (e) {
       console.error('Erreur chargement', e);
@@ -76,6 +76,11 @@ export default function AdminClasses() {
   };
 
   const handleDeleteClass = async (cls: SchoolClass) => {
+    const count = students.filter(s => s.studentProfile?.schoolClass?.id === cls.id).length;
+    if (count > 0) {
+      alert(`Impossible de supprimer ${cls.level} ${cls.section} : ${count} élève(s) inscrits. Réassignez-les d'abord.`);
+      return;
+    }
     if (!confirm(`Supprimer la classe ${cls.level} ${cls.section} ?`)) return;
     await deleteClass(cls.id);
     if (selectedClass?.id === cls.id) setSelectedClass(null);
