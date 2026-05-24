@@ -27,10 +27,7 @@ export class ClassesService {
     return schoolClass;
   }
 
-  async update(
-    id: string,
-    dto: { level?: string; section?: string },
-  ): Promise<SchoolClass> {
+  async update(id: string, dto: { level?: string; section?: string }): Promise<SchoolClass> {
     const schoolClass = await this.findOne(id);
     if (dto.level) schoolClass.level = dto.level;
     if (dto.section) schoolClass.section = dto.section;

@@ -12,9 +12,9 @@ import { ReportVictim } from "./report-victim.entity";
 
 export enum ReportGrade {
   CRITICAL = "critical",
-  HIGH    = "high",
-  MEDIUM    = "medium",
-  LOW   = "low",
+  HIGH     = "high",
+  MEDIUM   = "medium",
+  LOW      = "low",
 }
 
 export enum ReportStatus {
@@ -41,33 +41,17 @@ export enum ReportReporter {
 @Entity("reports")
 export class Report {
   @PrimaryGeneratedColumn("uuid") id: string;
-
   @Column({ unique: true, nullable: true }) caseNumber: string;
-
   @Column({ nullable: true }) type: string;
-
   @Column({ nullable: true }) reporter: string;
-
   @Column("text") description: string;
-
   @Column({ type: "enum", enum: ReportGrade }) grade: ReportGrade;
-
-  @Column({ type: "enum", enum: ReportStatus, default: ReportStatus.NEW })
-  status: ReportStatus;
-
+  @Column({ type: "enum", enum: ReportStatus, default: ReportStatus.NEW }) status: ReportStatus;
   @Column({ nullable: true }) aiScore: number;
-
   @Column({ nullable: true, type: "text" }) aiReason: string;
-
   @Column({ default: false }) isAnonymous: boolean;
-
   @ManyToOne(() => User, (user) => user.reports) student: User;
-
   @CreateDateColumn() createdAt: Date;
-
-  @OneToMany(() => ReportSuspect, (suspect) => suspect.report, { cascade: true })
-  suspects: ReportSuspect[];
-
-  @OneToMany(() => ReportVictim, (victim) => victim.report, { cascade: true })
-  victims: ReportVictim[];
+  @OneToMany(() => ReportSuspect, (suspect) => suspect.report, { cascade: true }) suspects: ReportSuspect[];
+  @OneToMany(() => ReportVictim, (victim) => victim.report, { cascade: true }) victims: ReportVictim[];
 }
