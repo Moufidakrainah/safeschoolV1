@@ -76,6 +76,7 @@ export default function AdminDashboard() {
   const [usersTotalPages, setUsersTotalPages] = useState(1);
   const [usersTotal, setUsersTotal]     = useState(0);
   const [showUserForm, setShowUserForm] = useState(false);
+  const [usersSearch, setUsersSearch] = useState('');
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
@@ -151,14 +152,22 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
-  const fetchUsers = async (page?: number) => {
+  const fetchUsers = async (page?: number, search?: string) => {
     const p = page ?? usersPage;
+    const q = search ?? usersSearch;
     setLoadingUsers(true);
     try {
-      const data = await getAllUsers(p, 5);
-      setUsers(Array.isArray(data.data) ? data.data : []);
-      setUsersTotalPages(data.totalPages ?? 1);
-      setUsersTotal(data.total ?? 0);
+      if (q.trim().length >= 2) {
+        const results = await searchUsers(q);
+        setUsers(Array.isArray(results) ? results : []);
+        setUsersTotalPages(1);
+        setUsersTotal(results.length ?? 0);
+      } else {
+        const data = await getAllUsers(p, 5);
+        setUsers(Array.isArray(data.data) ? data.data : []);
+        setUsersTotalPages(data.totalPages ?? 1);
+        setUsersTotal(data.total ?? 0);
+      }
     } catch { setUsers([]); }
     finally { setLoadingUsers(false); }
   };
@@ -591,9 +600,10 @@ export default function AdminDashboard() {
         {viewSection === 'users' && isAdmin && !selectedUser && (
           <section>
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-bold text-gray-800">👥 {t('admin.users.title')}</h2>
-              <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] }); }}>{t('admin.users.add')}</Button>
+              <h2 className="text-xl font-bold text-gray-800">👥 {t("admin.users.title")}</h2>
+              <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "student", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
             </div>
+            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-4" />
             {showUserForm && (
               <Card className="mb-5"><CardContent className="pt-6">
                 <h3 className="font-bold mb-4">{editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
