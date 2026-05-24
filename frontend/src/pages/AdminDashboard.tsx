@@ -744,6 +744,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="flex justify-center gap-3 mb-4 flex-wrap">
+              <Badge onClick={() => { setFilterStatus(s); setCurrentPage(1); }} />
               {(['new', 'in_progress', 'pending', 'resolved', 'false_report'] as BadgeVariant[]).map(s => (
                 <Badge key={s} variant={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }} />
               ))}

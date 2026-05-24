@@ -30,7 +30,7 @@ interface SubmitAnswerPayload {
   selectedIndex: number;
 }
 
-@WebSocketGateway({ cors: { origin: "*" } })
+@WebSocketGateway({ cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' } })
 export class QuizRealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -140,9 +140,15 @@ export class QuizRealtimeGateway
       };
     }
 
+<<<<<<< HEAD
     if (result.status === "joined") {
       client.join(payload.roomId);
     }
+=======
+		if (result.status === 'joined') {
+			void client.join(payload.roomId);
+		}
+>>>>>>> origin/main
 
     if (result.snapshot) {
       this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
@@ -193,7 +199,11 @@ export class QuizRealtimeGateway
       };
     }
 
+<<<<<<< HEAD
     client.leave(payload.roomId);
+=======
+		void client.leave(payload.roomId);
+>>>>>>> origin/main
 
     if (result.status === "room-closed") {
       this.server

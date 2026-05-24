@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 export type BadgeVariant =
   // | 'critical' | 'high' | 'medium' | 'low'
-  | 'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
+  'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
 
 const variantI18nKeys: Record<BadgeVariant, string> = {
   // critical:     'badge.critical',
