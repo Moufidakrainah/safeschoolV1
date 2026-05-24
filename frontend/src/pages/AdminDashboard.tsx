@@ -179,7 +179,7 @@ export default function AdminDashboard() {
       formData.append('avatar', file);
       const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, body: formData });
       const data = await res.json();
-      if (data.avatar) { setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() })); await fetchUsers(); }
+      if (data.avatar) { setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() })); await fetchUsers(); setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev); }
     } catch {} finally { setUploadingAvatarId(null); }
   };
 
@@ -552,7 +552,7 @@ export default function AdminDashboard() {
                   <Button onClick={async () => { setEditMode(true); if (selectedUser.role === 'teacher') { try { const s = await getStaffProfile(selectedUser.id); setUserForm(prev => ({ ...prev, subject: s.subject ?? '', classIds: s.classes?.map((c: any) => c.id) ?? [] })); } catch {} } }}>✏️ {t('admin.users.edit')}</Button>
                   <label className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
                     {uploadingAvatarId === selectedUser.id ? '⏳ Upload...' : '📷 Changer la photo'}
-                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) { await handleAvatarUpload(selectedUser.id, f); await fetchUsers(); const u = users.find(u => u.id === selectedUser.id); if (u) setSelectedUser({ ...u }); } }} />
+                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) { await handleAvatarUpload(selectedUser.id, f); } }} />
                   </label>
                   <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>🗑️ {t('admin.users.delete')}</Button>
                 </div>
