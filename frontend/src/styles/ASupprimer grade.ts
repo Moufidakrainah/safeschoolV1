@@ -1,4 +1,4 @@
-import { colors } from './colors';
+import { colors } from './ASupprimer colors';
 
 export const GRADE_COLORS: Record<string, string> = {
   critical: colors.critical.light,

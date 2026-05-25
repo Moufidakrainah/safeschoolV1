@@ -224,20 +224,21 @@ export default function AdminDashboard() {
     let message = '';
     const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
     if (field === 'firstName' || field === 'lastName') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (!nameRegex.test(value)) message = 'Lettres, apostrophes ou tirets uniquement (max 20 caractères)';
+      if (!value.trim()) message = t('login.errorRequired');
+      else if (!nameRegex.test(value)) message = t('admin.users.name');
     } else if (field === 'email') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (value.length > 50) message = 'Email trop long (max 50 caractères)';
+      if (!value.trim()) 
+		message = t('admin.users.errorRequired'); // jamais atteint
+      else if (value.length > 50) message = t('admin.users.tooLong'); // jamis atteint
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
     } else if (field === 'password' && value.length > 0) {
-      if (value.length < 12) message = 'Minimum 12 caractères';
-      else if (!/[0-9]/.test(value)) message = 'Au moins un chiffre requis';
-      else if (!/[a-z]/.test(value)) message = 'Au moins une minuscule requise';
-      else if (!/[A-Z]/.test(value)) message = 'Au moins une majuscule requise';
-      else if (!/[^a-zA-Z0-9]/.test(value)) message = 'Au moins un caractère spécial requis';
-      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le prénom';
-      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = 'Le mot de passe ne doit pas contenir le nom';
+      if (value.length < 12) message = t('admin.users.atLeast');
+      else if (!/[0-9]/.test(value)) message = t('admin.users.atLeastOneNumber');
+      else if (!/[a-z]/.test(value)) message = t('admin.users.atLeastOneMinus');
+      else if (!/[A-Z]/.test(value)) message = t('admin.users.atLeastOneMajor');
+      else if (!/[^a-zA-Z0-9]/.test(value)) message = t('admin.users.atLeastOneSpecial');
+      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = t('admin.users.noFirstName');
+      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = t('admin.users.noLastName');
     }
     setErrors(prev => ({ ...prev, [field]: message }));
   };
@@ -292,7 +293,7 @@ export default function AdminDashboard() {
       <div><Label className="text-white text-sm">{t('admin.users.firstName')}</Label><Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />{errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.lastName')}</Label><Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />{errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.email')}</Label><Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />{errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" maxLength={20} />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
+      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" maxLength={20} />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
       <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
         <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -314,7 +315,7 @@ export default function AdminDashboard() {
       {userForm.role === 'teacher' && (
         <>
           <div>
-            <Label className="text-white text-sm">Matière enseignée</Label>
+            <Label className="text-white text-sm">{t('admin.teacher.subjectTeached')}</Label>
             <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
             <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
             {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}
