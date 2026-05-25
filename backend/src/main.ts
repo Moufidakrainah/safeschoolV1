@@ -4,6 +4,9 @@ import { AppModule } from "./app.module";
 import { join } from "path";
 
 async function bootstrap() {
+// if (!process.env.JWT_SECRET) {
+//     throw new Error("JWT_SECRET manquant dans les variables d'environnement");
+//   }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.enableCors({
     origin: "http://localhost:5173",
