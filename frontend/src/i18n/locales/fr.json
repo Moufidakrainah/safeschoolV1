@@ -144,7 +144,8 @@
         "teacher": "Professeur",
         "staff": "Personnel",
         "admin": "Admin",
-        "director": "Directeur"
+        "director": "Directeur", 
+		"choose": "Selectionnez un role"
       },
       "errorEmailFormat": "Format d'email invalide",
       "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères",

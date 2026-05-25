@@ -10,8 +10,8 @@
   /* Couleurs principales */
   /* --color-primary est géré par shadcn via @theme inline { --color-primary: var(--primary) }
      La valeur réelle est définie via --primary dans :root ci-dessous                          */
-  --color-primary-hover: oklch(0.32 0.06 213);   /* bleu canard très foncé — hover bouton primary — ratio 7.1:1 blanc (WCAG AA) */
-  --color-surface:      oklch(0.98 0.02 213);   /* bleu clair — fond pages (surface) */
+  --color-primary-hover: oklch(0.38 0.07 213);  /* bleu canard très foncé — hover bouton primary — ratio 7.1:1 blanc (WCAG AA) */
+  --color-surface:       oklch(0.98 0.02 213);   /* bleu clair — fond pages (surface) */
 
   /* Report severity — palette Acquia Web Governance */
   --color-all:          var(--color-surface);
@@ -84,6 +84,8 @@ body, #root
 :root {
   --background:      oklch(1 0 0);
   --foreground:      oklch(0.145 0 0);
+  --text-light: 	oklch(0.967 0.0029 264.54);
+  --text-error: oklch(0.7793 0.1291 20.43);
   --card:      oklch(1 0 0);
   --card-foreground:      oklch(0.145 0 0);
   --popover:      oklch(1 0 0);
@@ -93,7 +95,7 @@ body, #root
   --secondary:      oklch(0.97 0 0);
   --secondary-foreground:      oklch(0.205 0 0);
   --muted:      oklch(0.97 0 0);
-  --muted-foreground:      oklch(0.47 0 0);      /* ~5.1:1 vs blanc — WCAG AA */
+  --muted-foreground:      oklch(1 0 0);
   --accent:      oklch(0.97 0 0);
   --accent-foreground:      oklch(0.205 0 0);
   --destructive:      oklch(0.577 0.245 27.325);

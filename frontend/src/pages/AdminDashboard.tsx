@@ -82,7 +82,7 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', role: 'student',
+    firstName: '', lastName: '', email: '', password: '', role: '',
     classId: '', subject: '', classIds: [] as string[],
   });
 
@@ -289,20 +289,56 @@ export default function AdminDashboard() {
   };
 
   const renderUserForm = (isEdit = false) => (
-    <div className="rounded-lg bg-primary p-4 flex flex-col gap-3">
-      <div><Label className="text-white text-sm">{t('admin.users.firstName')}</Label><Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />{errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.lastName')}</Label><Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />{errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.email')}</Label><Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />{errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" maxLength={20} />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
-      <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-        <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+    <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
+      <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
+	  <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName && 
+	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
+      <div><Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
+	  <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName && 
+	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
+      <div><Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
+	  <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email && 
+	  <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
+      <div><Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
+	  <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password && 
+	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
+
+
+
+    <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
+       	<SelectTrigger>
+			<span>
+				{userForm.role === "" && t('admin.users.roles.choose')}
+				{userForm.role === "student" && t('admin.users.roles.student')}
+				{userForm.role === "teacher" && t('admin.users.roles.teacher')}
+				{userForm.role === "admin" && t('admin.users.roles.admin')}
+				{userForm.role === "director" && t('admin.users.roles.director')}
+			</span>
+		</SelectTrigger>
         <SelectContent>
           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
           <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
-        </SelectContent>
-      </Select>
+        </SelectContent> 
+
+{/*         <Select 
+			  onValueChange={(v) => { setFilterStatus(v); setCurrentPage(1); }}>
+				<SelectTrigger>
+					<Badge variant={filterStatus}/>
+				</SelectTrigger>
+				<SelectContent>
+					{(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report']).map((status) =>
+					(
+						<SelectItem key={status} value={status}>
+							<Badge variant={status}/>
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select> */}
+
+
+    </Select>
       {userForm.role === 'student' && (
         <div>
           <Label className="text-white text-sm">Classe</Label>
@@ -690,7 +726,7 @@ export default function AdminDashboard() {
                   <option value="desc">Z → A</option>
                   <option value="date">Date création</option>
                 </select>
-                <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "student", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
+                <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
               </div>
             </div>
             <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-3" />
