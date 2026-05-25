@@ -15,10 +15,10 @@
 
   /* Report severity — palette Acquia Web Governance */
   --color-all:          var(--color-surface);
-  --color-critical:     oklch(0.566576 0.25625 20);   /* #DC2626 */
-  --color-high:         oklch(0.559 0.1672 50);   /* #B05C00 */
-  --color-medium:       oklch(0.542024 0.129688 100);  /* #6C7800 */
-  --color-low:          oklch(0.517472 0.198438 150);  /* #008717 */
+  --color-critical:     oklch(0.566576 0.25625 20);  
+  --color-high:         oklch(0.559 0.1672 50); 
+  --color-medium:       oklch(0.542024 0.129688 100); 
+  --color-low:          oklch(0.517472 0.198438 150);
   --color-background: 	oklch(0.967 0.0029 264.54);
 
 

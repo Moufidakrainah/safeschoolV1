@@ -158,7 +158,7 @@
     }
   },
   "badge": {
-	  "total":"Tous les statuts", 
+	"all":"Tous les statuts", 
     "critical": "Critique",
     "high": "Grave",
     "medium": "Moyen",

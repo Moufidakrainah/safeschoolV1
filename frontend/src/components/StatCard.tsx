@@ -29,10 +29,10 @@ export default function StatCard({ label, value, color, active, onClick, activeT
       style={{
         // backgroundColor,
         backgroundColor: active ? color : '#f3f4f6',
-        border: `1px solid ${borderColor}`,
+        border: `1px solid ${color}`,
         color: textColor,
       }}
-      className={`p-1 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-105 shadow-sm' : 'scale-100'}`}
+      className={`p-1 text-center transition-all ${onClick ? 'cursor-pointer' : ''} ${active ? 'scale-110 shadow-sm' : 'scale-100'}`}
     >
       <div className="pt-1 text-1xl font-bold" aria-hidden="true">{value}</div>
       <div className="text-sm mt-1" aria-hidden="true">{label}</div>
