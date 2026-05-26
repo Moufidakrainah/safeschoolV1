@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createReport, searchUsers } from '../services/api';
 import type { UserSearchResult } from '../types';
+import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
   step:        number;
@@ -45,7 +46,8 @@ export function useReportForm(
   t: (key: string) => string,
 ): UseReportFormReturn {
 
-  // Prof et staff sont toujours témoins
+
+
   const defaultWho = 'temoin';
 
   const [step, setStep]               = useState(1);
@@ -58,7 +60,7 @@ export function useReportForm(
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showErrors, setShowErrors]   = useState(false);
 
-  const isNextDisabled =
+    const isNextDisabled =
     (step === 1 && !type) ||
     (step === 2 && (!description.trim() || !frequency));
 
@@ -72,12 +74,15 @@ export function useReportForm(
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
 
+
+  //some translations to be done
   const handleSubmit = async () => {
     if (!type || !description || !frequency) return;
     setLoading(true);
     setSubmitError(null);
     try {
       const fullDescription = `${description} (Fréquence: ${frequency})`;
+    //   const fullDescription = `${description} ({t('frenquency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: `${s.firstName} ${s.lastName}`,
       }));
@@ -94,7 +99,6 @@ export function useReportForm(
       );
       setStep(6);
     } catch (err) {
-      console.error('Report submission failed', err);
       setSubmitError(t('reporter.submitError'));
     } finally {
       setLoading(false);

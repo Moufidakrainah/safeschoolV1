@@ -45,7 +45,8 @@ export function useStudentReportForm(
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
 
-  const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
+//   const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
+  const defaultWho = 'temoin';
 
   const [step, setStep]               = useState(1);
   const [whoSignals, setWhoSignals]   = useState(defaultWho);
@@ -60,7 +61,7 @@ export function useStudentReportForm(
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
-    (step === 3 && (!description || !frequency));
+    (step === 3 && (!description.trim() || !frequency));
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
