@@ -33,13 +33,13 @@ export const SEVERITY_LABELS: Record<SeverityLevel, string> = {
   low: 'Low',
 };
 
-export const SEVERITY_BADGES: Record<SeverityLevel, string> = {
-  all: 'all',
-  critical: 'Critical',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
+// export const SEVERITY_BADGES: Record<SeverityLevel, string> = {
+//   all: 'all',
+//   critical: 'Critical',
+//   high: 'High',
+//   medium: 'Medium',
+//   low: 'Low',
+// };
 
 function isApiReportGrade(value: string): value is ApiReportGrade {
   return Object.prototype.hasOwnProperty.call(API_GRADE_TO_SEVERITY, value);

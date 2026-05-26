@@ -7,7 +7,7 @@ import en from './locales/en.json';
 import de from './locales/de.json';
 
 i18n
-  .use(LanguageDetector)   // détecte la langue du navigateur automatiquement
+  .use(LanguageDetector)   // détecte la langue du localStorage
   .use(initReactI18next)   // branche i18next sur React
   .init({
     resources: {
