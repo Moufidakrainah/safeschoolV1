@@ -9,6 +9,7 @@ import {
 	WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 import { QuizRealtimeService } from './quiz-realtime.service';
 
 interface JoinRoomPayload {
@@ -34,7 +35,10 @@ interface SubmitAnswerPayload {
 export class QuizRealtimeGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-	constructor(private readonly quizRealtimeService: QuizRealtimeService) {}
+	constructor(
+		private readonly quizRealtimeService: QuizRealtimeService,
+		private readonly jwtService: JwtService,
+	) {}
 
 	@WebSocketServer()
 	server: Server;
@@ -60,7 +64,40 @@ export class QuizRealtimeGateway
 	}
 
 	handleConnection(client: Socket) {
+		const token = this.extractToken(client);
+
+		if (!token) {
+			client.emit('quiz:unauthorized', { reason: 'missing-token' });
+			client.disconnect(true);
+			return;
+		}
+
+		try {
+			const payload = this.jwtService.verify<{ sub: string; email: string; role: string }>(
+				token,
+			);
+			client.data.user = payload;
+		} catch {
+			client.emit('quiz:unauthorized', { reason: 'invalid-token' });
+			client.disconnect(true);
+			return;
+		}
+
 		console.log(`quiz client connected: ${client.id}`);
+	}
+
+	private extractToken(client: Socket): string | undefined {
+		const authToken = client.handshake.auth?.token;
+		if (typeof authToken === 'string' && authToken.length > 0) {
+			return authToken.replace(/^Bearer\s+/i, '');
+		}
+
+		const header = client.handshake.headers?.authorization;
+		if (typeof header === 'string' && header.length > 0) {
+			return header.replace(/^Bearer\s+/i, '');
+		}
+
+		return undefined;
 	}
 
 	handleDisconnect(client: Socket) {

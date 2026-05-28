@@ -84,7 +84,7 @@ export default function Quiz() {
                 Comment jouer
               </summary>
               <p className="mt-2 text-xs text-gray-500 leading-relaxed">
-                Entrez un code de salle (3 à 10 caractères). Si vous êtes le premier à rejoindre cette salle, vous devenez l'hôte et pourrez lancer la partie quand tout le monde est prêt.
+                Entrez un code de salle (3 à 10 caractères). Si vous êtes le premier à rejoindre cette salle, vous devenez l'hôte et pourrez lancer la partie quand vous le souhaiter.
               </p>
             </details>
           </div>
@@ -116,7 +116,7 @@ export default function Quiz() {
             <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2">
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Comment jouer</p>
               <ul className="space-y-1 text-xs text-gray-600">
-                <li>▸ 10 questions, 2 réponses possibles — une seule est correcte</li>
+                <li>▸ 15 questions, 2 réponses possibles — une seule est correcte</li>
                 <li>▸ Vous avez 30 secondes pour répondre à chaque question</li>
                 <li>▸ Chaque bonne réponse rapporte un nombre fixe de points</li>
                 <li>▸ Une seule tentative par question, pas de changement</li>
@@ -296,7 +296,7 @@ export default function Quiz() {
               )}
 
               {/* Live scores during reveal */}
-              {isRevealing && players.length > 0 && (
+              {/*isRevealing && players.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Scores</p>
                   <ol className="space-y-1">
@@ -314,7 +314,7 @@ export default function Quiz() {
                       ))}
                   </ol>
                 </div>
-              )}
+              )*/}
             </>
           ) : (
             <p className="text-gray-400 text-sm">En attente de la question…</p>

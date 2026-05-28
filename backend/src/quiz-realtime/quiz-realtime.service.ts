@@ -16,7 +16,7 @@ interface QuestionPublic {
 }
 
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
-const QUESTIONS_PER_GAME = 10;
+const QUESTIONS_PER_GAME = 15;
 const QUESTION_TIME_LIMIT_MS = 30_000;
 
 function pickRandomQuestions(questions: QuestionInternal[], count: number): QuestionInternal[] {

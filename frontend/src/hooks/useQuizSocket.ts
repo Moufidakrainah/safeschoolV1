@@ -120,6 +120,7 @@ export function useQuizSocket(playerName: string | undefined) {
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 5000,
+        auth: { token: localStorage.getItem('token') ?? '' },
       });
 
       if (cancelled) {
@@ -140,6 +141,13 @@ export function useQuizSocket(playerName: string | undefined) {
       socket.on('connect_error', () => {
         setConnected(false);
         setSocketError('Impossible de se connecter au serveur.');
+      });
+
+      socket.on('quiz:unauthorized', () => {
+        setConnected(false);
+        setSocketError('Vous devez être connecté pour accéder au quiz.');
+        socket.disconnect();
+        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
 
       socket.io.on('reconnect_attempt', () => {
