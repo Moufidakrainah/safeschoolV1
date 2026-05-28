@@ -19,6 +19,27 @@ const ALL_QUESTIONS: QuestionInternal[] = questionsData;
 const QUESTIONS_PER_GAME = 15;
 const QUESTION_TIME_LIMIT_MS = 30_000;
 
+// Speed tiers: faster correct answers are worth more base points
+const SPEED_TIERS: { withinMs: number; points: number }[] = [
+	{ withinMs: 3_000, points: 3 },
+	{ withinMs: 7_000, points: 2 },
+];
+// If answered in more than 7 seconds the 1 point is given
+const SPEED_SLOW_POINTS = 1;
+// Max possible combo streak
+const MAX_STREAK_MULTIPLIER = 5;
+
+function speedBasePoints(elapsedMs: number): number {
+	for (const tier of SPEED_TIERS) {
+		if (elapsedMs <= tier.withinMs) return tier.points;
+	}
+	return SPEED_SLOW_POINTS;
+}
+
+function streakMultiplier(streak: number): number {
+	return Math.min(Math.max(streak, 1), MAX_STREAK_MULTIPLIER);
+}
+
 function pickRandomQuestions(questions: QuestionInternal[], count: number): QuestionInternal[] {
 	const shuffled = [...questions].sort(() => Math.random() - 0.5);
 	return shuffled.slice(0, Math.min(count, shuffled.length));
@@ -31,6 +52,7 @@ interface QuizPlayer {
 	clientId: string;
 	name: string;
 	score: number;
+	streak: number;
 }
 
 interface QuizRoom {
@@ -99,7 +121,10 @@ type SubmitAnswerResult =
 				playerId: string;
 				questionId: number;
 				isCorrect: boolean;
-				pointValue: number;
+				basePoints: number;
+				multiplier: number;
+				pointsEarned: number;
+				streak: number;
 			};
 			revealPayload: QuestionRevealPayload | null;
 	  }
@@ -189,6 +214,7 @@ export class QuizRealtimeService {
 			clientId,
 			name: playerName?.trim() || `Player-${clientId.slice(0, 5)}`,
 			score: 0,
+			streak: 0,
 		});
 
 		return {
@@ -282,8 +308,22 @@ export class QuizRealtimeService {
 		}
 
 		const isCorrect = selectedIndex === currentQuestion.correctIndex;
+
+		let basePoints = 0;
+		let multiplier = 0;
+		let pointsEarned = 0;
 		if (isCorrect) {
-			player.score += currentQuestion.score;
+			const now = Date.now();
+			const elapsedMs = room.questionEndsAt !== null
+				? Math.max(0, Math.min(QUESTION_TIME_LIMIT_MS, QUESTION_TIME_LIMIT_MS - (room.questionEndsAt - now)))
+				: QUESTION_TIME_LIMIT_MS;
+			player.streak += 1;
+			basePoints = speedBasePoints(elapsedMs);
+			multiplier = streakMultiplier(player.streak);
+			pointsEarned = basePoints * multiplier;
+			player.score += pointsEarned;
+		} else {
+			player.streak = 0;
 		}
 
 		room.selectedAnswerByPlayerId.set(clientId, selectedIndex);
@@ -298,7 +338,7 @@ export class QuizRealtimeService {
 		return {
 			status: 'accepted',
 			roomSnapshot: this.getRoomSnapshot(roomId),
-			answerResult: { roomId, playerId: clientId, questionId, isCorrect, pointValue: currentQuestion.score },
+			answerResult: { roomId, playerId: clientId, questionId, isCorrect, basePoints, multiplier, pointsEarned, streak: player.streak },
 			revealPayload,
 		};
 	}
@@ -393,6 +433,13 @@ export class QuizRealtimeService {
 
 		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion) return null;
+
+		// Players who never answered this question lose their streak.
+		for (const player of room.players.values()) {
+			if (!room.answeredPlayerIds.has(player.clientId)) {
+				player.streak = 0;
+			}
+		}
 
 		this.clearQuestionTimer(room);
 		this.clearRevealTimer(room);

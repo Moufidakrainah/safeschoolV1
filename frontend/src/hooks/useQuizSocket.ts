@@ -19,7 +19,10 @@ type AnswerResultPayload = {
   playerId: string;
   questionId: number;
   isCorrect: boolean;
-  pointValue: number;
+  basePoints: number;
+  multiplier: number;
+  pointsEarned: number;
+  streak: number;
 };
 
 type RevealPayload = {
@@ -64,6 +67,8 @@ export type QuestionState = {
   answerResult: string;
   lastAnswerCorrect: boolean | null;
   pointsEarned: number | null;
+  basePoints: number | null;
+  multiplier: number | null;
 } | null;
 
 function toSecureUrl(url: string): string {
@@ -108,6 +113,8 @@ export function useQuizSocket(playerName: string | undefined) {
   const [timeLeftMs, setTimeLeftMs] = useState(0);
   const [players, setPlayers] = useState<Player[]>([]);
   const [finalLeaderboard, setFinalLeaderboard] = useState<Player[] | null>(null);
+  const [myStreak, setMyStreak] = useState(0);
+  const nextStreakRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -178,7 +185,11 @@ export function useQuizSocket(playerName: string | undefined) {
         setIsHost(data.hostId === socket.id);
       });
 
-      socket.on('quiz:game:started', () => setGamePhase('playing'));
+      socket.on('quiz:game:started', () => {
+        setMyStreak(0);
+        nextStreakRef.current = 0;
+        setGamePhase('playing');
+      });
 
       socket.on('quiz:score:update', (data: RoomSnapshot) => {
         if (data?.players) setPlayers(data.players);
@@ -186,20 +197,27 @@ export function useQuizSocket(playerName: string | undefined) {
 
       socket.on('quiz:question', (data: QuestionPayload) => {
         const endsAt = data.endsAt ?? Date.now() + data.timeLimitMs;
-        setQuestionState({
-          question: data.question,
-          questionNumber: data.questionNumber,
-          totalQuestions: data.totalQuestions,
-          timeLimitMs: data.timeLimitMs,
-          endsAt,
-          hasAnswered: false,
-          selectedIndex: null,
-          correctIndex: null,
-          revealEndsAt: null,
-          answerStatistics: [],
-          answerResult: '',
-          lastAnswerCorrect: null,
-          pointsEarned: null,
+        setQuestionState((prev) => {
+          // Commit the streak from the question that just ended, now that we've
+          // moved past its reveal — answered correctly carries it, anything else resets.
+          if (prev) setMyStreak(prev.hasAnswered ? nextStreakRef.current : 0);
+          return {
+            question: data.question,
+            questionNumber: data.questionNumber,
+            totalQuestions: data.totalQuestions,
+            timeLimitMs: data.timeLimitMs,
+            endsAt,
+            hasAnswered: false,
+            selectedIndex: null,
+            correctIndex: null,
+            revealEndsAt: null,
+            answerStatistics: [],
+            answerResult: '',
+            lastAnswerCorrect: null,
+            pointsEarned: null,
+            basePoints: null,
+            multiplier: null,
+          };
         });
         setTimeLeftMs(Math.max(0, endsAt - Date.now()));
       });
@@ -221,13 +239,16 @@ export function useQuizSocket(playerName: string | undefined) {
       });
 
       socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
+        nextStreakRef.current = data.streak;
         setQuestionState((prev) =>
           prev
             ? {
                 ...prev,
                 answerResult: data.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse.',
                 lastAnswerCorrect: data.isCorrect,
-                pointsEarned: data.isCorrect ? data.pointValue : 0,
+                pointsEarned: data.pointsEarned,
+                basePoints: data.basePoints,
+                multiplier: data.multiplier,
               }
             : prev
         );
@@ -314,6 +335,7 @@ export function useQuizSocket(playerName: string | undefined) {
     timeLeftMs,
     players,
     finalLeaderboard,
+    myStreak,
     joinRoom,
     leaveRoom,
     startGame,

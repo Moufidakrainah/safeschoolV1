@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
@@ -11,6 +11,8 @@ const RANK_STYLES: Record<number, string> = {
   2: 'bg-gray-300 text-gray-700',
   3: 'bg-orange-500 text-white',
 };
+
+const STREAK_CAP = 5;
 
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
@@ -36,11 +38,26 @@ export default function Quiz() {
     timeLeftMs,
     players,
     finalLeaderboard,
+    myStreak,
     joinRoom,
     leaveRoom,
     startGame,
     submitAnswer,
   } = useQuizSocket(user?.firstName);
+
+  // Snapshot each player's rank at the start of every question so the live
+  // leaderboard can show how positions shifted during the reveal.
+  const prevRanksRef = useRef<Record<string, number>>({});
+  const questionNumber = questionState?.questionNumber ?? null;
+  useEffect(() => {
+    if (questionNumber == null) return;
+    const ranks: Record<string, number> = {};
+    [...players]
+      .sort((a, b) => b.score - a.score)
+      .forEach((p, i) => { ranks[p.clientId] = i + 1; });
+    prevRanksRef.current = ranks;
+    // Only re-snapshot when the question changes, not on every score update.
+  }, [questionNumber]);
 
   const headerProps = {
     user,
@@ -118,7 +135,9 @@ export default function Quiz() {
               <ul className="space-y-1 text-xs text-gray-600">
                 <li>▸ 15 questions, 2 réponses possibles — une seule est correcte</li>
                 <li>▸ Vous avez 30 secondes pour répondre à chaque question</li>
-                <li>▸ Chaque bonne réponse rapporte un nombre fixe de points</li>
+                <li>▸ Plus vous répondez vite, plus vous marquez : ≤3s = 3 pts, ≤7s = 2 pts, sinon 1 pt</li>
+                <li>▸ Combo : chaque bonne réponse d'affilée augmente le multiplicateur (jusqu'à ×5)</li>
+                <li>▸ Une mauvaise réponse (ou pas de réponse) remet le combo à zéro</li>
                 <li>▸ Une seule tentative par question, pas de changement</li>
                 <li>▸ Celui avec le plus de points à la fin gagne !</li>
               </ul>
@@ -192,6 +211,8 @@ export default function Quiz() {
   const timerPct = questionState?.timeLimitMs
     ? Math.min(100, (timeLeftMs / questionState.timeLimitMs) * 100)
     : 0;
+  const nextMult = Math.min(myStreak + 1, STREAK_CAP);
+  const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -215,19 +236,62 @@ export default function Quiz() {
             </div>
           )}
 
+          {/* Streak / multiplier banner */}
+          {!isRevealing && (
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Combo</span>
+                <span className="text-2xl font-black text-gray-900 tabular-nums">{myStreak}</span>
+              </div>
+              <div className="flex gap-0.5">
+                {Array.from({ length: STREAK_CAP }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`text-xl transition-all ${i < myStreak ? 'opacity-100 scale-110' : 'opacity-20 grayscale'}`}
+                  >
+                    🔥
+                  </span>
+                ))}
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Multiplicateur</span>
+                <span className="text-2xl font-black text-primary tabular-nums">×{nextMult}</span>
+              </div>
+            </div>
+          )}
+
           {questionState ? (
             <>
               {/* Question */}
               <h2 className="text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
 
               {/* Answer feedback */}
-              {isRevealing && questionState.answerResult && (
-                <p className={`text-sm font-semibold ${questionState.lastAnswerCorrect ? 'text-green-600' : 'text-red-500'}`}>
-                  {questionState.answerResult}
-                  {questionState.pointsEarned != null && questionState.pointsEarned > 0 && (
-                    <span className="ml-1 text-gray-500 font-normal">(+{questionState.pointsEarned} pts)</span>
-                  )}
-                </p>
+              {isRevealing && questionState.lastAnswerCorrect && questionState.basePoints != null && (
+                <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 flex flex-col gap-3">
+                  <span className="text-sm font-semibold text-green-600">Bonne réponse !</span>
+                  <div className="flex items-center justify-center gap-4 tabular-nums">
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="text-lg font-black text-gray-900">{questionState.basePoints}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400">Vitesse</span>
+                    </div>
+                    <span className="text-lg text-gray-400">×</span>
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="text-lg font-black text-gray-900">{questionState.multiplier}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400">Combo</span>
+                    </div>
+                    <span className="text-lg text-gray-400">=</span>
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className="text-lg font-black text-green-600">+{questionState.pointsEarned}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400">Points</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isRevealing && questionState.lastAnswerCorrect === false && (
+                <div className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                  <span className="text-sm font-semibold text-red-500">Mauvaise réponse</span>
+                  <span className="text-sm text-gray-500">Combo perdu</span>
+                </div>
               )}
 
               {/* Waiting states */}
@@ -295,26 +359,43 @@ export default function Quiz() {
                 </div>
               )}
 
-              {/* Live scores during reveal */}
-              {/*isRevealing && players.length > 0 && (
+              {/* Live leaderboard during reveal — with rank movement */}
+              {isRevealing && sortedPlayers.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Scores</p>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Classement en direct</p>
                   <ol className="space-y-1">
-                    {[...players]
-                      .sort((a, b) => b.score - a.score)
-                      .slice(0, 5)
-                      .map((p, idx) => (
-                        <li key={p.clientId} className="flex items-center gap-2 text-sm">
-                          <span className="w-5 text-gray-400 text-xs text-right shrink-0">{idx + 1}.</span>
-                          <span className={`flex-1 truncate ${p.clientId === myClientId ? 'font-semibold text-primary' : 'text-gray-700'}`}>
+                    {sortedPlayers.slice(0, 5).map((p, idx) => {
+                      const rank = idx + 1;
+                      const prev = prevRanksRef.current[p.clientId];
+                      const delta = prev != null ? prev - rank : 0;
+                      const isMe = p.clientId === myClientId;
+                      return (
+                        <li
+                          key={p.clientId}
+                          className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm ${
+                            isMe ? 'border border-primary bg-surface' : ''
+                          }`}
+                        >
+                          <span className="w-5 text-right text-xs text-gray-400 shrink-0">{rank}.</span>
+                          <span className="w-7 text-center text-xs font-bold shrink-0 tabular-nums">
+                            {delta > 0 ? (
+                              <span className="text-green-500">▲{delta}</span>
+                            ) : delta < 0 ? (
+                              <span className="text-red-500">▼{-delta}</span>
+                            ) : (
+                              <span className="text-gray-300">–</span>
+                            )}
+                          </span>
+                          <span className={`flex-1 truncate ${isMe ? 'font-semibold text-primary' : 'text-gray-700'}`}>
                             {p.name}
                           </span>
-                          <span className="font-bold text-gray-900 shrink-0">{p.score} pts</span>
+                          <span className="font-bold text-gray-900 shrink-0 tabular-nums">{p.score} pts</span>
                         </li>
-                      ))}
+                      );
+                    })}
                   </ol>
                 </div>
-              )*/}
+              )}
             </>
           ) : (
             <p className="text-gray-400 text-sm">En attente de la question…</p>
