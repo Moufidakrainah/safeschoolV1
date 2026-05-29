@@ -8,7 +8,7 @@ export const useLanguage = () => {
   const changeLanguage = useCallback(
     (code: LanguageCode) => {
       i18n.changeLanguage(code);
-    //   localStorage.setItem('preferred-language', code);
+    //   localStorage.setItem('preferred-language', code); //redondant avec i18n/index.ts qui sauvegarde dans le localStorage
       document.documentElement.lang = code;
     },
     [i18n],

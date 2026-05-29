@@ -8,9 +8,9 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAllReports, updateReport, getNotes, addNote } from '../services/api';
-import { severityFromApiGrade } from '../utils/severity';
-import type { Report, Note } from '../types';
+import { getAllReports, updateReport, getNotes, addNote } from '@/services/api';
+import { severityFromApiGrade } from '@/utils/severity';
+import type { Report, Note } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

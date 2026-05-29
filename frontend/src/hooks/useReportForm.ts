@@ -46,8 +46,7 @@ export function useReportForm(
   t: (key: string) => string,
 ): UseReportFormReturn {
 
-
-
+//il faut enlever les suggestions de noms d'eleves
   const defaultWho = 'temoin';
 
   const [step, setStep]               = useState(1);
@@ -105,6 +104,7 @@ export function useReportForm(
     }
   };
 
+//   attention, certaines fonctions ne sont plus utilisees 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
     if (value.length < 2) { setSuspectSuggestions([]); return; }
@@ -138,7 +138,8 @@ export function useReportForm(
     setSuspectSuggestions([]);
   };
 
-  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
+  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index)
+);
 
   const resetForm = () => {
     setStep(0);
@@ -165,12 +166,18 @@ export function useReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, suspectSuggestions, searchingUsers,
+    suspects, suspectInput, 
+	suspectSuggestions, 
+	searchingUsers,
     victimName, setVictimName,
     victimInput, setVictimInput,
-    victimSuggestions, setVictimSuggestions,
+    victimSuggestions, 
+	setVictimSuggestions,
     selectedVictim, setSelectedVictim,
-    handleSubmit, handleSuspectSearch, handleVictimSearch,
-    addSuspect, removeSuspect, resetForm,
+    handleSubmit,
+	handleSuspectSearch, 
+	handleVictimSearch,
+    addSuspect, removeSuspect, 
+	resetForm,
   };
 }
