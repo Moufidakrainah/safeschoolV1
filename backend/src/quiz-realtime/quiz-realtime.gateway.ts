@@ -8,9 +8,18 @@ import {
 	WebSocketGateway,
 	WebSocketServer,
 } from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { QuizRealtimeService } from './quiz-realtime.service';
+
+function isNonEmptyString(value: unknown): value is string {
+	return typeof value === 'string' && value.length > 0;
+}
+
+function isInteger(value: unknown): value is number {
+	return typeof value === 'number' && Number.isInteger(value);
+}
 
 interface JoinRoomPayload {
 	roomId: string;
@@ -39,6 +48,8 @@ export class QuizRealtimeGateway
 		private readonly quizRealtimeService: QuizRealtimeService,
 		private readonly jwtService: JwtService,
 	) {}
+
+	private readonly logger = new Logger(QuizRealtimeGateway.name);
 
 	@WebSocketServer()
 	server: Server;
@@ -83,7 +94,7 @@ export class QuizRealtimeGateway
 			return;
 		}
 
-		console.log(`quiz client connected: ${client.id}`);
+		this.logger.log(`quiz client connected: ${client.id}`);
 	}
 
 	private extractToken(client: Socket): string | undefined {
@@ -101,7 +112,7 @@ export class QuizRealtimeGateway
 	}
 
 	handleDisconnect(client: Socket) {
-		console.log(`quiz client disconnected: ${client.id}`);
+		this.logger.log(`quiz client disconnected: ${client.id}`);
 
 		const updates = this.quizRealtimeService.removeClientFromAllRooms(client.id);
 		for (const update of updates) {
@@ -132,6 +143,19 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: JoinRoomPayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: null, reason: 'invalid-payload', snapshot: null },
+			};
+		}
+		if (payload.playerName !== undefined && typeof payload.playerName !== 'string') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'invalid-payload', snapshot: null },
+			};
+		}
+
 		const result = this.quizRealtimeService.joinRoom({
 			roomId: payload.roomId,
 			clientId: client.id,
@@ -157,6 +181,13 @@ export class QuizRealtimeGateway
 				event: 'quiz:join:ignored',
 				data: { roomId: payload.roomId, reason: 'room-is-full', snapshot: result.snapshot },
 			}
+		}
+
+		if (result.status === 'server-at-capacity') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'server-at-capacity', snapshot: result.snapshot },
+			};
 		}
 
 		if (result.status === 'joined') {
@@ -185,6 +216,13 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: LeaveRoomPayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: null, reason: 'invalid-payload' },
+			};
+		}
+
 		const result = this.quizRealtimeService.leaveRoom(payload.roomId, client.id);
 
 		if (result.status === 'room-not-found') {
@@ -226,6 +264,13 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: StartGamePayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: null, reason: 'invalid-payload' },
+			};
+		}
+
 		const result = this.quizRealtimeService.startGame(payload.roomId, client.id);
 
 		if (result.status !== 'started') {
@@ -253,6 +298,25 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: SubmitAnswerPayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		if (
+			!payload ||
+			!isNonEmptyString(payload.roomId) ||
+			!isInteger(payload.questionId) ||
+			!isInteger(payload.selectedIndex) ||
+			payload.selectedIndex < 0
+		) {
+			return {
+				event: 'quiz:answer:ignored',
+				data: {
+					roomId: payload?.roomId ?? null,
+					playerId: client.id,
+					questionId: payload?.questionId ?? null,
+					reason: 'invalid-payload',
+					snapshot: null,
+				},
+			};
+		}
+
 		const result = this.quizRealtimeService.submitAnswer({
 			roomId: payload.roomId,
 			clientId: client.id,

@@ -18,6 +18,9 @@ interface QuestionPublic {
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
 const QUESTIONS_PER_GAME = 15;
 const QUESTION_TIME_LIMIT_MS = 30_000;
+// Hard cap on concurrent rooms to prevent a client from exhausting memory by
+// flooding `quiz:join` with unique room codes.
+const MAX_CONCURRENT_ROOMS = 500;
 
 // Speed tiers: faster correct answers are worth more base points
 const SPEED_TIERS: { withinMs: number; points: number }[] = [
@@ -110,7 +113,7 @@ type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
 
 type StartGameResult =
 	| { status: 'started'; snapshot: RoomSnapshot }
-	| { status: 'room-not-found' | 'not-host'; snapshot: null };
+	| { status: 'room-not-found' | 'not-host' | 'already-in-progress'; snapshot: null };
 
 type SubmitAnswerResult =
 	| {
@@ -140,7 +143,13 @@ type SubmitAnswerResult =
 	  };
 
 type JoinRoomResult = {
-	status: 'joined' | 'already-joined' | 'quiz-already-started' | 'roomcode-bad-format' | 'room-is-full';
+	status:
+		| 'joined'
+		| 'already-joined'
+		| 'quiz-already-started'
+		| 'roomcode-bad-format'
+		| 'room-is-full'
+		| 'server-at-capacity';
 	snapshot: RoomSnapshot;
 };
 
@@ -171,6 +180,13 @@ export class QuizRealtimeService {
 		}
 
 		let room = this.rooms.get(roomId);
+
+		if (!room && this.rooms.size >= MAX_CONCURRENT_ROOMS) {
+			return {
+				status: 'server-at-capacity',
+				snapshot: null,
+			};
+		}
 
 		if (!room) {
 			room = {
@@ -263,7 +279,11 @@ export class QuizRealtimeService {
 		if (!room) return { status: 'room-not-found', snapshot: null };
 		if (room.hostId !== clientId) return { status: 'not-host', snapshot: null };
 
+		// Prevent a host from restarting a game mid-game
+		if (room.status !== 'waiting') return { status: 'already-in-progress', snapshot: null };
+
 		this.clearQuestionTimer(room);
+		this.clearRevealTimer(room);
 		room.status = 'in-progress';
 		room.questions = pickRandomQuestions(ALL_QUESTIONS, QUESTIONS_PER_GAME);
 		room.currentQuestionIndex = 0;
@@ -430,6 +450,8 @@ export class QuizRealtimeService {
 
 	private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
 		if (room.status !== 'in-progress') return null;
+
+		if (room.revealEndsAt !== null) return null;
 
 		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion) return null;
