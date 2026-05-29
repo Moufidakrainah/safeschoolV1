@@ -174,16 +174,19 @@ export default function Quiz() {
                 {board.map((player, index) => {
                   const rank = index + 1;
                   const isMe = player.clientId === myClientId;
+                  const isWinner = rank === 1;
                   const rankStyle = RANK_STYLES[rank] ?? 'bg-gray-100 text-gray-500';
                   return (
                     <li
                       key={player.clientId}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${
+                      style={{ animationDelay: `${index * 0.08}s` }}
+                      className={`quiz-rise flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${
+                        isWinner ? 'quiz-glow border-2 border-amber-400 bg-amber-50' :
                         isMe ? 'border-2 border-primary bg-surface' : 'border border-gray-100 bg-gray-50'
                       }`}
                     >
                       <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${rankStyle}`}>
-                        {rank}
+                        {isWinner ? '🏆' : rank}
                       </span>
                       <span className={`flex-1 font-medium truncate ${isMe ? 'text-primary' : 'text-gray-800'}`}>
                         {player.name}
@@ -213,6 +216,8 @@ export default function Quiz() {
     : 0;
   const nextMult = Math.min(myStreak + 1, STREAK_CAP);
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+  const lowTime = !isRevealing && timeLeftMs > 0 && secondsLeft <= 5;
+  const timerColor = timerPct > 50 ? 'bg-primary' : timerPct > 25 ? 'bg-amber-400' : 'bg-red-500';
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -226,13 +231,23 @@ export default function Quiz() {
             <span>{questionState?.questionNumber ?? '–'} / {questionState?.totalQuestions ?? '–'}</span>
           </div>
 
-          {/* Timer bar */}
+          {/* Timer bar + countdown */}
           {!isRevealing && (
-            <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-primary transition-[width] duration-200"
-                style={{ width: `${timerPct}%` }}
-              />
+            <div className="flex items-center gap-3">
+              <div className="h-2 flex-1 rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-[width] duration-200 ${timerColor} ${lowTime ? 'quiz-bar-pulse' : ''}`}
+                  style={{ width: `${timerPct}%` }}
+                />
+              </div>
+              <span
+                key={secondsLeft}
+                className={`quiz-pop w-8 text-right text-xl font-black tabular-nums ${
+                  lowTime ? 'text-red-500' : 'text-gray-700'
+                }`}
+              >
+                {Math.max(0, secondsLeft)}
+              </span>
             </div>
           )}
 
@@ -247,7 +262,8 @@ export default function Quiz() {
                 {Array.from({ length: STREAK_CAP }).map((_, i) => (
                   <span
                     key={i}
-                    className={`text-xl transition-all ${i < myStreak ? 'opacity-100 scale-110' : 'opacity-20 grayscale'}`}
+                    style={{ animationDelay: `${i * 0.1}s` }}
+                    className={`text-xl transition-all ${i < myStreak ? 'opacity-100 quiz-flame' : 'opacity-20 grayscale'}`}
                   >
                     🔥
                   </span>
@@ -263,11 +279,11 @@ export default function Quiz() {
           {questionState ? (
             <>
               {/* Question */}
-              <h2 className="text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
+              <h2 key={questionState.questionNumber} className="quiz-rise text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
 
               {/* Answer feedback */}
               {isRevealing && questionState.lastAnswerCorrect && questionState.basePoints != null && (
-                <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 flex flex-col gap-3">
+                <div className="quiz-rise rounded-xl border border-green-100 bg-green-50 px-4 py-3 flex flex-col gap-3">
                   <span className="text-sm font-semibold text-green-600">Bonne réponse !</span>
                   <div className="flex items-center justify-center gap-4 tabular-nums">
                     <div className="flex flex-col items-center leading-tight">
@@ -281,14 +297,14 @@ export default function Quiz() {
                     </div>
                     <span className="text-lg text-gray-400">=</span>
                     <div className="flex flex-col items-center leading-tight">
-                      <span className="text-lg font-black text-green-600">+{questionState.pointsEarned}</span>
+                      <span className="quiz-pop text-2xl font-black text-green-600">+{questionState.pointsEarned}</span>
                       <span className="text-[10px] uppercase tracking-wide text-gray-400">Points</span>
                     </div>
                   </div>
                 </div>
               )}
               {isRevealing && questionState.lastAnswerCorrect === false && (
-                <div className="flex items-center justify-between rounded-xl border border-red-100 bg-red-50 px-4 py-3">
+                <div className="quiz-shake flex items-center justify-between rounded-xl border border-red-100 bg-red-50 px-4 py-3">
                   <span className="text-sm font-semibold text-red-500">Mauvaise réponse</span>
                   <span className="text-sm text-gray-500">Combo perdu</span>
                 </div>
@@ -317,10 +333,14 @@ export default function Quiz() {
                   const isSelectedPreReveal = !isRevealing && questionState.selectedIndex === i;
 
                   const variant = isCorrect ? 'success' : isWrongSelected ? 'danger' : 'primary';
+                  const interactive = !isRevealing && !questionState.hasAnswered && timeLeftMs > 0;
                   const extraClass = [
-                    'w-full min-h-[4rem] h-full flex items-center justify-center',
+                    'w-full min-h-[4rem] h-full flex items-center justify-center text-base',
+                    interactive && 'hover:-translate-y-0.5 hover:shadow-md active:scale-95',
                     isNeutral && 'bg-gray-300 hover:bg-gray-300',
-                    isSelectedPreReveal && 'bg-primary-hover hover:bg-primary-hover',
+                    isSelectedPreReveal && 'bg-primary-hover hover:bg-primary-hover scale-[1.03]',
+                    isCorrect && 'quiz-pop',
+                    isWrongSelected && 'quiz-shake',
                   ].filter(Boolean).join(' ');
 
                   return (
