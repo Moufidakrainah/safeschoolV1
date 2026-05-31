@@ -22,16 +22,13 @@ export interface UseStudentReportFormReturn {
   isNextDisabled: boolean;
   suspects:           UserSearchResult[];
   suspectInput:       string;
-  suspectSuggestions: UserSearchResult[];
   searchingUsers:     boolean;
   victimName:         string;
   setVictimName:      React.Dispatch<React.SetStateAction<string>>;
   victimInput:        string;
-  victimSuggestions:  UserSearchResult[];
   selectedVictim:     UserSearchResult | null;
   setSelectedVictim:  React.Dispatch<React.SetStateAction<UserSearchResult | null>>;
   setVictimInput:     React.Dispatch<React.SetStateAction<string>>;
-  setVictimSuggestions: React.Dispatch<React.SetStateAction<UserSearchResult[]>>;
   handleSubmit:       () => Promise<void>;
   handleSuspectSearch:(value: string) => Promise<void>;
   handleVictimSearch: (value: string) => Promise<void>;
@@ -64,12 +61,10 @@ export function useStudentReportForm(
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
   const [searchingUsers,     setSearchingUsers]     = useState(false);
 
   const [victimName,        setVictimName]        = useState('');
   const [victimInput,       setVictimInput]       = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
 
   const handleSubmit = async () => {
@@ -107,27 +102,12 @@ export function useStudentReportForm(
 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
-    setSearchingUsers(true);
-    try {
-      setSuspectSuggestions(await searchUsers(value));
-    } catch {
-      setSuspectSuggestions([]);
-    } finally {
-      setSearchingUsers(false);
-    }
   };
 
   const handleVictimSearch = async (value: string) => {
     setVictimInput(value);
     setSelectedVictim(null);
     setVictimName(value);
-    if (value.length < 2) { setVictimSuggestions([]); return; }
-    try {
-      setVictimSuggestions(await searchUsers(value));
-    } catch {
-      setVictimSuggestions([]);
-    }
   };
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
@@ -135,7 +115,6 @@ export function useStudentReportForm(
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
     setSuspectInput('');
-    setSuspectSuggestions([]);
   };
 
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
@@ -165,10 +144,9 @@ export function useStudentReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, suspectSuggestions, searchingUsers,
+    suspects, suspectInput, searchingUsers,
     victimName, setVictimName,
     victimInput, setVictimInput,
-    victimSuggestions, setVictimSuggestions,
     selectedVictim, setSelectedVictim,
     handleSubmit, handleSuspectSearch, handleVictimSearch,
     addSuspect, removeSuspect, resetForm,

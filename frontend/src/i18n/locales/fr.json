@@ -150,7 +150,16 @@
       "deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
       "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements.",
       "deleteError": "Une erreur est survenue lors de la suppression.",
-      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte"
+      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+      "name": "Lettres, apostrophes ou tirets uniquement (max 20 caractères)",
+      "tooLong": "Email trop long (max 50 caractères)",
+      "atLeast": "Minimum 12 caractères",
+      "atLeastOneNumber": "Au moins un chiffre requis",
+      "atLeastOneMinus": "Au moins une minuscule requise",
+      "atLeastOneMajor": "Au moins une majuscule requise",
+      "atLeastOneSpecial": "Au moins un caractère spécial requis",
+      "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
+      "noLastName": "Le mot de passe ne doit pas contenir le nom"
     },
     "title": {
       "oneReport": "Details d'un signalement",
@@ -158,6 +167,7 @@
     }
   },
   "badge": {
+    "all": "Tous les statuts",
 	"total":"Total", 
     "critical": "🔴 Critique",
     "high": "🟠 Grave",
