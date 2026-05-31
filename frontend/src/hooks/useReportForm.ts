@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '../services/api';
-import type { UserSearchResult } from '../types';
+import { createReport, searchUsers } from '@/services/api';
+import type { UserSearchResult } from '@/types';
 import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
@@ -80,8 +80,8 @@ export function useReportForm(
     setLoading(true);
     setSubmitError(null);
     try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
-    //   const fullDescription = `${description} ({t('frenquency')}: ${frequency})`;
+      // const fullDescription = `${description} (Fréquence: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: `${s.firstName} ${s.lastName}`,
       }));

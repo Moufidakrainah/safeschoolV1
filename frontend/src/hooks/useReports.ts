@@ -14,8 +14,6 @@ import type { Report, Note } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-
-// a quoi ca sert ? 
 export interface ReportStats {
   total: number;
   critical: number;
@@ -228,15 +226,15 @@ export function useReports(): UseReportsReturn {
 
 
 
- if (search) {
-      const q = search.toLowerCase();
-      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (
-        !name.includes(q) &&
-        !(r.title ?? '').toLowerCase().includes(q) &&
-        !(r.description ?? '').toLowerCase().includes(q)
-      ) return false;
-    }
+//  if (search) {
+//       const q = search.toLowerCase();
+//       const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
+//       if (
+//         !name.includes(q) &&
+//         !(r.title ?? '').toLowerCase().includes(q) &&
+//         !(r.description ?? '').toLowerCase().includes(q)
+//       ) return false;
+//     }
 
 
 

@@ -73,38 +73,39 @@ export function useStudentReportForm(
 //   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
 
-  const handleSubmit = async () => {
-    if (!type || !description || !frequency) return;
-    setLoading(true);
-    setSubmitError(null);
-    try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
-      const suspectsData = suspects.map(s => ({
-        freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
-      }));
-      // Si reporter=victime, les victimes supplémentaires sont dans victimName
-      // L'alerteur lui-même est déjà enregistré comme victim côté backend si besoin
-      const victimsData = victimName
-        ? victimName.split('|').filter(v => v.trim()).map(v => ({ freeText: v.trim() }))
-        : [];
+  // const handleSubmit = async () => {
+  //   if (!type || !description || !frequency) return;
+  //   setLoading(true);
+  //   setSubmitError(null);
+  //   try {
+  //     const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
 
-      await createReport(
-        type,
-        whoSignals,
-        fullDescription,
-        isAnonymous,
-        suspectsData,
-        victimsData,
-        frequency,
-      );
-      setStep(7);
-    } catch (err) {
-      console.error('Report submission failed', err);
-      setSubmitError(t('reporter.submitError'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     const suspectsData = suspects.map(s => ({
+  //       freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
+  //     }));
+  //     // Si reporter=victime, les victimes supplémentaires sont dans victimName
+  //     // L'alerteur lui-même est déjà enregistré comme victim côté backend si besoin
+  //     const victimsData = victimName
+  //       ? victimName.split('|').filter(v => v.trim()).map(v => ({ freeText: v.trim() }))
+  //       : [];
+
+  //     await createReport(
+  //       type,
+  //       whoSignals,
+  //       fullDescription,
+  //       isAnonymous,
+  //       suspectsData,
+  //       victimsData,
+  //       frequency,
+  //     );
+  //     setStep(7);
+  //   } catch (err) {
+  //     console.error('Report submission failed', err);
+  //     setSubmitError(t('reporter.submitError'));
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
