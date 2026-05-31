@@ -6,7 +6,7 @@ export type BadgeVariant =
   'all' | 'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
 
 const variantI18nKeys: Record<BadgeVariant, string> = {
-  all:        'badge.all',
+  all:          'badge.all',
   new:          'badge.new',
   in_progress:  'badge.in_progress',
   pending:      'badge.pending',
@@ -19,7 +19,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        all:          'bg-surface text-black',
+        all:          'bg-gray-100 text-gray-700',
         new:          'bg-sky-100 text-sky-700',
         in_progress:  'bg-amber-100 text-amber-700',
         pending:      'bg-teal-100 text-teal-700',

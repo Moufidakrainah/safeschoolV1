@@ -34,6 +34,9 @@
     "german": "Deutsch"
   },
   "admin": {
+    "teacher": {
+      "subjectTeached": "Matière enseignée"
+    },
     "prev": "Précédent",
     "next": "Suivant",
     "reportLabel": "Signalement {{number}}",
@@ -140,6 +143,7 @@
       "selectClass": "Sélectionner une classe",
       "roles": {
         "label": "Rôle",
+        "choose": "Choisir un rôle",
         "student": "Élève",
         "teacher": "Professeur",
         "staff": "Personnel",
@@ -173,7 +177,7 @@
 	}
   },
   "badge": {
-	"all":"Tous les statuts", 
+    "all": "Tous les statuts",
     "critical": "Critique",
     "high": "Grave",
     "medium": "Moyen",

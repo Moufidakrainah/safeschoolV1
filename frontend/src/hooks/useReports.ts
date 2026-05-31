@@ -223,9 +223,6 @@ export function useReports(): UseReportsReturn {
         if (!match) return false;
       }
 
-
-
-
       if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
       if (filterDateTo) {
         const to = new Date(filterDateTo);

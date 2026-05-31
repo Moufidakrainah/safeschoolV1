@@ -321,21 +321,6 @@ export default function AdminDashboard() {
           <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
         </SelectContent> 
 
-{/*         <Select 
-			  onValueChange={(v) => { setFilterStatus(v); setCurrentPage(1); }}>
-				<SelectTrigger>
-					<Badge variant={filterStatus}/>
-				</SelectTrigger>
-				<SelectContent>
-					{(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report']).map((status) =>
-					(
-						<SelectItem key={status} value={status}>
-							<Badge variant={status}/>
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select> */}
-
 
     </Select>
       {userForm.role === 'student' && (
