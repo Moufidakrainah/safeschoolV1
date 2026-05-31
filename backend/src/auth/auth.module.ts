@@ -11,8 +11,9 @@ import { JwtStrategy } from "./jwt.strategy";
     UsersModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "supersecret",
-      signOptions: { expiresIn: "24h" },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: "24h", algorithm: "HS256" },
+      verifyOptions: { algorithms: ["HS256"] },
     }),
   ],
   controllers: [AuthController],

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { useQuizSocket } from '../hooks/useQuizSocket';
@@ -47,7 +47,7 @@ export default function Quiz() {
   if (!joinedRoom) {
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Quiz</h1>
@@ -80,7 +80,7 @@ export default function Quiz() {
   if (gamePhase === 'lobby') {
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
             <h1 className="text-center text-2xl font-black text-gray-900">Salle : {joinedRoom}</h1>
@@ -113,7 +113,7 @@ export default function Quiz() {
     const board = finalLeaderboard ?? [];
     return (
       <>
-        <ReporterHeader {...headerProps} />
+        <RoleHeader {...headerProps} />
         <div className="flex items-center justify-center min-h-screen bg-surface py-8">
           <div className="w-full max-w-md rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-6">
             <div className="text-center">
@@ -168,7 +168,7 @@ export default function Quiz() {
 
   return (
     <>
-      <ReporterHeader {...headerProps} />
+      <RoleHeader {...headerProps} />
       <div className="flex items-center justify-center min-h-screen bg-surface py-8">
         <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
 
