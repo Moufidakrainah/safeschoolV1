@@ -224,12 +224,11 @@ export default function AdminDashboard() {
     let message = '';
     const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
     if (field === 'firstName' || field === 'lastName') {
-      if (!value.trim()) message = t('login.errorRequired');
+      if (!value.trim()) message = t('admin.users.errorRequired');
       else if (!nameRegex.test(value)) message = t('admin.users.name');
     } else if (field === 'email') {
-      if (!value.trim()) 
-		message = t('admin.users.errorRequired'); // jamais atteint
-      else if (value.length > 50) message = t('admin.users.tooLong'); // jamis atteint
+      if (!value.trim()) message = t('admin.users.errorRequired');
+      else if (value.length > 50) message = t('admin.users.tooLong');
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
     } else if (field === 'password' && value.length > 0) {
       if (value.length < 12) message = t('admin.users.atLeast');
@@ -547,50 +546,20 @@ export default function AdminDashboard() {
             </div>
             <div className="mb-5"><Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} /></div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-            
-			
-	
-
-
-            <Select 
-			  value={filterStatus} 
-			  onValueChange={(v) => { setFilterStatus(v); setCurrentPage(1); }}>
-				<SelectTrigger 
-				aria-label={t('admin.filters.status')}>
-					<Badge variant={filterStatus}/>
-				</SelectTrigger>
-				<SelectContent>
-					{(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report']).map((status) =>
-					(
-						<SelectItem key={status} value={status}>
-							<Badge variant={status}/>
-						</SelectItem>
-					))}
-				</SelectContent>
-			</Select>
-
-
-
-            <Select 
-			  value={filterClass} 
-			  onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
-				<SelectTrigger 
-				aria-label={t('admin.filters.allClasses')}>
-					<SelectValue>
-						{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}
-					</SelectValue>
-				</SelectTrigger>
-				<SelectContent>
-					<SelectItem 
-					value="all">{t('admin.filters.allClasses')}
-					</SelectItem>
-					{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}
-				</SelectContent>
-			</Select>
-              
-			  
-			  
-			  <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}><SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent></Select>
+              <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
+                  <Badge variant={filterStatus as BadgeVariant} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
+                    <SelectItem key={status} value={status}>
+                      <Badge variant={status as BadgeVariant} />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}><SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}</SelectContent></Select>
+              <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}><SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent></Select>
               <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
@@ -600,10 +569,6 @@ export default function AdminDashboard() {
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
               </div>
             </div>
-            <div className="flex justify-center gap-3 mb-4 flex-wrap">
-
-			
-			</div>
             <div className="flex justify-center mb-4"><Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button></div>
             {loading ? <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p> : filtered.length === 0 ? <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p> : (
               <ul className="flex flex-col gap-3">

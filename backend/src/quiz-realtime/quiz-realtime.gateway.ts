@@ -86,6 +86,7 @@ export class QuizRealtimeGateway
 		try {
 			const payload = this.jwtService.verify<{ sub: string; email: string; role: string }>(
 				token,
+				{ algorithms: ['HS256'] },
 			);
 			client.data.user = payload;
 		} catch {
