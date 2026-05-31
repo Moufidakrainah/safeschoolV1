@@ -82,7 +82,7 @@ export default function AdminDashboard() {
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', role: 'student',
+    firstName: '', lastName: '', email: '', password: '', role: '',
     classId: '', subject: '', classIds: [] as string[],
   });
 
@@ -292,9 +292,17 @@ export default function AdminDashboard() {
       <div><Label className="text-white text-sm">{t('admin.users.firstName')}</Label><Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-white mt-1" />{errors.firstName && <p className="text-red-300 text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.lastName')}</Label><Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-white mt-1" />{errors.lastName && <p className="text-red-300 text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-white text-sm">{t('admin.users.email')}</Label><Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-white mt-1" />{errors.email && <p className="text-red-300 text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? ' (laisser vide pour ne pas changer)' : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" maxLength={20} />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
+      <div><Label className="text-white text-sm">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label><Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-white mt-1" maxLength={20} />{errors.password && <p className="text-red-300 text-xs mt-1">{errors.password}</p>}</div>
       <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-        <SelectTrigger className="bg-white mt-1"><SelectValue /></SelectTrigger>
+        <SelectTrigger className="bg-white mt-1">
+          <span>
+            {userForm.role === '' && t('admin.users.roles.choose')}
+            {userForm.role === 'student' && t('admin.users.roles.student')}
+            {userForm.role === 'teacher' && t('admin.users.roles.teacher')}
+            {userForm.role === 'admin' && t('admin.users.roles.admin')}
+            {userForm.role === 'director' && t('admin.users.roles.director')}
+          </span>
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
@@ -314,7 +322,7 @@ export default function AdminDashboard() {
       {userForm.role === 'teacher' && (
         <>
           <div>
-            <Label className="text-white text-sm">Matière enseignée</Label>
+            <Label className="text-white text-sm">{t('admin.teacher.subjectTeached')}</Label>
             <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
             <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
             {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}

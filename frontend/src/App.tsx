@@ -1,16 +1,16 @@
 /*Routes : redirige selon le role */
 import type { ReactElement } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import StudentDashboard from './pages/StudentDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import ReporterDashboard from './pages/ReporterDashboard';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import { Footer } from './components/Footer';
-import UiKit from './pages/UiKit';
-import Quiz from './pages/Quiz';
+import { useAuth } from '@/context/AuthContext';
+import Login from '@/pages/Login';
+import StudentDashboard from '@/pages/StudentDashboard';
+import AdminDashboard from '@/pages/AdminDashboard';
+import ReporterDashboard from '@/pages/ReporterDashboard';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import { Footer } from '@/components/layout/Footer/Footer';
+import UiKit from '@/pages/UiKit';
+import Quiz from '@/pages/Quiz';
 
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();

@@ -7,7 +7,8 @@
     "errorRequired": "Veuillez remplir tous les champs.",
     "errorEmailFormat": "Format d'email invalide.",
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-    "error": "Identifiants incorrects."
+    "error": "Identifiants incorrects.",
+    "keepEmpty": " (laisser vide pour ne pas changer)"
   },
   "nav": {
     "logout": "Se déconnecter"
@@ -33,6 +34,9 @@
     "german": "Deutsch"
   },
   "admin": {
+    "teacher": {
+      "subjectTeached": "Matière enseignée"
+    },
     "prev": "Précédent",
     "next": "Suivant",
     "reportLabel": "Signalement {{number}}",
@@ -139,6 +143,7 @@
       "selectClass": "Sélectionner une classe",
       "roles": {
         "label": "Rôle",
+        "choose": "Choisir un rôle",
         "student": "Élève",
         "teacher": "Professeur",
         "staff": "Personnel",
@@ -168,7 +173,6 @@
   },
   "badge": {
     "all": "Tous les statuts",
-	"total":"Total", 
     "critical": "Critique",
     "high": "Grave",
     "medium": "Moyen",

@@ -8,14 +8,14 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAllReports, updateReport, getNotes, addNote } from '../services/api';
-import { severityFromApiGrade } from '../utils/severity';
-import type { Report, Note } from '../types';
+import { getAllReports, updateReport, getNotes, addNote } from '@/services/api';
+import { severityFromApiGrade } from '@/utils/severity';
+import type { Report, Note } from '@/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 
-// a quoi ca sert ? 
+
 export interface ReportStats {
   total: number;
   critical: number;
@@ -224,21 +224,6 @@ export function useReports(): UseReportsReturn {
         });
         if (!match) return false;
       }
-
-
-
-
- if (search) {
-      const q = search.toLowerCase();
-      const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-      if (
-        !name.includes(q) &&
-        !(r.title ?? '').toLowerCase().includes(q) &&
-        !(r.description ?? '').toLowerCase().includes(q)
-      ) return false;
-    }
-
-
 
       if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
       if (filterDateTo) {

@@ -73,14 +73,18 @@ export class StaffProfilesController {
   }
 
   // GET /staff-profiles/by-user/:userId
-// Récupère le profil staff d'un utilisateur par son userId
-// Accessible à tous les connectés pour leur propre profil
-@Get('by-user/:userId')
-async findByUserId(@Param('userId') userId: string, @Request() req) {
-  validateUUID(userId);
-  if (req.user.role !== 'admin' && req.user.role !== 'director' && req.user.id !== userId) {
-    throw new ForbiddenException('Accès refusé');
+  // Récupère le profil staff d'un utilisateur par son userId
+  // Accessible à tous les connectés pour leur propre profil
+  @Get("by-user/:userId")
+  async findByUserId(@Param("userId") userId: string, @Request() req) {
+    validateUUID(userId);
+    if (
+      req.user.role !== "admin" &&
+      req.user.role !== "director" &&
+      req.user.id !== userId
+    ) {
+      throw new ForbiddenException("Accès refusé");
+    }
+    return this.staffProfilesService.findByUserId(userId);
   }
-  return this.staffProfilesService.findByUserId(userId);
-}
 }

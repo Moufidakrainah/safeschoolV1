@@ -103,7 +103,7 @@ export default function AdminClasses() {
       {/* ── Colonne gauche : liste des classes ── */}
       <div className="w-72 flex-shrink-0">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-gray-800">🏫 Classes</h2>
+          <h2 className="text-lg font-bold text-gray-800">Classes</h2>
           <Button
             size="sm"
             onClick={() => {
@@ -226,7 +226,6 @@ export default function AdminClasses() {
       <div className="flex-1 min-w-0">
         {!selectedClass ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-300">
-            <span className="text-5xl mb-3">🏫</span>
             <p className="text-sm">Cliquez sur une classe pour voir ses élèves</p>
           </div>
         ) : (

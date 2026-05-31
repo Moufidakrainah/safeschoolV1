@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   getStudentParents, getNotifications, markNotificationRead,
   getAllReports, getNotes,
-} from '../services/api';
-import type { Parent } from '../types';
-import StudentProfile from '../components/student/StudentProfile';
-import StudentForm from '../components/student/StudentForm';
+} from '@/services/api';
+import type { Parent } from '@/types';
+import StudentProfile from '@/components/student/StudentProfile';
+import StudentForm from '@/components/student/StudentForm';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Badge } from '@/components/ui/badge';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+import { SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade} from '@/utils/severity';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 
@@ -21,10 +21,6 @@ const statusToBadgeVariant = (status: string) => {
     resolved: 'resolved', false_report: 'false_report',
   };
   return map[status] ?? 'new';
-};
-
-const SEVERITY_BADGES: Record<string, string> = {
-  critical: '🔴 Critique', high: '🟠 Élevé', medium: '🟡 Moyen', low: '🟢 Faible',
 };
 
 const MONTHS_FR: Record<string, number> = {
@@ -193,7 +189,7 @@ export default function StudentDashboard() {
                           <span className="font-bold text-sm text-primary">{report.caseNumber}</span>
                           <span className="text-white text-xs px-3 py-0.5 rounded-full"
                             style={{ background: SEVERITY_COLORS[severity] }}>
-                            {SEVERITY_BADGES[severity]}
+                            {SEVERITY_LABELS[severity]}
                           </span>
                           {reportUnreadCount > 0 && (
                             <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">

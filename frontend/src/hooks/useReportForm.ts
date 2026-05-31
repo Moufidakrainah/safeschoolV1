@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '../services/api';
-import type { UserSearchResult } from '../types';
+import { createReport, searchUsers } from '@/services/api';
+import type { UserSearchResult } from '@/types';
 
 export interface UseReportFormReturn {
   step:        number;
@@ -77,7 +77,7 @@ export function useReportForm(
     setLoading(true);
     setSubmitError(null);
     try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: `${s.firstName} ${s.lastName}`,
       }));

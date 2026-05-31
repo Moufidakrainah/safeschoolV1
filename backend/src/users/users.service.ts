@@ -98,7 +98,7 @@ constructor(
   }
 
   // ── Rechercher un user par prénom ou nom ──────────────────────────────────
-  // Utilisé dans le formulaire de signalement pour chercher des soupçonnés
+  // Utilisé dans le formulaire de signalement pour chercher des suspects
   // On exclut les admins et directeurs des résultats
   async search(query: string): Promise<User[]> {
     return this.usersRepository
