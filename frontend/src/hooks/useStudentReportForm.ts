@@ -31,7 +31,6 @@ export interface UseStudentReportFormReturn {
   setVictimInput:     React.Dispatch<React.SetStateAction<string>>;
   handleSubmit:       () => Promise<void>;
   handleSuspectSearch:(value: string) => Promise<void>;
-  handleVictimSearch: (value: string) => Promise<void>;
   addSuspect:         (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect:      (index: number) => void;
   resetForm:          () => void;
@@ -57,7 +56,7 @@ export function useStudentReportForm(
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
-    (step === 3 && (!description || !frequency));
+    (step === 3 && (!description.trim() || !frequency));
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
@@ -72,7 +71,7 @@ export function useStudentReportForm(
     setLoading(true);
     setSubmitError(null);
     try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
       }));
@@ -102,12 +101,6 @@ export function useStudentReportForm(
 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
-  };
-
-  const handleVictimSearch = async (value: string) => {
-    setVictimInput(value);
-    setSelectedVictim(null);
-    setVictimName(value);
   };
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
@@ -148,7 +141,7 @@ export function useStudentReportForm(
     victimName, setVictimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim,
-    handleSubmit, handleSuspectSearch, handleVictimSearch,
+    handleSubmit, handleSuspectSearch,
     addSuspect, removeSuspect, resetForm,
   };
 }

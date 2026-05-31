@@ -38,7 +38,7 @@ export default function StudentForm({ user }: StudentFormProps) {
     victimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
-    handleSubmit, handleSuspectSearch, handleVictimSearch,
+    handleSubmit, handleSuspectSearch,
     addSuspect, removeSuspect, resetForm,
   } = useStudentReportForm(user?.role, t);
 
