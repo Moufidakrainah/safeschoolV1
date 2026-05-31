@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   getStudentParents, getNotifications, markNotificationRead,
   getAllReports, getNotes,
 } from '@/services/api';
-import type { Parent } from '../types';
+import type { Parent } from '@/types';
 import StudentProfile from '@/components/student/StudentProfile';
 import StudentForm from '@/components/student/StudentForm';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Badge } from '@/components/ui/badge';
-import { SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '../utils/severity';
+import { SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '@/utils/severity';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 

@@ -81,7 +81,7 @@ export function useReportForm(
     setSubmitError(null);
     try {
       // const fullDescription = `${description} (Fréquence: ${frequency})`;
-      const fullDescription = `${description} (${t('reporter.frequency')}: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: `${s.firstName} ${s.lastName}`,
       }));

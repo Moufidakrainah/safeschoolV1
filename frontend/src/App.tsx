@@ -8,7 +8,7 @@ import AdminDashboard from '@/pages/AdminDashboard';
 import ReporterDashboard from '@/pages/ReporterDashboard';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
-import { Footer } from '@/components/ASupprimerFooter';
+import { Footer } from '@/components/layout/Footer/Footer';
 import UiKit from '@/pages/UiKit';
 import Quiz from '@/pages/Quiz';
 

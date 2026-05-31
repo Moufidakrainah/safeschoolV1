@@ -226,18 +226,6 @@ export function useReports(): UseReportsReturn {
 
 
 
-//  if (search) {
-//       const q = search.toLowerCase();
-//       const name = `${r.student?.firstName ?? ''} ${r.student?.lastName ?? ''}`.toLowerCase();
-//       if (
-//         !name.includes(q) &&
-//         !(r.title ?? '').toLowerCase().includes(q) &&
-//         !(r.description ?? '').toLowerCase().includes(q)
-//       ) return false;
-//     }
-
-
-
       if (filterDateFrom && new Date(r.createdAt) < new Date(filterDateFrom)) return false;
       if (filterDateTo) {
         const to = new Date(filterDateTo);
