@@ -42,8 +42,7 @@ export function useStudentReportForm(
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
 
-//   const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
-  const defaultWho = 'temoin';
+  const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
 
   const [step, setStep]               = useState(1);
   const [whoSignals, setWhoSignals]   = useState(defaultWho);

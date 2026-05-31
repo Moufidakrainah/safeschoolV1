@@ -23,10 +23,6 @@ const statusToBadgeVariant = (status: string) => {
   return map[status] ?? 'new';
 };
 
-// const SEVERITY_LABELS: Record<string, string> = {
-//   critical: '🔴 Critique', high: '🟠 Élevé', medium: '🟡 Moyen', low: '🟢 Faible',
-// };
-
 const MONTHS_FR: Record<string, number> = {
   'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
   'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12,
