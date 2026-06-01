@@ -7,6 +7,7 @@ import {
   getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
   searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
   createStaffProfile, updateStaffProfile,
+  createParent, updateParent, deleteParent,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -109,6 +110,9 @@ export default function AdminDashboard() {
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [showParentForm, setShowParentForm] = useState(false);
+  const [editingParent, setEditingParent] = useState<any | null>(null);
+  const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
 
   const itemsPerPage = 5;
 
@@ -161,23 +165,30 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
+
   const fetchUsers = async (page?: number, search?: string) => {
     const p = page ?? usersPage;
-    const q = search ?? usersSearch;
+    const q = search !== undefined ? search : usersSearch;
     setLoadingUsers(true);
     try {
       if (q.trim().length >= 2) {
         const results = await searchUsers(q);
-        setUsers(Array.isArray(results) ? results : []);
+        const arr = Array.isArray(results) ? results : [];
+        setAllUsers(arr);
+        setUsers(arr);
         setUsersTotalPages(1);
-        setUsersTotal(results.length ?? 0);
+        setUsersTotal(arr.length ?? 0);
+        setUsersPage(1);
       } else {
-        const data = await getAllUsers(p, 5);
-        setUsers(Array.isArray(data.data) ? data.data : []);
-        setUsersTotalPages(data.totalPages ?? 1);
-        setUsersTotal(data.total ?? 0);
+        const data = await getAllUsers(1, 1000);
+        const arr = Array.isArray(data.data) ? data.data : [];
+        setAllUsers(arr);
+        setUsers(arr.slice((p-1)*5, p*5));
+        setUsersTotalPages(Math.ceil(arr.length / 7) || 1);
+        setUsersTotal(arr.length ?? 0);
       }
-    } catch { setUsers([]); }
+    } catch { setAllUsers([]); setUsers([]); }
     finally { setLoadingUsers(false); }
   };
 
@@ -229,7 +240,7 @@ export default function AdminDashboard() {
 
   const validateField = (field: string, value: string) => {
     let message = '';
-    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
+    const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
     if (field === 'firstName' || field === 'lastName') {
       if (!value.trim()) message = t('admin.users.errorRequired');
       else if (!nameRegex.test(value)) message = t('admin.users.name');
@@ -249,7 +260,17 @@ export default function AdminDashboard() {
     setErrors(prev => ({ ...prev, [field]: message }));
   };
 
-  const updateField = (field: string, value: string) => { setUserForm(prev => ({ ...prev, [field]: value })); validateField(field, value); };
+  const updateField = (field: string, value: string) => {
+    let normalized = value;
+    if (field === 'firstName') {
+      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-');
+    }
+    if (field === 'lastName') {
+      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
+    }
+    setUserForm(prev => ({ ...prev, [field]: normalized }));
+    validateField(field, normalized);
+  };
   const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
   const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
 
@@ -270,7 +291,7 @@ export default function AdminDashboard() {
   };
 
   const filteredUsers = useMemo(() => {
-    return [...users]
+    return [...allUsers]
       .filter(u => usersRoleFilter.length === 0 || usersRoleFilter.includes(u.role))
       .sort((a, b) => {
         if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
@@ -349,7 +370,7 @@ export default function AdminDashboard() {
 
 
     <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-       	<SelectTrigger>
+       	<SelectTrigger className="bg-white">
 			<span>
 				{userForm.role === "" && t('admin.users.roles.choose')}
 				{userForm.role === "student" && t('admin.users.roles.student')}
@@ -555,7 +576,7 @@ export default function AdminDashboard() {
 
         {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
-          <section className="max-w-xl mx-auto">
+          <section>
             <div className="flex justify-between items-center mb-4">
               <Button variant="ghost" onClick={() => {
                 setSelectedUser(null); setEditMode(false);
@@ -611,22 +632,66 @@ export default function AdminDashboard() {
                     {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
                     {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
                   </TableBody></Table>
-                  {profileParents.length > 0 && (
-                    <div className="mt-5">
-                      <p className="text-sm font-semibold text-muted-foreground mb-2">Responsables légaux</p>
-                      <div className="flex flex-col gap-2">
-                        {profileParents.map((p: any) => {
-                          const { first, last } = formatName(p.firstName, p.lastName);
-                          return (
-                            <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
-                              <p className="font-semibold text-gray-800 mb-2">{first} {last}</p>
-                              <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
-                            </div>
-                          );
-                        })}
-                      </div>
+                  <div className="mt-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
+                      {profileParents.length < 2 && !showParentForm && (
+                        <Button size="sm" variant="outline" onClick={() => { setShowParentForm(true); setEditingParent(null); setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' }); }}>+ Ajouter</Button>
+                      )}
                     </div>
-                  )}
+                    {showParentForm && (
+                      <div className="bg-gray-50 rounded-lg p-3 mb-3 flex flex-col gap-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-xs">Prénom</Label><Input value={parentForm.firstName} onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                            setParentForm(p => ({ ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() }));
+                          }} maxLength={20} className="mt-1" /></div>
+                          <div><Label className="text-xs">Nom</Label><Input value={parentForm.lastName} onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                            setParentForm(p => ({ ...p, lastName: val.toUpperCase() }));
+                          }} maxLength={20} className="mt-1" /></div>
+                        </div>
+                        <div><Label className="text-xs">Email</Label><Input type="email" value={parentForm.email} onChange={e => setParentForm(p => ({ ...p, email: e.target.value }))} maxLength={50} className="mt-1" /></div>
+                        <div><Label className="text-xs">Téléphone</Label><Input value={parentForm.phone} onChange={e => setParentForm(p => ({ ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') }))} maxLength={15} className="mt-1" /></div>
+                        <div><Label className="text-xs">Adresse</Label><Input value={parentForm.address} onChange={e => setParentForm(p => ({ ...p, address: e.target.value }))} className="mt-1" /></div>
+                        <div className="flex gap-2 justify-end mt-1">
+                          <Button size="sm" disabled={
+                            !parentForm.firstName || parentForm.firstName.length < 2 ||
+                            !parentForm.lastName || parentForm.lastName.length < 2 ||
+                            !parentForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
+                          } onClick={async () => {
+                            if (editingParent) {
+                              await updateParent(editingParent.id, parentForm);
+                            } else {
+                              const studentProfileId = selectedUser?.studentProfile?.id;
+                              if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+                            }
+                            const updated = await getStudentParents(selectedUser!.id);
+                            setProfileParents(updated);
+                            setShowParentForm(false); setEditingParent(null);
+                          }}>Enregistrer</Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>Annuler</Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-2">
+                      {profileParents.map((p: any) => {
+                        const { first, last } = formatName(p.firstName, p.lastName);
+                        return (
+                          <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="font-semibold text-gray-800">{first} {last}</p>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => { setEditingParent(p); setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' }); setShowParentForm(true); }}>Modifier</Button>
+                                <Button size="sm" variant="destructive" onClick={async () => { await deleteParent(p.id); setProfileParents(await getStudentParents(selectedUser!.id)); }}>Supprimer</Button>
+                              </div>
+                            </div>
+                            <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
               {editMode && (
@@ -686,15 +751,13 @@ export default function AdminDashboard() {
             <div className="flex gap-2 mb-3">
               <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
                 onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="flex-1" />
-              {(usersSearch || usersRoleFilter.length > 0) && (
-                <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
-              )}
+              <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
             </div>
             <div className="flex gap-4 mb-4 flex-wrap items-center">
               {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
                 <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                   <Checkbox checked={usersRoleFilter.includes(r.key)}
-                    onCheckedChange={checked => { setUsersRoleFilter(prev => checked ? [...prev, r.key] : prev.filter(x => x !== r.key)); setUsersPage(1); }} />
+                    onCheckedChange={checked => { const newFilter = checked ? [...usersRoleFilter, r.key] : usersRoleFilter.filter(x => x !== r.key); setUsersRoleFilter(newFilter); setUsersPage(1); setTimeout(() => fetchUsers(1), 0); }} />
                   {r.label}
                 </label>
               ))}
@@ -710,56 +773,57 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {filteredUsers.map(u => {
+                {filteredUsers.slice((usersPage-1)*7, usersPage*7).map(u => {
                   const { first, last } = formatName(u.firstName, u.lastName);
                   return (
                     <li key={u.id}>
-                      <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+                      <div className="cursor-pointer hover:shadow-md transition-shadow bg-white shadow-sm overflow-hidden"
                         onClick={async () => {
                           const freshU = await getUserById(u.id);
                           if (freshU) {
                             navigateToUser(freshU);
                           }
                         }}>
-                        <CardContent className="flex items-stretch p-0">
-                          <div className="w-16 flex-shrink-0">
+                        <div className="flex items-stretch">
+                          <div style={{ width: "96px", height: "96px", flexShrink: 0, overflow: "hidden", borderRadius: 0 }}>
                             {u.avatar
-                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-full h-full min-h-[64px] object-cover" />
-                              : <div className="w-full h-full min-h-[64px] bg-gray-200 flex items-center justify-center text-base font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>}
+                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} style={{ width: "96px", height: "96px", objectFit: "cover", display: "block" }} />
+                              : <div style={{ width: "96px", height: "96px", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", fontWeight: "bold", color: "#9ca3af" }}>{u.firstName?.[0]}{u.lastName?.[0]}</div>}
                           </div>
-                          <div className="flex-1 px-4 py-3">
+                          <div className="flex-1 px-4 py-3" style={{ minHeight: "80px" }}>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-gray-800">{first} {last}</span>
                               <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">{u.email}</p>
                             {u.studentProfile?.schoolClass && <span className="mt-1 inline-block bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
-                            {u.staffProfile?.classes?.length > 0 && (
+                            {u.role === 'teacher' && (
                               <div className="mt-1 flex flex-wrap gap-1">
-                                {u.staffProfile.classes.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
+                                {u.staffProfile?.subject && <span className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{u.staffProfile.subject}</span>}
+                                {u.staffProfile?.classes?.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
                               </div>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     </li>
                   );
                 })}
               </ul>
             )}
-            {usersTotalPages > 1 && (
+            {Math.ceil(filteredUsers.length / 7) > 1 && (
               <PaginationShadcn className="mt-4">
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious onClick={() => { if (usersPage > 1) { setUsersPage(p => p-1); fetchUsers(usersPage-1); } }} className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
-                  {Array.from({ length: usersTotalPages }, (_, i) => i+1).map(p => (
+                  {Array.from({ length: Math.ceil(filteredUsers.length / 7) }, (_, i) => i+1).map(p => (
                     <PaginationItem key={p}>
                       <PaginationLink isActive={p === usersPage} onClick={() => { setUsersPage(p); fetchUsers(p); }} className="cursor-pointer">{p}</PaginationLink>
                     </PaginationItem>
                   ))}
                   <PaginationItem>
-                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === usersTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === Math.ceil(filteredUsers.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                 </PaginationContent>
               </PaginationShadcn>
