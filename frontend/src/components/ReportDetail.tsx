@@ -298,7 +298,7 @@ export default function ReportDetail({
                         <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? "cursor-pointer hover:underline" : ""}`} onClick={() => s.resolvedUser?.id && onNavigateToUser(s.resolvedUser.id)}>{s.freeText}</p>
                         {s.resolvedUser && (
                           <div className="flex items-center gap-1 text-xs text-green-600">
-                            ✅ {s.resolvedUser.firstName} {s.resolvedUser.lastName}
+                             {s.resolvedUser.firstName} {s.resolvedUser.lastName}
                             {s.resolvedUser.studentProfile?.schoolClass && (
                               <span className="text-primary ml-1">
                                 {s.resolvedUser.studentProfile.schoolClass.level} {s.resolvedUser.studentProfile.schoolClass.section}
@@ -310,7 +310,7 @@ export default function ReportDetail({
                         {isAdmin && (
                           <button className="text-xs text-blue-500 hover:underline mt-1"
                             onClick={() => { onSetActiveSuspect(activeSuspect === s.id ? null : s.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                            {s.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                            {s.resolvedUser ? ' Modifier' : ' Lier'}
                           </button>
                         )}
                         {isAdmin && activeSuspect === s.id && (
@@ -411,7 +411,7 @@ export default function ReportDetail({
                           min={new Date().toISOString().slice(0,16)}
                           onChange={e => onSetConvocDetails((prev: any) => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
                         {details.date && new Date(details.date) <= new Date() && (
-                          <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>
+                          <p className="text-red-500 text-xs mt-1"> La date doit être dans le futur</p>
                         )}
                       </div>
                       <Textarea rows={2} placeholder="Message de convocation..." value={details.message}
@@ -421,7 +421,7 @@ export default function ReportDetail({
                     </div>
                   );
                 })}
-                {convocSuccess && <p className="text-green-600 text-sm">✅ Convocations envoyées avec succès !</p>}
+                {convocSuccess && <p className="text-green-600 text-sm"> Convocations envoyées avec succès !</p>}
                 <Button
                   disabled={sendingConvoc || checkedConvocIds.some(id => !convocDetails[id]?.date || !convocDetails[id]?.message || new Date(convocDetails[id].date) <= new Date())}
                   onClick={async () => {

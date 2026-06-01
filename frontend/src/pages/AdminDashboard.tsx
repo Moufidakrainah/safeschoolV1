@@ -161,23 +161,30 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
+  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
+
   const fetchUsers = async (page?: number, search?: string) => {
     const p = page ?? usersPage;
-    const q = search ?? usersSearch;
+    const q = search !== undefined ? search : usersSearch;
     setLoadingUsers(true);
     try {
       if (q.trim().length >= 2) {
         const results = await searchUsers(q);
-        setUsers(Array.isArray(results) ? results : []);
+        const arr = Array.isArray(results) ? results : [];
+        setAllUsers(arr);
+        setUsers(arr);
         setUsersTotalPages(1);
-        setUsersTotal(results.length ?? 0);
+        setUsersTotal(arr.length ?? 0);
+        setUsersPage(1);
       } else {
-        const data = await getAllUsers(p, 5);
-        setUsers(Array.isArray(data.data) ? data.data : []);
-        setUsersTotalPages(data.totalPages ?? 1);
-        setUsersTotal(data.total ?? 0);
+        const data = await getAllUsers(1, 1000);
+        const arr = Array.isArray(data.data) ? data.data : [];
+        setAllUsers(arr);
+        setUsers(arr.slice((p-1)*5, p*5));
+        setUsersTotalPages(Math.ceil(arr.length / 7) || 1);
+        setUsersTotal(arr.length ?? 0);
       }
-    } catch { setUsers([]); }
+    } catch { setAllUsers([]); setUsers([]); }
     finally { setLoadingUsers(false); }
   };
 
@@ -270,7 +277,7 @@ export default function AdminDashboard() {
   };
 
   const filteredUsers = useMemo(() => {
-    return [...users]
+    return [...allUsers]
       .filter(u => usersRoleFilter.length === 0 || usersRoleFilter.includes(u.role))
       .sort((a, b) => {
         if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
@@ -686,15 +693,13 @@ export default function AdminDashboard() {
             <div className="flex gap-2 mb-3">
               <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
                 onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="flex-1" />
-              {(usersSearch || usersRoleFilter.length > 0) && (
-                <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
-              )}
+              <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
             </div>
             <div className="flex gap-4 mb-4 flex-wrap items-center">
               {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
                 <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                   <Checkbox checked={usersRoleFilter.includes(r.key)}
-                    onCheckedChange={checked => { setUsersRoleFilter(prev => checked ? [...prev, r.key] : prev.filter(x => x !== r.key)); setUsersPage(1); }} />
+                    onCheckedChange={checked => { const newFilter = checked ? [...usersRoleFilter, r.key] : usersRoleFilter.filter(x => x !== r.key); setUsersRoleFilter(newFilter); setUsersPage(1); setTimeout(() => fetchUsers(1), 0); }} />
                   {r.label}
                 </label>
               ))}
@@ -710,56 +715,57 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {filteredUsers.map(u => {
+                {filteredUsers.slice((usersPage-1)*7, usersPage*7).map(u => {
                   const { first, last } = formatName(u.firstName, u.lastName);
                   return (
                     <li key={u.id}>
-                      <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+                      <div className="cursor-pointer hover:shadow-md transition-shadow bg-white shadow-sm overflow-hidden"
                         onClick={async () => {
                           const freshU = await getUserById(u.id);
                           if (freshU) {
                             navigateToUser(freshU);
                           }
                         }}>
-                        <CardContent className="flex items-stretch p-0">
-                          <div className="w-16 flex-shrink-0">
+                        <div className="flex items-stretch">
+                          <div style={{ width: "96px", height: "96px", flexShrink: 0, overflow: "hidden", borderRadius: 0 }}>
                             {u.avatar
-                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-full h-full min-h-[64px] object-cover" />
-                              : <div className="w-full h-full min-h-[64px] bg-gray-200 flex items-center justify-center text-base font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>}
+                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} style={{ width: "96px", height: "96px", objectFit: "cover", display: "block" }} />
+                              : <div style={{ width: "96px", height: "96px", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", fontWeight: "bold", color: "#9ca3af" }}>{u.firstName?.[0]}{u.lastName?.[0]}</div>}
                           </div>
-                          <div className="flex-1 px-4 py-3">
+                          <div className="flex-1 px-4 py-3" style={{ minHeight: "80px" }}>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-gray-800">{first} {last}</span>
                               <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">{u.email}</p>
                             {u.studentProfile?.schoolClass && <span className="mt-1 inline-block bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
-                            {u.staffProfile?.classes?.length > 0 && (
+                            {u.role === 'teacher' && (
                               <div className="mt-1 flex flex-wrap gap-1">
-                                {u.staffProfile.classes.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
+                                {u.staffProfile?.subject && <span className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{u.staffProfile.subject}</span>}
+                                {u.staffProfile?.classes?.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
                               </div>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     </li>
                   );
                 })}
               </ul>
             )}
-            {usersTotalPages > 1 && (
+            {Math.ceil(filteredUsers.length / 7) > 1 && (
               <PaginationShadcn className="mt-4">
                 <PaginationContent>
                   <PaginationItem>
                     <PaginationPrevious onClick={() => { if (usersPage > 1) { setUsersPage(p => p-1); fetchUsers(usersPage-1); } }} className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
-                  {Array.from({ length: usersTotalPages }, (_, i) => i+1).map(p => (
+                  {Array.from({ length: Math.ceil(filteredUsers.length / 7) }, (_, i) => i+1).map(p => (
                     <PaginationItem key={p}>
                       <PaginationLink isActive={p === usersPage} onClick={() => { setUsersPage(p); fetchUsers(p); }} className="cursor-pointer">{p}</PaginationLink>
                     </PaginationItem>
                   ))}
                   <PaginationItem>
-                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === usersTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === Math.ceil(filteredUsers.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                 </PaginationContent>
               </PaginationShadcn>
