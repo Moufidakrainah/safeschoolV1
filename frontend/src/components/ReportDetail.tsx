@@ -410,7 +410,7 @@ export default function ReportDetail({
                         <Input type="datetime-local" value={details.date} className="max-w-[220px]"
                           min={new Date().toISOString().slice(0,16)}
                           onChange={e => onSetConvocDetails((prev: any) => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
-                        {details.date && new Date(details.date) <= new Date() && (
+                        {details.date && new Date(details.Date) <= new Date() && (
                           <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>
                         )}
                       </div>
