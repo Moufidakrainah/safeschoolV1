@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, createUser, updateUser, deleteUser, checkCanDeleteUser,
+  getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
   searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
   createStaffProfile, updateStaffProfile,
 } from '../services/api';
@@ -23,6 +23,7 @@ import Pagination from '../components/Pagination';
 import NoteBlock from '../components/NoteBlock';
 import ConvocationSelector from '../components/ConvocationSelector';
 import AdminClasses from '../components/AdminClasses';
+import ReportDetail from '../components/ReportDetail';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
   const [suspectResults, setSuspectResults] = useState<any[]>([]);
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
+  const [originReportId, setOriginReportId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
   const itemsPerPage = 5;
@@ -110,17 +112,19 @@ export default function AdminDashboard() {
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
-    if (selectedUserId && users.length > 0 && !selectedUser) {
-      const u = users.find(x => x.id === selectedUserId);
-      if (u) {
-        setSelectedUser(u);
-        setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-        if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-      }
+    if (selectedUserId) {
+      getUserById(selectedUserId).then(u => {
+        if (u) {
+          setSelectedUser(u);
+          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+          if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
+          else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
+        }
+      }).catch(() => {});
     }
-  }, [selectedUserId, users]);
+  }, [selectedUserId]);
 
-  useEffect(() => { if (viewSection === 'users') fetchUsers(); }, [viewSection]);
+  useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
   const fetchClassesList = async () => { try { setClasses(await getClasses()); } catch {} };
 
@@ -130,7 +134,7 @@ export default function AdminDashboard() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); await fetchReports(); setView('list'); setSelected(null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
     catch {} finally { setSaving(false); }
   };
 
@@ -356,146 +360,72 @@ export default function AdminDashboard() {
 
   // ── Vue détail ────────────────────────────────────────────────────────────
   if (view === 'detail' && selected) {
-    const idx = filtered.findIndex(r => r.id === selected.id);
-    const severityColor = SEVERITY_COLORS[severityFromApiGrade(selected.grade)];
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
-        <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
-          <div className="flex justify-between items-center mb-6">
-            <Button variant="ghost" onClick={() => goTo(filtered[idx - 1])} disabled={idx === 0}>← {t('admin.prev')}</Button>
-            <span className="font-bold text-primary">{t('admin.reportLabel', { number: selected.caseNumber })}</span>
-            <Button variant="ghost" onClick={() => goTo(filtered[idx + 1])} disabled={idx === filtered.length - 1}>{t('admin.next')} →</Button>
-          </div>
-          <div className="flex justify-between items-center mb-6 flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <Badge variant={selected.status as BadgeVariant} />
-              <Button variant="ghost" onClick={() => { setView('list'); setSelected(null); }}>← {t('common.back')}</Button>
-            </div>
-            {isAdmin && (
-              <div className="flex gap-2 flex-wrap">
-                {(['new','in_progress','pending','resolved','false_report'] as BadgeVariant[]).map(s => <Badge key={s} variant={s} onClick={() => confirmAndUpdate(s, t(`badge.${s}`))} />)}
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
-              <CardHeader><CardTitle>{t('admin.detail.info')}</CardTitle></CardHeader>
-              <CardContent>
-                <Table><TableBody>
-                  <TableRow><TableCell className="text-muted-foreground font-bold w-1/2">Date</TableCell><TableCell>{new Date(selected.createdAt).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.type')}</TableCell><TableCell className="capitalize">{selected.type}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.reporter')}</TableCell><TableCell className="capitalize">{selected.reporter}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.class')}</TableCell><TableCell>{selected.student?.studentProfile?.schoolClass ? `${selected.student.studentProfile.schoolClass.level} ${selected.student.studentProfile.schoolClass.section}` : '-'}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiScore')}</TableCell><TableCell>{selected.aiScore ? `${selected.aiScore}/100` : '-'}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.aiReason')}</TableCell><TableCell>{selected.aiReason ?? '-'}</TableCell></TableRow>
-                  <TableRow><TableCell className="text-muted-foreground font-bold">{t('admin.detail.anonymous')}</TableCell><TableCell>{selected.isAnonymous ? t('admin.detail.yes') : t('admin.detail.no')}</TableCell></TableRow>
-                </TableBody></Table>
-              </CardContent>
-            </Card>
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }}>
-              <CardHeader><CardTitle>{t('admin.detail.people')}</CardTitle></CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.reportedBy')}</p>
-                  <p className="text-sm font-medium">{selected.isAnonymous ? t('admin.detail.anonymousLabel') : `${selected.student?.firstName} ${selected.student?.lastName}`}{selected.student?.role && <span className="ml-2 text-xs text-gray-400">({selected.student.role})</span>}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.victims')}</p>
-                  <ul className="flex flex-col gap-2">
-                    {selected.victims?.map(v => (
-                      <li key={v.id} className="text-sm">
-                        <div className="flex items-center justify-between"><span className="text-blue-600 font-medium">{v.freeText}</span>{isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === v.id ? null : v.id); setSuspectSearch(''); setSuspectResults([]); }}>{v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}</div>
-                        {v.resolvedUser && <p className="text-xs text-green-600 mt-0.5">{v.resolvedUser.firstName} {v.resolvedUser.lastName}</p>}
-                        {isAdmin && activeSuspect === v.id && (
-                          <div className="mt-2 border rounded-lg p-2 bg-white">
-                            <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
-                            {suspectResults.map((u: any) => <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded" onClick={async () => { await resolveVictim(v.id, u.id); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === selected?.id) ?? null); setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]); }} disabled={resolving}>{u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span></button>)}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                    {selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id).length === 0 && <li className="text-sm text-gray-400">{t('admin.detail.noVictim')}</li>}
-                  </ul>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground font-semibold mb-1">{t('admin.detail.suspects')}</p>
-                  {selected.suspects?.length > 0 ? (
-                    <ul className="flex flex-col gap-2">
-                      {selected.suspects.map(s => (
-                        <li key={s.id} className="text-sm">
-                          <div className="flex items-center justify-between"><span className="text-red-500 font-medium">{s.freeText}</span>{isAdmin && <button className="text-xs text-blue-500 hover:underline" onClick={() => { setActiveSuspect(activeSuspect === s.id ? null : s.id); setSuspectSearch(''); setSuspectResults([]); }}>{s.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}</button>}</div>
-                          {s.resolvedUser && <div className="flex items-center gap-2 text-xs text-green-600 mt-0.5">{s.resolvedUser.firstName} {s.resolvedUser.lastName}{isAdmin && <button className="text-red-400 hover:underline" onClick={() => handleResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}</div>}
-                          {isAdmin && activeSuspect === s.id && (
-                            <div className="mt-2 border rounded-lg p-2 bg-white">
-                              <input type="text" value={suspectSearch} onChange={e => handleSuspectSearch(e.target.value)} placeholder="Rechercher un élève..." autoFocus className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
-                              {suspectResults.map((u: any) => <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded" onClick={() => handleResolveSuspect(s.id, u.id)} disabled={resolving}>{u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span></button>)}
-                            </div>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : <p className="text-sm text-gray-400">{t('admin.detail.noSuspect')}</p>}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-            <CardHeader><CardTitle>{selected.aiReason}</CardTitle></CardHeader>
-            <CardContent><p className="text-sm text-gray-700 leading-7">{selected.description}</p></CardContent>
-          </Card>
-          <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-            <CardHeader><CardTitle>{t('admin.notes.title')}</CardTitle></CardHeader>
-            <CardContent>
-              {notes.length > 0 ? <div className="flex flex-col gap-3 mb-5">{notes.map(note => <NoteBlock key={note.id} note={note} />)}</div> : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
-              {isAdmin && <div className="flex flex-col gap-2"><Textarea value={newNote} onChange={e => setNewNote(e.target.value)} rows={3} placeholder={t('admin.notes.placeholder')} className="resize-y" /><Button onClick={() => handleAddNote('note')}>{t('admin.notes.save')}</Button></div>}
-            </CardContent>
-          </Card>
-          {isAdmin && (
-            <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
-              <CardHeader><CardTitle>{t('admin.convocation.title')}</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-xs text-gray-500 mb-3">Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.</p>
-                <ConvocationSelector selected={selected} checkedIds={checkedConvocIds} onToggle={id => { setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]); setConvocDetails(prev => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } })); }} />
-                {checkedConvocIds.length > 0 && (
-                  <div className="flex flex-col gap-4 mt-4 border-t pt-4">
-                    {checkedConvocIds.map(personId => {
-                      const details = convocDetails[personId] ?? { date: '', message: '' };
-                      return (
-                        <div key={personId} className="border rounded-lg p-3 bg-gray-50">
-                          <p className="text-xs font-semibold text-primary mb-2">
-                            {personId === 'alerteur' ? `${selected.student?.firstName} ${selected.student?.lastName}` :
-                             personId.startsWith('victim_') ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`}`; })() :
-                             personId.startsWith('suspect_') ? (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })() : personId}
-                          </p>
-                          <div className="mb-2"><Label className="text-xs text-gray-500 mb-1 block">Date et heure</Label><Input type="datetime-local" value={details.date} min={new Date().toISOString().slice(0,16)} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />{details.date && new Date(details.date) <= new Date() && <p className="text-red-500 text-xs mt-1">⚠️ La date doit être dans le futur</p>}</div>
-                          <Textarea rows={2} placeholder="Message de convocation..." value={details.message} onChange={e => setConvocDetails(prev => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value } }))} className="resize-y" />
-                        </div>
-                      );
-                    })}
-                    {convocSuccess && <p className="text-green-600 text-sm">Convocations envoyées avec succès !</p>}
-                    <Button disabled={sendingConvoc || checkedConvocIds.some(id => !convocDetails[id]?.date || !convocDetails[id]?.message || new Date(convocDetails[id].date) <= new Date())}
-                      onClick={async () => {
-                        setSendingConvoc(true); setConvocSuccess(false);
-                        try {
-                          for (const personId of checkedConvocIds) {
-                            const d = convocDetails[personId];
-                            if (!d?.date || !d?.message) continue;
-                            const f = new Date(d.date).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
-                            await addNote(selected.id, `${f}\n\n${d.message}`, 'convocation', personId);
-                          }
-                          await loadNotes(selected.id); setCheckedConvocIds([]); setConvocDetails({}); setConvocSuccess(true);
-                          setTimeout(() => setConvocSuccess(false), 3000);
-                        } finally { setSendingConvoc(false); }
-                      }}
-                    >{sendingConvoc ? 'Envoi...' : `Envoyer ${checkedConvocIds.length} convocation(s)`}</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        <ReportDetail
+          selected={selected}
+          filtered={filtered}
+          notes={notes}
+          isAdmin={isAdmin}
+          saving={saving}
+          resolving={resolving}
+          checkedConvocIds={checkedConvocIds}
+          convocDetails={convocDetails}
+          sendingConvoc={sendingConvoc}
+          convocSuccess={convocSuccess}
+          newNote={newNote}
+          activeSuspect={activeSuspect}
+          suspectSearch={suspectSearch}
+          suspectResults={suspectResults}
+          onBack={() => { setView('list'); setSelected(null); }}
+          onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
+          onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
+          onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
+          onAddNote={handleAddNote}
+          onResolveSuspect={handleResolveSuspect}
+          onResolveVictim={async (victimId, userId) => {
+            await resolveVictim(victimId, userId);
+            const updated = await getAllReports();
+            setReports(updated);
+            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
+            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+          }}
+          onSetActiveSuspect={setActiveSuspect}
+          onSuspectSearch={handleSuspectSearch}
+          onSetNewNote={setNewNote}
+          onToggleConvoc={id => {
+            if (id === '__clear__') { setCheckedConvocIds([]); return; }
+            setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+          }}
+          onSetConvocDetails={setConvocDetails}
+          onSetSendingConvoc={setSendingConvoc}
+          onSetConvocSuccess={setConvocSuccess}
+          onSetSuspectSearch={setSuspectSearch}
+          onSetSuspectResults={setSuspectResults}
+          onAddNoteRaw={addNote}
+          onLoadNotes={loadNotes}
+          onNavigateToUser={async (userId) => {
+            const currentReportId = selected?.id ?? '';
+            setOriginReportId(currentReportId);
+            setView('list');
+            setSelected(null);
+            setSelectedUser(null);
+            setEditMode(false);
+            setProfileParents([]);
+            setProfileStaff(null);
+            const u = await getUserById(userId);
+            if (u) {
+              setSelectedUser(u);
+              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+              if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
+              else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
+            }
+            setViewSection('users');
+            navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
+          }}
+        />
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
@@ -588,7 +518,18 @@ export default function AdminDashboard() {
         {viewSection === 'users' && isAdmin && selectedUser && (
           <section className="max-w-xl mx-auto">
             <div className="flex justify-between items-center mb-4">
-              <Button variant="ghost" onClick={() => { setSelectedUser(null); setEditMode(false); navigate('/dashboard?section=users', { replace: true }); }}>← Retour à la liste</Button>
+              <Button variant="ghost" onClick={() => {
+                setSelectedUser(null); setEditMode(false);
+                if (originReportId) {
+                  const report = reports.find(r => r.id === originReportId);
+                  const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                  if (report) { goToReport(report); }
+                  else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                  setViewSection('reports');
+                } else {
+                  navigate('/dashboard?section=users', { replace: true });
+                }
+              }}>← {originReportId ? 'Retour au signalement' : 'Retour à la liste'}</Button>
               <div className="flex gap-2">
                 <Button variant="ghost" disabled={users.findIndex(u => u.id === selectedUser.id) === 0}
                   onClick={() => {

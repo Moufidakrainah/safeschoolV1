@@ -2076,7 +2076,7 @@ Indique qu'une zone de la page peut être mise à jour dynamiquement. Le lecteur
 Masque un élément aux technologies d'assistance. Utilisé sur les emojis décoratifs — un lecteur d'écran lirait sinon "emoji feu", "emoji horloge" etc. au milieu du contenu.
 
 ```tsx
-<span aria-hidden="true">📅</span>
+<span aria-hidden="true"></span>
 <span>{t('admin.convocation.title')}</span>
 ```
 
