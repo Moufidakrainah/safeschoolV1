@@ -7,6 +7,7 @@ import {
   getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
   searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
   createStaffProfile, updateStaffProfile,
+  createParent, updateParent, deleteParent,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -109,6 +110,9 @@ export default function AdminDashboard() {
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [showParentForm, setShowParentForm] = useState(false);
+  const [editingParent, setEditingParent] = useState<any | null>(null);
+  const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
 
   const itemsPerPage = 5;
 
@@ -236,7 +240,7 @@ export default function AdminDashboard() {
 
   const validateField = (field: string, value: string) => {
     let message = '';
-    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
+    const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
     if (field === 'firstName' || field === 'lastName') {
       if (!value.trim()) message = t('admin.users.errorRequired');
       else if (!nameRegex.test(value)) message = t('admin.users.name');
@@ -256,7 +260,17 @@ export default function AdminDashboard() {
     setErrors(prev => ({ ...prev, [field]: message }));
   };
 
-  const updateField = (field: string, value: string) => { setUserForm(prev => ({ ...prev, [field]: value })); validateField(field, value); };
+  const updateField = (field: string, value: string) => {
+    let normalized = value;
+    if (field === 'firstName') {
+      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-');
+    }
+    if (field === 'lastName') {
+      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
+    }
+    setUserForm(prev => ({ ...prev, [field]: normalized }));
+    validateField(field, normalized);
+  };
   const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
   const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
 
@@ -356,7 +370,7 @@ export default function AdminDashboard() {
 
 
     <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-       	<SelectTrigger>
+       	<SelectTrigger className="bg-white">
 			<span>
 				{userForm.role === "" && t('admin.users.roles.choose')}
 				{userForm.role === "student" && t('admin.users.roles.student')}
@@ -562,7 +576,7 @@ export default function AdminDashboard() {
 
         {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
-          <section className="max-w-xl mx-auto">
+          <section>
             <div className="flex justify-between items-center mb-4">
               <Button variant="ghost" onClick={() => {
                 setSelectedUser(null); setEditMode(false);
@@ -618,22 +632,66 @@ export default function AdminDashboard() {
                     {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
                     {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
                   </TableBody></Table>
-                  {profileParents.length > 0 && (
-                    <div className="mt-5">
-                      <p className="text-sm font-semibold text-muted-foreground mb-2">Responsables légaux</p>
-                      <div className="flex flex-col gap-2">
-                        {profileParents.map((p: any) => {
-                          const { first, last } = formatName(p.firstName, p.lastName);
-                          return (
-                            <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
-                              <p className="font-semibold text-gray-800 mb-2">{first} {last}</p>
-                              <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
-                            </div>
-                          );
-                        })}
-                      </div>
+                  <div className="mt-5">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
+                      {profileParents.length < 2 && !showParentForm && (
+                        <Button size="sm" variant="outline" onClick={() => { setShowParentForm(true); setEditingParent(null); setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' }); }}>+ Ajouter</Button>
+                      )}
                     </div>
-                  )}
+                    {showParentForm && (
+                      <div className="bg-gray-50 rounded-lg p-3 mb-3 flex flex-col gap-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div><Label className="text-xs">Prénom</Label><Input value={parentForm.firstName} onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                            setParentForm(p => ({ ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() }));
+                          }} maxLength={20} className="mt-1" /></div>
+                          <div><Label className="text-xs">Nom</Label><Input value={parentForm.lastName} onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                            setParentForm(p => ({ ...p, lastName: val.toUpperCase() }));
+                          }} maxLength={20} className="mt-1" /></div>
+                        </div>
+                        <div><Label className="text-xs">Email</Label><Input type="email" value={parentForm.email} onChange={e => setParentForm(p => ({ ...p, email: e.target.value }))} maxLength={50} className="mt-1" /></div>
+                        <div><Label className="text-xs">Téléphone</Label><Input value={parentForm.phone} onChange={e => setParentForm(p => ({ ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') }))} maxLength={15} className="mt-1" /></div>
+                        <div><Label className="text-xs">Adresse</Label><Input value={parentForm.address} onChange={e => setParentForm(p => ({ ...p, address: e.target.value }))} className="mt-1" /></div>
+                        <div className="flex gap-2 justify-end mt-1">
+                          <Button size="sm" disabled={
+                            !parentForm.firstName || parentForm.firstName.length < 2 ||
+                            !parentForm.lastName || parentForm.lastName.length < 2 ||
+                            !parentForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
+                          } onClick={async () => {
+                            if (editingParent) {
+                              await updateParent(editingParent.id, parentForm);
+                            } else {
+                              const studentProfileId = selectedUser?.studentProfile?.id;
+                              if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+                            }
+                            const updated = await getStudentParents(selectedUser!.id);
+                            setProfileParents(updated);
+                            setShowParentForm(false); setEditingParent(null);
+                          }}>Enregistrer</Button>
+                          <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>Annuler</Button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-2">
+                      {profileParents.map((p: any) => {
+                        const { first, last } = formatName(p.firstName, p.lastName);
+                        return (
+                          <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
+                            <div className="flex justify-between items-center mb-2">
+                              <p className="font-semibold text-gray-800">{first} {last}</p>
+                              <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => { setEditingParent(p); setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' }); setShowParentForm(true); }}>Modifier</Button>
+                                <Button size="sm" variant="destructive" onClick={async () => { await deleteParent(p.id); setProfileParents(await getStudentParents(selectedUser!.id)); }}>Supprimer</Button>
+                              </div>
+                            </div>
+                            <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
               {editMode && (

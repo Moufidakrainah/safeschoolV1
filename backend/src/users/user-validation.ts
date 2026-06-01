@@ -8,7 +8,7 @@ export function validateUserFields(dto: {
   currentLastName?: string;
 }): string | null {
 
-  const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{1,20}$/;
+  const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Prénom
