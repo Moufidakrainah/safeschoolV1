@@ -24,6 +24,9 @@ import NoteBlock from '../components/NoteBlock';
 import ConvocationSelector from '../components/ConvocationSelector';
 import AdminClasses from '../components/AdminClasses';
 import ReportDetail from '../components/ReportDetail';
+import { Checkbox } from '@/components/ui/checkbox';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 
@@ -79,7 +82,7 @@ export default function AdminDashboard() {
   const [showUserForm, setShowUserForm] = useState(false);
   const [usersSearch, setUsersSearch] = useState('');
   const [usersSort, setUsersSort] = useState<'asc' | 'desc' | 'date'>('asc');
-  const [usersRoleFilter, setUsersRoleFilter] = useState<string>('all');
+  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([]);
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
 
   const [userForm, setUserForm] = useState({
@@ -250,6 +253,43 @@ export default function AdminDashboard() {
   const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
   const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
 
+
+  // ── Helpers utilisateurs ─────────────────────────────────────────────────
+  const formatName = (firstName: string, lastName: string) => ({
+    first: (firstName || '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-'),
+    last: (lastName || '').toUpperCase(),
+  });
+
+  const calcAge = (dateOfBirth: string) => {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  };
+
+  const filteredUsers = useMemo(() => {
+    return [...users]
+      .filter(u => usersRoleFilter.length === 0 || usersRoleFilter.includes(u.role))
+      .sort((a, b) => {
+        if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+        if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
+        if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return 0;
+      });
+  }, [users, usersRoleFilter, usersSort]);
+
+  const navigateToUser = (u: AdminUser) => {
+    setSelectedUser(u);
+    setEditMode(false);
+    navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
+    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+    setProfileParents([]); setProfileStaff(null);
+    if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
+    else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
+  };
+
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
@@ -322,7 +362,6 @@ export default function AdminDashboard() {
           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
-          <SelectItem value="director">{t('admin.users.roles.director')}</SelectItem>
         </SelectContent> 
 
 
@@ -531,27 +570,23 @@ export default function AdminDashboard() {
                 }
               }}>← {originReportId ? 'Retour au signalement' : 'Retour à la liste'}</Button>
               <div className="flex gap-2">
-                <Button variant="ghost" disabled={users.findIndex(u => u.id === selectedUser.id) === 0}
-                  onClick={() => {
-                    const idx = users.findIndex(u => u.id === selectedUser.id);
-                    const prev = users[idx - 1];
-                    if (prev) { setSelectedUser(prev); setEditMode(false); navigate(`/dashboard?section=users&userId=${prev.id}`, { replace: true }); setUserForm({ firstName: prev.firstName, lastName: prev.lastName, email: prev.email, password: '', role: prev.role, classId: prev.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] }); setProfileParents([]); setProfileStaff(null); }
-                  }}>← Précédent</Button>
-                <Button variant="ghost" disabled={users.findIndex(u => u.id === selectedUser.id) === users.length - 1}
-                  onClick={() => {
-                    const idx = users.findIndex(u => u.id === selectedUser.id);
-                    const next = users[idx + 1];
-                    if (next) { setSelectedUser(next); setEditMode(false); navigate(`/dashboard?section=users&userId=${next.id}`, { replace: true }); setUserForm({ firstName: next.firstName, lastName: next.lastName, email: next.email, password: '', role: next.role, classId: next.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] }); setProfileParents([]); setProfileStaff(null); }
-                  }}>Suivant →</Button>
+                <Button variant="ghost"
+                  disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === 0}
+                  onClick={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const prev = filteredUsers[idx - 1]; if (prev) navigateToUser(prev); }}>← Précédent</Button>
+                <Button variant="ghost"
+                  disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === filteredUsers.length - 1}
+                  onClick={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const next = filteredUsers[idx + 1]; if (next) navigateToUser(next); }}>Suivant →</Button>
               </div>
             </div>
             <Card><CardContent className="pt-6">
               <div className="flex flex-col items-center gap-3 mb-6">
                 <div className="relative">
-                  {selectedUser.avatar ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`} alt={selectedUser.firstName} className="w-28 h-28 rounded-full object-cover border-4 border-primary shadow" /> : <div className="w-28 h-28 rounded-full bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-400 border-4 border-gray-200">{selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}</div>}
+                  {selectedUser.avatar
+                    ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`} alt={selectedUser.firstName} className="w-56 h-56 rounded-full object-cover border-4 border-primary shadow" />
+                    : <div className="w-56 h-56 rounded-full bg-gray-200 flex items-center justify-center text-6xl font-bold text-gray-400 border-4 border-gray-200">{selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}</div>}
                 </div>
                 <div className="text-center">
-                  <h2 className="text-xl font-bold text-gray-800">{selectedUser.firstName} {selectedUser.lastName}</h2>
+                  {(() => { const { first, last } = formatName(selectedUser.firstName, selectedUser.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
                   <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>
                   {selectedUser.studentProfile?.schoolClass && <p className="text-sm text-primary mt-1">{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</p>}
                   <p className="text-sm text-gray-700 mt-1">{selectedUser.email}</p>
@@ -559,34 +594,36 @@ export default function AdminDashboard() {
               </div>
               {!editMode && (
                 <div className="flex justify-center gap-3 mb-4">
-                  <Button onClick={async () => { setEditMode(true); if (selectedUser.role === 'teacher') { try { const s = await getStaffProfile(selectedUser.id); setUserForm(prev => ({ ...prev, subject: s.subject ?? '', classIds: s.classes?.map((c: any) => c.id) ?? [] })); } catch {} } }}>✏️ {t('admin.users.edit')}</Button>
+                  <Button onClick={async () => { setEditMode(true); if (selectedUser.role === 'teacher') { try { const s = await getStaffProfile(selectedUser.id); setUserForm(prev => ({ ...prev, subject: s.subject ?? '', classIds: s.classes?.map((c: any) => c.id) ?? [] })); } catch {} } }}>{t('admin.users.edit')}</Button>
                   <label className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
-                    {uploadingAvatarId === selectedUser.id ? '⏳ Upload...' : '📷 Changer la photo'}
+                    {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
                     <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) { await handleAvatarUpload(selectedUser.id, f); } }} />
                   </label>
-                  <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>🗑️ {t('admin.users.delete')}</Button>
+                  <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>{t('admin.users.delete')}</Button>
                 </div>
               )}
               {!editMode && (
                 <div className="mt-4">
                   <Table><TableBody>
                     {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
-                    {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')}</TableCell></TableRow>}
+                    {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
                     {(selectedUser.staffProfile?.profession || profileStaff?.profession) && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell></TableRow>}
                     {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
                     {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
-                    <TableRow><TableCell className="font-semibold text-muted-foreground">Membre depuis</TableCell><TableCell>{new Date(selectedUser.createdAt).toLocaleDateString('fr-FR')}</TableCell></TableRow>
                   </TableBody></Table>
                   {profileParents.length > 0 && (
                     <div className="mt-5">
-                      <p className="text-sm font-semibold text-muted-foreground mb-2">Parents / Responsables</p>
+                      <p className="text-sm font-semibold text-muted-foreground mb-2">Responsables légaux</p>
                       <div className="flex flex-col gap-2">
-                        {profileParents.map((p: any) => (
-                          <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
-                            <p className="font-semibold text-gray-800 mb-2">{p.firstName} {p.lastName}</p>
-                            <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
-                          </div>
-                        ))}
+                        {profileParents.map((p: any) => {
+                          const { first, last } = formatName(p.firstName, p.lastName);
+                          return (
+                            <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
+                              <p className="font-semibold text-gray-800 mb-2">{first} {last}</p>
+                              <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -594,11 +631,37 @@ export default function AdminDashboard() {
               )}
               {editMode && (
                 <>{renderUserForm(true)}<div className="flex gap-3 justify-end mt-4">
-                  <Button disabled={!isFormValid} onClick={async () => {
-                    await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
-                    if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-                    await fetchUsers(); setEditMode(false); const u = users.find(u => u.id === selectedUser.id); if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
-                  }}>{t('admin.users.save')}</Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button disabled={!isFormValid}>{t('admin.users.save')}</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div className="text-sm text-gray-700 space-y-1 mt-2">
+                            <p><strong>Prénom :</strong> {userForm.firstName}</p>
+                            <p><strong>Nom :</strong> {userForm.lastName}</p>
+                            <p><strong>Email :</strong> {userForm.email}</p>
+                            <p><strong>Rôle :</strong> {userForm.role}</p>
+                            {userForm.role === 'student' && userForm.classId && <p><strong>Classe :</strong> {classes.find(c => c.id === userForm.classId)?.level} {classes.find(c => c.id === userForm.classId)?.section}</p>}
+                            {userForm.role === 'teacher' && userForm.subject && <p><strong>Matière :</strong> {userForm.subject}</p>}
+                            {userForm.password && <p><strong>Mot de passe :</strong> modifié</p>}
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={async () => {
+                          await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
+                          if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
+                          await fetchUsers(); setEditMode(false);
+                          const u = users.find(u => u.id === selectedUser.id);
+                          if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
+                        }}>Confirmer</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <Button variant="ghost" onClick={() => setEditMode(false)}>{t('common.cancel')}</Button>
                 </div></>
               )}
@@ -610,7 +673,7 @@ export default function AdminDashboard() {
         {viewSection === 'users' && isAdmin && !selectedUser && (
           <section>
             <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-bold text-gray-800">👥 {t("admin.users.title")}</h2>
+              <h2 className="text-xl font-bold text-gray-800">{t("admin.users.title")}</h2>
               <div className="flex items-center gap-2">
                 <select value={usersSort} onChange={e => setUsersSort(e.target.value as any)} className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
                   <option value="asc">A → Z</option>
@@ -620,23 +683,20 @@ export default function AdminDashboard() {
                 <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
               </div>
             </div>
-            <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="mb-3" />
-            <div className="flex justify-center gap-3 mb-4 flex-wrap">
-              {[
-                { key: 'all',     label: 'Tous',       color: '#1a1a2e' },
-                { key: 'student', label: 'Élèves',  color: '#3b82f6' },
-                { key: 'teacher', label: 'Profs',   color: '#8b5cf6' },
-                { key: 'admin',   label: 'Admins',  color: '#0f3460' },
-              ].map(r => (
-                <button key={r.key} onClick={() => setUsersRoleFilter(r.key)}
-                  className="px-4 py-1.5 rounded-full text-xs font-semibold transition-all"
-                  style={{
-                    background: usersRoleFilter === r.key ? r.color : 'transparent',
-                    color: usersRoleFilter === r.key ? 'white' : r.color,
-                    border: `2px solid ${r.color}`,
-                  }}>
+            <div className="flex gap-2 mb-3">
+              <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
+                onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="flex-1" />
+              {(usersSearch || usersRoleFilter.length > 0) && (
+                <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
+              )}
+            </div>
+            <div className="flex gap-4 mb-4 flex-wrap items-center">
+              {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
+                <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
+                  <Checkbox checked={usersRoleFilter.includes(r.key)}
+                    onCheckedChange={checked => { setUsersRoleFilter(prev => checked ? [...prev, r.key] : prev.filter(x => x !== r.key)); setUsersPage(1); }} />
                   {r.label}
-                </button>
+                </label>
               ))}
             </div>
             {showUserForm && (
@@ -650,41 +710,60 @@ export default function AdminDashboard() {
               <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
             ) : (
               <ul className="flex flex-col gap-3">
-                {[...users].filter(u => usersRoleFilter === "all" || u.role === usersRoleFilter).sort((a, b) => {
-                  if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
-                  if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
-                  if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-                  return 0;
-                }).map(u => (
-                  <li key={u.id}>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={async () => {
-                      const freshUsers = await getAllUsers(usersPage, 5);
-                      const freshU = Array.isArray(freshUsers.data) ? freshUsers.data.find((x: any) => x.id === u.id) ?? u : u;
-                      setSelectedUser(freshU);
-                      navigate(`/dashboard?section=users&userId=${freshU.id}`, { replace: true });
-                      setUserForm({ firstName: freshU.firstName, lastName: freshU.lastName, email: freshU.email, password: '', role: freshU.role, classId: freshU.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-                      if (freshU.role === 'student') { try { setProfileParents(await getStudentParents(freshU.id)); } catch { setProfileParents([]); } setProfileStaff(null); }
-                      else if (freshU.role === 'teacher') { try { setProfileStaff(await getStaffProfile(freshU.id)); } catch { setProfileStaff(null); } setProfileParents([]); }
-                      else { setProfileParents([]); setProfileStaff(null); }
-                    }}>
-                      <CardContent className="flex justify-between items-center py-4">
-                        <div className="flex items-center gap-3">
-                          {u.avatar ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-9 h-9 rounded-full object-cover border-2 border-gray-200" /> : <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>}
-                          <div>
-                            <span className="font-bold text-gray-800">{u.firstName} {u.lastName}</span>
-                            <span className="ml-2 text-xs text-gray-400">{u.email}</span>
-                            <span className="ml-2 bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
-                            {u.studentProfile?.schoolClass && <span className="ml-1 bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
+                {filteredUsers.map(u => {
+                  const { first, last } = formatName(u.firstName, u.lastName);
+                  return (
+                    <li key={u.id}>
+                      <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+                        onClick={async () => {
+                          const freshU = await getUserById(u.id);
+                          if (freshU) {
+                            navigateToUser(freshU);
+                          }
+                        }}>
+                        <CardContent className="flex items-stretch p-0">
+                          <div className="w-16 flex-shrink-0">
+                            {u.avatar
+                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} className="w-full h-full min-h-[64px] object-cover" />
+                              : <div className="w-full h-full min-h-[64px] bg-gray-200 flex items-center justify-center text-base font-bold text-gray-400">{u.firstName?.[0]}{u.lastName?.[0]}</div>}
                           </div>
-                        </div>
-                        <span className="text-xs text-gray-400">→ Voir le profil</span>
-                      </CardContent>
-                    </Card>
-                  </li>
-                ))}
+                          <div className="flex-1 px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{first} {last}</span>
+                              <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-0.5">{u.email}</p>
+                            {u.studentProfile?.schoolClass && <span className="mt-1 inline-block bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
+                            {u.staffProfile?.classes?.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {u.staffProfile.classes.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </li>
+                  );
+                })}
               </ul>
             )}
-            <Pagination currentPage={usersPage} totalPages={usersTotalPages} totalItems={usersTotal} onPageChange={(pg) => { setUsersPage(pg); fetchUsers(pg); }} />
+            {usersTotalPages > 1 && (
+              <PaginationShadcn className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => { if (usersPage > 1) { setUsersPage(p => p-1); fetchUsers(usersPage-1); } }} className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: usersTotalPages }, (_, i) => i+1).map(p => (
+                    <PaginationItem key={p}>
+                      <PaginationLink isActive={p === usersPage} onClick={() => { setUsersPage(p); fetchUsers(p); }} className="cursor-pointer">{p}</PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === usersTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </PaginationShadcn>
+            )}
           </section>
         )}
 
