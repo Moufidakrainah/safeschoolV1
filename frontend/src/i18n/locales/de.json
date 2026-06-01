@@ -151,20 +151,20 @@
     }
   },
   "badge": {
-    "critical": "🔴 Kritisch",
-    "high": "🟠 Hoch",
-    "medium": "🟡 Mittel",
-    "low": "🟢 Niedrig",
-    "new": "📄 Neu",
-    "in_progress": "📂 In Bearbeitung",
-    "pending": "⏳ Ausstehend",
-    "resolved": "✅ Gelöst",
-    "false_report": "❌ Falscher Bericht",
-    "closed": "✅ Geschlossen",
-    "rejected": "❌ Abgelehnt"
+    "critical": " Kritisch",
+    "high": " Hoch",
+    "medium": " Mittel",
+    "low": " Niedrig",
+    "new": " Neu",
+    "in_progress": " In Bearbeitung",
+    "pending": " Ausstehend",
+    "resolved": " Gelöst",
+    "false_report": " Falscher Bericht",
+    "closed": " Geschlossen",
+    "rejected": " Abgelehnt"
   },
   "noteblock": {
-    "note": "📝 Notiz",
+    "note": " Notiz",
     "convocation": " Vorladung"
   },
   "pagination": {
@@ -259,7 +259,7 @@
       "iconLabel": "Erfolg",
       "title": "Meldung übermittelt",
       "message": "Ihre Meldung wurde erhalten. Die Schulleitung wird so schnell wie möglich informiert.",
-      "notice": "✉️ Eine Empfangsbestätigung wurde Ihnen zugesandt. Sie haben keinen Zugriff auf die Fallverfolgung — diese wird direkt von der Verwaltung bearbeitet.",
+      "notice": " Eine Empfangsbestätigung wurde Ihnen zugesandt. Sie haben keinen Zugriff auf die Fallverfolgung — diese wird direkt von der Verwaltung bearbeitet.",
       "back": "Zurück zur Startseite"
     },
     "steps": {
