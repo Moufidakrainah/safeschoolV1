@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import { formatName } from '@/utils/formatName';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
@@ -30,6 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
+import AdminUsersList from '@/components/admin/AdminUsersList';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -276,11 +278,6 @@ export default function AdminDashboard() {
 
 
   // ── Helpers utilisateurs ─────────────────────────────────────────────────
-  const formatName = (firstName: string, lastName: string) => ({
-    first: (firstName || '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-'),
-    last: (lastName || '').toUpperCase(),
-  });
-
   const calcAge = (dateOfBirth: string) => {
     const dob = new Date(dateOfBirth);
     const today = new Date();
@@ -736,99 +733,26 @@ export default function AdminDashboard() {
 
         {/* ── Utilisateurs — Vue liste ── */}
         {viewSection === 'users' && isAdmin && !selectedUser && (
-          <section>
-            <div className="flex justify-between items-center mb-5">
-              <h2 className="text-xl font-bold text-gray-800">{t("admin.users.title")}</h2>
-              <div className="flex items-center gap-2">
-                <select value={usersSort} onChange={e => setUsersSort(e.target.value as any)} className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
-                  <option value="asc">A → Z</option>
-                  <option value="desc">Z → A</option>
-                  <option value="date">Date création</option>
-                </select>
-                <Button onClick={() => { setShowUserForm(true); setEditingUser(null); setUserForm({ firstName: "", lastName: "", email: "", password: "", role: "", classId: "", subject: "", classIds: [] }); }}>{t("admin.users.add")}</Button>
-              </div>
-            </div>
-            <div className="flex gap-2 mb-3">
-              <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
-                onChange={e => { setUsersSearch(e.target.value); setUsersPage(1); fetchUsers(1, e.target.value); }} className="flex-1" />
-              <Button variant="outline" onClick={() => { setUsersSearch(''); setUsersRoleFilter([]); setUsersPage(1); fetchUsers(1, ''); }}>Réinitialiser</Button>
-            </div>
-            <div className="flex gap-4 mb-4 flex-wrap items-center">
-              {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
-                <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
-                  <Checkbox checked={usersRoleFilter.includes(r.key)}
-                    onCheckedChange={checked => { const newFilter = checked ? [...usersRoleFilter, r.key] : usersRoleFilter.filter(x => x !== r.key); setUsersRoleFilter(newFilter); setUsersPage(1); setTimeout(() => fetchUsers(1), 0); }} />
-                  {r.label}
-                </label>
-              ))}
-            </div>
-            {showUserForm && (
-              <Card className="mb-5"><CardContent className="pt-6">
-                <h3 className="font-bold mb-4">{editingUser ? t('admin.users.formEdit') : t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
-                {renderUserForm(false)}
-                <div className="flex gap-3 justify-end mt-4"><Button disabled={!isFormValid} onClick={handleSaveUser}>{t('admin.users.save')}</Button><Button variant="ghost" onClick={() => { setShowUserForm(false); setEditingUser(null); }}>{t('common.cancel')}</Button></div>
-              </CardContent></Card>
-            )}
-            {loadingUsers ? (
-              <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {filteredUsers.slice((usersPage-1)*7, usersPage*7).map(u => {
-                  const { first, last } = formatName(u.firstName, u.lastName);
-                  return (
-                    <li key={u.id}>
-                      <div className="cursor-pointer hover:shadow-md transition-shadow bg-white shadow-sm overflow-hidden"
-                        onClick={async () => {
-                          const freshU = await getUserById(u.id);
-                          if (freshU) {
-                            navigateToUser(freshU);
-                          }
-                        }}>
-                        <div className="flex items-stretch">
-                          <div style={{ width: "96px", height: "96px", flexShrink: 0, overflow: "hidden", borderRadius: 0 }}>
-                            {u.avatar
-                              ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`} alt={u.firstName} style={{ width: "96px", height: "96px", objectFit: "cover", display: "block" }} />
-                              : <div style={{ width: "96px", height: "96px", background: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", fontWeight: "bold", color: "#9ca3af" }}>{u.firstName?.[0]}{u.lastName?.[0]}</div>}
-                          </div>
-                          <div className="flex-1 px-4 py-3" style={{ minHeight: "80px" }}>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-gray-800">{first} {last}</span>
-                              <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
-                            </div>
-                            <p className="text-xs text-gray-400 mt-0.5">{u.email}</p>
-                            {u.studentProfile?.schoolClass && <span className="mt-1 inline-block bg-blue-50 px-2 py-0.5 rounded text-xs text-blue-600">{u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}</span>}
-                            {u.role === 'teacher' && (
-                              <div className="mt-1 flex flex-wrap gap-1">
-                                {u.staffProfile?.subject && <span className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{u.staffProfile.subject}</span>}
-                                {u.staffProfile?.classes?.map((c: any) => <span key={c.id} className="bg-purple-50 px-2 py-0.5 rounded text-xs text-purple-600">{c.level} {c.section}</span>)}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            {Math.ceil(filteredUsers.length / 7) > 1 && (
-              <PaginationShadcn className="mt-4">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => { if (usersPage > 1) { setUsersPage(p => p-1); fetchUsers(usersPage-1); } }} className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                  {Array.from({ length: Math.ceil(filteredUsers.length / 7) }, (_, i) => i+1).map(p => (
-                    <PaginationItem key={p}>
-                      <PaginationLink isActive={p === usersPage} onClick={() => { setUsersPage(p); fetchUsers(p); }} className="cursor-pointer">{p}</PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext onClick={() => { if (usersPage < usersTotalPages) { setUsersPage(p => p+1); fetchUsers(usersPage+1); } }} className={usersPage === Math.ceil(filteredUsers.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                </PaginationContent>
-              </PaginationShadcn>
-            )}
-          </section>
+          <AdminUsersList
+            filteredUsers={filteredUsers}
+            usersPage={usersPage}
+            usersSearch={usersSearch}
+            usersSort={usersSort}
+            usersRoleFilter={usersRoleFilter}
+            loadingUsers={loadingUsers}
+            avatarTimestamps={avatarTimestamps}
+            usersTotalPages={usersTotalPages}
+            showUserForm={showUserForm}
+            isFormValid={!!isFormValid}
+            onSetUsersSearch={setUsersSearch}
+            onSetUsersSort={setUsersSort}
+            onSetUsersRoleFilter={setUsersRoleFilter}
+            onSetUsersPage={setUsersPage}
+            onFetchUsers={fetchUsers}
+            onNavigateToUser={navigateToUser}
+            onSetShowUserForm={setShowUserForm}
+            onSaveUser={handleSaveUser}
+          />
         )}
 
         {/* ── Stats ── */}
