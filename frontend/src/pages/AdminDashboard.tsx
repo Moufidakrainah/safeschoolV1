@@ -6,9 +6,8 @@ import { formatName } from '@/utils/formatName';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
+  searchUsers, resolveSuspect, resolveVictim, getClasses, getStaffProfile,
   createStaffProfile, updateStaffProfile,
-  createParent, updateParent, deleteParent,
 } from '../services/api';
 import StatsDashboard from './StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
@@ -98,12 +97,8 @@ export default function AdminDashboard() {
   const [isDeleting, setIsDeleting]     = useState(false);
   const [deleteError, setDeleteError]   = useState('');
   const [isBlocked, setIsBlocked]       = useState(false);
-  const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const selectedUserId = searchParams.get('userId');
-  const [editMode, setEditMode] = useState(false);
-  const [profileParents, setProfileParents] = useState<any[]>([]);
-  const [profileStaff, setProfileStaff] = useState<any | null>(null);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
   const [classes, setClasses]           = useState<SchoolClass[]>([]);
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
@@ -113,9 +108,6 @@ export default function AdminDashboard() {
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
-  const [showParentForm, setShowParentForm] = useState(false);
-  const [editingParent, setEditingParent] = useState<any | null>(null);
-  const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
 
   const itemsPerPage = 5;
 
@@ -127,8 +119,6 @@ export default function AdminDashboard() {
         if (u) {
           setSelectedUser(u);
           setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-          if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-          else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
         }
       }).catch(() => {});
     }
@@ -196,14 +186,13 @@ export default function AdminDashboard() {
   };
 
   const handleAvatarUpload = async (userId: string, file: File) => {
-    setUploadingAvatarId(userId);
     try {
       const formData = new FormData();
       formData.append('avatar', file);
       const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, body: formData });
       const data = await res.json();
       if (data.avatar) { setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() })); await fetchUsers(); setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev); }
-    } catch {} finally { setUploadingAvatarId(null); }
+    } catch {}
   };
 
   const handleSaveUser = async () => {
@@ -274,9 +263,9 @@ export default function AdminDashboard() {
     setUserForm(prev => ({ ...prev, [field]: normalized }));
     validateField(field, normalized);
   };
+
   const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
   const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
-
 
   // ── Helpers utilisateurs ─────────────────────────────────────────────────
   const calcAge = (dateOfBirth: string) => {
@@ -301,12 +290,8 @@ export default function AdminDashboard() {
 
   const navigateToUser = (u: AdminUser) => {
     setSelectedUser(u);
-    setEditMode(false);
     navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
     setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-    setProfileParents([]); setProfileStaff(null);
-    if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-    else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
   };
 
   const filtered = useMemo(() => {
@@ -353,38 +338,33 @@ export default function AdminDashboard() {
   const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
-	  <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
+      <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
-	  <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
+      <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
-	  <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
+      <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
-	  <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
-
-
-
-    <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-       	<SelectTrigger className="bg-white">
-			<span>
-				{userForm.role === "" && t('admin.users.roles.choose')}
-				{userForm.role === "student" && t('admin.users.roles.student')}
-				{userForm.role === "teacher" && t('admin.users.roles.teacher')}
-				{userForm.role === "admin" && t('admin.users.roles.admin')}
-				{userForm.role === "director" && t('admin.users.roles.director')}
-			</span>
-		</SelectTrigger>
+      <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
+      <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
+        <SelectTrigger className="bg-white">
+          <span>
+            {userForm.role === "" && t('admin.users.roles.choose')}
+            {userForm.role === "student" && t('admin.users.roles.student')}
+            {userForm.role === "teacher" && t('admin.users.roles.teacher')}
+            {userForm.role === "admin" && t('admin.users.roles.admin')}
+            {userForm.role === "director" && t('admin.users.roles.director')}
+          </span>
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
-        </SelectContent> 
-
-
-    </Select>
+        </SelectContent>
+      </Select>
       {userForm.role === 'student' && (
         <div>
           <Label className="text-white text-sm">Classe</Label>
@@ -470,15 +450,10 @@ export default function AdminDashboard() {
             setView('list');
             setSelected(null);
             setSelectedUser(null);
-            setEditMode(false);
-            setProfileParents([]);
-            setProfileStaff(null);
             const u = await getUserById(userId);
             if (u) {
               setSelectedUser(u);
               setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-              if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-              else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
             }
             setViewSection('users');
             navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
@@ -577,21 +552,14 @@ export default function AdminDashboard() {
           <AdminUserProfile
             selectedUser={selectedUser}
             filteredUsers={filteredUsers}
-            profileParents={profileParents}
-            profileStaff={profileStaff}
             avatarTimestamps={avatarTimestamps}
             classes={classes}
             userForm={userForm}
             errors={errors}
-            editMode={editMode}
-            showParentForm={showParentForm}
-            editingParent={editingParent}
-            parentForm={parentForm}
-            uploadingAvatarId={uploadingAvatarId}
             isFormValid={!!isFormValid}
             originReportId={originReportId}
             onBack={() => {
-              setSelectedUser(null); setEditMode(false);
+              setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
                 const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
@@ -604,31 +572,12 @@ export default function AdminDashboard() {
             }}
             onPrev={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const prev = filteredUsers[idx - 1]; if (prev) navigateToUser(prev); }}
             onNextUser={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const next = filteredUsers[idx + 1]; if (next) navigateToUser(next); }}
-            onSetEditMode={setEditMode}
             onHandleAvatarUpload={handleAvatarUpload}
             onHandleDeleteUser={handleDeleteUser}
-            onSetShowParentForm={setShowParentForm}
-            onSetEditingParent={setEditingParent}
-            onSetParentForm={setParentForm}
-            onSaveParent={async () => {
-              if (editingParent) {
-                await updateParent(editingParent.id, parentForm);
-              } else {
-                const studentProfileId = selectedUser?.studentProfile?.id;
-                if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
-              }
-              const updated = await getStudentParents(selectedUser!.id);
-              setProfileParents(updated);
-              setShowParentForm(false); setEditingParent(null);
-            }}
-            onDeleteParent={async (id) => {
-              await deleteParent(id);
-              setProfileParents(await getStudentParents(selectedUser!.id));
-            }}
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-              await fetchUsers(); setEditMode(false);
+              await fetchUsers();
               const u = users.find(u => u.id === selectedUser.id);
               if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
             }}
@@ -667,7 +616,6 @@ export default function AdminDashboard() {
 
         {/* ── Classes ── */}
         {viewSection === 'classes' && isAdmin && <AdminClasses />}
-
 
         {/* ── Modale suppression utilisateur ── */}
         {deleteTarget && (
