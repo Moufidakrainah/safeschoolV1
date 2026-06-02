@@ -3,14 +3,10 @@ import { cn } from "@/lib/utils"
 import { useTranslation } from 'react-i18next';
 
 export type BadgeVariant =
-  // | 'critical' | 'high' | 'medium' | 'low'
-  | 'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
+  'all' | 'new' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
 
 const variantI18nKeys: Record<BadgeVariant, string> = {
-  // critical:     'badge.critical',
-  // high:         'badge.high',
-  // medium:       'badge.medium',
-  // low:          'badge.low',
+  all:          'badge.all',
   new:          'badge.new',
   in_progress:  'badge.in_progress',
   pending:      'badge.pending',
@@ -23,10 +19,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        // critical:     'bg-critical text-white',
-        // high:         'bg-high text-gray-900',
-        // medium:       'bg-medium text-gray-900',
-        // low:          'bg-low text-gray-900',
+        all:          'bg-gray-100 text-gray-700',
         new:          'bg-sky-100 text-sky-700',
         in_progress:  'bg-amber-100 text-amber-700',
         pending:      'bg-teal-100 text-teal-700',

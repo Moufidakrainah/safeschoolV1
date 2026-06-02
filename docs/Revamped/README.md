@@ -74,6 +74,7 @@ make fclean     # Stop + remove volumes (⚠️ deletes all data)
 - [PostgreSQL documentation](https://www.postgresql.org/docs/)
 - [Docker documentation](https://docs.docker.com)
 - <!-- other references -->
+- [Color contrast checker] (https://www.acquia.com/fr/products/acquia-web-governance/tools/color-contrast-checker)
 
 ### AI Usage
 

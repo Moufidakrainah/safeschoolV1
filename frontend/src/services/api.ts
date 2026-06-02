@@ -46,7 +46,9 @@ export const getUnreadCount = async () => (await api.get('/notifications/unread-
 export const markNotificationRead = async (id: string) =>
   (await api.patch(`/notifications/${id}/read`)).data;
 
-export const getAllUsers = async () => (await api.get('/users')).data.data;
+export const getUserById = async (id: string) => (await api.get(`/users/${id}`)).data;
+
+export const getAllUsers = async (page = 1, limit = 5) => (await api.get(`/users?page=${page}&limit=${limit}`)).data;
 
 export const createUser = async (dto: Record<string, string>) =>
   (await api.post('/users', dto)).data;
@@ -92,6 +94,13 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
 
 export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
+
+export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentProfileId: string }) =>
+  (await api.post('/parents', dto)).data;
+export const updateParent = async (id: string, dto: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string }) =>
+  (await api.patch(`/parents/${id}`, dto)).data;
+export const deleteParent = async (id: string) =>
+  (await api.delete(`/parents/${id}`)).data;
 
 export const createStaffProfile = async (dto: Record<string, any>) =>
   (await api.post('/staff-profiles', dto)).data;

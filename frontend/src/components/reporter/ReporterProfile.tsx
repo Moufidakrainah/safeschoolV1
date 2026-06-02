@@ -47,7 +47,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
       {/* Informations personnelles */}
       <Card className="p-6 mb-4 shadow-sm">
-        <h3 className="text-primary font-bold text-sm mb-4">👤 Informations personnelles</h3>
+        <h3 className="text-primary font-bold text-sm mb-4">Informations personnelles</h3>
         <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <tbody>
@@ -68,7 +68,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
       {/* Profil professionnel */}
       <Card className="p-6 shadow-sm">
-        <h3 className="text-primary font-bold text-sm mb-4">🏫 Profil professionnel</h3>
+        <h3 className="text-primary font-bold text-sm mb-4">Profil professionnel</h3>
 
         {loadingProfile ? (
           <p className="text-gray-400 text-sm text-center py-4">Chargement...</p>

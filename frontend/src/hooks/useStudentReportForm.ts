@@ -22,19 +22,15 @@ export interface UseStudentReportFormReturn {
   isNextDisabled: boolean;
   suspects:           UserSearchResult[];
   suspectInput:       string;
-  suspectSuggestions: UserSearchResult[];
   searchingUsers:     boolean;
   victimName:         string;
   setVictimName:      React.Dispatch<React.SetStateAction<string>>;
   victimInput:        string;
-  victimSuggestions:  UserSearchResult[];
   selectedVictim:     UserSearchResult | null;
   setSelectedVictim:  React.Dispatch<React.SetStateAction<UserSearchResult | null>>;
   setVictimInput:     React.Dispatch<React.SetStateAction<string>>;
-  setVictimSuggestions: React.Dispatch<React.SetStateAction<UserSearchResult[]>>;
   handleSubmit:       () => Promise<void>;
   handleSuspectSearch:(value: string) => Promise<void>;
-  handleVictimSearch: (value: string) => Promise<void>;
   addSuspect:         (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect:      (index: number) => void;
   resetForm:          () => void;
@@ -60,16 +56,14 @@ export function useStudentReportForm(
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
-    (step === 3 && (!description || !frequency));
+    (step === 3 && (!description.trim() || !frequency));
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
   const [searchingUsers,     setSearchingUsers]     = useState(false);
 
   const [victimName,        setVictimName]        = useState('');
   const [victimInput,       setVictimInput]       = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
 
   const handleSubmit = async () => {
@@ -77,7 +71,7 @@ export function useStudentReportForm(
     setLoading(true);
     setSubmitError(null);
     try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: s.id ? `${s.firstName} ${s.lastName}` : `${s.firstName} ${s.lastName}`,
       }));
@@ -107,27 +101,6 @@ export function useStudentReportForm(
 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
-    setSearchingUsers(true);
-    try {
-      setSuspectSuggestions(await searchUsers(value));
-    } catch {
-      setSuspectSuggestions([]);
-    } finally {
-      setSearchingUsers(false);
-    }
-  };
-
-  const handleVictimSearch = async (value: string) => {
-    setVictimInput(value);
-    setSelectedVictim(null);
-    setVictimName(value);
-    if (value.length < 2) { setVictimSuggestions([]); return; }
-    try {
-      setVictimSuggestions(await searchUsers(value));
-    } catch {
-      setVictimSuggestions([]);
-    }
   };
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
@@ -135,7 +108,6 @@ export function useStudentReportForm(
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
     setSuspectInput('');
-    setSuspectSuggestions([]);
   };
 
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
@@ -165,12 +137,11 @@ export function useStudentReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, suspectSuggestions, searchingUsers,
+    suspects, suspectInput, searchingUsers,
     victimName, setVictimName,
     victimInput, setVictimInput,
-    victimSuggestions, setVictimSuggestions,
     selectedVictim, setSelectedVictim,
-    handleSubmit, handleSuspectSearch, handleVictimSearch,
+    handleSubmit, handleSuspectSearch,
     addSuspect, removeSuspect, resetForm,
   };
 }

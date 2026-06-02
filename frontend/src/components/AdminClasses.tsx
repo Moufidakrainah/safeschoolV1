@@ -39,9 +39,9 @@ export default function AdminClasses() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [cls, usr] = await Promise.all([getClasses(), getAllUsers()]);
+      const [cls, usr] = await Promise.all([getClasses(), getAllUsers(1, 100)]);
       setClasses(cls);
-      const allUsers = Array.isArray(usr) ? usr : [];
+      const allUsers = Array.isArray(usr) ? usr : Array.isArray(usr?.data) ? usr.data : [];
       setStudents(allUsers.filter((u: any) => u.role === 'student'));
     } catch (e) {
       console.error('Erreur chargement', e);
@@ -76,6 +76,11 @@ export default function AdminClasses() {
   };
 
   const handleDeleteClass = async (cls: SchoolClass) => {
+    const count = students.filter(s => s.studentProfile?.schoolClass?.id === cls.id).length;
+    if (count > 0) {
+      alert(`Impossible de supprimer ${cls.level} ${cls.section} : ${count} élève(s) inscrits. Réassignez-les d'abord.`);
+      return;
+    }
     if (!confirm(`Supprimer la classe ${cls.level} ${cls.section} ?`)) return;
     await deleteClass(cls.id);
     if (selectedClass?.id === cls.id) setSelectedClass(null);
@@ -98,7 +103,7 @@ export default function AdminClasses() {
       {/* ── Colonne gauche : liste des classes ── */}
       <div className="w-72 flex-shrink-0">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-gray-800">🏫 Classes</h2>
+          <h2 className="text-lg font-bold text-gray-800">Classes</h2>
           <Button
             size="sm"
             onClick={() => {
@@ -221,7 +226,6 @@ export default function AdminClasses() {
       <div className="flex-1 min-w-0">
         {!selectedClass ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-300">
-            <span className="text-5xl mb-3">🏫</span>
             <p className="text-sm">Cliquez sur une classe pour voir ses élèves</p>
           </div>
         ) : (
