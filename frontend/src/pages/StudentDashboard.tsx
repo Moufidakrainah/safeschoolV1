@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   getStudentParents, getNotifications, markNotificationRead,
   getAllReports, getNotes,
-} from '../services/api';
-import type { Parent } from '../types';
-import StudentProfile from '../components/student/StudentProfile';
-import StudentForm from '../components/student/StudentForm';
+} from '@/services/api';
+import type { Parent } from '@/types';
+import StudentProfile from '@/components/student/StudentProfile';
+import StudentForm from '@/components/student/StudentForm';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Badge } from '@/components/ui/badge';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+import { SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '@/utils/severity';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 
@@ -23,10 +23,6 @@ const statusToBadgeVariant = (status: string) => {
   return map[status] ?? 'new';
 };
 
-const SEVERITY_BADGES: Record<string, string> = {
-  critical: '🔴 Critique', high: '🟠 Élevé', medium: '🟡 Moyen', low: '🟢 Faible',
-};
-
 const MONTHS_FR: Record<string, number> = {
   'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
   'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12,
@@ -36,18 +32,21 @@ function parseConvocation(content: string) {
   const dateMatch = content.match(/(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/);
   const parts = content.split('\n\n');
   const message = parts.slice(1).join('\n\n').trim();
+  // Extraire le nom du destinataire si format "Nom est convoqué(e) le ..."
+  const recipientMatch = content.match(/^(.+?) est convoqué/);
+  const recipient = recipientMatch ? recipientMatch[1].trim() : null;
   if (!dateMatch) {
-    return { isPast: true, displayDate: content.split('\n')[0].replace('📅', '').trim(), message };
+    return { isPast: true, displayDate: content.split('\n')[0].replace('📅', '').trim(), message, recipient };
   }
   const [, day, monthStr, year, hours, minutes] = dateMatch;
   const monthNum = MONTHS_FR[monthStr.toLowerCase()];
   if (!monthNum) {
-    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message };
+    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message, recipient };
   }
   const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
   const isPast = rdvDate < new Date();
   const displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
-  return { isPast, displayDate, message };
+  return { isPast, displayDate, message, recipient };
 }
 
 export default function StudentDashboard() {
@@ -193,7 +192,7 @@ export default function StudentDashboard() {
                           <span className="font-bold text-sm text-primary">{report.caseNumber}</span>
                           <span className="text-white text-xs px-3 py-0.5 rounded-full"
                             style={{ background: SEVERITY_COLORS[severity] }}>
-                            {SEVERITY_BADGES[severity]}
+                            {SEVERITY_LABELS[severity]}
                           </span>
                           {reportUnreadCount > 0 && (
                             <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
@@ -205,7 +204,7 @@ export default function StudentDashboard() {
                           {report.type} — Je suis victime
                         </div>
                         <div className="text-xs text-gray-400">
-                          📅 {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                           {new Date(report.createdAt).toLocaleDateString('fr-FR')}
                         </div>
                       </div>
                       <Badge variant={statusToBadgeVariant(report.status)} />
@@ -233,12 +232,12 @@ export default function StudentDashboard() {
                             >
                               {isPast ? (
                                 <p className="text-gray-400">
-                                  📋 Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                                   Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
                                 </p>
                               ) : (
                                 <div>
                                   <p className={`text-purple-700 ${isNew ? 'font-bold' : 'font-semibold'}`}>
-                                    📅 Vous êtes convoqué(e) le <strong>{displayDate}</strong>
+                                     {recipient ? <span className="text-gray-700">{recipient}</span> : 'Vous'} êtes convoqué(e) le <strong>{displayDate}</strong>
                                     {isNew && (
                                       <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
                                         Nouveau

@@ -68,7 +68,7 @@ const statusData = useMemo(() => {
     { name: 'En attente', key: 'pending',     color: '#eab308' },
     { name: 'En cours',   key: 'in_progress', color: '#0f3460' },
     { name: 'Clôturé',    key: 'closed',      color: '#22c55e' },
-    { name: 'Rejeté',     key: 'rejected',    color: '#dc2626' },
+    { name: 'Rejeté',     key: 'rejected',    color: SEVERITY_COLORS.critical },
   ];
 
   return statuses
@@ -127,7 +127,7 @@ const last7Days = useMemo(() => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📊 Répartition par grade</h3>
+          <h3 style={{ margin: '0 0 16px', color: 'var(--foreground)', fontSize: '15px' }}>📊 Répartition par grade</h3>
           {gradeData.length === 0 ? <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>Aucune donnée</p> : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -141,7 +141,7 @@ const last7Days = useMemo(() => {
         </div>
 
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📋 Répartition par statut</h3>
+          <h3 style={{ margin: '0 0 16px', color: 'var(--foreground)', fontSize: '15px' }}>Répartition par statut</h3>
           {statusData.length === 0 ? <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>Aucune donnée</p> : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -156,7 +156,7 @@ const last7Days = useMemo(() => {
       </div>
 
       <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', marginBottom: '24px' }}>
-        <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>🏫 Signalements par classe</h3>
+        <h3 style={{ margin: '0 0 16px', color: 'var(--foreground)', fontSize: '15px' }}>Signalements par classe</h3>
         {classData.length === 0 ? <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>Aucune donnée</p> : (
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={classData}>
@@ -173,7 +173,7 @@ const last7Days = useMemo(() => {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>⚠️ Signalements par type</h3>
+          <h3 style={{ margin: '0 0 16px', color: 'var(--foreground)', fontSize: '15px' }}>⚠️ Signalements par type</h3>
           {typeData.length === 0 ? <p style={{ color: '#aaa', textAlign: 'center', padding: '20px' }}>Aucune donnée</p> : (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={typeData} layout="vertical">
@@ -188,7 +188,7 @@ const last7Days = useMemo(() => {
         </div>
 
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <h3 style={{ margin: '0 0 16px', color: '#1a1a2e', fontSize: '15px' }}>📈 Évolution (7 derniers jours)</h3>
+          <h3 style={{ margin: '0 0 16px', color: 'var(--foreground)', fontSize: '15px' }}>📈 Évolution (7 derniers jours)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={last7Days}>
               <CartesianGrid strokeDasharray="3 3" />

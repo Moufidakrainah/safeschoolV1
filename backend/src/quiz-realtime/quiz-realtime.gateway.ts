@@ -22,27 +22,27 @@ function isInteger(value: unknown): value is number {
 }
 
 interface JoinRoomPayload {
-	roomId: string;
-	playerName?: string;
+  roomId: string;
+  playerName?: string;
 }
 
 interface LeaveRoomPayload {
-	roomId: string;
+  roomId: string;
 }
 
 interface StartGamePayload {
-	roomId: string;
+  roomId: string;
 }
 
 interface SubmitAnswerPayload {
-	roomId: string;
-	questionId: number;
-	selectedIndex: number;
+  roomId: string;
+  questionId: number;
+  selectedIndex: number;
 }
 
 @WebSocketGateway({ cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' } })
 export class QuizRealtimeGateway
-	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
 	constructor(
 		private readonly quizRealtimeService: QuizRealtimeService,
@@ -51,28 +51,28 @@ export class QuizRealtimeGateway
 
 	private readonly logger = new Logger(QuizRealtimeGateway.name);
 
-	@WebSocketServer()
-	server: Server;
+  @WebSocketServer()
+  server: Server;
 
-	afterInit() {
-		this.quizRealtimeService.setOnQuestionRevealed((payload) => {
-			this.server.to(payload.roomId).emit('quiz:question:reveal', payload);
-		});
+  afterInit() {
+    this.quizRealtimeService.setOnQuestionRevealed((payload) => {
+      this.server.to(payload.roomId).emit("quiz:question:reveal", payload);
+    });
 
-		this.quizRealtimeService.setOnQuestionTimedOut(
-			({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
-				this.server.to(roomId).emit('quiz:score:update', roomSnapshot);
+    this.quizRealtimeService.setOnQuestionTimedOut(
+      ({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
+        this.server.to(roomId).emit("quiz:score:update", roomSnapshot);
 
-				if (nextQuestionSnapshot) {
-					this.server.to(roomId).emit('quiz:question', nextQuestionSnapshot);
-					return;
-				}
+        if (nextQuestionSnapshot) {
+          this.server.to(roomId).emit("quiz:question", nextQuestionSnapshot);
+          return;
+        }
 
-				this.server.to(roomId).emit('quiz:game:over', roomSnapshot);
-				void this.server.in(roomId).socketsLeave(roomId);
-			},
-		);
-	}
+        this.server.to(roomId).emit("quiz:game:over", roomSnapshot);
+        void this.server.in(roomId).socketsLeave(roomId);
+      },
+    );
+  }
 
 	handleConnection(client: Socket) {
 		const token = this.extractToken(client);
@@ -86,6 +86,7 @@ export class QuizRealtimeGateway
 		try {
 			const payload = this.jwtService.verify<{ sub: string; email: string; role: string }>(
 				token,
+				{ algorithms: ['HS256'] },
 			);
 			client.data.user = payload;
 		} catch {
@@ -132,16 +133,16 @@ export class QuizRealtimeGateway
 		return user?.sub;
 	}
 
-	@SubscribeMessage('quiz:ping')
-	handlePing(
-		@MessageBody() payload: string,
-		@ConnectedSocket() client: Socket,
-	) {
-		return {
-			event: 'quiz:pong',
-			data: this.quizRealtimeService.createPongMessage(payload, client.id),
-		};
-	}
+  @SubscribeMessage("quiz:ping")
+  handlePing(
+    @MessageBody() payload: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    return {
+      event: "quiz:pong",
+      data: this.quizRealtimeService.createPongMessage(payload, client.id),
+    };
+  }
 
 	@SubscribeMessage('quiz:join')
 	handleJoin(
@@ -176,26 +177,38 @@ export class QuizRealtimeGateway
 			playerName: payload.playerName,
 		});
 
-		if (result.status === 'roomcode-bad-format') {
-			return {
-				event: 'quiz:join:ignored',
-				data: { roomId: payload.roomId, reason: 'code-bad-format', snapshot: result.snapshot },
-			}
-		}
+    if (result.status === "roomcode-bad-format") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "code-bad-format",
+          snapshot: result.snapshot,
+        },
+      };
+    }
 
-		if (result.status === 'quiz-already-started') {
-			return {
-				event: 'quiz:join:ignored',
-				data: { roomId: payload.roomId, reason: 'quiz-already-started', snapshot: result.snapshot },
-			};
-		}
+    if (result.status === "quiz-already-started") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "quiz-already-started",
+          snapshot: result.snapshot,
+        },
+      };
+    }
 
-		if (result.status === 'room-is-full') {
-			return {
-				event: 'quiz:join:ignored',
-				data: { roomId: payload.roomId, reason: 'room-is-full', snapshot: result.snapshot },
-			}
-		}
+    if (result.status === "room-is-full") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "room-is-full",
+          snapshot: result.snapshot,
+        },
+      };
+    }
 
 		if (result.status === 'server-at-capacity') {
 			return {
@@ -212,11 +225,11 @@ export class QuizRealtimeGateway
 			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
 		}
 
-		return {
-			event: 'quiz:joined',
-			data: result.snapshot,
-		};
-	}
+    return {
+      event: "quiz:joined",
+      data: result.snapshot,
+    };
+  }
 
 	@SubscribeMessage('quiz:leave')
 	handleLeave(
@@ -256,23 +269,25 @@ export class QuizRealtimeGateway
 
 		void client.leave(payload.roomId);
 
-		if (result.status === 'room-closed') {
-			this.server.to(payload.roomId).emit('quiz:room:closed', { roomId: payload.roomId });
-			return {
-				event: 'quiz:left',
-				data: { roomId: payload.roomId, closed: true },
-			};
-		}
+    if (result.status === "room-closed") {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:room:closed", { roomId: payload.roomId });
+      return {
+        event: "quiz:left",
+        data: { roomId: payload.roomId, closed: true },
+      };
+    }
 
-		if (result.snapshot) {
-			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
-		}
+    if (result.snapshot) {
+      this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
+    }
 
-		return {
-			event: 'quiz:left',
-			data: result.snapshot,
-		};
-	}
+    return {
+      event: "quiz:left",
+      data: result.snapshot,
+    };
+  }
 
 	@SubscribeMessage('quiz:start')
 	handleStart(
@@ -303,18 +318,20 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		this.server.to(payload.roomId).emit('quiz:game:started', result.snapshot);
+    this.server.to(payload.roomId).emit("quiz:game:started", result.snapshot);
 
-		const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(payload.roomId);
-		if (questionSnapshot) {
-			this.server.to(payload.roomId).emit('quiz:question', questionSnapshot);
-		}
+    const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(
+      payload.roomId,
+    );
+    if (questionSnapshot) {
+      this.server.to(payload.roomId).emit("quiz:question", questionSnapshot);
+    }
 
-		return {
-			event: 'quiz:started',
-			data: result.snapshot,
-		};
-	}
+    return {
+      event: "quiz:started",
+      data: result.snapshot,
+    };
+  }
 
 	@SubscribeMessage('quiz:answer')
 	handleAnswer(
@@ -362,15 +379,19 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		client.emit('quiz:answer:result', result.answerResult);
+    client.emit("quiz:answer:result", result.answerResult);
 
-		if (result.roomSnapshot) {
-			this.server.to(payload.roomId).emit('quiz:score:update', result.roomSnapshot);
-		}
+    if (result.roomSnapshot) {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:score:update", result.roomSnapshot);
+    }
 
-		if (result.revealPayload) {
-			this.server.to(payload.roomId).emit('quiz:question:reveal', result.revealPayload);
-		}
+    if (result.revealPayload) {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:question:reveal", result.revealPayload);
+    }
 
 		return {
 			event: 'quiz:answer:accepted',

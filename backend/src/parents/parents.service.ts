@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In } from "typeorm";
 import { Parent } from "./parent.entity";
@@ -20,6 +20,10 @@ export class ParentsService {
     address?: string;
     studentIds?: string[];
   }): Promise<Parent> {
+    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
+    if (!nameRegex.test(dto.firstName)) throw new BadRequestException("Prénom invalide (2-20 caractères, lettres et tirets uniquement)");
+    if (!nameRegex.test(dto.lastName)) throw new BadRequestException("Nom invalide (2-20 caractères, lettres et tirets uniquement)");
+    if (dto.phone && !/^[0-9+\s]{0,15}$/.test(dto.phone)) throw new BadRequestException("Téléphone invalide");
     const parent = this.parentsRepo.create({
       firstName: dto.firstName,
       lastName: dto.lastName,
@@ -60,8 +64,15 @@ export class ParentsService {
     },
   ): Promise<Parent> {
     const parent = await this.findOne(id);
-    if (dto.firstName) parent.firstName = dto.firstName;
-    if (dto.lastName) parent.lastName = dto.lastName;
+    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
+    if (dto.firstName) {
+      if (!nameRegex.test(dto.firstName)) throw new BadRequestException("Prénom invalide");
+      parent.firstName = dto.firstName;
+    }
+    if (dto.lastName) {
+      if (!nameRegex.test(dto.lastName)) throw new BadRequestException("Nom invalide");
+      parent.lastName = dto.lastName;
+    }
     if (dto.email) parent.email = dto.email;
     if (dto.phone !== undefined) parent.phone = dto.phone;
     if (dto.address !== undefined) parent.address = dto.address;

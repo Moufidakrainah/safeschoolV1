@@ -151,20 +151,20 @@
     }
   },
   "badge": {
-    "critical": "🔴 Critical",
-    "high": "🟠 High",
-    "medium": "🟡 Medium",
-    "low": "🟢 Low",
-    "new": "📄 New",
-    "in_progress": "📂 In progress",
-    "pending": "⏳ Pending",
-    "resolved": "✅ Resolved",
-    "false_report": "❌ False report",
-    "closed": "✅ Closed",
-    "rejected": "❌ Rejected"
+    "critical": " Critical",
+    "high": " High",
+    "medium": " Medium",
+    "low": " Low",
+    "new": " New",
+    "in_progress": " In progress",
+    "pending": " Pending",
+    "resolved": " Resolved",
+    "false_report": " False report",
+    "closed": " Closed",
+    "rejected": " Rejected"
   },
   "noteblock": {
-    "note": "📝 Note",
+    "note": " Note",
     "convocation": " Summons"
   },
   "pagination": {

@@ -1,22 +1,23 @@
 /*Routes : redirige selon le role */
 import type { ReactElement } from 'react';
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
-import Login from './pages/Login';
-import StudentDashboard from './pages/StudentDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import ReporterDashboard from './pages/ReporterDashboard';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfService from './pages/TermsOfService';
-import { Footer } from './components/Footer';
-import UiKit from './pages/UiKit';
-import Quiz from './pages/Quiz';
+import { useAuth } from '@/context/AuthContext';
+import Login from '@/pages/Login';
+import StudentDashboard from '@/pages/StudentDashboard';
+import AdminDashboard from '@/pages/AdminDashboard';
+import ReporterDashboard from '@/pages/ReporterDashboard';
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import TermsOfService from '@/pages/TermsOfService';
+import { Footer } from '@/components/layout/Footer/Footer';
+import UiKit from '@/pages/UiKit';
+import Quiz from '@/pages/Quiz';
 
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
   // In dev mode (VITE_DEVBAR=true), skip role check to allow DevBar navigation across all pages
-  if (import.meta.env.VITE_DEVBAR !== 'true' && roles && user && !roles.includes(user.role)) return <Navigate to="/login" />;
+  if (import.meta.env.VITE_DEVBAR !== 'true' && roles && user && !roles.includes(user.role)) 
+	return <Navigate to="/login" />;
   return children;
 }
 
@@ -57,11 +58,11 @@ function DevBar() {
   }
 
   const itemStyle = (active: boolean): React.CSSProperties => ({
-    color: active ? '#0097b2' : '#aaa',
+    color: active ? 'var(--secondary)' : 'var(--muted-foreground)',
     textDecoration: 'none',
     padding: '2px 6px',
     borderRadius: '4px',
-    background: active ? 'rgba(0,151,178,0.15)' : 'transparent',
+    background: active ? 'var(--primary)' : 'transparent',
     fontWeight: active ? 700 : 400,
     cursor: 'pointer',
     border: 'none',
@@ -73,11 +74,9 @@ function DevBar() {
     <div style={{
       position: 'fixed', bottom: '72px', right: '16px', zIndex: 9999,
       display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end',
-      background: '#1a1a2e', borderRadius: '12px', padding: '8px 12px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.4)', fontFamily: 'monospace',
+      background: 'var(--card-foreground)', borderRadius: '12px', padding: '8px 12px',
     }}>
-
-      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+	  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         {pages.map(({ to, label }) => (
           <Link key={to} to={to} style={itemStyle(location.pathname === to)}>{label}</Link>
         ))}

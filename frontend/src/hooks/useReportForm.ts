@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '../services/api';
-import type { UserSearchResult } from '../types';
+import { createReport, searchUsers } from '@/services/api';
+import type { UserSearchResult } from '@/types';
+import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
   step:        number;
@@ -45,7 +46,7 @@ export function useReportForm(
   t: (key: string) => string,
 ): UseReportFormReturn {
 
-  // Prof et staff sont toujours témoins
+//il faut enlever les suggestions de noms d'eleves
   const defaultWho = 'temoin';
 
   const [step, setStep]               = useState(1);
@@ -58,7 +59,7 @@ export function useReportForm(
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showErrors, setShowErrors]   = useState(false);
 
-  const isNextDisabled =
+    const isNextDisabled =
     (step === 1 && !type) ||
     (step === 2 && (!description.trim() || !frequency));
 
@@ -72,12 +73,14 @@ export function useReportForm(
   const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
   const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
 
+
+  //some translations to be done
   const handleSubmit = async () => {
     if (!type || !description || !frequency) return;
     setLoading(true);
     setSubmitError(null);
     try {
-      const fullDescription = `${description} (Fréquence: ${frequency})`;
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({
         freeText: `${s.firstName} ${s.lastName}`,
       }));
@@ -94,13 +97,13 @@ export function useReportForm(
       );
       setStep(6);
     } catch (err) {
-      console.error('Report submission failed', err);
       setSubmitError(t('reporter.submitError'));
     } finally {
       setLoading(false);
     }
   };
 
+//   attention, certaines fonctions ne sont plus utilisees 
   const handleSuspectSearch = async (value: string) => {
     setSuspectInput(value);
     if (value.length < 2) { setSuspectSuggestions([]); return; }
@@ -134,7 +137,8 @@ export function useReportForm(
     setSuspectSuggestions([]);
   };
 
-  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
+  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index)
+);
 
   const resetForm = () => {
     setStep(0);
@@ -161,12 +165,18 @@ export function useReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, suspectSuggestions, searchingUsers,
+    suspects, suspectInput, 
+	suspectSuggestions, 
+	searchingUsers,
     victimName, setVictimName,
     victimInput, setVictimInput,
-    victimSuggestions, setVictimSuggestions,
+    victimSuggestions, 
+	setVictimSuggestions,
     selectedVictim, setSelectedVictim,
-    handleSubmit, handleSuspectSearch, handleVictimSearch,
-    addSuspect, removeSuspect, resetForm,
+    handleSubmit,
+	handleSuspectSearch, 
+	handleVictimSearch,
+    addSuspect, removeSuspect, 
+	resetForm,
   };
 }

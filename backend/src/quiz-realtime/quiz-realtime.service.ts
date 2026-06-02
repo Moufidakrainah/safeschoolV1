@@ -1,18 +1,18 @@
-import { Injectable } from '@nestjs/common';
-import questionsData from './questions.json';
+import { Injectable } from "@nestjs/common";
+import questionsData from "./questions.json";
 
 interface QuestionInternal {
-	id: number;
-	text: string;
-	options: string[];
-	correctIndex: number;
-	score: number;
+  id: number;
+  text: string;
+  options: string[];
+  correctIndex: number;
+  score: number;
 }
 
 interface QuestionPublic {
-	id: number;
-	text: string;
-	options: string[];
+  id: number;
+  text: string;
+  options: string[];
 }
 
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
@@ -48,12 +48,15 @@ function streakMultiplier(streak: number): number {
 	return Math.min(Math.max(streak, 1), MAX_STREAK_MULTIPLIER);
 }
 
-function pickRandomQuestions(questions: QuestionInternal[], count: number): QuestionInternal[] {
-	const shuffled = [...questions].sort(() => Math.random() - 0.5);
-	return shuffled.slice(0, Math.min(count, shuffled.length));
+function pickRandomQuestions(
+  questions: QuestionInternal[],
+  count: number,
+): QuestionInternal[] {
+  const shuffled = [...questions].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-type GameStatus = 'waiting' | 'in-progress' | 'finished';
+type GameStatus = "waiting" | "in-progress" | "finished";
 
 interface QuizPlayer {
 	// Stable identity (JWT `sub`) that survives socket reconnects
@@ -87,25 +90,25 @@ interface QuizRoom {
 }
 
 interface AnswerStatistic {
-	index: number;
-	count: number;
-	percentage: number;
+  index: number;
+  count: number;
+  percentage: number;
 }
 
 interface TimeoutAdvancePayload {
-	roomId: string;
-	roomSnapshot: RoomSnapshot;
-	nextQuestionSnapshot: ReturnType<QuizRealtimeService['getQuestionSnapshot']>;
+  roomId: string;
+  roomSnapshot: RoomSnapshot;
+  nextQuestionSnapshot: ReturnType<QuizRealtimeService["getQuestionSnapshot"]>;
 }
 
 interface QuestionRevealPayload {
-	roomId: string;
-	questionId: number;
-	correctIndex: number;
-	answerStatistics: AnswerStatistic[];
-	roomSnapshot: RoomSnapshot;
-	revealEndsAt: number;
-	revealDurationMs: number;
+  roomId: string;
+  questionId: number;
+  correctIndex: number;
+  answerStatistics: AnswerStatistic[];
+  roomSnapshot: RoomSnapshot;
+  revealEndsAt: number;
+  revealDurationMs: number;
 }
 
 interface JoinRoomInput {
@@ -175,22 +178,22 @@ type JoinRoomResult = {
 };
 
 type LeaveRoomResult =
-	| { status: 'left'; snapshot: RoomSnapshot }
-	| { status: 'room-closed'; snapshot: null }
-	| { status: 'room-not-found' | 'not-in-room'; snapshot: RoomSnapshot | null };
+  | { status: "left"; snapshot: RoomSnapshot }
+  | { status: "room-closed"; snapshot: null }
+  | { status: "room-not-found" | "not-in-room"; snapshot: RoomSnapshot | null };
 
 @Injectable()
 export class QuizRealtimeService {
-	private readonly rooms = new Map<string, QuizRoom>();
-	private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
-	private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
+  private readonly rooms = new Map<string, QuizRoom>();
+  private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
+  private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
 
-	createPongMessage(payload: string | undefined, clientId: string) {
-		return {
-			message: payload || 'pong',
-			clientId,
-		};
-	}
+  createPongMessage(payload: string | undefined, clientId: string) {
+    return {
+      message: payload || "pong",
+      clientId,
+    };
+  }
 
 	joinRoom({ roomId, playerId, socketId, playerName }: JoinRoomInput): JoinRoomResult {
 		if (roomId.length < 3 || roomId.length > 10) {
@@ -253,12 +256,12 @@ export class QuizRealtimeService {
 			};
 		}
 
-		if (room.players.size >= 32) {
-			return {
-				status: 'room-is-full',
-				snapshot: this.getRoomSnapshot(roomId),
-			}
-		}
+    if (room.players.size >= 32) {
+      return {
+        status: "room-is-full",
+        snapshot: this.getRoomSnapshot(roomId),
+      };
+    }
 
 		room.players.set(playerId, {
 			playerId,
@@ -271,11 +274,11 @@ export class QuizRealtimeService {
 			graceEndsAt: null,
 		});
 
-		return {
-			status: 'joined',
-			snapshot: this.getRoomSnapshot(roomId),
-		};
-	}
+    return {
+      status: "joined",
+      snapshot: this.getRoomSnapshot(roomId),
+    };
+  }
 
 	leaveRoom(roomId: string, playerId: string): LeaveRoomResult {
 		const room = this.rooms.get(roomId);
@@ -299,12 +302,12 @@ export class QuizRealtimeService {
 		room.answeredPlayerIds.delete(playerId);
 		room.selectedAnswerByPlayerId.delete(playerId);
 
-		if (room.players.size === 0) {
-			this.clearQuestionTimer(room);
-			this.clearRevealTimer(room);
-			this.rooms.delete(roomId);
-			return { status: 'room-closed', snapshot: null };
-		}
+    if (room.players.size === 0) {
+      this.clearQuestionTimer(room);
+      this.clearRevealTimer(room);
+      this.rooms.delete(roomId);
+      return { status: "room-closed", snapshot: null };
+    }
 
 		if (room.hostId === playerId) {
 			// Prefer a still-connected player as the new host.
@@ -316,11 +319,11 @@ export class QuizRealtimeService {
 			}
 		}
 
-		return {
-			status: 'left',
-			snapshot: this.getRoomSnapshot(roomId),
-		};
-	}
+    return {
+      status: "left",
+      snapshot: this.getRoomSnapshot(roomId),
+    };
+  }
 
 	startGame(roomId: string, playerId: string): StartGameResult {
 		const room = this.rooms.get(roomId);
@@ -340,8 +343,8 @@ export class QuizRealtimeService {
 		room.startedAt = Date.now();
 		this.scheduleQuestionTimer(room);
 
-		return { status: 'started', snapshot: this.getRoomSnapshot(roomId) };
-	}
+    return { status: "started", snapshot: this.getRoomSnapshot(roomId) };
+  }
 
 	submitAnswer({ roomId, playerId, questionId, selectedIndex }: SubmitAnswerInput): SubmitAnswerResult {
 		const room = this.rooms.get(roomId);
@@ -354,22 +357,38 @@ export class QuizRealtimeService {
 			return { status: 'player-not-in-room', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
-		if (room.status !== 'in-progress') {
-			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
-		}
+    if (room.status !== "in-progress") {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
 
-		if (room.revealEndsAt !== null) {
-			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
-		}
+    if (room.revealEndsAt !== null) {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
 
-		const currentQuestion = room.questions[room.currentQuestionIndex];
-		if (!currentQuestion) {
-			return { status: 'no-active-question', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
-		}
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion) {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
 
-		if (currentQuestion.id !== questionId) {
-			return { status: 'question-mismatch', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
-		}
+    if (currentQuestion.id !== questionId) {
+      return {
+        status: "question-mismatch",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
 
 		if (room.answeredPlayerIds.has(playerId)) {
 			return { status: 'already-answered', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
@@ -397,11 +416,13 @@ export class QuizRealtimeService {
 		room.selectedAnswerByPlayerId.set(playerId, selectedIndex);
 		room.answeredPlayerIds.add(playerId);
 
-		const allAnswered = [...room.players.keys()].every((id) => room.answeredPlayerIds.has(id));
-		let revealPayload: QuestionRevealPayload | null = null;
-		if (allAnswered) {
-			revealPayload = this.enterRevealPhase(room);
-		}
+    const allAnswered = [...room.players.keys()].every((id) =>
+      room.answeredPlayerIds.has(id),
+    );
+    let revealPayload: QuestionRevealPayload | null = null;
+    if (allAnswered) {
+      revealPayload = this.enterRevealPhase(room);
+    }
 
 		return {
 			status: 'accepted',
@@ -411,13 +432,17 @@ export class QuizRealtimeService {
 		};
 	}
 
-	setOnQuestionTimedOut(handler: ((payload: TimeoutAdvancePayload) => void) | undefined) {
-		this.onQuestionTimedOut = handler;
-	}
+  setOnQuestionTimedOut(
+    handler: ((payload: TimeoutAdvancePayload) => void) | undefined,
+  ) {
+    this.onQuestionTimedOut = handler;
+  }
 
-	setOnQuestionRevealed(handler: ((payload: QuestionRevealPayload) => void) | undefined) {
-		this.onQuestionRevealed = handler;
-	}
+  setOnQuestionRevealed(
+    handler: ((payload: QuestionRevealPayload) => void) | undefined,
+  ) {
+    this.onQuestionRevealed = handler;
+  }
 
 	// Called when a socket disconnects. During a running game the player is kept
 	// in a "disconnected" state for a grace period so they can reconnect and
@@ -473,9 +498,9 @@ export class QuizRealtimeService {
 		this.leaveRoom(roomId, playerId);
 	}
 
-	getRoomSnapshot(roomId: string) {
-		const room = this.rooms.get(roomId);
-		if (!room) return null;
+  getRoomSnapshot(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
 
 		return {
 			roomId: room.roomId,
@@ -489,55 +514,55 @@ export class QuizRealtimeService {
 		};
 	}
 
-	getQuestionSnapshot(roomId: string) {
-		const room = this.rooms.get(roomId);
-		if (!room) return null;
+  getQuestionSnapshot(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
 
-		const question = room.questions[room.currentQuestionIndex];
-		if (!question) return null;
+    const question = room.questions[room.currentQuestionIndex];
+    if (!question) return null;
 
-		return {
-			roomId: room.roomId,
-			question: this.toPublicQuestion(question),
-			questionNumber: room.currentQuestionIndex + 1,
-			totalQuestions: room.questions.length,
-			timeLimitMs: QUESTION_TIME_LIMIT_MS,
-			endsAt: room.questionEndsAt,
-		};
-	}
+    return {
+      roomId: room.roomId,
+      question: this.toPublicQuestion(question),
+      questionNumber: room.currentQuestionIndex + 1,
+      totalQuestions: room.questions.length,
+      timeLimitMs: QUESTION_TIME_LIMIT_MS,
+      endsAt: room.questionEndsAt,
+    };
+  }
 
-	private clearQuestionTimer(room: QuizRoom) {
-		if (room.questionTimer) {
-			clearTimeout(room.questionTimer);
-			room.questionTimer = null;
-		}
-		room.questionEndsAt = null;
-	}
+  private clearQuestionTimer(room: QuizRoom) {
+    if (room.questionTimer) {
+      clearTimeout(room.questionTimer);
+      room.questionTimer = null;
+    }
+    room.questionEndsAt = null;
+  }
 
-	private scheduleQuestionTimer(room: QuizRoom) {
-		this.clearQuestionTimer(room);
+  private scheduleQuestionTimer(room: QuizRoom) {
+    this.clearQuestionTimer(room);
 
-		const currentQuestion = room.questions[room.currentQuestionIndex];
-		if (!currentQuestion || room.status !== 'in-progress') {
-			return;
-		}
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion || room.status !== "in-progress") {
+      return;
+    }
 
-		room.questionEndsAt = Date.now() + QUESTION_TIME_LIMIT_MS;
-		room.questionTimer = setTimeout(() => {
-			const targetRoom = this.rooms.get(room.roomId);
-			if (!targetRoom || targetRoom.status !== 'in-progress') {
-				return;
-			}
+    room.questionEndsAt = Date.now() + QUESTION_TIME_LIMIT_MS;
+    room.questionTimer = setTimeout(() => {
+      const targetRoom = this.rooms.get(room.roomId);
+      if (!targetRoom || targetRoom.status !== "in-progress") {
+        return;
+      }
 
-			const revealPayload = this.enterRevealPhase(targetRoom);
-			if (revealPayload && this.onQuestionRevealed) {
-				this.onQuestionRevealed(revealPayload);
-			}
-		}, QUESTION_TIME_LIMIT_MS);
-	}
+      const revealPayload = this.enterRevealPhase(targetRoom);
+      if (revealPayload && this.onQuestionRevealed) {
+        this.onQuestionRevealed(revealPayload);
+      }
+    }, QUESTION_TIME_LIMIT_MS);
+  }
 
-	private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
-		if (room.status !== 'in-progress') return null;
+  private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
+    if (room.status !== "in-progress") return null;
 
 		if (room.revealEndsAt !== null) return null;
 
@@ -554,91 +579,98 @@ export class QuizRealtimeService {
 		this.clearQuestionTimer(room);
 		this.clearRevealTimer(room);
 
-		room.revealEndsAt = Date.now() + REVEAL_TIME_MS;
-		room.revealTimer = setTimeout(() => {
-			const advanceResult = this.advanceFromReveal(room.roomId);
-			if (!advanceResult || !this.onQuestionTimedOut) {
-				return;
-			}
+    room.revealEndsAt = Date.now() + REVEAL_TIME_MS;
+    room.revealTimer = setTimeout(() => {
+      const advanceResult = this.advanceFromReveal(room.roomId);
+      if (!advanceResult || !this.onQuestionTimedOut) {
+        return;
+      }
 
-			this.onQuestionTimedOut({
-				roomId: room.roomId,
-				roomSnapshot: advanceResult.roomSnapshot,
-				nextQuestionSnapshot: advanceResult.nextQuestionSnapshot,
-			});
-		}, REVEAL_TIME_MS);
+      this.onQuestionTimedOut({
+        roomId: room.roomId,
+        roomSnapshot: advanceResult.roomSnapshot,
+        nextQuestionSnapshot: advanceResult.nextQuestionSnapshot,
+      });
+    }, REVEAL_TIME_MS);
 
-		return {
-			roomId: room.roomId,
-			questionId: currentQuestion.id,
-			correctIndex: currentQuestion.correctIndex,
-			answerStatistics: this.getAnswerStatistics(room, currentQuestion.options.length),
-			roomSnapshot: this.getRoomSnapshot(room.roomId),
-			revealEndsAt: room.revealEndsAt,
-			revealDurationMs: REVEAL_TIME_MS,
-		};
-	}
+    return {
+      roomId: room.roomId,
+      questionId: currentQuestion.id,
+      correctIndex: currentQuestion.correctIndex,
+      answerStatistics: this.getAnswerStatistics(
+        room,
+        currentQuestion.options.length,
+      ),
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      revealEndsAt: room.revealEndsAt,
+      revealDurationMs: REVEAL_TIME_MS,
+    };
+  }
 
-	private advanceFromReveal(roomId: string) {
-		const room = this.rooms.get(roomId);
-		if (!room) return null;
-		this.clearRevealTimer(room);
-		return this.advanceToNextQuestion(room);
-	}
+  private advanceFromReveal(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+    this.clearRevealTimer(room);
+    return this.advanceToNextQuestion(room);
+  }
 
-	private clearRevealTimer(room: QuizRoom) {
-		if (room.revealTimer) {
-			clearTimeout(room.revealTimer);
-			room.revealTimer = null;
-		}
-		room.revealEndsAt = null;
-	}
+  private clearRevealTimer(room: QuizRoom) {
+    if (room.revealTimer) {
+      clearTimeout(room.revealTimer);
+      room.revealTimer = null;
+    }
+    room.revealEndsAt = null;
+  }
 
-	private advanceToNextQuestion(room: QuizRoom) {
-		this.clearQuestionTimer(room);
-		this.clearRevealTimer(room);
-		room.currentQuestionIndex += 1;
-		room.answeredPlayerIds.clear();
-		room.selectedAnswerByPlayerId.clear();
+  private advanceToNextQuestion(room: QuizRoom) {
+    this.clearQuestionTimer(room);
+    this.clearRevealTimer(room);
+    room.currentQuestionIndex += 1;
+    room.answeredPlayerIds.clear();
+    room.selectedAnswerByPlayerId.clear();
 
-		const hasMoreQuestions = room.currentQuestionIndex < room.questions.length;
-		if (!hasMoreQuestions) {
-			const roomSnapshot = this.getRoomSnapshot(room.roomId);
-			room.status = 'finished';
-			room.players.clear();
-			this.rooms.delete(room.roomId);
-			return {
-				roomSnapshot,
-				nextQuestionSnapshot: null,
-			};
-		}
+    const hasMoreQuestions = room.currentQuestionIndex < room.questions.length;
+    if (!hasMoreQuestions) {
+      const roomSnapshot = this.getRoomSnapshot(room.roomId);
+      room.status = "finished";
+      room.players.clear();
+      this.rooms.delete(room.roomId);
+      return {
+        roomSnapshot,
+        nextQuestionSnapshot: null,
+      };
+    }
 
-		this.scheduleQuestionTimer(room);
-		return {
-			roomSnapshot: this.getRoomSnapshot(room.roomId),
-			nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
-		};
-	}
+    this.scheduleQuestionTimer(room);
+    return {
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
+    };
+  }
 
-	private toPublicQuestion(q: QuestionInternal): QuestionPublic {
-		return { id: q.id, text: q.text, options: q.options };
-	}
+  private toPublicQuestion(q: QuestionInternal): QuestionPublic {
+    return { id: q.id, text: q.text, options: q.options };
+  }
 
-	private getAnswerStatistics(room: QuizRoom, optionCount: number): AnswerStatistic[] {
-		const counts = Array.from({ length: optionCount }, () => 0);
+  private getAnswerStatistics(
+    room: QuizRoom,
+    optionCount: number,
+  ): AnswerStatistic[] {
+    const counts = Array.from({ length: optionCount }, () => 0);
 
-		for (const selectedIndex of room.selectedAnswerByPlayerId.values()) {
-			if (selectedIndex >= 0 && selectedIndex < optionCount) {
-				counts[selectedIndex] += 1;
-			}
-		}
+    for (const selectedIndex of room.selectedAnswerByPlayerId.values()) {
+      if (selectedIndex >= 0 && selectedIndex < optionCount) {
+        counts[selectedIndex] += 1;
+      }
+    }
 
-		const totalAnswers = counts.reduce((total, count) => total + count, 0);
+    const totalAnswers = counts.reduce((total, count) => total + count, 0);
 
-		return counts.map((count, index) => ({
-			index,
-			count,
-			percentage: totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0,
-		}));
-	}
+    return counts.map((count, index) => ({
+      index,
+      count,
+      percentage:
+        totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0,
+    }));
+  }
 }
