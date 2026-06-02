@@ -22,6 +22,11 @@ const QUESTION_TIME_LIMIT_MS = 30_000;
 // flooding `quiz:join` with unique room codes.
 const MAX_CONCURRENT_ROOMS = 500;
 
+const REVEAL_TIME_MS = 5_000;
+// How long a disconnected player's state is kept so they can reconnect and
+// resume an in-progress game. After this, their state is dropped from the room
+const RECONNECT_GRACE_MS = 60_000;
+
 // Speed tiers: faster correct answers are worth more base points
 const SPEED_TIERS: { withinMs: number; points: number }[] = [
 	{ withinMs: 3_000, points: 3 },
@@ -47,21 +52,28 @@ function pickRandomQuestions(questions: QuestionInternal[], count: number): Ques
 	const shuffled = [...questions].sort(() => Math.random() - 0.5);
 	return shuffled.slice(0, Math.min(count, shuffled.length));
 }
-const REVEAL_TIME_MS = 5_000;
 
 type GameStatus = 'waiting' | 'in-progress' | 'finished';
 
 interface QuizPlayer {
-	clientId: string;
+	// Stable identity (JWT `sub`) that survives socket reconnects
+	playerId: string;
+	// Current live socket id, or null while the player is disconnected
+	socketId: string | null;
 	name: string;
 	score: number;
 	streak: number;
+	connected: boolean;
+	disconnectTimer: NodeJS.Timeout | null;
+	graceEndsAt: number | null;
 }
 
 interface QuizRoom {
 	roomId: string;
+	// Host identity (stable playerId, not a socket id)
 	hostId: string;
 	status: GameStatus;
+	// Keyed by stable playerId.
 	players: Map<string, QuizPlayer>;
 	questions: QuestionInternal[];
 	currentQuestionIndex: number;
@@ -98,15 +110,24 @@ interface QuestionRevealPayload {
 
 interface JoinRoomInput {
 	roomId: string;
-	clientId: string;
+	playerId: string;
+	socketId: string;
 	playerName?: string;
 }
 
 interface SubmitAnswerInput {
 	roomId: string;
-	clientId: string;
+	playerId: string;
 	questionId: number;
 	selectedIndex: number;
+}
+
+// One entry per room a disconnecting socket was part of
+interface DisconnectUpdate {
+	roomId: string;
+	// The room was emptied and deleted as a result of the disconnect.
+	closed: boolean;
+	snapshot: RoomSnapshot | null;
 }
 
 type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
@@ -145,7 +166,7 @@ type SubmitAnswerResult =
 type JoinRoomResult = {
 	status:
 		| 'joined'
-		| 'already-joined'
+		| 'reconnected'
 		| 'quiz-already-started'
 		| 'roomcode-bad-format'
 		| 'room-is-full'
@@ -171,7 +192,7 @@ export class QuizRealtimeService {
 		};
 	}
 
-	joinRoom({ roomId, clientId, playerName }: JoinRoomInput): JoinRoomResult {
+	joinRoom({ roomId, playerId, socketId, playerName }: JoinRoomInput): JoinRoomResult {
 		if (roomId.length < 3 || roomId.length > 10) {
 			return {
 				status : "roomcode-bad-format",
@@ -180,6 +201,26 @@ export class QuizRealtimeService {
 		}
 
 		let room = this.rooms.get(roomId);
+
+		// Reconnect: the player is already a member (possibly mid-game). Re-attach
+		// the new socket and cancel any pending grace-period removal
+		if (room && room.players.has(playerId)) {
+			const player = room.players.get(playerId)!;
+			if (player.disconnectTimer) {
+				clearTimeout(player.disconnectTimer);
+				player.disconnectTimer = null;
+			}
+			player.socketId = socketId;
+			player.connected = true;
+			player.graceEndsAt = null;
+			if (playerName?.trim()) {
+				player.name = playerName.trim();
+			}
+			return {
+				status: 'reconnected',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
 
 		if (!room && this.rooms.size >= MAX_CONCURRENT_ROOMS) {
 			return {
@@ -191,7 +232,7 @@ export class QuizRealtimeService {
 		if (!room) {
 			room = {
 				roomId,
-				hostId: clientId,
+				hostId: playerId,
 				status: 'waiting',
 				players: new Map<string, QuizPlayer>(),
 				questions: [],
@@ -212,13 +253,6 @@ export class QuizRealtimeService {
 			};
 		}
 
-		if (room.players.has(clientId)) {
-			return {
-				status: 'already-joined',
-				snapshot: this.getRoomSnapshot(roomId),
-			};
-		}
-
 		if (room.players.size >= 32) {
 			return {
 				status: 'room-is-full',
@@ -226,11 +260,15 @@ export class QuizRealtimeService {
 			}
 		}
 
-		room.players.set(clientId, {
-			clientId,
-			name: playerName?.trim() || `Player-${clientId.slice(0, 5)}`,
+		room.players.set(playerId, {
+			playerId,
+			socketId,
+			name: playerName?.trim() || `Player-${playerId.slice(0, 5)}`,
 			score: 0,
 			streak: 0,
+			connected: true,
+			disconnectTimer: null,
+			graceEndsAt: null,
 		});
 
 		return {
@@ -239,20 +277,27 @@ export class QuizRealtimeService {
 		};
 	}
 
-	leaveRoom(roomId: string, clientId: string): LeaveRoomResult {
+	leaveRoom(roomId: string, playerId: string): LeaveRoomResult {
 		const room = this.rooms.get(roomId);
 		if (!room) {
 			return { status: 'room-not-found', snapshot: null };
 		}
 
-		if (!room.players.has(clientId)) {
+		const player = room.players.get(playerId);
+		if (!player) {
 			return {
 				status: 'not-in-room',
 				snapshot: this.getRoomSnapshot(roomId),
 			};
 		}
 
-		room.players.delete(clientId);
+		if (player.disconnectTimer) {
+			clearTimeout(player.disconnectTimer);
+			player.disconnectTimer = null;
+		}
+		room.players.delete(playerId);
+		room.answeredPlayerIds.delete(playerId);
+		room.selectedAnswerByPlayerId.delete(playerId);
 
 		if (room.players.size === 0) {
 			this.clearQuestionTimer(room);
@@ -261,10 +306,13 @@ export class QuizRealtimeService {
 			return { status: 'room-closed', snapshot: null };
 		}
 
-		if (room.hostId === clientId) {
-			const nextHost = room.players.values().next().value as QuizPlayer | undefined;
+		if (room.hostId === playerId) {
+			// Prefer a still-connected player as the new host.
+			const nextHost =
+				[...room.players.values()].find((candidate) => candidate.connected) ??
+				(room.players.values().next().value as QuizPlayer | undefined);
 			if (nextHost) {
-				room.hostId = nextHost.clientId;
+				room.hostId = nextHost.playerId;
 			}
 		}
 
@@ -274,10 +322,10 @@ export class QuizRealtimeService {
 		};
 	}
 
-	startGame(roomId: string, clientId: string): StartGameResult {
+	startGame(roomId: string, playerId: string): StartGameResult {
 		const room = this.rooms.get(roomId);
 		if (!room) return { status: 'room-not-found', snapshot: null };
-		if (room.hostId !== clientId) return { status: 'not-host', snapshot: null };
+		if (room.hostId !== playerId) return { status: 'not-host', snapshot: null };
 
 		// Prevent a host from restarting a game mid-game
 		if (room.status !== 'waiting') return { status: 'already-in-progress', snapshot: null };
@@ -295,13 +343,13 @@ export class QuizRealtimeService {
 		return { status: 'started', snapshot: this.getRoomSnapshot(roomId) };
 	}
 
-	submitAnswer({ roomId, clientId, questionId, selectedIndex }: SubmitAnswerInput): SubmitAnswerResult {
+	submitAnswer({ roomId, playerId, questionId, selectedIndex }: SubmitAnswerInput): SubmitAnswerResult {
 		const room = this.rooms.get(roomId);
 		if (!room) {
 			return { status: 'room-not-found', roomSnapshot: null, answerResult: null };
 		}
 
-		const player = room.players.get(clientId);
+		const player = room.players.get(playerId);
 		if (!player) {
 			return { status: 'player-not-in-room', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
@@ -323,7 +371,7 @@ export class QuizRealtimeService {
 			return { status: 'question-mismatch', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
-		if (room.answeredPlayerIds.has(clientId)) {
+		if (room.answeredPlayerIds.has(playerId)) {
 			return { status: 'already-answered', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
 		}
 
@@ -346,8 +394,8 @@ export class QuizRealtimeService {
 			player.streak = 0;
 		}
 
-		room.selectedAnswerByPlayerId.set(clientId, selectedIndex);
-		room.answeredPlayerIds.add(clientId);
+		room.selectedAnswerByPlayerId.set(playerId, selectedIndex);
+		room.answeredPlayerIds.add(playerId);
 
 		const allAnswered = [...room.players.keys()].every((id) => room.answeredPlayerIds.has(id));
 		let revealPayload: QuestionRevealPayload | null = null;
@@ -358,7 +406,7 @@ export class QuizRealtimeService {
 		return {
 			status: 'accepted',
 			roomSnapshot: this.getRoomSnapshot(roomId),
-			answerResult: { roomId, playerId: clientId, questionId, isCorrect, basePoints, multiplier, pointsEarned, streak: player.streak },
+			answerResult: { roomId, playerId, questionId, isCorrect, basePoints, multiplier, pointsEarned, streak: player.streak },
 			revealPayload,
 		};
 	}
@@ -371,18 +419,58 @@ export class QuizRealtimeService {
 		this.onQuestionRevealed = handler;
 	}
 
-	removeClientFromAllRooms(clientId: string) {
-		const updates: Array<{ roomId: string; result: LeaveRoomResult }> = [];
+	// Called when a socket disconnects. During a running game the player is kept
+	// in a "disconnected" state for a grace period so they can reconnect and
+	// resume; outside of a running game they are removed immediately
+	markDisconnected(socketId: string): DisconnectUpdate[] {
+		const updates: DisconnectUpdate[] = [];
 
-		for (const roomId of this.rooms.keys()) {
-			const room = this.rooms.get(roomId);
-			if (!room || !room.players.has(clientId)) continue;
+		for (const room of this.rooms.values()) {
+			const player = [...room.players.values()].find((candidate) => candidate.socketId === socketId);
+			if (!player) continue;
 
-			const result = this.leaveRoom(roomId, clientId);
-			updates.push({ roomId, result });
+			const roomId = room.roomId;
+
+			// No live game to resume — drop the player straight away.
+			if (room.status !== 'in-progress') {
+				const result = this.leaveRoom(roomId, player.playerId);
+				updates.push({
+					roomId,
+					closed: result.status === 'room-closed',
+					snapshot: result.snapshot,
+				});
+				continue;
+			}
+
+			player.connected = false;
+			player.socketId = null;
+			player.graceEndsAt = Date.now() + RECONNECT_GRACE_MS;
+			if (player.disconnectTimer) clearTimeout(player.disconnectTimer);
+			const playerId = player.playerId;
+			player.disconnectTimer = setTimeout(
+				() => this.expirePlayer(roomId, playerId),
+				RECONNECT_GRACE_MS,
+			);
+
+			updates.push({
+				roomId,
+				closed: false,
+				snapshot: this.getRoomSnapshot(roomId),
+			});
 		}
 
 		return updates;
+	}
+
+	// Grace period elapsed without a reconnect: remove the player for good.
+	private expirePlayer(roomId: string, playerId: string) {
+		const room = this.rooms.get(roomId);
+		if (!room) return;
+
+		const player = room.players.get(playerId);
+		if (!player || player.connected) return; // reconnected in the meantime
+
+		this.leaveRoom(roomId, playerId);
 	}
 
 	getRoomSnapshot(roomId: string) {
@@ -394,7 +482,7 @@ export class QuizRealtimeService {
 			hostId: room.hostId,
 			status: room.status,
 			players: Array.from(room.players.values()).map((player) => ({
-				clientId: player.clientId,
+				clientId: player.playerId,
 				name: player.name,
 				score: player.score,
 			})),
@@ -458,7 +546,7 @@ export class QuizRealtimeService {
 
 		// Players who never answered this question lose their streak.
 		for (const player of room.players.values()) {
-			if (!room.answeredPlayerIds.has(player.clientId)) {
+			if (!room.answeredPlayerIds.has(player.playerId)) {
 				player.streak = 0;
 			}
 		}

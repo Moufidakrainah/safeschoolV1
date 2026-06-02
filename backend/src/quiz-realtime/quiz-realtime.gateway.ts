@@ -114,17 +114,22 @@ export class QuizRealtimeGateway
 	handleDisconnect(client: Socket) {
 		this.logger.log(`quiz client disconnected: ${client.id}`);
 
-		const updates = this.quizRealtimeService.removeClientFromAllRooms(client.id);
+		const updates = this.quizRealtimeService.markDisconnected(client.id);
 		for (const update of updates) {
-			if (update.result.status === 'room-closed') {
+			if (update.closed) {
 				this.server.to(update.roomId).emit('quiz:room:closed', { roomId: update.roomId });
 				continue;
 			}
 
-			if (update.result.snapshot) {
-				this.server.to(update.roomId).emit('quiz:room:update', update.result.snapshot);
+			if (update.snapshot) {
+				this.server.to(update.roomId).emit('quiz:room:update', update.snapshot);
 			}
 		}
+	}
+
+	private getPlayerId(client: Socket): string | undefined {
+		const user = client.data.user as { sub?: string } | undefined;
+		return user?.sub;
 	}
 
 	@SubscribeMessage('quiz:ping')
@@ -156,9 +161,18 @@ export class QuizRealtimeGateway
 			};
 		}
 
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized', snapshot: null },
+			};
+		}
+
 		const result = this.quizRealtimeService.joinRoom({
 			roomId: payload.roomId,
-			clientId: client.id,
+			playerId,
+			socketId: client.id,
 			playerName: payload.playerName,
 		});
 
@@ -190,19 +204,12 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		if (result.status === 'joined') {
+		if (result.status === 'joined' || result.status === 'reconnected') {
 			void client.join(payload.roomId);
 		}
 
 		if (result.snapshot) {
 			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
-		}
-
-		if (result.status === 'already-joined') {
-			return {
-				event: 'quiz:join:ignored',
-				data: { roomId: payload.roomId, reason: 'already-in-room', snapshot: result.snapshot },
-			};
 		}
 
 		return {
@@ -223,7 +230,15 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		const result = this.quizRealtimeService.leaveRoom(payload.roomId, client.id);
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
+
+		const result = this.quizRealtimeService.leaveRoom(payload.roomId, playerId);
 
 		if (result.status === 'room-not-found') {
 			return {
@@ -271,7 +286,15 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		const result = this.quizRealtimeService.startGame(payload.roomId, client.id);
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
+
+		const result = this.quizRealtimeService.startGame(payload.roomId, playerId);
 
 		if (result.status !== 'started') {
 			return {
@@ -298,7 +321,9 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: SubmitAnswerPayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		const playerId = this.getPlayerId(client);
 		if (
+			!playerId ||
 			!payload ||
 			!isNonEmptyString(payload.roomId) ||
 			!isInteger(payload.questionId) ||
@@ -309,9 +334,9 @@ export class QuizRealtimeGateway
 				event: 'quiz:answer:ignored',
 				data: {
 					roomId: payload?.roomId ?? null,
-					playerId: client.id,
+					playerId: playerId ?? null,
 					questionId: payload?.questionId ?? null,
-					reason: 'invalid-payload',
+					reason: playerId ? 'invalid-payload' : 'unauthorized',
 					snapshot: null,
 				},
 			};
@@ -319,7 +344,7 @@ export class QuizRealtimeGateway
 
 		const result = this.quizRealtimeService.submitAnswer({
 			roomId: payload.roomId,
-			clientId: client.id,
+			playerId,
 			questionId: payload.questionId,
 			selectedIndex: payload.selectedIndex,
 		});
@@ -329,7 +354,7 @@ export class QuizRealtimeGateway
 				event: 'quiz:answer:ignored',
 				data: {
 					roomId: payload.roomId,
-					playerId: client.id,
+					playerId,
 					questionId: payload.questionId,
 					reason: result.status,
 					snapshot: result.roomSnapshot,
@@ -351,7 +376,7 @@ export class QuizRealtimeGateway
 			event: 'quiz:answer:accepted',
 			data: {
 				roomId: payload.roomId,
-				playerId: client.id,
+				playerId,
 				questionId: payload.questionId,
 			},
 		};
