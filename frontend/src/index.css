@@ -215,3 +215,27 @@ body, #root
     animation: none;
   }
 }
+
+
+@layer components {
+  /* ── Cartes liste (signalements, utilisateurs...) ── */
+  .card-list-item {
+    @apply bg-surface shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden;
+  }
+
+  .card-title {
+    @apply font-bold text-sm text-primary;
+  }
+
+  .card-subtitle {
+    @apply text-xs text-gray-600;
+  }
+
+  .card-meta {
+    @apply text-xs text-gray-400;
+  }
+
+  .page-section {
+  @apply bg-gray-50 min-h-screen px-5 py-8;
+}
+}

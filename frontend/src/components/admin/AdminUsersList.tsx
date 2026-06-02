@@ -28,6 +28,7 @@ interface AdminUsersListProps {
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
     onSaveUser: () => void;                                   // sauvegarder un utilisateur
+    renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 }
 
 
@@ -50,6 +51,7 @@ export default function AdminUserList({
   onNavigateToUser,
   onSetShowUserForm,
   onSaveUser,
+  renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
     return (
@@ -94,6 +96,17 @@ export default function AdminUserList({
                     </label>
                 ))}
             </div>
+            {/* Formulaire ajout */}
+                {showUserForm && (
+                <div className="bg-surface shadow-sm rounded-sm px-6 py-5 mb-3">
+                    <h3 className="font-bold mb-4">{t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
+                    {renderUserForm(false)}
+                    <div className="flex gap-3 justify-end mt-4">
+                    <Button disabled={!isFormValid} onClick={onSaveUser}>{t('admin.users.save')}</Button>
+                    <Button variant="ghost" onClick={() => onSetShowUserForm(false)}>{t('common.cancel')}</Button>
+                    </div>
+                </div>
+                )}
             {/* 4. Liste utilisateurs */}
             {loadingUsers ? (
                 <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
@@ -103,7 +116,7 @@ export default function AdminUserList({
                     const { first, last } = formatName(u.firstName, u.lastName);
                     return (
                         <li key={u.id} className="shadow-sm rounded-sm">
-                        <div className="cursor-pointer hover:shadow-md transition-shadow bg-surface overflow-hidden"
+                        <div className="card-list-item"
                             onClick={async () => {
                             const freshU = await getUserById(u.id);
                             if (freshU) onNavigateToUser(freshU);
@@ -119,10 +132,10 @@ export default function AdminUserList({
                             </div>
                             <div className="flex-1 px-6 py-5" style={{ minHeight: '80px' }}>
                                 <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm text-primary">{first} {last}</span>
+                                <span className="card-title">{first} {last}</span>
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
                                 </div>
-                                <p className="text-xs text-gray-400 mt-0.5">{u.email}</p>
+                                <p className="card-meta mt-0.5">{u.email}</p>
                                 {u.studentProfile?.schoolClass && (
                                     <span className="text-xs text-gray-400">
                                         {u.studentProfile.schoolClass.level} {u.studentProfile.schoolClass.section}
