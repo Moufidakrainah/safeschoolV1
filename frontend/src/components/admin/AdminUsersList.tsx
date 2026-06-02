@@ -28,6 +28,7 @@ interface AdminUsersListProps {
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
     onSaveUser: () => void;                                   // sauvegarder un utilisateur
+    renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 }
 
 
@@ -50,6 +51,7 @@ export default function AdminUserList({
   onNavigateToUser,
   onSetShowUserForm,
   onSaveUser,
+  renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
     return (
@@ -94,6 +96,17 @@ export default function AdminUserList({
                     </label>
                 ))}
             </div>
+            {/* Formulaire ajout */}
+                {showUserForm && (
+                <div className="bg-surface shadow-sm rounded-sm px-6 py-5 mb-3">
+                    <h3 className="font-bold mb-4">{t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
+                    {renderUserForm(false)}
+                    <div className="flex gap-3 justify-end mt-4">
+                    <Button disabled={!isFormValid} onClick={onSaveUser}>{t('admin.users.save')}</Button>
+                    <Button variant="ghost" onClick={() => onSetShowUserForm(false)}>{t('common.cancel')}</Button>
+                    </div>
+                </div>
+                )}
             {/* 4. Liste utilisateurs */}
             {loadingUsers ? (
                 <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>

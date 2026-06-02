@@ -658,6 +658,7 @@ export default function AdminDashboard() {
             onNavigateToUser={navigateToUser}
             onSetShowUserForm={setShowUserForm}
             onSaveUser={handleSaveUser}
+            renderUserForm={renderUserForm}
           />
         )}
 
