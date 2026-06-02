@@ -75,7 +75,8 @@ constructor(
       .createQueryBuilder("user")
       .leftJoinAndSelect("user.studentProfile", "studentProfile")
       .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
-      .leftJoinAndSelect("user.staffProfile", "staffProfile");
+      .leftJoinAndSelect("user.staffProfile", "staffProfile")
+      .leftJoinAndSelect("staffProfile.classes", "staffClasses");
 
     // Si un rôle est précisé, on filtre par ce rôle
     if (role) {
@@ -98,21 +99,22 @@ constructor(
   }
 
   // ── Rechercher un user par prénom ou nom ──────────────────────────────────
-  // Utilisé dans le formulaire de signalement pour chercher des soupçonnés
+  // Utilisé dans le formulaire de signalement pour chercher des suspects
   // On exclut les admins et directeurs des résultats
   async search(query: string): Promise<User[]> {
     return this.usersRepository
       .createQueryBuilder("user")
+      .leftJoinAndSelect("user.studentProfile", "studentProfile")
+      .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
+      .leftJoinAndSelect("user.staffProfile", "staffProfile")
+      .leftJoinAndSelect("staffProfile.classes", "staffClasses")
       .where("LOWER(user.firstName) LIKE LOWER(:query)", {
         query: `%${query}%`,
       })
       .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", {
         query: `%${query}%`,
       })
-      .andWhere("user.role NOT IN (:...roles)", {
-        roles: ["admin", "director"],
-      })
-      .limit(5)
+      .limit(100)
       .getMany();
   }
 

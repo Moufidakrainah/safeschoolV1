@@ -179,6 +179,9 @@ npm install s'exécute dans /app/ (le conteneur)
 
 Les deux fichiers que git doit suivre (`package.json` et `package-lock.json`) sont sur ton disque grâce au bind mount. Le code des packages lui-même est dans le volume isolé — git ne le suit pas (c'est voulu : `node_modules` est dans `.gitignore`).
 
+> **Pourquoi `node_modules/` apparaît grisé dans VS Code ?**
+> VS Code grise automatiquement tout ce qui est listé dans `.gitignore`. Ce n'est pas lié au fait que node_modules vit dans un volume Docker — c'est simplement parce que git l'ignore. Le dossier n'existe d'ailleurs probablement pas du tout sur ton disque local : il n'y a que le volume Docker qui le contient.
+
 #### Ce que récupère un collègue après `git pull`
 
 ```bash
@@ -263,6 +266,8 @@ dist/
     main-def456.css  ← tout ton CSS compilé
 ```
 C'est tout ce dont nginx a besoin pour servir l'application. Plus de Node, plus de TypeScript, juste des fichiers statiques.
+
+> **Pourquoi `dist/` apparaît grisé dans VS Code ?** Même raison que `node_modules/` : il est dans `.gitignore`. On ne commit jamais le dossier de build, on le régénère à chaque fois avec `npm run build`. En développement avec Docker, tu ne le verras jamais — Vite sert directement depuis `src/` sans passer par `dist/`.
 
 ### Les Dockerfiles
 
@@ -2071,7 +2076,7 @@ Indique qu'une zone de la page peut être mise à jour dynamiquement. Le lecteur
 Masque un élément aux technologies d'assistance. Utilisé sur les emojis décoratifs — un lecteur d'écran lirait sinon "emoji feu", "emoji horloge" etc. au milieu du contenu.
 
 ```tsx
-<span aria-hidden="true">📅</span>
+<span aria-hidden="true"></span>
 <span>{t('admin.convocation.title')}</span>
 ```
 

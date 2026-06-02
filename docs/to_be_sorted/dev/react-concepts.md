@@ -4,6 +4,37 @@
 
 ---
 
+## TSX / JSX — pourquoi on voit du "HTML" dans du TypeScript
+
+Un fichier `.tsx` est un fichier TypeScript qui contient du **JSX**. JSX est une syntaxe qui ressemble à du HTML, mais ce n'est pas du HTML exécuté tel quel par le navigateur.
+
+Exemple :
+
+```tsx
+export default function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="card">
+      <strong>{value}</strong>
+      <span>{label}</span>
+    </div>
+  );
+}
+```
+
+Ce code mélange :
+
+- des balises qui ressemblent à du HTML (`<div>`, `<strong>`, `<span>`)
+- des expressions JavaScript / TypeScript injectées avec des accolades (`{value}`, `{label}`)
+
+Avant d'arriver au navigateur, Vite + TypeScript transforment ce JSX en appels JavaScript que React sait interpréter pour construire l'interface. L'idée importante est donc : **le JSX est une écriture pratique pour décrire l'UI, pas un deuxième langage exécuté brut dans le navigateur**.
+
+Repère pratique :
+
+- `.ts` = TypeScript sans JSX
+- `.tsx` = TypeScript avec JSX
+
+---
+
 ## `useMemo` — mémoïser un calcul coûteux
 
 Quand un calcul est long (filtrer des signalements, calculer des stats), `useMemo` évite de le refaire à chaque render — seulement quand les dépendances changent.
