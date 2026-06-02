@@ -2,7 +2,7 @@
   {
     "id": 1,
     "text": "Quel pourcentage de jeunes est touché par le harcèlement ou cyberharcèlement ?",
-    "options": ["37%", "52%"],
+    "options": ["Environ 37%", "Environ 52%"],
     "correctIndex": 0,
     "score": 2
   },
@@ -23,21 +23,21 @@
   {
     "id": 4,
     "text": "Quel pourcentage des cas de harcèlement a lieu à l'école ?",
-    "options": ["45%", "71%"],
+    "options": ["Environ 45%", "Environ 71%"],
     "correctIndex": 1,
     "score": 3
   },
   {
     "id": 5,
     "text": "Quel pourcentage de jeunes a déjà subi du harcèlement (hors cyberharcèlement) ?",
-    "options": ["35%", "55%"],
+    "options": ["Environ 35%", "Environ 55%"],
     "correctIndex": 0,
     "score": 2
   },
   {
     "id": 6,
     "text": "Quel pourcentage de victimes a déjà pensé à se faire du mal ou au suicide ?",
-    "options": ["10%", "25%"],
+    "options": ["Environ 10%", "Environ 25%"],
     "correctIndex": 1,
     "score": 3
   },
@@ -65,7 +65,7 @@
   {
     "id": 10,
     "text": "Quel pourcentage des victimes de cyberharcèlement ont été touchées via WhatsApp ?",
-    "options": ["44%", "65%"],
+    "options": ["Environ 44%", "Environ 65%"],
     "correctIndex": 0,
     "score": 3
   },
@@ -86,14 +86,14 @@
   {
     "id": 13,
     "text": "Quel pourcentage de victimes perd confiance en elles à cause du harcèlement ?",
-    "options": ["58%", "75%"],
+    "options": ["Environ 58%", "Environ 75%"],
     "correctIndex": 0,
     "score": 3
   },
   {
     "id": 14,
     "text": "Quel pourcentage de victimes rencontre des difficultés scolaires à cause du harcèlement ?",
-    "options": ["57%", "70%"],
+    "options": ["Environ 57%", "Environ 70%"],
     "correctIndex": 0,
     "score": 3
   },
@@ -107,7 +107,7 @@
   {
     "id": 16,
     "text": "Quel pourcentage des parents ne voit pas clairement ce que fait leur enfant en ligne ?",
-    "options": ["85%", "71%"],
+    "options": ["Environ 85%", "Environ 71%"],
     "correctIndex": 1,
     "score": 3
   },
