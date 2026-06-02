@@ -32,6 +32,7 @@ import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, Pagi
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
+import AdminUserProfile from '@/components/admin/AdminUserProfile';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -546,14 +547,14 @@ export default function AdminDashboard() {
               <ul className="flex flex-col gap-3">
                 {paginated.map(report => (
                   <li key={report.id} style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
-                    className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                    className="card-list-item px-6 py-5"
                     onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }} role="button" tabIndex={0}
                     onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <span className="font-bold text-sm text-primary">{report.type} — {report.reporter}</span>
-                        <p className="text-xs text-gray-600 mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0,120)}...` : report.description}</p>
-                        <div className="flex gap-4 text-xs text-gray-400">
+                        <span className="card-title">{report.type} — {report.reporter}</span>
+                        <p className="card-subtitle mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0,120)}...` : report.description}</p>
+                        <div className="flex gap-4 card-meta">
                           <span>{report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
                           <span>{report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
                           <span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
@@ -573,162 +574,67 @@ export default function AdminDashboard() {
 
         {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <Button variant="ghost" onClick={() => {
-                setSelectedUser(null); setEditMode(false);
-                if (originReportId) {
-                  const report = reports.find(r => r.id === originReportId);
-                  const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
-                  if (report) { goToReport(report); }
-                  else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
-                  setViewSection('reports');
-                } else {
-                  navigate('/dashboard?section=users', { replace: true });
-                }
-              }}>← {originReportId ? 'Retour au signalement' : 'Retour à la liste'}</Button>
-              <div className="flex gap-2">
-                <Button variant="ghost"
-                  disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === 0}
-                  onClick={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const prev = filteredUsers[idx - 1]; if (prev) navigateToUser(prev); }}>← Précédent</Button>
-                <Button variant="ghost"
-                  disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === filteredUsers.length - 1}
-                  onClick={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const next = filteredUsers[idx + 1]; if (next) navigateToUser(next); }}>Suivant →</Button>
-              </div>
-            </div>
-            <Card><CardContent className="pt-6">
-              <div className="flex flex-col items-center gap-3 mb-6">
-                <div className="relative">
-                  {selectedUser.avatar
-                    ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`} alt={selectedUser.firstName} className="w-56 h-56 rounded-full object-cover border-4 border-primary shadow" />
-                    : <div className="w-56 h-56 rounded-full bg-gray-200 flex items-center justify-center text-6xl font-bold text-gray-400 border-4 border-gray-200">{selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}</div>}
-                </div>
-                <div className="text-center">
-                  {(() => { const { first, last } = formatName(selectedUser.firstName, selectedUser.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
-                  <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>
-                  {selectedUser.studentProfile?.schoolClass && <p className="text-sm text-primary mt-1">{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</p>}
-                  <p className="text-sm text-gray-700 mt-1">{selectedUser.email}</p>
-                </div>
-              </div>
-              {!editMode && (
-                <div className="flex justify-center gap-3 mb-4">
-                  <Button onClick={async () => { setEditMode(true); if (selectedUser.role === 'teacher') { try { const s = await getStaffProfile(selectedUser.id); setUserForm(prev => ({ ...prev, subject: s.subject ?? '', classIds: s.classes?.map((c: any) => c.id) ?? [] })); } catch {} } }}>{t('admin.users.edit')}</Button>
-                  <label className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg border text-sm font-medium hover:bg-gray-50 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
-                    {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
-                    <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) { await handleAvatarUpload(selectedUser.id, f); } }} />
-                  </label>
-                  <Button variant="destructive" onClick={e => { e.stopPropagation(); handleDeleteUser(selectedUser.id); }}>{t('admin.users.delete')}</Button>
-                </div>
-              )}
-              {!editMode && (
-                <div className="mt-4">
-                  <Table><TableBody>
-                    {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
-                    {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
-                    {(selectedUser.staffProfile?.profession || profileStaff?.profession) && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell></TableRow>}
-                    {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
-                    {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
-                  </TableBody></Table>
-                  <div className="mt-5">
-                    <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
-                      {profileParents.length < 2 && !showParentForm && (
-                        <Button size="sm" variant="outline" onClick={() => { setShowParentForm(true); setEditingParent(null); setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' }); }}>+ Ajouter</Button>
-                      )}
-                    </div>
-                    {showParentForm && (
-                      <div className="bg-gray-50 rounded-lg p-3 mb-3 flex flex-col gap-2">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div><Label className="text-xs">Prénom</Label><Input value={parentForm.firstName} onChange={e => {
-                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                            setParentForm(p => ({ ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() }));
-                          }} maxLength={20} className="mt-1" /></div>
-                          <div><Label className="text-xs">Nom</Label><Input value={parentForm.lastName} onChange={e => {
-                            const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                            setParentForm(p => ({ ...p, lastName: val.toUpperCase() }));
-                          }} maxLength={20} className="mt-1" /></div>
-                        </div>
-                        <div><Label className="text-xs">Email</Label><Input type="email" value={parentForm.email} onChange={e => setParentForm(p => ({ ...p, email: e.target.value }))} maxLength={50} className="mt-1" /></div>
-                        <div><Label className="text-xs">Téléphone</Label><Input value={parentForm.phone} onChange={e => setParentForm(p => ({ ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') }))} maxLength={15} className="mt-1" /></div>
-                        <div><Label className="text-xs">Adresse</Label><Input value={parentForm.address} onChange={e => setParentForm(p => ({ ...p, address: e.target.value }))} className="mt-1" /></div>
-                        <div className="flex gap-2 justify-end mt-1">
-                          <Button size="sm" disabled={
-                            !parentForm.firstName || parentForm.firstName.length < 2 ||
-                            !parentForm.lastName || parentForm.lastName.length < 2 ||
-                            !parentForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
-                          } onClick={async () => {
-                            if (editingParent) {
-                              await updateParent(editingParent.id, parentForm);
-                            } else {
-                              const studentProfileId = selectedUser?.studentProfile?.id;
-                              if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
-                            }
-                            const updated = await getStudentParents(selectedUser!.id);
-                            setProfileParents(updated);
-                            setShowParentForm(false); setEditingParent(null);
-                          }}>Enregistrer</Button>
-                          <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>Annuler</Button>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-2">
-                      {profileParents.map((p: any) => {
-                        const { first, last } = formatName(p.firstName, p.lastName);
-                        return (
-                          <div key={p.id} className="bg-gray-50 rounded-lg px-4 py-2">
-                            <div className="flex justify-between items-center mb-2">
-                              <p className="font-semibold text-gray-800">{first} {last}</p>
-                              <div className="flex gap-2">
-                                <Button size="sm" variant="outline" onClick={() => { setEditingParent(p); setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' }); setShowParentForm(true); }}>Modifier</Button>
-                                <Button size="sm" variant="destructive" onClick={async () => { await deleteParent(p.id); setProfileParents(await getStudentParents(selectedUser!.id)); }}>Supprimer</Button>
-                              </div>
-                            </div>
-                            <table className="w-full table-fixed text-sm"><tbody>{[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => <tr key={row.label} className="border-b border-gray-100"><td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td><td className="py-1.5 text-gray-700">{row.value}</td></tr>)}</tbody></table>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {editMode && (
-                <>{renderUserForm(true)}<div className="flex gap-3 justify-end mt-4">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button disabled={!isFormValid}>{t('admin.users.save')}</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
-                        <AlertDialogDescription asChild>
-                          <div className="text-sm text-gray-700 space-y-1 mt-2">
-                            <p><strong>Prénom :</strong> {userForm.firstName}</p>
-                            <p><strong>Nom :</strong> {userForm.lastName}</p>
-                            <p><strong>Email :</strong> {userForm.email}</p>
-                            <p><strong>Rôle :</strong> {userForm.role}</p>
-                            {userForm.role === 'student' && userForm.classId && <p><strong>Classe :</strong> {classes.find(c => c.id === userForm.classId)?.level} {classes.find(c => c.id === userForm.classId)?.section}</p>}
-                            {userForm.role === 'teacher' && userForm.subject && <p><strong>Matière :</strong> {userForm.subject}</p>}
-                            {userForm.password && <p><strong>Mot de passe :</strong> modifié</p>}
-                          </div>
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={async () => {
-                          await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
-                          if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-                          await fetchUsers(); setEditMode(false);
-                          const u = users.find(u => u.id === selectedUser.id);
-                          if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
-                        }}>Confirmer</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                  <Button variant="ghost" onClick={() => setEditMode(false)}>{t('common.cancel')}</Button>
-                </div></>
-              )}
-            </CardContent></Card>
-          </section>
+          <AdminUserProfile
+            selectedUser={selectedUser}
+            filteredUsers={filteredUsers}
+            profileParents={profileParents}
+            profileStaff={profileStaff}
+            avatarTimestamps={avatarTimestamps}
+            classes={classes}
+            userForm={userForm}
+            errors={errors}
+            editMode={editMode}
+            showParentForm={showParentForm}
+            editingParent={editingParent}
+            parentForm={parentForm}
+            uploadingAvatarId={uploadingAvatarId}
+            isFormValid={!!isFormValid}
+            originReportId={originReportId}
+            onBack={() => {
+              setSelectedUser(null); setEditMode(false);
+              if (originReportId) {
+                const report = reports.find(r => r.id === originReportId);
+                const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                if (report) { goToReport(report); }
+                else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                setViewSection('reports');
+              } else {
+                navigate('/dashboard?section=users', { replace: true });
+              }
+            }}
+            onPrev={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const prev = filteredUsers[idx - 1]; if (prev) navigateToUser(prev); }}
+            onNextUser={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const next = filteredUsers[idx + 1]; if (next) navigateToUser(next); }}
+            onSetEditMode={setEditMode}
+            onHandleAvatarUpload={handleAvatarUpload}
+            onHandleDeleteUser={handleDeleteUser}
+            onSetShowParentForm={setShowParentForm}
+            onSetEditingParent={setEditingParent}
+            onSetParentForm={setParentForm}
+            onSaveParent={async () => {
+              if (editingParent) {
+                await updateParent(editingParent.id, parentForm);
+              } else {
+                const studentProfileId = selectedUser?.studentProfile?.id;
+                if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+              }
+              const updated = await getStudentParents(selectedUser!.id);
+              setProfileParents(updated);
+              setShowParentForm(false); setEditingParent(null);
+            }}
+            onDeleteParent={async (id) => {
+              await deleteParent(id);
+              setProfileParents(await getStudentParents(selectedUser!.id));
+            }}
+            onSaveUser={async () => {
+              await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
+              if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
+              await fetchUsers(); setEditMode(false);
+              const u = users.find(u => u.id === selectedUser.id);
+              if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
+            }}
+            renderUserForm={renderUserForm}
+            calcAge={calcAge}
+          />
         )}
 
         {/* ── Utilisateurs — Vue liste ── */}
