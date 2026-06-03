@@ -508,7 +508,29 @@ export class User {
 }
 ```
 
-Avec `synchronize: true` dans `app.module.ts`, TypeORM crée et met à jour les tables automatiquement au démarrage. Le fichier `database/init.sql` ne sert qu'à l'initialisation à blanc de PostgreSQL.
+Avec `synchronize: true` dans `app.module.ts`, TypeORM crée et met à jour les tables automatiquement au démarrage. Dans l'état actuel du projet, le vrai schéma est donc construit par le backend au boot, et `database/init.sql` n'est plus dans le chemin de démarrage utilisé par `docker-compose`.
+
+### Pourquoi `wait-schema` existe dans le Makefile
+
+Quand `make up` lance la stack, tous les services démarrent en parallèle mais ne deviennent pas prêts au même moment.
+
+```text
+make up
+  |
+  |- Postgres démarre
+  |
+  |- Backend démarre
+  |    |- TypeORM se connecte à Postgres
+  |    \- TypeORM crée les tables
+  |
+  \- seed-if-empty est appelé
+```
+
+Le problème est que `seed-if-empty` peut être déclenché avant que TypeORM ait fini de créer les tables. Dans ce cas, `seed.sql` essaie d'insérer des données dans des tables qui n'existent pas encore et l'injection échoue.
+
+La cible `wait-schema` se place entre le démarrage et le seed. Elle interroge Postgres toutes les deux secondes avec une question simple : est-ce que la table `users` existe ? Tant que la réponse est non, elle attend. Dès que la réponse est oui, elle laisse passer `seed`.
+
+Ce mécanisme évite un échec aléatoire dépendant de la vitesse de la machine. Sans lui, `make seed` ou `make up` pourraient réussir sur une machine rapide et casser sur une machine d'évaluation plus lente.
 
 ### Relations entre tables
 
@@ -906,6 +928,20 @@ Les variables d'environnement permettent de configurer le comportement de l'appl
 | `.env.local` | `frontend/` | Vite (override) | ❌ gitignored | Override local — écrase `.env.development` si présent |
 
 `.env.example` est un fichier de documentation : il montre quelles variables sont nécessaires sans exposer les valeurs réelles. Un nouveau développeur fait `cp .env.example .env` puis remplace les placeholders par ses vraies valeurs.
+
+#### Cas particulier de `GROQ_API_KEY` pour l'évaluation
+
+Le module IA du backend a déjà un comportement de repli. Dans `scoring.service.ts`, si `GROQ_API_KEY` est absent ou si `AI_ENABLED` n'est pas à `true`, le code ne plante pas : il bascule sur `scoreAIFallback()`.
+
+Autrement dit, il existe déjà une forme d'option 3 : l'application peut continuer à fonctionner sans clé Groq, avec un scoring simplifié mais stable.
+
+Pour documenter correctement ce point dans une version finale du projet, trois stratégies existent :
+
+1. Mettre une vraie clé dans `.env.example`. C'est simple pour l'évaluateur, mais la clé est exposée et peut être révoquée rapidement si le dépôt est public ou simplement partagé largement.
+2. Laisser `GROQ_API_KEY` vide dans `.env.example` et expliquer dans le README comment obtenir une clé Groq. C'est la solution la plus propre côté secret management.
+3. Assumer officiellement que l'IA est optionnelle et documenter le fallback. L'évaluateur peut alors tester le projet sans clé, puis activer Groq avec sa propre clé s'il veut valider le module IA.
+
+Pour une évaluation 42, le compromis le plus robuste est généralement 2 + 3 : ne pas versionner de vraie clé dans `.env.example`, expliquer l'activation dans le README, et garantir que l'application reste utilisable sans clé grâce au fallback.
 
 #### Ordre de chargement Vite
 
