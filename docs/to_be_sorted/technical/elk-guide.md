@@ -1,18 +1,16 @@
-# Guide d'utilisation de la stack ELK
+# Guide d'utilisation ELK
 
 ## Présentation
 
-La stack ELK (Elasticsearch, Logstash, Kibana) est intégrée au projet pour centraliser et visualiser les logs applicatifs.
+La stack ELK permet de centraliser et de visualiser les logs applicatifs.
 
 | Composant | Rôle | Port exposé |
 |---|---|---|
+| **Logstash** | Collecte, transformation, envoi vers ES | `5044` |
 | **Elasticsearch** | Stockage et indexation des logs | `9201` |
-| **Logstash** | Collecte, transformation, envoi vers ES | `5044` (TCP) |
 | **Kibana** | Interface de visualisation | `5601` |
 
-Les logs du backend NestJS sont envoyés à Logstash via TCP (JSON), qui les indexe dans Elasticsearch sous la forme `safeschool-logs-YYYY.MM.DD`.
-
----
+Les logs du backend NestJS sont envoyés au format JSON à Logstash via TCP. Logstash les indexe dans Elasticsearch sous la forme `safeschool-logs-YYYY.MM.DD`.
 
 ## Démarrage
 
@@ -26,7 +24,6 @@ docker compose ps
 
 Attendre ~30 secondes que Elasticsearch soit disponible avant d'ouvrir Kibana.
 
----
 
 ## Accéder à Kibana
 
@@ -34,7 +31,6 @@ Ouvrir : **http://localhost:5601**
 
 Lors de la première ouverture, Kibana peut demander un délai de démarrage supplémentaire (~1 min).
 
----
 
 ## Configurer un Data View (première fois seulement)
 
@@ -46,7 +42,7 @@ Lors de la première ouverture, Kibana peut demander un délai de démarrage sup
    - Timestamp field : `@timestamp`
 4. Cliquer **Save data view to Kibana**
 
----
+
 
 ## Explorer les logs — Discover
 
@@ -78,7 +74,6 @@ Pour combiner :
 tags: "auth" and level: "ERROR"
 ```
 
----
 
 ## Envoyer un log de test manuellement
 
@@ -89,8 +84,6 @@ echo '{"level":"INFO","type":"auth_event","message":"test connexion","user":"adm
 ```
 
 Attendre quelques secondes puis vérifier dans Discover que le document apparaît.
-
----
 
 ## Créer un dashboard
 
@@ -112,8 +105,6 @@ Attendre quelques secondes puis vérifier dans Discover que le document apparaî
 - Axe X : `@timestamp`
 - Axe Y : Count
 
----
-
 ## Vérifier que les logs applicatifs arrivent bien
 
 Pour confirmer que l'application envoie réellement des logs (et pas seulement des tests manuels) :
@@ -124,8 +115,6 @@ Pour confirmer que l'application envoie réellement des logs (et pas seulement d
 4. Vérifier que le champ `type` correspond à l'action effectuée (`auth_event`, `report_event`, `scoring_event`)
 
 Si aucun log n'apparaît après une action : le logger backend n'envoie probablement pas à Logstash pour cette route. C'est un point à investiguer côté backend.
-
----
 
 ## Points de vigilance (conformité module Devops)
 

@@ -1,32 +1,33 @@
 #!/bin/sh
 # =============================================================
-# setup.sh — Configuration initiale d'Elasticsearch
-# Ce script tourne une seule fois au démarrage pour :
-#   1. Créer la politique ILM (rétention 30 jours)
-#   2. Créer le template d'index pour les logs SafeSchool
+# setup.sh - Configuration initiale de la stack ELK
+# Ce script s'execute une seule fois au demarrage pour :
+#   1. Attendre qu'Elasticsearch et Kibana soient prets
+#   2. Creer la politique ILM (retention 30 jours)
+#   3. Creer le template d'index pour les logs SafeSchool
+#   4. Importer le Data View Kibana
 # =============================================================
 
-echo "⏳ Attente qu'Elasticsearch soit prêt..."
+echo "Attente qu'Elasticsearch soit pret..."
 
-# Attend qu'Elasticsearch réponde avant de continuer
 until curl -s http://elasticsearch:9200/_cluster/health > /dev/null 2>&1; do
   sleep 2
 done
 
-echo "✅ Elasticsearch est prêt !"
+echo "Elasticsearch est pret."
 
-# ── 1. Créer la politique de rétention (ILM) ──────────────────
-# Les logs sont supprimés automatiquement après 30 jours
-echo "📋 Création de la politique ILM (rétention 30 jours)..."
+# -- 1. Politique de retention ILM ----------------------------
+# Suppression automatique des logs apres 30 jours
+echo "Creation de la politique ILM (retention 30 jours)..."
 curl -s -X PUT "http://elasticsearch:9200/_ilm/policy/safeschool-logs-policy" \
   -H "Content-Type: application/json" \
   -d @/setup/ilm-policy.json
 
 echo ""
-echo "📋 Création du template d'index..."
 
-# ── 2. Créer le template d'index ────────────────────────────────
-# Applique automatiquement la politique ILM à tous les index safeschool-logs-*
+# -- 2. Template d'index --------------------------------------
+# Applique la politique ILM a tous les index safeschool-logs-*
+echo "Creation du template d'index..."
 curl -s -X PUT "http://elasticsearch:9200/_index_template/safeschool-logs-template" \
   -H "Content-Type: application/json" \
   -d '{
@@ -58,6 +59,23 @@ curl -s -X PUT "http://elasticsearch:9200/_index_template/safeschool-logs-templa
   }'
 
 echo ""
-echo "✅ Configuration ELK terminée !"
-echo "   → Kibana : http://localhost:5601"
-echo "   → Logs supprimés automatiquement après 30 jours"
+
+# -- 3. Import du Data View Kibana ----------------------------
+# Attend que Kibana soit pret avant d'importer
+echo "Attente que Kibana soit pret..."
+
+until curl -s http://kibana:5601/api/status | grep -q '"level":"available"' 2>/dev/null; do
+  sleep 5
+done
+
+echo "Kibana est pret."
+echo "Import du Data View safeschool-logs..."
+
+curl -s -X POST "http://kibana:5601/api/saved_objects/_import?overwrite=true" \
+  -H "kbn-xsrf: true" \
+  -F file=@/setup/kibana-data-view.ndjson
+
+echo ""
+echo "Configuration ELK terminee."
+echo "Kibana accessible sur http://localhost:5601"
+echo "Retention des logs : 30 jours"
