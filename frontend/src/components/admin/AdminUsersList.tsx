@@ -58,7 +58,7 @@ export default function AdminUserList({
         <section>
             {/* 1. Titre + tri + bouton ajouter */}
             <div className="flex justify-between items-center mb-5">
-                <h2 className="text-xl font-bold text-gray-800">{t('admin.users.title')}</h2>
+                <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2>
                 <div className="flex items-center gap-2">
                     <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
                     className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">

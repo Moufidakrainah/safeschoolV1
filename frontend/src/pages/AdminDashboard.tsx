@@ -1,33 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import { formatName } from '@/utils/formatName';
+import { useAuth } from '@/context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, resolveVictim, getClasses, getStaffProfile,
-  createStaffProfile, updateStaffProfile,
+  getUserById, searchUsers, resolveSuspect, resolveVictim,
+  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser,
 } from '../services/api';
-import StatsDashboard from './StatsDashboard';
+import { useUsers } from '@/hooks/useUsers';
+import StatsDashboard from '../components/admin/StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
-import NoteBlock from '../components/NoteBlock';
-import ConvocationSelector from '../components/ConvocationSelector';
-import AdminClasses from '../components/AdminClasses';
-import ReportDetail from '../components/ReportDetail';
-import { Checkbox } from '@/components/ui/checkbox';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import AdminClasses from '../components/admin/AdminClasses';
+import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
@@ -36,18 +27,40 @@ import AdminUserProfile from '@/components/admin/AdminUserProfile';
 interface SchoolClass { id: string; level: string; section: string; }
 
 export default function AdminDashboard() {
+
+  // ── Contexte et navigation ──
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
 
-  const [reports, setReports]     = useState<Report[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [selected, setSelected]   = useState<Report | null>(null);
-  const [saving, setSaving]       = useState(false);
-  const [view, setView]           = useState<'list' | 'detail'>('list');
+  // ── Hook utilisateurs ──
+  const {
+    users, loadingUsers,
+    usersPage, setUsersPage, usersTotalPages,
+    usersSearch, setUsersSearch,
+    usersSort, setUsersSort,
+    usersRoleFilter, setUsersRoleFilter,
+    showUserForm, setShowUserForm,
+    avatarTimestamps, classes, selectedUser, setSelectedUser,
+    userForm, setUserForm, errors, isFormValid,
+    deleteTarget, setDeleteTarget, isDeleting, isBlocked, deleteError,
+    filteredUsers,
+    fetchUsers, fetchClassesList,
+    handleSaveUser, handleDeleteUser, confirmDelete,
+    handleAvatarUpload, updateField, toggleClassId,
+    navigateToUser, calcAge,
+  } = useUsers();
 
+  // ── État des signalements ──
+  const [reports, setReports]   = useState<Report[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [selected, setSelected] = useState<Report | null>(null);
+  const [saving, setSaving]     = useState(false);
+  const [view, setView]         = useState<'list' | 'detail'>('list');
+
+  // ── État des filtres signalements ──
   const [search, setSearch]               = useState('');
   const [filterGrade, setFilterGrade]     = useState('all');
   const [filterStatus, setFilterStatus]   = useState('all');
@@ -60,6 +73,7 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage]     = useState(1);
   const [resetKey, setResetKey]           = useState(0);
 
+  // ── État des notes/convocations ──
   const [notes, setNotes]                     = useState<Note[]>([]);
   const [newNote, setNewNote]                 = useState('');
   const [convocationDate, setConvocationDate] = useState('');
@@ -69,6 +83,7 @@ export default function AdminDashboard() {
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
+  // ── État navigation sections ──
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats' | 'classes'>(
     (searchParams.get('section') as 'reports' | 'users' | 'stats' | 'classes') ?? 'reports'
   );
@@ -77,40 +92,18 @@ export default function AdminDashboard() {
     navigate(`/dashboard?section=${viewSection}`, { replace: true });
   }, [viewSection]);
 
-  const [users, setUsers]               = useState<AdminUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [usersPage, setUsersPage]       = useState(1);
-  const [usersTotalPages, setUsersTotalPages] = useState(1);
-  const [usersTotal, setUsersTotal]     = useState(0);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [usersSearch, setUsersSearch] = useState('');
-  const [usersSort, setUsersSort] = useState<'asc' | 'desc' | 'date'>('asc');
-  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([]);
-  const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
-
-  const [userForm, setUserForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', role: '',
-    classId: '', subject: '', classIds: [] as string[],
-  });
-
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting]     = useState(false);
-  const [deleteError, setDeleteError]   = useState('');
-  const [isBlocked, setIsBlocked]       = useState(false);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  // ── État divers ──
   const selectedUserId = searchParams.get('userId');
-  const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
-  const [classes, setClasses]           = useState<SchoolClass[]>([]);
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
   const [suspectSearch, setSuspectSearch] = useState('');
   const [suspectResults, setSuspectResults] = useState<any[]>([]);
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
-  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
   const itemsPerPage = 5;
 
+  // ── useEffects ──
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -126,8 +119,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
-  const fetchClassesList = async () => { try { setClasses(await getClasses()); } catch {} };
-
+  // ── Fonctions signalements ──
   const fetchReports = async () => {
     try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
   };
@@ -137,8 +129,6 @@ export default function AdminDashboard() {
     try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
     catch {} finally { setSaving(false); }
   };
-
-  const confirmAndUpdate = (status: string, label: string) => setConfirmAction({ status, label });
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
@@ -158,142 +148,7 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
-  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
-
-  const fetchUsers = async (page?: number, search?: string) => {
-    const p = page ?? usersPage;
-    const q = search !== undefined ? search : usersSearch;
-    setLoadingUsers(true);
-    try {
-      if (q.trim().length >= 2) {
-        const results = await searchUsers(q);
-        const arr = Array.isArray(results) ? results : [];
-        setAllUsers(arr);
-        setUsers(arr);
-        setUsersTotalPages(1);
-        setUsersTotal(arr.length ?? 0);
-        setUsersPage(1);
-      } else {
-        const data = await getAllUsers(1, 1000);
-        const arr = Array.isArray(data.data) ? data.data : [];
-        setAllUsers(arr);
-        setUsers(arr.slice((p-1)*5, p*5));
-        setUsersTotalPages(Math.ceil(arr.length / 7) || 1);
-        setUsersTotal(arr.length ?? 0);
-      }
-    } catch { setAllUsers([]); setUsers([]); }
-    finally { setLoadingUsers(false); }
-  };
-
-  const handleAvatarUpload = async (userId: string, file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, body: formData });
-      const data = await res.json();
-      if (data.avatar) { setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() })); await fetchUsers(); setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev); }
-    } catch {}
-  };
-
-  const handleSaveUser = async () => {
-    try {
-      if (editingUser) {
-        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
-        if (userForm.role === 'teacher') {
-          try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
-          catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
-        }
-      } else {
-        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
-        if (userForm.role === 'teacher') await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
-      }
-      await fetchUsers();
-      setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] });
-    } catch {}
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    if (id === user?.id) { setDeleteTarget(id); setIsBlocked(true); setDeleteError(t('admin.users.deleteSelf')); return; }
-    const { deletable } = await checkCanDeleteUser(id);
-    setDeleteTarget(id); setIsBlocked(!deletable); setDeleteError('');
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
-    try { await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null); setSelectedUser(null); navigate('/dashboard?section=users', { replace: true }); }
-    catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? '';
-      if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
-      else setDeleteError(t('admin.users.deleteError'));
-    } finally { setIsDeleting(false); }
-  };
-
-  const validateField = (field: string, value: string) => {
-    let message = '';
-    const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
-    if (field === 'firstName' || field === 'lastName') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (!nameRegex.test(value)) message = t('admin.users.name');
-    } else if (field === 'email') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (value.length > 50) message = t('admin.users.tooLong');
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
-    } else if (field === 'password' && value.length > 0) {
-      if (value.length < 12) message = t('admin.users.atLeast');
-      else if (!/[0-9]/.test(value)) message = t('admin.users.atLeastOneNumber');
-      else if (!/[a-z]/.test(value)) message = t('admin.users.atLeastOneMinus');
-      else if (!/[A-Z]/.test(value)) message = t('admin.users.atLeastOneMajor');
-      else if (!/[^a-zA-Z0-9]/.test(value)) message = t('admin.users.atLeastOneSpecial');
-      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = t('admin.users.noFirstName');
-      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = t('admin.users.noLastName');
-    }
-    setErrors(prev => ({ ...prev, [field]: message }));
-  };
-
-  const updateField = (field: string, value: string) => {
-    let normalized = value;
-    if (field === 'firstName') {
-      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-');
-    }
-    if (field === 'lastName') {
-      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
-    }
-    setUserForm(prev => ({ ...prev, [field]: normalized }));
-    validateField(field, normalized);
-  };
-
-  const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
-  const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
-
-  // ── Helpers utilisateurs ─────────────────────────────────────────────────
-  const calcAge = (dateOfBirth: string) => {
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-    return age;
-  };
-
-  const filteredUsers = useMemo(() => {
-    return [...allUsers]
-      .filter(u => usersRoleFilter.length === 0 || usersRoleFilter.includes(u.role))
-      .sort((a, b) => {
-        if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
-        if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
-        if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        return 0;
-      });
-  }, [users, usersRoleFilter, usersSort]);
-
-  const navigateToUser = (u: AdminUser) => {
-    setSelectedUser(u);
-    navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-  };
-
+  // ── Calculs mémorisés signalements ──
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
@@ -335,6 +190,7 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
+  // ── Formulaire utilisateur (JSX — reste ici car utilise composants shadcn/ui) ──
   const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -396,68 +252,68 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // ── Vue détail ────────────────────────────────────────────────────────────
+  // ── Vue détail signalement ──
   if (view === 'detail' && selected) {
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
-        <ReportDetail
-          selected={selected}
-          filtered={filtered}
-          notes={notes}
-          isAdmin={isAdmin}
-          saving={saving}
-          resolving={resolving}
-          checkedConvocIds={checkedConvocIds}
-          convocDetails={convocDetails}
-          sendingConvoc={sendingConvoc}
-          convocSuccess={convocSuccess}
-          newNote={newNote}
-          activeSuspect={activeSuspect}
-          suspectSearch={suspectSearch}
-          suspectResults={suspectResults}
-          onBack={() => { setView('list'); setSelected(null); }}
-          onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
-          onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
-          onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
-          onAddNote={handleAddNote}
-          onResolveSuspect={handleResolveSuspect}
-          onResolveVictim={async (victimId, userId) => {
-            await resolveVictim(victimId, userId);
-            const updated = await getAllReports();
-            setReports(updated);
-            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
-            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-          }}
-          onSetActiveSuspect={setActiveSuspect}
-          onSuspectSearch={handleSuspectSearch}
-          onSetNewNote={setNewNote}
-          onToggleConvoc={id => {
-            if (id === '__clear__') { setCheckedConvocIds([]); return; }
-            setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-          }}
-          onSetConvocDetails={setConvocDetails}
-          onSetSendingConvoc={setSendingConvoc}
-          onSetConvocSuccess={setConvocSuccess}
-          onSetSuspectSearch={setSuspectSearch}
-          onSetSuspectResults={setSuspectResults}
-          onAddNoteRaw={addNote}
-          onLoadNotes={loadNotes}
-          onNavigateToUser={async (userId) => {
-            const currentReportId = selected?.id ?? '';
-            setOriginReportId(currentReportId);
-            setView('list');
-            setSelected(null);
-            setSelectedUser(null);
-            const u = await getUserById(userId);
-            if (u) {
-              setSelectedUser(u);
-              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-            }
-            setViewSection('users');
-            navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
-          }}
+            <ReportDetail
+              selected={selected}
+              filtered={filtered}
+              notes={notes}
+              isAdmin={isAdmin}
+              saving={saving}
+              resolving={resolving}
+              checkedConvocIds={checkedConvocIds}
+              convocDetails={convocDetails}
+              sendingConvoc={sendingConvoc}
+              convocSuccess={convocSuccess}
+              newNote={newNote}
+              activeSuspect={activeSuspect}
+              suspectSearch={suspectSearch}
+              suspectResults={suspectResults}
+              onBack={() => { setView('list'); setSelected(null); }}
+              onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
+              onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
+              onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
+              onAddNote={handleAddNote}
+              onResolveSuspect={handleResolveSuspect}
+              onResolveVictim={async (victimId, userId) => {
+                await resolveVictim(victimId, userId);
+                const updated = await getAllReports();
+                setReports(updated);
+                setSelected(updated.find((r) => r.id === selected?.id) ?? null);
+                setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+              }}
+              onSetActiveSuspect={setActiveSuspect}
+              onSuspectSearch={handleSuspectSearch}
+              onSetNewNote={setNewNote}
+              onToggleConvoc={id => {
+                if (id === '__clear__') { setCheckedConvocIds([]); return; }
+                setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+              }}
+              onSetConvocDetails={setConvocDetails}
+              onSetSendingConvoc={setSendingConvoc}
+              onSetConvocSuccess={setConvocSuccess}
+              onSetSuspectSearch={setSuspectSearch}
+              onSetSuspectResults={setSuspectResults}
+              onAddNoteRaw={addNote}
+              onLoadNotes={loadNotes}
+              onNavigateToUser={async (userId) => {
+                const currentReportId = selected?.id ?? '';
+                setOriginReportId(currentReportId);
+                setView('list');
+                setSelected(null);
+                setSelectedUser(null);
+                const u = await getUserById(userId);
+                if (u) {
+                  setSelectedUser(u);
+                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+                }
+                setViewSection('users');
+                navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
+              }}
         />
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -474,7 +330,7 @@ export default function AdminDashboard() {
     );
   }
 
-  // ── Vue liste ─────────────────────────────────────────────────────────────
+  // ── Vue liste ──
   return (
     <main className="min-h-screen bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>

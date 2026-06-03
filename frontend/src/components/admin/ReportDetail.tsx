@@ -259,7 +259,7 @@ export default function ReportDetail({
       </Card>
 
       {/* ── Card Signalement ── */}
-      <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
+      <div style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
         <CardHeader><CardTitle>Signalement</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4 text-sm mb-4">
@@ -270,11 +270,11 @@ export default function ReportDetail({
           <p className="text-sm text-gray-700 leading-7 mb-4">{selected.description}</p>
           {selected.aiReason && (
             <div className="bg-gray-50 rounded-lg px-4 py-3 text-xs text-gray-500 italic">
-              🤖 Analyse IA : {selected.aiReason}
+               Analyse IA : {selected.aiReason}
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
 
       {/* ── Card Suspects + Alerteur ── */}
       <Card style={{ borderLeft: `5px solid ${severityColor}` }} className="mb-4">
