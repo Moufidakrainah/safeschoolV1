@@ -4,10 +4,20 @@ import { useTranslation } from 'react-i18next';
 import {
   getAllUsers, updateUser, createUser, deleteUser, checkCanDeleteUser,
   searchUsers, getClasses, getStaffProfile, createStaffProfile, updateStaffProfile,
+  createParent,
 } from '@/services/api';
 import type { AdminUser } from '@/types';
 
 interface SchoolClass { id: string; level: string; section: string; }
+
+// Type pour un parent dans le formulaire
+interface ParentForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+}
 
 export interface UseUsersReturn {
   // ── État liste ──
@@ -87,6 +97,7 @@ export function useUsers(): UseUsersReturn {
   const [userForm, setUserForm] = useState({
     firstName: '', lastName: '', email: '', password: '', role: '',
     classId: '', subject: '', classIds: [] as string[],
+    parents: [] as ParentForm[], // liste des parents (max 2) pour la création d'un élève
   });
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
@@ -147,18 +158,34 @@ export function useUsers(): UseUsersReturn {
   const handleSaveUser = useCallback(async () => {
     try {
       if (editingUser) {
+        // Modification d'un utilisateur existant
         await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
         if (userForm.role === 'teacher') {
           try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
           catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
         }
       } else {
+        // Création d'un nouvel utilisateur
         const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
-        if (userForm.role === 'teacher') await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
+        if (userForm.role === 'teacher') {
+          await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
+        }
+        // Créer les parents si c'est un élève et qu'il y a des parents dans le formulaire
+        if (userForm.role === 'student' && userForm.parents.length > 0) {
+          for (const parent of userForm.parents) {
+            // On crée le parent seulement si prénom, nom et email sont renseignés
+            if (parent.firstName && parent.lastName && parent.email) {
+              await createParent({
+                ...parent,
+                studentIds: [created.studentProfile?.id ?? created.id],
+              });
+            }
+          }
+        }
       }
       await fetchUsers();
       setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] });
+      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [] });
     } catch {}
   }, [editingUser, userForm, fetchUsers]);
 
@@ -232,7 +259,7 @@ export function useUsers(): UseUsersReturn {
   const navigateToUser = useCallback((u: AdminUser) => {
     setSelectedUser(u);
     navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
   }, [navigate]);
 
   // ── Valeurs calculées ──

@@ -179,7 +179,7 @@ const handleDeleteParent = async (id: string) => {
               <div><Label className="text-xs">Téléphone</Label>
                 <Input value={parentForm.phone} onChange={e => setParentForm({ ...parentForm, phone: e.target.value.replace(/[^0-9+\s]/g, '') })} maxLength={15} className="mt-1" /></div>
               <div><Label className="text-xs">Adresse</Label>
-                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} className="mt-1" /></div>
+                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} maxLength={80} className="mt-1" /></div>
               <div className="flex gap-2 justify-end mt-1">
                 <Button size="sm" disabled={
                   !parentForm.firstName || parentForm.firstName.length < 2 ||

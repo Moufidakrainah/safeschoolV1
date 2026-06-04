@@ -12,25 +12,9 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ParentsService } from "./parents.service";
+import { CreateParentDto } from "./dto/create-parent.dto";
+import { UpdateParentDto } from "./dto/update-parent.dto";
 import { validateUUID } from "../utils/validate-uuid";
-
-class CreateParentDto {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone?: string;
-  address?: string;
-  studentIds?: string[];
-}
-
-class UpdateParentDto {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  studentIds?: string[];
-}
 
 @Controller("parents")
 @UseGuards(AuthGuard("jwt"))

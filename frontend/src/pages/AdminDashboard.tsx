@@ -111,7 +111,7 @@ export default function AdminDashboard() {
       getUserById(selectedUserId).then(u => {
         if (u) {
           setSelectedUser(u);
-          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
         }
       }).catch(() => {});
     }
@@ -222,13 +222,106 @@ export default function AdminDashboard() {
         </SelectContent>
       </Select>
       {userForm.role === 'student' && (
-        <div>
-          <Label className="text-white text-sm">Classe</Label>
-          <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
-            <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')}>{classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}</SelectValue></SelectTrigger>
-            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
+        <>
+          <div>
+            <Label className="text-white text-sm">Classe</Label>
+            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
+              <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')}>{classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}</SelectValue></SelectTrigger>
+              <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          {/* ── Section Parents ── */}
+          <div className="mt-2">
+            <div className="flex justify-between items-center mb-2">
+              <Label className="text-white text-sm">Responsables légaux</Label>
+              {userForm.parents.length < 2 && (
+                <button
+                  type="button"
+                  className="text-xs text-white/80 hover:text-white underline"
+                  onClick={() => setUserForm(prev => ({
+                    ...prev,
+                    parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
+                  }))}
+                >
+                  + Ajouter un parent
+                </button>
+              )}
+            </div>
+
+            {userForm.parents.map((parent, idx) => (
+              <div key={idx} className="bg-white/10 rounded-lg p-3 mb-2 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-white text-xs font-semibold">Parent {idx + 1}</span>
+                  <button
+                    type="button"
+                    className="text-white/60 hover:text-white text-xs"
+                    onClick={() => setUserForm(prev => ({
+                      ...prev,
+                      parents: prev.parents.filter((_, i) => i !== idx)
+                    }))}
+                  >
+                    ✕ Supprimer
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-white/80 text-xs">Prénom</Label>
+                    <Input
+                      value={parent.firstName}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() } : p) }));
+                      }}
+                      maxLength={20}
+                      className="bg-white mt-1 h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80 text-xs">Nom</Label>
+                    <Input
+                      value={parent.lastName}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, lastName: val.toUpperCase() } : p) }));
+                      }}
+                      maxLength={20}
+                      className="bg-white mt-1 h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Email</Label>
+                  <Input
+                    type="email"
+                    value={parent.email}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, email: e.target.value } : p) }))}
+                    maxLength={50}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Téléphone</Label>
+                  <Input
+                    value={parent.phone}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') } : p) }))}
+                    maxLength={15}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Adresse</Label>
+                  <Input
+                    value={parent.address}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, address: e.target.value } : p) }))}
+                    maxLength={80}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       {userForm.role === 'teacher' && (
         <>
@@ -309,7 +402,7 @@ export default function AdminDashboard() {
                 const u = await getUserById(userId);
                 if (u) {
                   setSelectedUser(u);
-                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
+                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
                 }
                 setViewSection('users');
                 navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
