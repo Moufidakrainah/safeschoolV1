@@ -19,16 +19,11 @@ check-env: ## Vérifier que le fichier .env existe
 	@test -f $(ENV_FILE) || { echo "$(ENV_FILE) manquant."; exit 1; }
 
 up: check-env ## Construire, démarrer et injecter les données si base vide
-	$(COMPOSE) up -d --build
-	$(MAKE) seed-if-empty
-
-up-app: check-env ## Démarrer uniquement frontend, backend et database (sans ELK ni pgadmin)
-	$(COMPOSE) up -d --no-deps --build frontend backend database
-	$(MAKE) seed-if-empty
-
-start: check-env ## Démarrer les services sans reconstruire les images
-	$(COMPOSE) up -d
-	$(MAKE) seed-if-empty
+	@start=$$(date +%s); \
+	$(COMPOSE) up -d --build; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$((end - start))s"
 
 down: ## Arrêter tous les services
 	$(COMPOSE) down
@@ -44,23 +39,30 @@ build: check-env ## Construire les images sans démarrer
 	$(COMPOSE) build
 
 rebuild: check-env ## Reconstruire sans cache et redémarrer
-	$(COMPOSE) down
-	$(COMPOSE) build --no-cache
-	$(COMPOSE) up -d
-	$(MAKE) seed-if-empty
+	@start=$$(date +%s); \
+	$(COMPOSE) down; \
+	$(COMPOSE) build --no-cache; \
+	$(COMPOSE) up -d; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$((end - start))s"
+
 
 # == SERVICE PAR SERVICE ==
 
-up-fe: check-env ## Démarrer uniquement le frontend, backend et database
-	$(COMPOSE) up -d frontend backend database
-	$(MAKE) seed-if-empty
+up-app: check-env ## Démarrer uniquement frontend, backend et database (sans ELK ni pgadmin)
+	@start=$$(date +%s); \
+	$(COMPOSE) up -d --no-deps --build frontend backend database; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$((end - start))s"
 
 up-be: check-env ## Démarrer backend et database seulement
 	$(COMPOSE) up -d backend database
 	$(MAKE) seed-if-empty
 
 up-elk: check-env ## Démarrer la stack ELK
-	$(COMPOSE) up -d elasticsearch logstash kibana
+	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup
 
 down-elk: ## Arrêter la stack ELK
 	$(COMPOSE) down elasticsearch logstash kibana
@@ -79,6 +81,12 @@ logs-be: ## Suivre les logs du backend
 
 logs-db: ## Suivre les logs de la base de données
 	$(COMPOSE) logs -f database
+
+logs-elk: ## Suivre les logs de la stack ELK
+	$(COMPOSE) logs -f elasticsearch logstash kibana
+
+logs-setup: ## Afficher les logs du script de setup ELK
+	$(COMPOSE) logs elasticsearch-setup
 
 
 #  === BASE DE DONNÉES ===
@@ -136,4 +144,4 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up up-app down build rebuild re up-be up-fe up-elk down-elk logs logs-fe logs-be logs-db wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top logs-db
+.PHONY: all help check-env up down build rebuild re up-be up-elk down-elk logs logs-fe logs-be logs-db wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top logs-elk logs-setup
