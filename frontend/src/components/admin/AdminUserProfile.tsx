@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { validateParentField } from '@/utils/validateParent';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -48,8 +49,15 @@ const [editingParent, setEditingParent] = useState<any | null>(null);
 const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
 const [profileParents, setProfileParents] = useState<any[]>([]);
 const [profileStaff, setProfileStaff] = useState<any | null>(null);
+const [parentErrors, setParentErrors] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+
 // ── Chargement des parents ──
 useEffect(() => {
+  // Réinitialiser le formulaire parent quand on change d'utilisateur
+  setShowParentForm(false);
+  setEditingParent(null);
+  setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
+  setParentErrors({ firstName: '', lastName: '', email: '', phone: '' });
   if (selectedUser?.role === 'student' && selectedUser?.id) {
     getStudentParents(selectedUser.id)
       .then(setProfileParents)
@@ -68,6 +76,8 @@ useEffect(() => {
 // ── Fonctions locales ──
 const handleSaveParent = async () => {
   const studentProfileId = selectedUser?.studentProfile?.id;
+  console.log('studentProfileId:', studentProfileId); // ← ajouter
+  console.log('selectedUser?.studentProfile:', selectedUser?.studentProfile); // ← ajouter
   if (editingParent) {
     await updateParent(editingParent.id, parentForm);
   } else {
@@ -148,7 +158,7 @@ const handleDeleteParent = async (id: string) => {
       )}
 
       {/* 4. Responsables légaux */}
-      {!editMode && (
+      {!editMode && selectedUser.role === 'student' && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <div className="flex justify-between items-center mb-2">
             <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
@@ -163,30 +173,60 @@ const handleDeleteParent = async (id: string) => {
           {showParentForm && (
             <div className="bg-gray-50 rounded-lg p-3 mb-3 flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2">
-                <div><Label className="text-xs">Prénom</Label>
+                <div>
+                  <Label className="text-xs">Prénom</Label>
                   <Input value={parentForm.firstName} onChange={e => {
                     const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                    setParentForm({ ...parentForm, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() });
-                  }} maxLength={20} className="mt-1" /></div>
-                <div><Label className="text-xs">Nom</Label>
+                    const normalized = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+                    setParentForm({ ...parentForm, firstName: normalized });
+                    setParentErrors(prev => ({ ...prev, firstName: validateParentField('firstName', normalized) }));
+                  }} maxLength={20} className="mt-1" />
+                  {parentErrors.firstName && <p className="text-red-500 text-xs mt-1">{parentErrors.firstName}</p>}
+                </div>
+                <div>
+                  <Label className="text-xs">Nom</Label>
                   <Input value={parentForm.lastName} onChange={e => {
-                    const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                    setParentForm({ ...parentForm, lastName: val.toUpperCase() });
-                  }} maxLength={20} className="mt-1" /></div>
+                    const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
+                    setParentForm({ ...parentForm, lastName: val });
+                    setParentErrors(prev => ({ ...prev, lastName: validateParentField('lastName', val) }));
+                  }} maxLength={20} className="mt-1" />
+                  {parentErrors.lastName && <p className="text-red-500 text-xs mt-1">{parentErrors.lastName}</p>}
+                </div>
               </div>
-              <div><Label className="text-xs">Email</Label>
-                <Input type="email" value={parentForm.email} onChange={e => setParentForm({ ...parentForm, email: e.target.value })} maxLength={50} className="mt-1" /></div>
-              <div><Label className="text-xs">Téléphone</Label>
-                <Input value={parentForm.phone} onChange={e => setParentForm({ ...parentForm, phone: e.target.value.replace(/[^0-9+\s]/g, '') })} maxLength={15} className="mt-1" /></div>
-              <div><Label className="text-xs">Adresse</Label>
-                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} maxLength={80} className="mt-1" /></div>
+              <div>
+                <Label className="text-xs">Email</Label>
+                <Input type="email" value={parentForm.email} onChange={e => {
+                  setParentForm({ ...parentForm, email: e.target.value });
+                  setParentErrors(prev => ({ ...prev, email: validateParentField('email', e.target.value) }));
+                }} maxLength={50} className="mt-1" />
+                {parentErrors.email && <p className="text-red-500 text-xs mt-1">{parentErrors.email}</p>}
+              </div>
+              <div>
+                <Label className="text-xs">Téléphone <span className="text-gray-400">(optionnel)</span></Label>
+                <Input value={parentForm.phone} onChange={e => {
+                  const val = e.target.value.replace(/[^0-9+\s]/g, '');
+                  setParentForm({ ...parentForm, phone: val });
+                  setParentErrors(prev => ({ ...prev, phone: validateParentField('phone', val) }));
+                }} maxLength={15} placeholder="ex: +33 6 12 34 56 78" className="mt-1" />
+                {parentErrors.phone && <p className="text-red-500 text-xs mt-1">{parentErrors.phone}</p>}
+              </div>
+              <div>
+                <Label className="text-xs">Adresse <span className="text-gray-400">(optionnel)</span></Label>
+                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} maxLength={80} className="mt-1" />
+              </div>
               <div className="flex gap-2 justify-end mt-1">
                 <Button size="sm" disabled={
-                  !parentForm.firstName || parentForm.firstName.length < 2 ||
-                  !parentForm.lastName || parentForm.lastName.length < 2 ||
-                  !parentForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
+                  !!validateParentField('firstName', parentForm.firstName) ||
+                  !!validateParentField('lastName', parentForm.lastName) ||
+                  !!validateParentField('email', parentForm.email) ||
+                  !!validateParentField('phone', parentForm.phone) ||
+                  !parentForm.firstName || !parentForm.lastName || !parentForm.email
                 } onClick={handleSaveParent}>Enregistrer</Button>
-                <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>Annuler</Button>
+                <Button size="sm" variant="ghost" onClick={() => {
+                  setShowParentForm(false);
+                  setEditingParent(null);
+                  setParentErrors({ firstName: '', lastName: '', email: '', phone: '' });
+                }}>Annuler</Button>
               </div>
             </div>
           )}

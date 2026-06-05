@@ -32,6 +32,6 @@ export class CreateParentDto {
 
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true, message: 'ID élève invalide' })
+ // @IsUUID('all', { each: true, message: 'ID élève invalide' })
   studentIds?: string[];
 }
