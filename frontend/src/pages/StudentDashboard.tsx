@@ -54,11 +54,9 @@ export default function StudentDashboard() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const [viewSection, setViewSection] = useState<StudentSection>(
     (searchParams.get('section') as StudentSection) ?? 'report'
   );
-
   const [parents, setParents]               = useState<Parent[]>([]);
   const [loadingParents, setLoadingParents] = useState(false);
   const [notifRefreshKey, setNotifRefreshKey] = useState(0);
@@ -144,7 +142,7 @@ export default function StudentDashboard() {
   const unreadCount = Object.keys(unreadNotifs).length;
 
   return (
-    <>
+    <main className="min-h-screen bg-gray-50 font-sans">
       <RoleHeader
         user={user}
         logoutUser={logoutUser}
@@ -160,7 +158,8 @@ export default function StudentDashboard() {
       {viewSection === 'report' && <StudentForm user={user} />}
 
       {viewSection === 'cases' && (
-        <main className="max-w-2xl mx-auto mt-8 px-5 pb-10">
+		<>
+       {/* <main className="max-w-2xl mx-auto mt-8 px-5 pb-10"> */}
           <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiers</h2>
           <p className="text-gray-500 text-sm mb-6">Suivi de vos signalements en cours</p>
 
@@ -255,12 +254,19 @@ export default function StudentDashboard() {
                       </div>
                     )}
                   </div>
+
+
                 );
+
+
+
               })}
             </div>
           )}
-        </main>
+         {/* </main> */}
+		 </>
       )}
-    </>
+	  </main>
+ 
   );
 }
