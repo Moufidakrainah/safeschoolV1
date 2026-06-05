@@ -8,6 +8,7 @@ import {
 } from '@/services/api';
 import type { Parent } from '@/types';
 import StudentProfile from '@/components/student/StudentProfile';
+import StudentCases from '@/components/student/StudentCases';
 import StudentForm from '@/components/student/StudentForm';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { Badge } from '@/components/ui/badge';
@@ -162,8 +163,9 @@ export default function StudentDashboard() {
 
       {viewSection === 'cases' && (
 		<>
-       {/* <main className="max-w-2xl mx-auto mt-8 px-5 pb-10"> */}
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiers</h2>
+        <StudentCases user={user} />
+
+          {/* <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiersccc</h2>
           <p className="text-gray-500 text-sm mb-6">Suivi de vos signalements en cours</p>
 
           {loadingReports ? (
@@ -265,8 +267,7 @@ export default function StudentDashboard() {
 
               })}
             </div>
-          )}
-         {/* </main> */}
+          )} */}
 		 </>
       )}
 	</div>
