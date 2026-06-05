@@ -98,9 +98,6 @@ const [profileParents, setProfileParents] = useState<any[]>([]);
 					}
 				</div>
 
-
-
-
 				<div className="text-center">
 					{(() => { const { first, last } = formatName(user?.firstName, user?.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
 					<span className="text-sm text-gray-700 capitalize">{user?.role}</span>
