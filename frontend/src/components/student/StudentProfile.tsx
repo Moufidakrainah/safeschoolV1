@@ -76,7 +76,6 @@ const [profileParents, setProfileParents] = useState<any[]>([]);
 
   return (
 
-  <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
     <section className="page-section">
     
       {/* Informations personnelles */}
@@ -164,6 +163,5 @@ const [profileParents, setProfileParents] = useState<any[]>([]);
 			</div>
 		</div>
     </section>
-	</div>
   );
 }

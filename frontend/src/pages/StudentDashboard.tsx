@@ -151,6 +151,9 @@ export default function StudentDashboard() {
         studentNotifRefreshKey={notifRefreshKey}
       />
 
+  <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+
+
       {viewSection === 'profile' && (
         <StudentProfile user={user} parents={parents} loadingParents={loadingParents} />
       )}
@@ -266,6 +269,8 @@ export default function StudentDashboard() {
          {/* </main> */}
 		 </>
       )}
+	</div>
+
 	  </main>
  
   );
