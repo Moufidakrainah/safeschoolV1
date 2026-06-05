@@ -3,12 +3,10 @@ import { formatName } from '@/utils/formatName';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useState, useEffect } from 'react';
 import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { validateParentField } from '@/utils/validateParent';
+import ParentFormItem from '@/components/admin/ParentFormItem';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -42,58 +40,54 @@ export default function AdminUserProfile({
   const { t } = useTranslation();
 
   // ── État local ──
-const [editMode, setEditMode] = useState(false);
-const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
-const [showParentForm, setShowParentForm] = useState(false);
-const [editingParent, setEditingParent] = useState<any | null>(null);
-const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
-const [profileParents, setProfileParents] = useState<any[]>([]);
-const [profileStaff, setProfileStaff] = useState<any | null>(null);
-const [parentErrors, setParentErrors] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const [editMode, setEditMode] = useState(false);
+  const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
+  const [showParentForm, setShowParentForm] = useState(false);
+  const [editingParent, setEditingParent] = useState<any | null>(null);
+  const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
+  const [profileParents, setProfileParents] = useState<any[]>([]);
+  const [profileStaff, setProfileStaff] = useState<any | null>(null);
 
-// ── Chargement des parents ──
-useEffect(() => {
-  // Réinitialiser le formulaire parent quand on change d'utilisateur
-  setShowParentForm(false);
-  setEditingParent(null);
-  setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
-  setParentErrors({ firstName: '', lastName: '', email: '', phone: '' });
-  if (selectedUser?.role === 'student' && selectedUser?.id) {
-    getStudentParents(selectedUser.id)
-      .then(setProfileParents)
-      .catch(() => setProfileParents([]));
-  } else {
-    setProfileParents([]);
-  }
-  if (selectedUser?.role === 'teacher' && selectedUser?.id) {
-    getStaffProfile(selectedUser.id)
-      .then(setProfileStaff)
-      .catch(() => setProfileStaff(null));
-  } else {
-    setProfileStaff(null);
-  }
-}, [selectedUser?.id]);
-// ── Fonctions locales ──
-const handleSaveParent = async () => {
-  const studentProfileId = selectedUser?.studentProfile?.id;
-  console.log('studentProfileId:', studentProfileId); // ← ajouter
-  console.log('selectedUser?.studentProfile:', selectedUser?.studentProfile); // ← ajouter
-  if (editingParent) {
-    await updateParent(editingParent.id, parentForm);
-  } else {
-    if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
-  }
-  const updated = await getStudentParents(selectedUser.id);
-  setProfileParents(updated);
-  setShowParentForm(false);
-  setEditingParent(null);
-};
+  // ── Chargement des parents ──
+  useEffect(() => {
+    setShowParentForm(false);
+    setEditingParent(null);
+    setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
+    if (selectedUser?.role === 'student' && selectedUser?.id) {
+      getStudentParents(selectedUser.id)
+        .then(setProfileParents)
+        .catch(() => setProfileParents([]));
+    } else {
+      setProfileParents([]);
+    }
+    if (selectedUser?.role === 'teacher' && selectedUser?.id) {
+      getStaffProfile(selectedUser.id)
+        .then(setProfileStaff)
+        .catch(() => setProfileStaff(null));
+    } else {
+      setProfileStaff(null);
+    }
+  }, [selectedUser?.id]);
 
-const handleDeleteParent = async (id: string) => {
-  await deleteParent(id);
-  const updated = await getStudentParents(selectedUser.id);
-  setProfileParents(updated);
-};
+  // ── Fonctions locales ──
+  const handleSaveParent = async () => {
+    const studentProfileId = selectedUser?.studentProfile?.id;
+    if (editingParent) {
+      await updateParent(editingParent.id, parentForm);
+    } else {
+      if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+    }
+    const updated = await getStudentParents(selectedUser.id);
+    setProfileParents(updated);
+    setShowParentForm(false);
+    setEditingParent(null);
+  };
+
+  const handleDeleteParent = async (id: string) => {
+    await deleteParent(id);
+    const updated = await getStudentParents(selectedUser.id);
+    setProfileParents(updated);
+  };
 
   return (
     <section className="page-section">
@@ -147,7 +141,7 @@ const handleDeleteParent = async (id: string) => {
       {/* 3. Infos */}
       {!editMode && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
-          <Table  className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
+          <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
             {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
             {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
             {(selectedUser.staffProfile?.profession || profileStaff?.profession) && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell></TableRow>}
@@ -157,7 +151,7 @@ const handleDeleteParent = async (id: string) => {
         </div>
       )}
 
-      {/* 4. Responsables légaux */}
+      {/* 4. Responsables légaux — uniquement pour les élèves */}
       {!editMode && selectedUser.role === 'student' && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <div className="flex justify-between items-center mb-2">
@@ -171,63 +165,24 @@ const handleDeleteParent = async (id: string) => {
             )}
           </div>
           {showParentForm && (
-            <div className="bg-gray-50 rounded-lg p-3 mb-3 flex flex-col gap-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label className="text-xs">Prénom</Label>
-                  <Input value={parentForm.firstName} onChange={e => {
-                    const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                    const normalized = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
-                    setParentForm({ ...parentForm, firstName: normalized });
-                    setParentErrors(prev => ({ ...prev, firstName: validateParentField('firstName', normalized) }));
-                  }} maxLength={20} className="mt-1" />
-                  {parentErrors.firstName && <p className="text-red-500 text-xs mt-1">{parentErrors.firstName}</p>}
-                </div>
-                <div>
-                  <Label className="text-xs">Nom</Label>
-                  <Input value={parentForm.lastName} onChange={e => {
-                    const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
-                    setParentForm({ ...parentForm, lastName: val });
-                    setParentErrors(prev => ({ ...prev, lastName: validateParentField('lastName', val) }));
-                  }} maxLength={20} className="mt-1" />
-                  {parentErrors.lastName && <p className="text-red-500 text-xs mt-1">{parentErrors.lastName}</p>}
-                </div>
-              </div>
-              <div>
-                <Label className="text-xs">Email</Label>
-                <Input type="email" value={parentForm.email} onChange={e => {
-                  setParentForm({ ...parentForm, email: e.target.value });
-                  setParentErrors(prev => ({ ...prev, email: validateParentField('email', e.target.value) }));
-                }} maxLength={50} className="mt-1" />
-                {parentErrors.email && <p className="text-red-500 text-xs mt-1">{parentErrors.email}</p>}
-              </div>
-              <div>
-                <Label className="text-xs">Téléphone <span className="text-gray-400">(optionnel)</span></Label>
-                <Input value={parentForm.phone} onChange={e => {
-                  const val = e.target.value.replace(/[^0-9+\s]/g, '');
-                  setParentForm({ ...parentForm, phone: val });
-                  setParentErrors(prev => ({ ...prev, phone: validateParentField('phone', val) }));
-                }} maxLength={15} placeholder="ex: +33 6 12 34 56 78" className="mt-1" />
-                {parentErrors.phone && <p className="text-red-500 text-xs mt-1">{parentErrors.phone}</p>}
-              </div>
-              <div>
-                <Label className="text-xs">Adresse <span className="text-gray-400">(optionnel)</span></Label>
-                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} maxLength={80} className="mt-1" />
-              </div>
-              <div className="flex gap-2 justify-end mt-1">
-                <Button size="sm" disabled={
-                  !!validateParentField('firstName', parentForm.firstName) ||
-                  !!validateParentField('lastName', parentForm.lastName) ||
-                  !!validateParentField('email', parentForm.email) ||
-                  !!validateParentField('phone', parentForm.phone) ||
-                  !parentForm.firstName || !parentForm.lastName || !parentForm.email
-                } onClick={handleSaveParent}>Enregistrer</Button>
-                <Button size="sm" variant="ghost" onClick={() => {
-                  setShowParentForm(false);
-                  setEditingParent(null);
-                  setParentErrors({ firstName: '', lastName: '', email: '', phone: '' });
-                }}>Annuler</Button>
-              </div>
+            <ParentFormItem
+              parent={parentForm}
+              idx={editingParent ? profileParents.findIndex(p => p.id === editingParent.id) : profileParents.length}
+              dark={false}
+              onChange={(updated) => setParentForm(updated)}
+              onRemove={() => {
+                setShowParentForm(false);
+                setEditingParent(null);
+              }}
+            />
+          )}
+          {showParentForm && (
+            <div className="flex gap-2 justify-end mt-1">
+              <Button size="sm" onClick={handleSaveParent}>Enregistrer</Button>
+              <Button size="sm" variant="ghost" onClick={() => {
+                setShowParentForm(false);
+                setEditingParent(null);
+              }}>Annuler</Button>
             </div>
           )}
           <div className="flex flex-col gap-2">
@@ -266,31 +221,36 @@ const handleDeleteParent = async (id: string) => {
         <>
           {renderUserForm(true)}
           <div className="flex gap-3 justify-end mt-4">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button disabled={!isFormValid}>{t('admin.users.save')}</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
-                  <AlertDialogDescription asChild>
-                    <div className="text-sm text-gray-700 space-y-1 mt-2">
-                      <p><strong>Prénom :</strong> {userForm.firstName}</p>
-                      <p><strong>Nom :</strong> {userForm.lastName}</p>
-                      <p><strong>Email :</strong> {userForm.email}</p>
-                      <p><strong>Rôle :</strong> {userForm.role}</p>
-                      {userForm.role === 'student' && userForm.classId && <p><strong>Classe :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</p>}
-                      {userForm.role === 'teacher' && userForm.subject && <p><strong>Matière :</strong> {userForm.subject}</p>}
-                      {userForm.password && <p><strong>Mot de passe :</strong> modifié</p>}
-                    </div>
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={async () => { await onSaveUser(); setEditMode(false); }}>Confirmer</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {/* Bouton désactivé si formulaire invalide — pas de AlertDialog */}
+            {isFormValid ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button>{t('admin.users.save')}</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
+                    <AlertDialogDescription asChild>
+                      <div className="text-sm text-gray-700 space-y-1 mt-2">
+                        <p><strong>Prénom :</strong> {userForm.firstName}</p>
+                        <p><strong>Nom :</strong> {userForm.lastName}</p>
+                        <p><strong>Email :</strong> {userForm.email}</p>
+                        <p><strong>Rôle :</strong> {userForm.role}</p>
+                        {userForm.role === 'student' && userForm.classId && <p><strong>Classe :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</p>}
+                        {userForm.role === 'teacher' && userForm.subject && <p><strong>Matière :</strong> {userForm.subject}</p>}
+                        {userForm.password && <p><strong>Mot de passe :</strong> modifié</p>}
+                      </div>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={async () => { await onSaveUser(); setEditMode(false); }}>Confirmer</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Button disabled>{t('admin.users.save')}</Button>
+            )}
             <Button variant="ghost" onClick={() => setEditMode(false)}>{t('common.cancel')}</Button>
           </div>
         </>

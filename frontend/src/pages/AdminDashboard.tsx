@@ -23,6 +23,7 @@ import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
+import ParentFormItem from '@/components/admin/ParentFormItem';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -111,7 +112,7 @@ export default function AdminDashboard() {
       getUserById(selectedUserId).then(u => {
         if (u) {
           setSelectedUser(u);
-          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
+          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
         }
       }).catch(() => {});
     }
@@ -230,7 +231,24 @@ export default function AdminDashboard() {
               <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-
+          <div>
+            <Label className="text-white text-sm">Date de naissance</Label>
+            <Input
+              type="date"
+              value={userForm.dateOfBirth}
+              onChange={e => setUserForm(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+              className="bg-white mt-1"
+              min={new Date(new Date().setFullYear(new Date().getFullYear() - 16)).toISOString().split('T')[0]}
+              max={new Date(new Date().setFullYear(new Date().getFullYear() - 9)).toISOString().split('T')[0]}
+            />
+            {userForm.dateOfBirth && (
+              new Date(userForm.dateOfBirth) > new Date(new Date().setFullYear(new Date().getFullYear() - 9))
+                ? <p className="text-red-300 text-xs mt-1">L'élève doit avoir au moins 9 ans</p>
+                : new Date(userForm.dateOfBirth) < new Date(new Date().setFullYear(new Date().getFullYear() - 16))
+                ? <p className="text-red-300 text-xs mt-1">L'élève ne peut pas avoir plus de 16 ans</p>
+                : null
+            )}
+          </div>
           {/* ── Section Parents ── */}
           <div className="mt-2">
             <div className="flex justify-between items-center mb-2">
@@ -250,75 +268,20 @@ export default function AdminDashboard() {
             </div>
 
             {userForm.parents.map((parent, idx) => (
-              <div key={idx} className="bg-white/10 rounded-lg p-3 mb-2 flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-white text-xs font-semibold">Parent {idx + 1}</span>
-                  <button
-                    type="button"
-                    className="text-white/60 hover:text-white text-xs"
-                    onClick={() => setUserForm(prev => ({
-                      ...prev,
-                      parents: prev.parents.filter((_, i) => i !== idx)
-                    }))}
-                  >
-                    ✕ Supprimer
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-white/80 text-xs">Prénom</Label>
-                    <Input
-                      value={parent.firstName}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() } : p) }));
-                      }}
-                      maxLength={20}
-                      className="bg-white mt-1 h-8 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-white/80 text-xs">Nom</Label>
-                    <Input
-                      value={parent.lastName}
-                      onChange={e => {
-                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, lastName: val.toUpperCase() } : p) }));
-                      }}
-                      maxLength={20}
-                      className="bg-white mt-1 h-8 text-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-white/80 text-xs">Email</Label>
-                  <Input
-                    type="email"
-                    value={parent.email}
-                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, email: e.target.value } : p) }))}
-                    maxLength={50}
-                    className="bg-white mt-1 h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-xs">Téléphone</Label>
-                  <Input
-                    value={parent.phone}
-                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') } : p) }))}
-                    maxLength={15}
-                    className="bg-white mt-1 h-8 text-sm"
-                  />
-                </div>
-                <div>
-                  <Label className="text-white/80 text-xs">Adresse</Label>
-                  <Input
-                    value={parent.address}
-                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, address: e.target.value } : p) }))}
-                    maxLength={80}
-                    className="bg-white mt-1 h-8 text-sm"
-                  />
-                </div>
-              </div>
+              <ParentFormItem
+                key={idx}
+                parent={parent}
+                idx={idx}
+                dark={true}
+                onChange={(updated) => setUserForm(prev => ({
+                  ...prev,
+                  parents: prev.parents.map((p, i) => i === idx ? updated : p)
+                }))}
+                onRemove={() => setUserForm(prev => ({
+                  ...prev,
+                  parents: prev.parents.filter((_, i) => i !== idx)
+                }))}
+              />
             ))}
           </div>
         </>
@@ -402,7 +365,7 @@ export default function AdminDashboard() {
                 const u = await getUserById(userId);
                 if (u) {
                   setSelectedUser(u);
-                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
+                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
                 }
                 setViewSection('users');
                 navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
@@ -524,7 +487,7 @@ export default function AdminDashboard() {
             onHandleAvatarUpload={handleAvatarUpload}
             onHandleDeleteUser={handleDeleteUser}
             onSaveUser={async () => {
-              await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
+              await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId , dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
               await fetchUsers();
               const u = users.find(u => u.id === selectedUser.id);
@@ -554,7 +517,13 @@ export default function AdminDashboard() {
             onSetUsersPage={setUsersPage}
             onFetchUsers={fetchUsers}
             onNavigateToUser={navigateToUser}
-            onSetShowUserForm={setShowUserForm}
+            onSetShowUserForm={(v) => {
+              if (v) {
+                // Remet le formulaire à zéro quand on ouvre le formulaire d'ajout
+                setUserForm({ firstName: '', lastName: '', email: '', password: '', role: '', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: ''  });
+              }
+              setShowUserForm(v);
+            }}
             onSaveUser={handleSaveUser}
             renderUserForm={renderUserForm}
           />

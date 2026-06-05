@@ -6,6 +6,8 @@ import * as bcrypt from 'bcrypt';
 import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { Report } from '../reports/report.entity';
 import { SchoolClass } from '../classes/school-class.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +24,6 @@ export class UsersService {
   ) {}
 
   // ── Chercher un user par email (sans profil) ──────────────────────────────
-  // Utilisé par AuthService pour la connexion
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
@@ -31,7 +32,6 @@ export class UsersService {
   }
 
   // ── Chercher un user par email avec son profil ────────────────────────────
-  // Utilisé par AuthService pour retourner les infos complètes après connexion
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
@@ -41,7 +41,6 @@ export class UsersService {
   }
 
   // ── Chercher un user par son ID ───────────────────────────────────────────
-  // Utilisé par JwtStrategy pour injecter l'utilisateur dans req.user
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
@@ -108,17 +107,18 @@ export class UsersService {
   }
 
   // ── Créer un utilisateur via l'interface admin ────────────────────────────
-  async createByAdmin(dto: {
-    email: string;
-    password: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-    classId?: string;
-  }): Promise<User> {
+  async createByAdmin(dto: CreateUserDto): Promise<User> {
     // Vérifier que l'email n'est pas déjà utilisé
     const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException("Cet email est déjà utilisé");
+    // Vérifier l'âge si c'est un élève avec une date de naissance
+    if (dto.role === 'student' && dto.dateOfBirth) {
+      const dob = new Date(dto.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 9 || age > 16)
+        throw new BadRequestException("L'élève doit avoir entre 9 et 16 ans");
+    }
 
     const hashed = await bcrypt.hash(dto.password, 10);
     const user = this.usersRepository.create({
@@ -130,14 +130,17 @@ export class UsersService {
     });
     const saved = await this.usersRepository.save(user);
 
-    // Si c'est un élève → créer son profil élève et retourner l'id du profil
+    // Si c'est un élève → créer son profil élève avec classe et date de naissance
     if (dto.role === 'student') {
       const schoolClass = dto.classId
         ? await this.classesRepository.findOne({ where: { id: dto.classId } })
         : null;
-      const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
+      const profile = this.studentProfileRepository.create({
+        user: saved,
+        schoolClass,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+      });
       const savedProfile = await this.studentProfileRepository.save(profile);
-      // Attacher le profil à l'utilisateur pour que le frontend puisse accéder à studentProfile.id
       saved.studentProfile = savedProfile;
     }
 
@@ -145,21 +148,20 @@ export class UsersService {
   }
 
   // ── Modifier un utilisateur (par un admin) ────────────────────────────────
-  async updateByAdmin(
-    id: string,
-    dto: {
-      email?: string;
-      firstName?: string;
-      lastName?: string;
-      role?: string;
-      classId?: string;
-    },
-  ): Promise<User> {
+  async updateByAdmin(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
     });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
+    // Vérifier l'âge si date de naissance fournie
+    if (dto.dateOfBirth) {
+      const dob = new Date(dto.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 9 || age > 16)
+        throw new BadRequestException("L'élève doit avoir entre 9 et 16 ans");
+    }
 
     // Si on change l'email, vérifier qu'il n'est pas déjà pris
     if (dto.email && dto.email !== user.email) {
@@ -174,16 +176,23 @@ export class UsersService {
 
     const saved = await this.usersRepository.save(user);
 
-    // Mettre à jour ou créer le profil élève si une classe est fournie
-    if (dto.classId !== undefined) {
-      const schoolClass = dto.classId
-        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
-        : null;
+    // Mettre à jour ou créer le profil élève si classe ou date de naissance fournie
+    if (dto.classId !== undefined || dto.dateOfBirth !== undefined) {
+      const schoolClass = dto.classId !== undefined
+        ? dto.classId ? await this.classesRepository.findOne({ where: { id: dto.classId } }) : null
+        : user.studentProfile?.schoolClass ?? null;
+
       if (user.studentProfile) {
         user.studentProfile.schoolClass = schoolClass;
+        if (dto.dateOfBirth !== undefined)
+          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null;
         await this.studentProfileRepository.save(user.studentProfile);
       } else {
-        const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
+        const profile = this.studentProfileRepository.create({
+          user: saved,
+          schoolClass,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+        });
         await this.studentProfileRepository.save(profile);
       }
     }
@@ -226,7 +235,6 @@ export class UsersService {
 
     if (hasReports > 0) throw new BadRequestException('USER_HAS_REPORTS');
 
-    // Supprimer le profil élève avant l'utilisateur
     if (user.studentProfile) {
       await this.studentProfileRepository.remove(user.studentProfile);
     }
