@@ -1,34 +1,24 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import { formatName } from '@/utils/formatName';
+import { useAuth } from '@/context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
-  getAllUsers, getUserById, createUser, updateUser, deleteUser, checkCanDeleteUser,
-  searchUsers, resolveSuspect, resolveVictim, getClasses, getStudentParents, getStaffProfile,
-  createStaffProfile, updateStaffProfile,
-  createParent, updateParent, deleteParent,
+  getUserById, searchUsers, resolveSuspect, resolveVictim,
+  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser,
 } from '../services/api';
-import StatsDashboard from './StatsDashboard';
+import { useUsers } from '@/hooks/useUsers';
+import StatsDashboard from '../components/admin/StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
-import { Table, TableBody, TableCell, TableRow } from '../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
-import NoteBlock from '../components/NoteBlock';
-import ConvocationSelector from '../components/ConvocationSelector';
-import AdminClasses from '../components/AdminClasses';
-import ReportDetail from '../components/ReportDetail';
-import { Checkbox } from '@/components/ui/checkbox';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import AdminClasses from '../components/admin/AdminClasses';
+import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note, AdminUser } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
@@ -37,18 +27,40 @@ import AdminUserProfile from '@/components/admin/AdminUserProfile';
 interface SchoolClass { id: string; level: string; section: string; }
 
 export default function AdminDashboard() {
+
+  // ── Contexte et navigation ──
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
 
-  const [reports, setReports]     = useState<Report[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [selected, setSelected]   = useState<Report | null>(null);
-  const [saving, setSaving]       = useState(false);
-  const [view, setView]           = useState<'list' | 'detail'>('list');
+  // ── Hook utilisateurs ──
+  const {
+    users, loadingUsers,
+    usersPage, setUsersPage, usersTotalPages,
+    usersSearch, setUsersSearch,
+    usersSort, setUsersSort,
+    usersRoleFilter, setUsersRoleFilter,
+    showUserForm, setShowUserForm,
+    avatarTimestamps, classes, selectedUser, setSelectedUser,
+    userForm, setUserForm, errors, isFormValid,
+    deleteTarget, setDeleteTarget, isDeleting, isBlocked, deleteError,
+    filteredUsers,
+    fetchUsers, fetchClassesList,
+    handleSaveUser, handleDeleteUser, confirmDelete,
+    handleAvatarUpload, updateField, toggleClassId,
+    navigateToUser, calcAge,
+  } = useUsers();
 
+  // ── État des signalements ──
+  const [reports, setReports]   = useState<Report[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [selected, setSelected] = useState<Report | null>(null);
+  const [saving, setSaving]     = useState(false);
+  const [view, setView]         = useState<'list' | 'detail'>('list');
+
+  // ── État des filtres signalements ──
   const [search, setSearch]               = useState('');
   const [filterGrade, setFilterGrade]     = useState('all');
   const [filterStatus, setFilterStatus]   = useState('all');
@@ -61,6 +73,7 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage]     = useState(1);
   const [resetKey, setResetKey]           = useState(0);
 
+  // ── État des notes/convocations ──
   const [notes, setNotes]                     = useState<Note[]>([]);
   const [newNote, setNewNote]                 = useState('');
   const [convocationDate, setConvocationDate] = useState('');
@@ -70,6 +83,7 @@ export default function AdminDashboard() {
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
+  // ── État navigation sections ──
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats' | 'classes'>(
     (searchParams.get('section') as 'reports' | 'users' | 'stats' | 'classes') ?? 'reports'
   );
@@ -78,47 +92,18 @@ export default function AdminDashboard() {
     navigate(`/dashboard?section=${viewSection}`, { replace: true });
   }, [viewSection]);
 
-  const [users, setUsers]               = useState<AdminUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [usersPage, setUsersPage]       = useState(1);
-  const [usersTotalPages, setUsersTotalPages] = useState(1);
-  const [usersTotal, setUsersTotal]     = useState(0);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [usersSearch, setUsersSearch] = useState('');
-  const [usersSort, setUsersSort] = useState<'asc' | 'desc' | 'date'>('asc');
-  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([]);
-  const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
-
-  const [userForm, setUserForm] = useState({
-    firstName: '', lastName: '', email: '', password: '', role: '',
-    classId: '', subject: '', classIds: [] as string[],
-  });
-
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting]     = useState(false);
-  const [deleteError, setDeleteError]   = useState('');
-  const [isBlocked, setIsBlocked]       = useState(false);
-  const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  // ── État divers ──
   const selectedUserId = searchParams.get('userId');
-  const [editMode, setEditMode] = useState(false);
-  const [profileParents, setProfileParents] = useState<any[]>([]);
-  const [profileStaff, setProfileStaff] = useState<any | null>(null);
-  const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
-  const [classes, setClasses]           = useState<SchoolClass[]>([]);
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
   const [suspectSearch, setSuspectSearch] = useState('');
   const [suspectResults, setSuspectResults] = useState<any[]>([]);
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
-  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
-  const [showParentForm, setShowParentForm] = useState(false);
-  const [editingParent, setEditingParent] = useState<any | null>(null);
-  const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
 
   const itemsPerPage = 5;
 
+  // ── useEffects ──
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -126,9 +111,7 @@ export default function AdminDashboard() {
       getUserById(selectedUserId).then(u => {
         if (u) {
           setSelectedUser(u);
-          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-          if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-          else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
+          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
         }
       }).catch(() => {});
     }
@@ -136,8 +119,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
-  const fetchClassesList = async () => { try { setClasses(await getClasses()); } catch {} };
-
+  // ── Fonctions signalements ──
   const fetchReports = async () => {
     try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
   };
@@ -147,8 +129,6 @@ export default function AdminDashboard() {
     try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
     catch {} finally { setSaving(false); }
   };
-
-  const confirmAndUpdate = (status: string, label: string) => setConfirmAction({ status, label });
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
@@ -168,147 +148,7 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
-  const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
-
-  const fetchUsers = async (page?: number, search?: string) => {
-    const p = page ?? usersPage;
-    const q = search !== undefined ? search : usersSearch;
-    setLoadingUsers(true);
-    try {
-      if (q.trim().length >= 2) {
-        const results = await searchUsers(q);
-        const arr = Array.isArray(results) ? results : [];
-        setAllUsers(arr);
-        setUsers(arr);
-        setUsersTotalPages(1);
-        setUsersTotal(arr.length ?? 0);
-        setUsersPage(1);
-      } else {
-        const data = await getAllUsers(1, 1000);
-        const arr = Array.isArray(data.data) ? data.data : [];
-        setAllUsers(arr);
-        setUsers(arr.slice((p-1)*5, p*5));
-        setUsersTotalPages(Math.ceil(arr.length / 7) || 1);
-        setUsersTotal(arr.length ?? 0);
-      }
-    } catch { setAllUsers([]); setUsers([]); }
-    finally { setLoadingUsers(false); }
-  };
-
-  const handleAvatarUpload = async (userId: string, file: File) => {
-    setUploadingAvatarId(userId);
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, body: formData });
-      const data = await res.json();
-      if (data.avatar) { setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() })); await fetchUsers(); setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev); }
-    } catch {} finally { setUploadingAvatarId(null); }
-  };
-
-  const handleSaveUser = async () => {
-    try {
-      if (editingUser) {
-        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
-        if (userForm.role === 'teacher') {
-          try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
-          catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
-        }
-      } else {
-        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
-        if (userForm.role === 'teacher') await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
-      }
-      await fetchUsers();
-      setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [] });
-    } catch {}
-  };
-
-  const handleDeleteUser = async (id: string) => {
-    if (id === user?.id) { setDeleteTarget(id); setIsBlocked(true); setDeleteError(t('admin.users.deleteSelf')); return; }
-    const { deletable } = await checkCanDeleteUser(id);
-    setDeleteTarget(id); setIsBlocked(!deletable); setDeleteError('');
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    setIsDeleting(true); setDeleteError(''); setIsBlocked(false);
-    try { await deleteUser(deleteTarget); await fetchUsers(); setDeleteTarget(null); setSelectedUser(null); navigate('/dashboard?section=users', { replace: true }); }
-    catch (err: any) {
-      const msg = err?.response?.data?.message ?? err?.message ?? '';
-      if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
-      else setDeleteError(t('admin.users.deleteError'));
-    } finally { setIsDeleting(false); }
-  };
-
-  const validateField = (field: string, value: string) => {
-    let message = '';
-    const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
-    if (field === 'firstName' || field === 'lastName') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (!nameRegex.test(value)) message = t('admin.users.name');
-    } else if (field === 'email') {
-      if (!value.trim()) message = t('admin.users.errorRequired');
-      else if (value.length > 50) message = t('admin.users.tooLong');
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) message = t('admin.users.errorEmailFormat');
-    } else if (field === 'password' && value.length > 0) {
-      if (value.length < 12) message = t('admin.users.atLeast');
-      else if (!/[0-9]/.test(value)) message = t('admin.users.atLeastOneNumber');
-      else if (!/[a-z]/.test(value)) message = t('admin.users.atLeastOneMinus');
-      else if (!/[A-Z]/.test(value)) message = t('admin.users.atLeastOneMajor');
-      else if (!/[^a-zA-Z0-9]/.test(value)) message = t('admin.users.atLeastOneSpecial');
-      else if (userForm.firstName && value.toLowerCase().includes(userForm.firstName.toLowerCase())) message = t('admin.users.noFirstName');
-      else if (userForm.lastName && value.toLowerCase().includes(userForm.lastName.toLowerCase())) message = t('admin.users.noLastName');
-    }
-    setErrors(prev => ({ ...prev, [field]: message }));
-  };
-
-  const updateField = (field: string, value: string) => {
-    let normalized = value;
-    if (field === 'firstName') {
-      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('-');
-    }
-    if (field === 'lastName') {
-      normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
-    }
-    setUserForm(prev => ({ ...prev, [field]: normalized }));
-    validateField(field, normalized);
-  };
-  const toggleClassId = (id: string) => setUserForm(prev => ({ ...prev, classIds: prev.classIds.includes(id) ? prev.classIds.filter(x => x !== id) : [...prev.classIds, id] }));
-  const isFormValid = userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password;
-
-
-  // ── Helpers utilisateurs ─────────────────────────────────────────────────
-  const calcAge = (dateOfBirth: string) => {
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-    return age;
-  };
-
-  const filteredUsers = useMemo(() => {
-    return [...allUsers]
-      .filter(u => usersRoleFilter.length === 0 || usersRoleFilter.includes(u.role))
-      .sort((a, b) => {
-        if (usersSort === 'asc') return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
-        if (usersSort === 'desc') return `${b.lastName} ${b.firstName}`.localeCompare(`${a.lastName} ${a.firstName}`);
-        if (usersSort === 'date') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        return 0;
-      });
-  }, [users, usersRoleFilter, usersSort]);
-
-  const navigateToUser = (u: AdminUser) => {
-    setSelectedUser(u);
-    setEditMode(false);
-    navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-    setProfileParents([]); setProfileStaff(null);
-    if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-    else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
-  };
-
+  // ── Calculs mémorisés signalements ──
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
@@ -350,49 +190,138 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
+  // ── Formulaire utilisateur (JSX — reste ici car utilise composants shadcn/ui) ──
   const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
-	  <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
+      <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
-	  <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
+      <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
-	  <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
+      <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
       <div><Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
-	  <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password && 
-	  <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
-
-
-
-    <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-       	<SelectTrigger className="bg-white">
-			<span>
-				{userForm.role === "" && t('admin.users.roles.choose')}
-				{userForm.role === "student" && t('admin.users.roles.student')}
-				{userForm.role === "teacher" && t('admin.users.roles.teacher')}
-				{userForm.role === "admin" && t('admin.users.roles.admin')}
-				{userForm.role === "director" && t('admin.users.roles.director')}
-			</span>
-		</SelectTrigger>
+      <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password &&
+      <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
+      <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
+        <SelectTrigger className="bg-white">
+          <span>
+            {userForm.role === "" && t('admin.users.roles.choose')}
+            {userForm.role === "student" && t('admin.users.roles.student')}
+            {userForm.role === "teacher" && t('admin.users.roles.teacher')}
+            {userForm.role === "admin" && t('admin.users.roles.admin')}
+            {userForm.role === "director" && t('admin.users.roles.director')}
+          </span>
+        </SelectTrigger>
         <SelectContent>
           <SelectItem value="student">{t('admin.users.roles.student')}</SelectItem>
           <SelectItem value="teacher">{t('admin.users.roles.teacher')}</SelectItem>
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
-        </SelectContent> 
-
-
-    </Select>
+        </SelectContent>
+      </Select>
       {userForm.role === 'student' && (
-        <div>
-          <Label className="text-white text-sm">Classe</Label>
-          <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
-            <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')}>{classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}</SelectValue></SelectTrigger>
-            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
+        <>
+          <div>
+            <Label className="text-white text-sm">Classe</Label>
+            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
+              <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')}>{classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}</SelectValue></SelectTrigger>
+              <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          {/* ── Section Parents ── */}
+          <div className="mt-2">
+            <div className="flex justify-between items-center mb-2">
+              <Label className="text-white text-sm">Responsables légaux</Label>
+              {userForm.parents.length < 2 && (
+                <button
+                  type="button"
+                  className="text-xs text-white/80 hover:text-white underline"
+                  onClick={() => setUserForm(prev => ({
+                    ...prev,
+                    parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
+                  }))}
+                >
+                  + Ajouter un parent
+                </button>
+              )}
+            </div>
+
+            {userForm.parents.map((parent, idx) => (
+              <div key={idx} className="bg-white/10 rounded-lg p-3 mb-2 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-white text-xs font-semibold">Parent {idx + 1}</span>
+                  <button
+                    type="button"
+                    className="text-white/60 hover:text-white text-xs"
+                    onClick={() => setUserForm(prev => ({
+                      ...prev,
+                      parents: prev.parents.filter((_, i) => i !== idx)
+                    }))}
+                  >
+                    ✕ Supprimer
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-white/80 text-xs">Prénom</Label>
+                    <Input
+                      value={parent.firstName}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() } : p) }));
+                      }}
+                      maxLength={20}
+                      className="bg-white mt-1 h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-white/80 text-xs">Nom</Label>
+                    <Input
+                      value={parent.lastName}
+                      onChange={e => {
+                        const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
+                        setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, lastName: val.toUpperCase() } : p) }));
+                      }}
+                      maxLength={20}
+                      className="bg-white mt-1 h-8 text-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Email</Label>
+                  <Input
+                    type="email"
+                    value={parent.email}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, email: e.target.value } : p) }))}
+                    maxLength={50}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Téléphone</Label>
+                  <Input
+                    value={parent.phone}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, phone: e.target.value.replace(/[^0-9+\s]/g, '') } : p) }))}
+                    maxLength={15}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-white/80 text-xs">Adresse</Label>
+                  <Input
+                    value={parent.address}
+                    onChange={e => setUserForm(prev => ({ ...prev, parents: prev.parents.map((p, i) => i === idx ? { ...p, address: e.target.value } : p) }))}
+                    maxLength={80}
+                    className="bg-white mt-1 h-8 text-sm"
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       {userForm.role === 'teacher' && (
         <>
@@ -416,73 +345,68 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // ── Vue détail ────────────────────────────────────────────────────────────
+  // ── Vue détail signalement ──
   if (view === 'detail' && selected) {
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
-        <ReportDetail
-          selected={selected}
-          filtered={filtered}
-          notes={notes}
-          isAdmin={isAdmin}
-          saving={saving}
-          resolving={resolving}
-          checkedConvocIds={checkedConvocIds}
-          convocDetails={convocDetails}
-          sendingConvoc={sendingConvoc}
-          convocSuccess={convocSuccess}
-          newNote={newNote}
-          activeSuspect={activeSuspect}
-          suspectSearch={suspectSearch}
-          suspectResults={suspectResults}
-          onBack={() => { setView('list'); setSelected(null); }}
-          onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
-          onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
-          onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
-          onAddNote={handleAddNote}
-          onResolveSuspect={handleResolveSuspect}
-          onResolveVictim={async (victimId, userId) => {
-            await resolveVictim(victimId, userId);
-            const updated = await getAllReports();
-            setReports(updated);
-            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
-            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-          }}
-          onSetActiveSuspect={setActiveSuspect}
-          onSuspectSearch={handleSuspectSearch}
-          onSetNewNote={setNewNote}
-          onToggleConvoc={id => {
-            if (id === '__clear__') { setCheckedConvocIds([]); return; }
-            setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-          }}
-          onSetConvocDetails={setConvocDetails}
-          onSetSendingConvoc={setSendingConvoc}
-          onSetConvocSuccess={setConvocSuccess}
-          onSetSuspectSearch={setSuspectSearch}
-          onSetSuspectResults={setSuspectResults}
-          onAddNoteRaw={addNote}
-          onLoadNotes={loadNotes}
-          onNavigateToUser={async (userId) => {
-            const currentReportId = selected?.id ?? '';
-            setOriginReportId(currentReportId);
-            setView('list');
-            setSelected(null);
-            setSelectedUser(null);
-            setEditMode(false);
-            setProfileParents([]);
-            setProfileStaff(null);
-            const u = await getUserById(userId);
-            if (u) {
-              setSelectedUser(u);
-              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [] });
-              if (u.role === 'student') getStudentParents(u.id).then(setProfileParents).catch(() => setProfileParents([]));
-              else if (u.role === 'teacher') getStaffProfile(u.id).then(setProfileStaff).catch(() => setProfileStaff(null));
-            }
-            setViewSection('users');
-            navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
-          }}
+            <ReportDetail
+              selected={selected}
+              filtered={filtered}
+              notes={notes}
+              isAdmin={isAdmin}
+              saving={saving}
+              resolving={resolving}
+              checkedConvocIds={checkedConvocIds}
+              convocDetails={convocDetails}
+              sendingConvoc={sendingConvoc}
+              convocSuccess={convocSuccess}
+              newNote={newNote}
+              activeSuspect={activeSuspect}
+              suspectSearch={suspectSearch}
+              suspectResults={suspectResults}
+              onBack={() => { setView('list'); setSelected(null); }}
+              onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
+              onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
+              onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
+              onAddNote={handleAddNote}
+              onResolveSuspect={handleResolveSuspect}
+              onResolveVictim={async (victimId, userId) => {
+                await resolveVictim(victimId, userId);
+                const updated = await getAllReports();
+                setReports(updated);
+                setSelected(updated.find((r) => r.id === selected?.id) ?? null);
+                setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+              }}
+              onSetActiveSuspect={setActiveSuspect}
+              onSuspectSearch={handleSuspectSearch}
+              onSetNewNote={setNewNote}
+              onToggleConvoc={id => {
+                if (id === '__clear__') { setCheckedConvocIds([]); return; }
+                setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+              }}
+              onSetConvocDetails={setConvocDetails}
+              onSetSendingConvoc={setSendingConvoc}
+              onSetConvocSuccess={setConvocSuccess}
+              onSetSuspectSearch={setSuspectSearch}
+              onSetSuspectResults={setSuspectResults}
+              onAddNoteRaw={addNote}
+              onLoadNotes={loadNotes}
+              onNavigateToUser={async (userId) => {
+                const currentReportId = selected?.id ?? '';
+                setOriginReportId(currentReportId);
+                setView('list');
+                setSelected(null);
+                setSelectedUser(null);
+                const u = await getUserById(userId);
+                if (u) {
+                  setSelectedUser(u);
+                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
+                }
+                setViewSection('users');
+                navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
+              }}
         />
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -499,7 +423,7 @@ export default function AdminDashboard() {
     );
   }
 
-  // ── Vue liste ─────────────────────────────────────────────────────────────
+  // ── Vue liste ──
   return (
     <main className="min-h-screen bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
@@ -577,21 +501,14 @@ export default function AdminDashboard() {
           <AdminUserProfile
             selectedUser={selectedUser}
             filteredUsers={filteredUsers}
-            profileParents={profileParents}
-            profileStaff={profileStaff}
             avatarTimestamps={avatarTimestamps}
             classes={classes}
             userForm={userForm}
             errors={errors}
-            editMode={editMode}
-            showParentForm={showParentForm}
-            editingParent={editingParent}
-            parentForm={parentForm}
-            uploadingAvatarId={uploadingAvatarId}
             isFormValid={!!isFormValid}
             originReportId={originReportId}
             onBack={() => {
-              setSelectedUser(null); setEditMode(false);
+              setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
                 const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
@@ -604,31 +521,12 @@ export default function AdminDashboard() {
             }}
             onPrev={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const prev = filteredUsers[idx - 1]; if (prev) navigateToUser(prev); }}
             onNextUser={() => { const idx = filteredUsers.findIndex(u => u.id === selectedUser.id); const next = filteredUsers[idx + 1]; if (next) navigateToUser(next); }}
-            onSetEditMode={setEditMode}
             onHandleAvatarUpload={handleAvatarUpload}
             onHandleDeleteUser={handleDeleteUser}
-            onSetShowParentForm={setShowParentForm}
-            onSetEditingParent={setEditingParent}
-            onSetParentForm={setParentForm}
-            onSaveParent={async () => {
-              if (editingParent) {
-                await updateParent(editingParent.id, parentForm);
-              } else {
-                const studentProfileId = selectedUser?.studentProfile?.id;
-                if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
-              }
-              const updated = await getStudentParents(selectedUser!.id);
-              setProfileParents(updated);
-              setShowParentForm(false); setEditingParent(null);
-            }}
-            onDeleteParent={async (id) => {
-              await deleteParent(id);
-              setProfileParents(await getStudentParents(selectedUser!.id));
-            }}
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-              await fetchUsers(); setEditMode(false);
+              await fetchUsers();
               const u = users.find(u => u.id === selectedUser.id);
               if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
             }}
@@ -667,7 +565,6 @@ export default function AdminDashboard() {
 
         {/* ── Classes ── */}
         {viewSection === 'classes' && isAdmin && <AdminClasses />}
-
 
         {/* ── Modale suppression utilisateur ── */}
         {deleteTarget && (

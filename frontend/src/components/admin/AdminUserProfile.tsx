@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useState, useEffect } from 'react';
+import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface SchoolClass { id: string; level: string; section: string; }
@@ -12,46 +14,76 @@ interface SchoolClass { id: string; level: string; section: string; }
 interface AdminUserProfileProps {
   selectedUser: AdminUser;
   filteredUsers: AdminUser[];
-  profileParents: any[];
-  profileStaff: any | null;
   avatarTimestamps: Record<string, number>;
   classes: SchoolClass[];
   userForm: any;
   errors: any;
-  editMode: boolean;
-  showParentForm: boolean;
-  editingParent: any | null;
-  parentForm: any;
-  uploadingAvatarId: string | null;
   isFormValid: boolean;
   originReportId: string | null;
   onBack: () => void;
   onPrev: () => void;
   onNextUser: () => void;
-  onSetEditMode: (v: boolean) => void;
   onHandleAvatarUpload: (userId: string, file: File) => void;
   onHandleDeleteUser: (id: string) => void;
-  onSetShowParentForm: (v: boolean) => void;
-  onSetEditingParent: (p: any | null) => void;
-  onSetParentForm: (f: any) => void;
-  onSaveParent: () => void;
-  onDeleteParent: (id: string) => void;
   onSaveUser: () => void;
   renderUserForm: (isEdit: boolean) => JSX.Element;
   calcAge: (dateOfBirth: string) => number;
 }
 
 export default function AdminUserProfile({
-  selectedUser, filteredUsers, profileParents, profileStaff,
-  avatarTimestamps, classes, userForm, errors, editMode,
-  showParentForm, editingParent, parentForm, uploadingAvatarId,
+  selectedUser, filteredUsers,
+  avatarTimestamps, classes, userForm, errors,
   isFormValid, originReportId,
-  onBack, onPrev, onNextUser, onSetEditMode, onHandleAvatarUpload,
-  onHandleDeleteUser, onSetShowParentForm, onSetEditingParent,
-  onSetParentForm, onSaveParent, onDeleteParent, onSaveUser,
+  onBack, onPrev, onNextUser, onHandleAvatarUpload,
+  onHandleDeleteUser, onSaveUser,
   renderUserForm, calcAge,
 }: AdminUserProfileProps) {
   const { t } = useTranslation();
+
+  // ── État local ──
+const [editMode, setEditMode] = useState(false);
+const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
+const [showParentForm, setShowParentForm] = useState(false);
+const [editingParent, setEditingParent] = useState<any | null>(null);
+const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
+const [profileParents, setProfileParents] = useState<any[]>([]);
+const [profileStaff, setProfileStaff] = useState<any | null>(null);
+// ── Chargement des parents ──
+useEffect(() => {
+  if (selectedUser?.role === 'student' && selectedUser?.id) {
+    getStudentParents(selectedUser.id)
+      .then(setProfileParents)
+      .catch(() => setProfileParents([]));
+  } else {
+    setProfileParents([]);
+  }
+  if (selectedUser?.role === 'teacher' && selectedUser?.id) {
+    getStaffProfile(selectedUser.id)
+      .then(setProfileStaff)
+      .catch(() => setProfileStaff(null));
+  } else {
+    setProfileStaff(null);
+  }
+}, [selectedUser?.id]);
+// ── Fonctions locales ──
+const handleSaveParent = async () => {
+  const studentProfileId = selectedUser?.studentProfile?.id;
+  if (editingParent) {
+    await updateParent(editingParent.id, parentForm);
+  } else {
+    if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+  }
+  const updated = await getStudentParents(selectedUser.id);
+  setProfileParents(updated);
+  setShowParentForm(false);
+  setEditingParent(null);
+};
+
+const handleDeleteParent = async (id: string) => {
+  await deleteParent(id);
+  const updated = await getStudentParents(selectedUser.id);
+  setProfileParents(updated);
+};
 
   return (
     <section className="page-section">
@@ -89,7 +121,7 @@ export default function AdminUserProfile({
         </div>
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
-            <Button onClick={() => onSetEditMode(true)}>{t('admin.users.edit')}</Button>
+            <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
             <Button className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
               {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
@@ -122,9 +154,9 @@ export default function AdminUserProfile({
             <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
             {profileParents.length < 2 && !showParentForm && (
               <Button size="sm" variant="default" onClick={() => {
-                onSetShowParentForm(true);
-                onSetEditingParent(null);
-                onSetParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
+                setShowParentForm(true);
+                setEditingParent(null);
+                setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
               }}>+ Ajouter</Button>
             )}
           </div>
@@ -134,27 +166,27 @@ export default function AdminUserProfile({
                 <div><Label className="text-xs">Prénom</Label>
                   <Input value={parentForm.firstName} onChange={e => {
                     const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                    onSetParentForm({ ...parentForm, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() });
+                    setParentForm({ ...parentForm, firstName: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase() });
                   }} maxLength={20} className="mt-1" /></div>
                 <div><Label className="text-xs">Nom</Label>
                   <Input value={parentForm.lastName} onChange={e => {
                     const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
-                    onSetParentForm({ ...parentForm, lastName: val.toUpperCase() });
+                    setParentForm({ ...parentForm, lastName: val.toUpperCase() });
                   }} maxLength={20} className="mt-1" /></div>
               </div>
               <div><Label className="text-xs">Email</Label>
-                <Input type="email" value={parentForm.email} onChange={e => onSetParentForm({ ...parentForm, email: e.target.value })} maxLength={50} className="mt-1" /></div>
+                <Input type="email" value={parentForm.email} onChange={e => setParentForm({ ...parentForm, email: e.target.value })} maxLength={50} className="mt-1" /></div>
               <div><Label className="text-xs">Téléphone</Label>
-                <Input value={parentForm.phone} onChange={e => onSetParentForm({ ...parentForm, phone: e.target.value.replace(/[^0-9+\s]/g, '') })} maxLength={15} className="mt-1" /></div>
+                <Input value={parentForm.phone} onChange={e => setParentForm({ ...parentForm, phone: e.target.value.replace(/[^0-9+\s]/g, '') })} maxLength={15} className="mt-1" /></div>
               <div><Label className="text-xs">Adresse</Label>
-                <Input value={parentForm.address} onChange={e => onSetParentForm({ ...parentForm, address: e.target.value })} className="mt-1" /></div>
+                <Input value={parentForm.address} onChange={e => setParentForm({ ...parentForm, address: e.target.value })} maxLength={80} className="mt-1" /></div>
               <div className="flex gap-2 justify-end mt-1">
                 <Button size="sm" disabled={
                   !parentForm.firstName || parentForm.firstName.length < 2 ||
                   !parentForm.lastName || parentForm.lastName.length < 2 ||
                   !parentForm.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentForm.email)
-                } onClick={onSaveParent}>Enregistrer</Button>
-                <Button size="sm" variant="ghost" onClick={() => { onSetShowParentForm(false); onSetEditingParent(null); }}>Annuler</Button>
+                } onClick={handleSaveParent}>Enregistrer</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>Annuler</Button>
               </div>
             </div>
           )}
@@ -167,11 +199,11 @@ export default function AdminUserProfile({
                     <p className="font-semibold text-gray-800">{first} {last}</p>
                     <div className="flex gap-2">
                       <Button size="sm" variant="default" onClick={() => {
-                        onSetEditingParent(p);
-                        onSetParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' });
-                        onSetShowParentForm(true);
+                        setEditingParent(p);
+                        setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' });
+                        setShowParentForm(true);
                       }}>Modifier</Button>
-                      <Button size="sm" variant="default" onClick={() => onDeleteParent(p.id)}>Supprimer</Button>
+                      <Button size="sm" variant="default" onClick={() => handleDeleteParent(p.id)}>Supprimer</Button>
                     </div>
                   </div>
                   <table className="w-full table-fixed text-sm [&_tr]:border-0"><tbody>
@@ -215,11 +247,11 @@ export default function AdminUserProfile({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={onSaveUser}>Confirmer</AlertDialogAction>
+                  <AlertDialogAction onClick={async () => { await onSaveUser(); setEditMode(false); }}>Confirmer</AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button variant="ghost" onClick={() => onSetEditMode(false)}>{t('common.cancel')}</Button>
+            <Button variant="ghost" onClick={() => setEditMode(false)}>{t('common.cancel')}</Button>
           </div>
         </>
       )}

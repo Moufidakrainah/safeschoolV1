@@ -9,41 +9,33 @@ import { SchoolClass } from '../classes/school-class.entity';
 
 @Injectable()
 export class UsersService {
-  // constructor(
-  //   @InjectRepository(User) private usersRepository: Repository<User>,
-  //   @InjectRepository(StudentProfile) private profilesRepository: Repository<StudentProfile>,
-  // ) {}
 
-
-constructor(
-  @InjectRepository(User)
-  private usersRepository: Repository<User>,
-  @InjectRepository(StudentProfile)
-  private studentProfileRepository: Repository<StudentProfile>,
-  @InjectRepository(Report)
-  private reportRepository: Repository<Report>,
-  @InjectRepository(SchoolClass)
-  private classesRepository: Repository<SchoolClass>,
-) {}
-
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(StudentProfile)
+    private studentProfileRepository: Repository<StudentProfile>,
+    @InjectRepository(Report)
+    private reportRepository: Repository<Report>,
+    @InjectRepository(SchoolClass)
+    private classesRepository: Repository<SchoolClass>,
+  ) {}
 
   // ── Chercher un user par email (sans profil) ──────────────────────────────
   // Utilisé par AuthService pour la connexion
-  // On inclut le mot de passe car on doit le vérifier
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
-    //   relations: ['studentProfile', 'staffProfile'],
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
     });
   }
 
-  // ── Chercher un user par email avec son profil élève ─────────────────────
+  // ── Chercher un user par email avec son profil ────────────────────────────
   // Utilisé par AuthService pour retourner les infos complètes après connexion
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-	  select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
       relations: ['studentProfile', 'studentProfile.schoolClass', 'staffProfile'],
     });
   }
@@ -58,9 +50,6 @@ constructor(
   }
 
   // ── Voir tous les utilisateurs avec filtres et pagination ─────────────────
-  // role     : filtrer par rôle (optionnel)
-  // page     : numéro de page (défaut 1)
-  // limit    : nombre de résultats par page (défaut 10)
   async findAll(
     role?: string,
     page = 1,
@@ -78,29 +67,20 @@ constructor(
       .leftJoinAndSelect("user.staffProfile", "staffProfile")
       .leftJoinAndSelect("staffProfile.classes", "staffClasses");
 
-    // Si un rôle est précisé, on filtre par ce rôle
     if (role) {
       query.where("user.role = :role", { role });
     }
 
-    // Pagination : on saute les résultats des pages précédentes
     const total = await query.getCount();
     const data = await query
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
 
-    return {
-      data,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, totalPages: Math.ceil(total / limit) };
   }
 
   // ── Rechercher un user par prénom ou nom ──────────────────────────────────
-  // Utilisé dans le formulaire de signalement pour chercher des suspects
-  // On exclut les admins et directeurs des résultats
   async search(query: string): Promise<User[]> {
     return this.usersRepository
       .createQueryBuilder("user")
@@ -108,19 +88,13 @@ constructor(
       .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
       .leftJoinAndSelect("user.staffProfile", "staffProfile")
       .leftJoinAndSelect("staffProfile.classes", "staffClasses")
-      .where("LOWER(user.firstName) LIKE LOWER(:query)", {
-        query: `%${query}%`,
-      })
-      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", {
-        query: `%${query}%`,
-      })
+      .where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` })
+      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", { query: `%${query}%` })
       .limit(100)
       .getMany();
   }
 
-  // ── Créer un utilisateur (par un admin) ───────────────────────────────────
-  // On vérifie que l'email n'existe pas déjà avant de créer
-  // Si c'est un élève et qu'une classe est fournie, on crée aussi son profil
+  // ── Créer un utilisateur (par auth register) ──────────────────────────────
   async create(
     email: string,
     password: string,
@@ -129,13 +103,7 @@ constructor(
     role: UserRole = UserRole.STUDENT,
   ): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
-    const user = this.usersRepository.create({
-      email,
-      password: hashed,
-      firstName,
-      lastName,
-      role,
-    });
+    const user = this.usersRepository.create({ email, password: hashed, firstName, lastName, role });
     return this.usersRepository.save(user);
   }
 
@@ -149,9 +117,7 @@ constructor(
     classId?: string;
   }): Promise<User> {
     // Vérifier que l'email n'est pas déjà utilisé
-    const existing = await this.usersRepository.findOne({
-      where: { email: dto.email },
-    });
+    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException("Cet email est déjà utilisé");
 
     const hashed = await bcrypt.hash(dto.password, 10);
@@ -164,20 +130,21 @@ constructor(
     });
     const saved = await this.usersRepository.save(user);
 
-    // Si c'est un élève avec une classe, on crée son profil élève
+    // Si c'est un élève → créer son profil élève et retourner l'id du profil
     if (dto.role === 'student') {
       const schoolClass = dto.classId
         ? await this.classesRepository.findOne({ where: { id: dto.classId } })
         : null;
       const profile = this.studentProfileRepository.create({ user: saved, schoolClass });
-      await this.studentProfileRepository.save(profile);
+      const savedProfile = await this.studentProfileRepository.save(profile);
+      // Attacher le profil à l'utilisateur pour que le frontend puisse accéder à studentProfile.id
+      saved.studentProfile = savedProfile;
     }
 
     return saved;
   }
 
   // ── Modifier un utilisateur (par un admin) ────────────────────────────────
-  // On vérifie que le nouvel email n'est pas déjà utilisé par quelqu'un d'autre
   async updateByAdmin(
     id: string,
     dto: {
@@ -194,11 +161,9 @@ constructor(
     });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
 
-    // Si on change l'email, vérifier qu'il n'est pas déjà pris par un autre user
+    // Si on change l'email, vérifier qu'il n'est pas déjà pris
     if (dto.email && dto.email !== user.email) {
-      const existing = await this.usersRepository.findOne({
-        where: { email: dto.email },
-      });
+      const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
       if (existing) throw new ConflictException("Cet email est déjà utilisé");
       user.email = dto.email;
     }
@@ -226,124 +191,62 @@ constructor(
     return saved;
   }
 
-  // ── Changer le mot de passe d'un utilisateur ──────────────────────────────
-  // Accessible par l'admin (pour n'importe quel user)
-  // Accessible par l'utilisateur lui-même (pour son propre compte)
+  // ── Changer le mot de passe ───────────────────────────────────────────────
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
 
-    // Vérifier que le mot de passe fait au moins 6 caractères
     if (newPassword.length < 6)
-      throw new ForbiddenException(
-        "Le mot de passe doit faire au moins 6 caractères",
-      );
+      throw new ForbiddenException("Le mot de passe doit faire au moins 6 caractères");
 
     const hashed = await bcrypt.hash(newPassword, 10);
-
-    // On utilise une requête directe pour contourner le select: false sur password
     await this.usersRepository.query(
       `UPDATE users SET password = $1 WHERE id = $2`,
       [hashed, id],
     );
   }
 
-  // ── Supprimer un utilisateur (par un admin) ───────────────────────────────
-  // On supprime d'abord toutes les données liées pour éviter les erreurs de clé étrangère
-  // On empêche un admin de supprimer son propre compte
+  // ── Supprimer un utilisateur ──────────────────────────────────────────────
+  async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
+    if (id === currentUserId)
+      throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
 
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['studentProfile'],
+    });
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
 
+    const hasReports = await this.reportRepository.count({
+      where: [
+        { student: { id } },
+        { suspects: { resolvedUser: { id } } },
+      ]
+    });
 
+    if (hasReports > 0) throw new BadRequestException('USER_HAS_REPORTS');
 
-  // async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
-  //   // Empêcher de supprimer son propre compte
-  //   if (id === currentUserId) throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
+    // Supprimer le profil élève avant l'utilisateur
+    if (user.studentProfile) {
+      await this.studentProfileRepository.remove(user.studentProfile);
+    }
 
-  //   const user = await this.usersRepository.findOne({ where: { id } });
-  //   if (!user) throw new NotFoundException('Utilisateur introuvable');
-  //   await this.usersRepository.remove(user);
-  // }
-
-    // Supprimer toutes les données liées avant de supprimer le user
-    // await this.usersRepository.query(`DELETE FROM notifications WHERE "userId" = $1`, [id]);
-    // await this.usersRepository.query(`DELETE FROM report_suspects WHERE "userId" = $1`, [id]);
-    // await this.usersRepository.query(`DELETE FROM report_notes WHERE "authorId" = $1`, [id]);
-    // await this.usersRepository.query(`DELETE FROM reports WHERE "studentId" = $1`, [id]);
-    // await this.usersRepository.query(`DELETE FROM student_profiles WHERE "userId" = $1`, [id]);
-
-
-
-// async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
-//   if (id === currentUserId) 
-//     throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
-
-//   const user = await this.usersRepository.findOne({ where: { id } });
-//   if (!user) throw new NotFoundException('Utilisateur introuvable');
-
-//   // ← ajouter cette vérification
-//   const hasReports = await this.reportRepository.count({
-//     where: [
-//       { student: { id } },
-//       { suspects: { resolvedUser: { id } } },
-//     ]
-//   });
-
-//   if (hasReports > 0) {
-//     throw new BadRequestException('USER_HAS_REPORTS');
-//   }
-
-//   await this.usersRepository.remove(user);
-// }
-
-async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
-  if (id === currentUserId) 
-    throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
-
-  const user = await this.usersRepository.findOne({ 
-    where: { id },
-    relations: ['studentProfile']  // ← charger le profil
-  });
-  if (!user) throw new NotFoundException('Utilisateur introuvable');
-
-  const hasReports = await this.reportRepository.count({
-    where: [
-      { student: { id } },
-      { suspects: { resolvedUser: { id } } },
-    ]
-  });
-
-  if (hasReports > 0) {
-    throw new BadRequestException('USER_HAS_REPORTS');
+    await this.usersRepository.remove(user);
   }
 
-  // ← supprimer le profil élève avant l'utilisateur
-  if (user.studentProfile) {
-    await this.studentProfileRepository.remove(user.studentProfile);
+  // ── Vérifier si un utilisateur peut être supprimé ────────────────────────
+  async canDelete(id: string): Promise<{ deletable: boolean }> {
+    const hasReports = await this.reportRepository.count({
+      where: [
+        { student: { id } },
+        { suspects: { resolvedUser: { id } } },
+      ]
+    });
+    return { deletable: hasReports === 0 };
   }
 
-  await this.usersRepository.remove(user);
-}
-
-
-async canDelete(id: string): Promise<{ deletable: boolean }> {
-  const hasReports = await this.reportRepository.count({
-    where: [
-      { student: { id } },
-      { suspects: { resolvedUser: { id } } },
-    ]
-  });
-  return { deletable: hasReports === 0 };
-}
-
-
-
-
-
-
-
-
+  // ── Mettre à jour l'avatar ────────────────────────────────────────────────
   async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
-    // Supprimer l'ancien fichier si il existe
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user?.avatar && user.avatar !== filename) {
       const oldPath = require('path').join(process.cwd(), 'uploads', 'avatars', user.avatar);
