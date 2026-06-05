@@ -23,7 +23,7 @@ up: check-env ## Construire, démarrer et injecter les données si base vide
 	$(COMPOSE) up -d --build; \
 	$(MAKE) seed-if-empty; \
 	end=$$(date +%s); \
-	echo "Temps de build : $$((end - start))s"
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
 down: ## Arrêter tous les services
 	$(COMPOSE) down
@@ -45,7 +45,7 @@ rebuild: check-env ## Reconstruire sans cache et redémarrer
 	$(COMPOSE) up -d; \
 	$(MAKE) seed-if-empty; \
 	end=$$(date +%s); \
-	echo "Temps de build : $$((( end - start) / 60))m $$(((end - start) % 60))s"
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
 
 # == SERVICE PAR SERVICE ==
@@ -55,7 +55,7 @@ up-app: check-env ## Démarrer uniquement frontend, backend et database (sans EL
 	$(COMPOSE) up -d --no-deps --build frontend backend database; \
 	$(MAKE) seed-if-empty; \
 	end=$$(date +%s); \
-	echo "Temps de build : $$((( end - start) / 60))m $$(((end - start) % 60))s"
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
 up-be: check-env ## Démarrer backend et database seulement
 	$(COMPOSE) up -d backend database
