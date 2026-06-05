@@ -22,6 +22,14 @@ up: check-env ## Construire, démarrer et injecter les données si base vide
 	$(COMPOSE) up -d --build
 	$(MAKE) seed-if-empty
 
+up-app: check-env ## Démarrer uniquement frontend, backend et database (sans ELK ni pgadmin)
+	$(COMPOSE) up -d --no-deps --build frontend backend database
+	$(MAKE) seed-if-empty
+
+start: check-env ## Démarrer les services sans reconstruire les images
+	$(COMPOSE) up -d
+	$(MAKE) seed-if-empty
+
 down: ## Arrêter tous les services
 	$(COMPOSE) down
 
@@ -128,4 +136,4 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up down build rebuild re up-be up-fe up-elk down-elk logs logs-fe logs-be logs-db wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top logs-db
+.PHONY: all help check-env up up-app down build rebuild re up-be up-fe up-elk down-elk logs logs-fe logs-be logs-db wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top logs-db
