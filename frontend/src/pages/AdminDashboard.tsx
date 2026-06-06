@@ -19,7 +19,7 @@ import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
-import type { Report, Note, AdminUser } from '../types';
+import type { Report, Note } from '../types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
