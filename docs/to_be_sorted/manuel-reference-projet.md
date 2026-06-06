@@ -23,6 +23,7 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 12. [shadcn/ui — ajouter et migrer des composants](#12-shadcnui--ajouter-et-migrer-des-composants)
 13. [CORS — autoriser le frontend à parler au backend](#13-cors--autoriser-le-frontend-à-parler-au-backend)
 14. [Validation des formulaires côté frontend](#14-validation-des-formulaires-côté-frontend)
+15. [Validation des données côté backend — DTOs et ValidationPipe](#15-validation-des-données-côté-backend--dtos-et-validationpipe)
 
 ---
 
@@ -3207,4 +3208,96 @@ setShowErrors(false);    // reset si tout est valide
 ### Ce qu'on n'a pas (et pourquoi c'est OK)
 
 **react-hook-form + Zod** est la solution standard en production — elle gère la validation en temps réel, les types TypeScript automatiques depuis le schéma, le `watch`, etc. Pour SafeSchool, les formulaires sont simples (3-4 champs) et la validation au clic suffit. C'est un choix délibéré de ne pas sur-ingénier.
+
+---
+
+## 15. Validation des données côté backend — DTOs et ValidationPipe
+
+### Le problème sans validation
+
+Sans validation côté backend, n'importe quelle donnée peut entrer dans le système. Un DTO sans décorateurs est juste du typage TypeScript — il décrit ce qu'on attend, mais ne vérifie rien à l'exécution.
+
+```ts
+// Avant : typage seul, aucune vérification réelle
+class LoginDto {
+  email: string;
+  password: string;
+}
+```
+
+Si quelqu'un envoie `email: ""` ou `password: 123` (un nombre), le backend l'accepte sans se plaindre. Le typage TypeScript disparaît à la compilation — il ne protège que le développeur qui écrit le code, pas le serveur qui reçoit des requêtes.
+
+### Les DTOs avec `class-validator`
+
+Un DTO (*Data Transfer Object*) est une classe qui décrit la forme exacte des données attendues dans une requête. Avec la librairie `class-validator`, on ajoute des **décorateurs** qui définissent des règles de validation :
+
+```ts
+export class LoginDto {
+  @IsEmail({}, { message: 'Email invalide' })
+  @IsNotEmpty({ message: 'Email obligatoire' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
+  @MinLength(6, { message: 'Mot de passe trop court' })
+  password: string;
+}
+```
+
+Chaque décorateur est une règle :
+- `@IsEmail()` — vérifie que la valeur est un email valide
+- `@IsNotEmpty()` — refuse les chaînes vides
+- `@MinLength(6)` — exige au moins 6 caractères
+- `@IsString()` — vérifie que c'est bien une chaîne de caractères
+- `@IsOptional()` — indique que le champ peut être absent
+
+Les DTOs vivent dans des fichiers dédiés (`dto/login.dto.ts`, `dto/register.dto.ts`, etc.) pour ne pas encombrer le contrôleur.
+
+### Le `ValidationPipe` — ce qui active les règles
+
+Les décorateurs seuls ne font rien. C'est le `ValidationPipe` configuré dans `main.ts` qui les active et les exécute sur chaque requête entrante :
+
+```ts
+app.useGlobalPipes(new ValidationPipe({
+  whitelist: true,            // supprime les champs non déclarés dans le DTO
+  forbidNonWhitelisted: true, // renvoie une erreur si des champs inconnus sont envoyés
+  transform: true,            // active les transformations (@Transform)
+}));
+```
+
+- **`whitelist: true`** : si une requête contient un champ qui n'est pas dans le DTO, ce champ est silencieusement ignoré. Protège contre l'injection de données non attendues.
+- **`forbidNonWhitelisted: true`** : va plus loin — au lieu d'ignorer les champs inconnus, renvoie une erreur 400. Plus strict.
+- **`transform: true`** : permet d'utiliser le décorateur `@Transform` pour transformer les données avant validation (ex : `@Transform(({ value }) => value?.trim())` retire les espaces autour d'une valeur).
+
+### Ce qui se passe à chaque requête
+
+```
+[Navigateur]               [Backend — NestJS]
+     │                           │
+     │  POST /auth/login         │
+     │  { email: "", password }  │
+     │ ─────────────────────── > │
+     │                           │  ValidationPipe
+     │                           │    → applique les règles du LoginDto
+     │                           │    → email vide → @IsNotEmpty échoue
+     │                           │
+     │  400 Bad Request    < ─── │  { message: "Email obligatoire" }
+     │                           │
+     │                           │  Le contrôleur n'est jamais atteint
+```
+
+Si toutes les règles passent, NestJS appelle le contrôleur normalement. Si une seule échoue, il renvoie immédiatement une erreur 400 avec le message correspondant — le code métier ne s'exécute jamais.
+
+### Résumé
+
+| Élément | Rôle |
+|---|---|
+| **DTO** | Décrit la forme des données attendues |
+| **`class-validator`** | Fournit les décorateurs de règles (`@IsEmail`, `@MinLength`…) |
+| **`ValidationPipe`** | Exécute les règles à chaque requête entrante |
+| **`whitelist: true`** | Filtre les champs non déclarés |
+| **`forbidNonWhitelisted`** | Erreur si champs inconnus |
+| **`transform: true`** | Permet les transformations de données (`@Transform`) |
+
+Avant cette configuration : n'importe quelle donnée pouvait entrer dans le backend. Après : les données sont filtrées et validées à l'entrée, avant même que le contrôleur soit exécuté.
 
