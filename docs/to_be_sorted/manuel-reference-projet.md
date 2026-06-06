@@ -36,7 +36,7 @@ Un conteneur est comparable à une machine virtuelle très légère. Il contient
 
 ### `docker-compose.yml` — le chef d'orchestre
 
-Ce fichier décrit les **7 services** qui constituent l'application et comment ils interagissent :
+Ce fichier décrit les **6 services** qui constituent l'application et comment ils interagissent :
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -51,7 +51,6 @@ Ce fichier décrit les **7 services** qui constituent l'application et comment i
 │                        [elasticsearch] :9200 (:9201)         │
 │                        [logstash]  :5044                     │
 │                        [kibana]    :5601                     │
-│                        [pgadmin]   :80 (:8080)               │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -67,7 +66,6 @@ La notation `"5000:3000"` signifie : _le port 3000 du conteneur est accessible v
 | elasticsearch | 9200 | 9201 |
 | logstash | 5044 | 5044 |
 | kibana | 5601 | 5601 |
-| pgadmin | 80 | 8080 |
 
 ### Volumes
 
@@ -219,13 +217,23 @@ Le backend ne démarre pas avant que la base de données soit prête (`condition
 
 ### `healthcheck`
 
-Pour PostgreSQL :
+**PostgreSQL** :
 ```yaml
 test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
 interval: 5s
 retries: 5
 ```
 Docker interroge Postgres toutes les 5 secondes. Une fois que `pg_isready` répond positivement, le service est marqué `healthy` et les services dépendants peuvent démarrer.
+
+**Backend NestJS** :
+```yaml
+test: ["CMD-SHELL", "nc -z localhost 3000 || exit 1"]
+interval: 10s
+retries: 5
+```
+`nc -z` (netcat zero I/O) vérifie uniquement que quelque chose écoute sur le port TCP 3000, sans envoyer de requête HTTP. C'est intentionnel : NestJS n'a pas de route `GET /` — elle retourne 404. BusyBox `wget` considère un 404 comme un échec et sort avec le code 1, ce qui rendrait le healthcheck systématiquement en échec même si le serveur tourne parfaitement. `nc -z` ne regarde pas le code HTTP — il retourne exit 0 dès que le port accepte des connexions.
+
+**Logstash, Kibana** : utilisent `curl -f` sur leur API de statut respective (`localhost:9600` et `localhost:5601/api/status`). `curl -f` échoue (exit non-0) si le code HTTP est 4xx ou 5xx.
 
 ### Réseau `safeschool_network`
 
@@ -2691,7 +2699,6 @@ Clic sur "Déconnexion"
 | Base de données | PostgreSQL | 15 | Stockage persistant |
 | Auth | JWT + bcrypt | — | Authentification sécurisée |
 | Logs | ELK (Elasticsearch + Logstash + Kibana) | 8.12 | Centralisation des logs |
-| Admin DB | pgAdmin | 4 | Interface graphique PostgreSQL |
 
 ---
 
@@ -2729,14 +2736,9 @@ La différence entre `Link` et une balise `<a>` HTML classique : `Link` intercep
 
 ### DevBar
 
-`DevBar` est un composant de développement visible uniquement en mode dev grâce à la garde `if (import.meta.env.PROD) return null`. Il n'apparaît pas en production et ne casse rien.
+~~La DevBar était un composant de développement (barre de navigation rapide) contrôlé par `VITE_DEVBAR` dans `frontend/.env.development` et activé/désactivé via `toggle-devbar.sh`.~~
 
-Le composant et ses imports (`Link`, `useLocation`) restent présents dans le code source en production (ils ne s'affichent pas, mais ils sont inclus dans le bundle).
-
-**À retirer avant livraison :**
-1. Le composant `DevBar` dans `App.tsx`
-2. `Link` et `useLocation` dans la ligne d'import de `react-router-dom` si non utilisés ailleurs
-3. `<DevBar />` dans le JSX de `App`
+**Supprimée** (branche `fix/remove_devbar`, mergée dans `fix/improve_app_build`) : le composant `DevBar`, le script `toggle-devbar.sh`, et la variable `VITE_DEVBAR` ont été retirés du projet. `App.tsx` ne contient plus la garde `import.meta.env.VITE_DEVBAR` ni le composant `<DevBar />`.
 
 
 ---
@@ -2802,7 +2804,7 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 |---|---|
 | Pourquoi le backend écoute sur 3000 mais est accessible sur 5000 ? | Mapping de ports dans docker-compose : `"5000:3000"` signifie que le port 3000 du conteneur est exposé sur le port 5000 de la machine hôte. |
 | Que se passe-t-il si on supprime la ligne `/app/node_modules` dans les volumes ? | Le volume `./frontend:/app` écraserait le dossier `node_modules` du conteneur avec celui de la machine hôte (vide ou incompatible). L'app ne démarrerait plus. |
-| Pourquoi le frontend `depends_on` le backend ? | Pour garantir l'ordre de démarrage. Mais `depends_on` sans `condition: service_healthy` ne garantit pas que le backend est prêt — juste qu'il a démarré. |
+| Pourquoi le frontend `depends_on` le backend ? | Pour garantir l'ordre de démarrage avec `condition: service_healthy` : le frontend attend que le backend soit `healthy` (port 3000 ouvert) avant de démarrer. Sans cette condition, `depends_on` garantit seulement que le conteneur a démarré, pas qu'il est prêt. |
 | Que fait `pg_isready` dans le healthcheck ? | Il vérifie que PostgreSQL accepte des connexions. Docker interroge toutes les 5s, et attend que le service soit `healthy` avant de démarrer les services qui en dépendent. |
 | Comment deux services Docker se parlent-ils par nom ? | Via le réseau Docker privé `safeschool_network`. Docker résout les noms de services en IPs internes. Le backend peut appeler `database:5432` directement. |
 | Si on fait `docker compose down`, les données en base sont-elles perdues ? | Non, grâce au volume nommé `pgdata`. Les données persistent sur la machine hôte. `docker compose down -v` les supprimerait. |
