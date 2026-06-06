@@ -1,6 +1,7 @@
-/*Routes : redirige selon le role */
+/* Point d'entrée de l'application — définit le routage et la structure globale */
+
 import type { ReactElement } from 'react';
-import { Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Login from '@/pages/Login';
 import StudentDashboard from '@/pages/StudentDashboard';
@@ -12,15 +13,15 @@ import { Footer } from '@/components/layout/Footer/Footer';
 import UiKit from '@/pages/UiKit';
 import Quiz from '@/pages/Quiz';
 
+// Garde de route — redirige vers /login si non authentifié ou rôle non autorisé
 function ProtectedRoute({ children, roles }: { children: ReactElement; roles?: string[] }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
-  // In dev mode (VITE_DEVBAR=true), skip role check to allow DevBar navigation across all pages
-  if (import.meta.env.VITE_DEVBAR !== 'true' && roles && user && !roles.includes(user.role)) 
-	return <Navigate to="/login" />;
+  if (roles && user && !roles.includes(user.role)) return <Navigate to="/login" />;
   return children;
 }
 
+// Redirection post-login — oriente l'utilisateur selon son rôle
 function HomeRedirect() {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
@@ -30,80 +31,19 @@ function HomeRedirect() {
   return <Navigate to="/login" />;
 }
 
-// DevBar — navigation rapide + simulation de rôle (VITE_DEVBAR=true uniquement)
-// La simulation appelle loginUser() : réécrit localStorage + re-render toute l'app,
-function DevBar() {
-  const location = useLocation();
-  const navigate  = useNavigate();
-  const { user, token, loginUser } = useAuth();
-  if (import.meta.env.VITE_DEVBAR !== 'true') return null;
-
-  const pages = [
-    { to: '/ui-kit', label: 'UIkit' },
-    { to: '/login',  label: 'login'  },
-  ];
-
-  type SimRole = 'admin' | 'director' | 'student' | 'teacher';
-  const roles: { role: SimRole; page: string }[] = [
-    { role: 'admin',    page: '/dashboard' },
-    { role: 'director', page: '/dashboard' },
-    { role: 'student',  page: '/student'   },
-    { role: 'teacher',  page: '/reporter'  },
-  ];
-
-  function simulateRole(role: SimRole, page: string) {
-    if (!user || !token) return;
-    loginUser(token, { ...user, role });
-    navigate(page);
-  }
-
-  const itemStyle = (active: boolean): React.CSSProperties => ({
-    color: active ? 'var(--secondary)' : 'var(--muted-foreground)',
-    textDecoration: 'none',
-    padding: '2px 6px',
-    borderRadius: '4px',
-    background: active ? 'var(--primary)' : 'transparent',
-    fontWeight: active ? 700 : 400,
-    cursor: 'pointer',
-    border: 'none',
-    fontSize: '11px',
-    fontFamily: 'monospace',
-  });
-
-  return (
-    <div style={{
-      position: 'fixed', bottom: '72px', right: '16px', zIndex: 9999,
-      display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'flex-end',
-      background: 'var(--card-foreground)', borderRadius: '12px', padding: '8px 12px',
-    }}>
-	  <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-        {pages.map(({ to, label }) => (
-          <Link key={to} to={to} style={itemStyle(location.pathname === to)}>{label}</Link>
-        ))}
-      </div>
-
-      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-        {roles.map(({ role, page }) => (
-          <button key={role} onClick={() => simulateRole(role, page)} style={itemStyle(user?.role === role)}>
-            {role}
-          </button>
-        ))}
-      </div>
-
-    </div>
-  );
-}
-
+// Composant racine — structure de page et table des routes
 export default function App() {
-  const location = useLocation();
-
   return (
     <div className="flex flex-col min-h-screen">
-      <DevBar />
       <div className="flex-1 flex flex-col">
         <Routes>
+          {/* Routes publiques */}
           <Route path="/login" element={<Login />} />
           <Route path="/ui-kit" element={<UiKit />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
+
+          {/* Routes protégées par rôle */}
           <Route path="/reporter" element={
             <ProtectedRoute roles={['teacher']}>
               <ReporterDashboard />
@@ -124,13 +64,13 @@ export default function App() {
               <Quiz />
             </ProtectedRoute>
           } />
+
+          {/* Redirection home et fallback */}
           <Route path="/" element={<HomeRedirect />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfService />} />
           <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
       </div>
-      {location.pathname !== '/ui-kit' && <Footer />}
+      <Footer />
     </div>
   );
 }

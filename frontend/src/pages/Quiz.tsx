@@ -352,7 +352,7 @@ export default function Quiz() {
                         className={extraClass}
                         type="button"
                       >
-                        <span className="whitespace-normal break-words">{opt}</span>
+                        <span className="whitespace-normal wrap-break-word">{opt}</span>
                       </Button>
                     </li>
                   );
@@ -367,7 +367,7 @@ export default function Quiz() {
                     {questionState.answerStatistics.map((stat) => (
                       <li key={stat.index} className="space-y-1">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="whitespace-pre-wrap break-words text-gray-700">{questionState.question.options[stat.index]}</span>
+                          <span className="whitespace-pre-wrap wrap-break-word text-gray-700">{questionState.question.options[stat.index]}</span>
                           <span className="font-semibold text-gray-900 ml-2 shrink-0">{stat.count} ({stat.percentage}%)</span>
                         </div>
                         <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
