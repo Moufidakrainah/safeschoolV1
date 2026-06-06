@@ -59,21 +59,31 @@ export default function StudentForm({ user }: StudentFormProps) {
   // Écran de confirmation
   if (step === 7) {
     return (
-      <main className="bg-gray-50 font-sans">
-        <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
+
+
+
+    <section className="page-section">
+
+		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+
+
+
         <StepBar steps={steps} currentStep={step} />
-        <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-          <Card className="max-w-md w-full mx-5 text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
+      <div className="w-full mt-8">
+
+<div>
+        <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
             <div className="bg-surface rounded-lg p-4 mb-6 text-left">
               <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
             </div>
             <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-          </Card>
+            </div>
         </div>
-      </main>
+        </div>
+        </section>
+
+
     );
   }
 
@@ -102,7 +112,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <button
                   onClick={() => setWhoSignals('victime')}
                   className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                    whoSignals === 'victime' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    whoSignals === 'victime' ? 'border-primary bg-white' : 'border-gray-200  bg-surface'
                   }`}
                 >
                   <div className="text-sm font-semibold text-gray-800">Je suis la victime</div>
@@ -111,7 +121,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <button
                   onClick={() => setWhoSignals('temoin')}
                   className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                    whoSignals === 'temoin' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    whoSignals === 'temoin' ? 'border-primary  bg-white' : 'border-gray-200 bg-surface'
                   }`}
                 >
                   <div className="text-sm font-semibold text-gray-800">Je suis témoin</div>
@@ -119,7 +129,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 </button>
               </div>
               {showErrors && !whoSignals && (
-                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ Veuillez choisir votre situation</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">Veuillez choisir votre situation</p>
               )}
             </fieldset>
           )}
@@ -146,7 +156,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setType(typeOptions[(fallbackIndex - 1 + typeOptions.length) % typeOptions.length].value); }
                     }}
                     className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none ${
-                      type === opt.value ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                      type === opt.value ? 'border-primary  bg-white' : 'border-gray-200 bg-surface'
                     } focus-visible:ring-2 focus-visible:ring-primary`}
                   >
                     <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
@@ -155,7 +165,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ))}
               </div>
               {showErrors && !type && (
-                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">  {t('reporter.validation.typeRequired')}</p>
               )}
             </fieldset>
           )}
@@ -177,7 +187,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
               {showErrors && !description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {t('reporter.validation.descriptionRequired')}</p>
+                <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
               )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
