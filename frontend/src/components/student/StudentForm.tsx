@@ -88,8 +88,8 @@ export default function StudentForm({ user }: StudentFormProps) {
     {/* <main className="bg-gray-50 font-sans"> */}
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
-      <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
+      <div className="w-full mt-8">
+        <div>
 
           {/* Étape 1 : Victime ou témoin */}
           {step === 1 && (
@@ -105,7 +105,6 @@ export default function StudentForm({ user }: StudentFormProps) {
                     whoSignals === 'victime' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
                   }`}
                 >
-                  <div className="text-3xl mb-2">🙋</div>
                   <div className="text-sm font-semibold text-gray-800">Je suis la victime</div>
                   <div className="text-xs text-gray-400 mt-1">Le harcèlement me vise directement</div>
                 </button>
@@ -115,7 +114,6 @@ export default function StudentForm({ user }: StudentFormProps) {
                     whoSignals === 'temoin' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
                   }`}
                 >
-                  <div className="text-3xl mb-2">👁️</div>
                   <div className="text-sm font-semibold text-gray-800">Je suis témoin</div>
                   <div className="text-xs text-gray-400 mt-1">J'ai été témoin de harcèlement</div>
                 </button>
@@ -377,7 +375,7 @@ export default function StudentForm({ user }: StudentFormProps) {
             )}
           </div>
 
-        </Card>
+        </div>
       </div>
     {/* </main> */}
       </div>
