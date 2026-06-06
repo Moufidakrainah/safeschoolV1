@@ -6,10 +6,10 @@ import {
   Request,
   UseGuards,
 } from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
 import { NotificationsService } from "./notifications.service";
-import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard("jwt"))
 @Controller("notifications")
 export class NotificationsController {
   constructor(private notificationsService: NotificationsService) {}
