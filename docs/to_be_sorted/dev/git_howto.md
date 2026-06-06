@@ -131,30 +131,63 @@ git stash drop              # Supprimer le stash sans le récupérer
 ```bash
 git branch -r --merged main   # Lister les branches distantes déjà fusionnées dans main (candidates à la suppression)
 ```
-# Git — Nettoyage des branches
 
-## Vérifier qu'une branche est fully merged
+---
+
+## 6. Nettoyage des branches
+
+### Vérifier qu'une branche est fully merged avant de la supprimer
 
 ```bash
-# Lister les branches déjà mergées dans main
+# Lister toutes les branches distantes déjà mergées dans main
 git branch -r --merged origin/main
 
 # Vérifier une branche spécifique
-git log origin/main..origin/<branch-name>
-# Si aucune sortie → la branche est fully merged, safe à supprimer
+git log origin/main..origin/<branch-name> --oneline
+# Si aucune sortie → fully merged, safe à supprimer
 ```
 
-## Supprimer une branche du repo distant
+### Supprimer une branche du repo distant
 
 ```bash
 git push origin --delete <branch-name>
 ```
 
----
+### Nettoyer les branches locales désynchronisées
 
-## Nettoyer les branches locales dont le remote a disparu
+`git branch -vv` affiche le lien entre une branche locale et son remote. Deux cas possibles :
 
-### Script interactif
+- **`: gone]`** → le remote existait mais a été supprimé (ex : PR mergée)
+- **pas de mention de remote** → la branche n'a jamais été pushée, elle est purement locale
+
+#### Cas 1 — Remote supprimé (`: gone]`)
+
+```bash
+# Lister
+git branch -vv | grep ': gone]' | awk '{print $1}'
+
+# Supprimer (soft — échoue si non mergée)
+git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -d
+
+# Supprimer (force — ignore le statut merge)
+git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -D
+```
+
+> `-d` est safe : git refuse de supprimer une branche non mergée.
+> `-D` force sans vérification.
+
+#### Cas 2 — Branche locale orpheline (jamais pushée)
+
+```bash
+# Vérifier si elle contient des commits non présents dans main
+git log main..<branch-name> --oneline
+# Si aucune sortie → rien à perdre, suppression safe
+
+git branch -d <branch-name>   # soft
+git branch -D <branch-name>   # force
+```
+
+#### Script interactif (cas 1)
 
 ```bash
 #!/usr/bin/env bash
@@ -179,28 +212,10 @@ if [[ "$confirm" =~ ^[Yy]$ ]]; then
 fi
 ```
 
-### Commandes rapides
-
-```bash
-# Lister les branches locales dont le remote est supprimé
-git branch -vv | grep ': gone]' | awk '{print $1}'
-
-# Supprimer ces branches (soft — échoue si non mergée)
-git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -d
-
-# Supprimer ces branches (force — ignore le statut merge)
-git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -D
-```
-
-> `-d` est safe : git refuse de supprimer une branche non mergée.  
-> `-D` force la suppression sans vérification.
-
----
-
-## Workflow recommandé
+### Workflow recommandé
 
 ```bash
 git fetch --all --prune          # sync + supprime les tracking refs obsolètes
 git branch -vv                   # voir l'état de toutes les branches locales
-git branch --merged origin/main  # voir lesquelles sont mergées
+git branch -r --merged origin/main  # voir lesquelles sont mergées côté distant
 ```
