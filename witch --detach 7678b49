@@ -1,0 +1,797 @@
+*   [33m0e4b735[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfrontend/ui[m[33m, [m[1;31morigin/frontend/ui[m[33m)[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[31m|[m[32m\[m  
+[31m|[m * [33m9fc4889[m[33m ([m[1;31morigin/feat/shadcn-ui-merge[m[33m, [m[1;32mfeat/shadcn-ui-merge[m[33m)[m fix: page stats
+[31m|[m * [33m19bcdbd[m feat: dateOfBirth student + age validation 9-16 + form fixes
+[31m|[m * [33m532fe6b[m  affihe des message d erreur
+* [32m|[m [33m7678b49[m wip studentCases
+* [32m|[m [33m2bd73f8[m update frontend StudentProfile
+* [32m|[m [33m0c5ed7c[m wip studentdashboard
+* [32m|[m [33m94ec022[m wip studentdashboard
+* [32m|[m [33m4ecd41a[m wip studentdashboard
+* [32m|[m [33m393e270[m merge
+* [32m|[m [33md084e35[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[33m|[m[32m\[m[32m|[m 
+[33m|[m * [33m80050d4[m feat: add parents form on student creation + backend DTOs validation
+[33m|[m * [33mea1f8c1[m refactor: DTOs validation classes + auth backend
+[33m|[m * [33m8a7fa69[m refactor: classes backend DTOs + validation + frontend maxLength
+[33m|[m * [33mbbfb534[m mise en page detail signalement
+[33m|[m * [33mb17005f[m ajout du hook useusers
+[33m|[m * [33m14598f3[m refactor: AdminUserProfile fully autonomous + unified styles
+[33m|[m [34m|[m *   [33mf2ae03a[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Merge pull request #166 from hydnumrepandum68/fix/improve_app_build
+[33m|[m [34m|[m [35m|[m[36m\[m  
+[33m|[m [34m|[m [35m|[m * [33m6d407e7[m wget sur / retournait 404 -> backend toujours unhealthy, remplacé par nc -z supprimé ref elasticsearch-setup de up-elk (service pas encore mergé) ajout target start, suppression logs-setup
+[33m|[m [34m|[m [35m|[m *   [33mcbee74e[m Merge remote-tracking branch 'origin/fix/remove_devbar' into fix/improve_app_build
+[33m|[m [34m|[m [35m|[m [1;31m|[m[1;32m\[m  
+[33m|[m [34m|[m [35m|[m * [1;32m|[m [33mf76b8de[m fix spacing issue makefile
+[33m|[m [34m|[m [35m|[m * [1;32m|[m [33ma1138bb[m remove nmp install react instruction from frontend docker file to avoid time consuming double installation
+[33m|[m [34m|[m [35m|[m * [1;32m|[m [33m08755f1[m convert seconds build counter to minutes, to improve readability
+[33m|[m [34m|[m [35m|[m * [1;32m|[m [33m8adad45[m add build time counter to targets up, up-app and rebuild, remove up-fe
+[33m|[m [34m|[m [35m|[m * [1;32m|[m [33m4e1744e[m[33m ([m[1;31morigin/fix/improve_app_build[m[33m)[m add target up-app and start to Makefile
+[33m|[m [34m|[m * [1;32m|[m [1;32m|[m   [33m78589a4[m Merge pull request #162 from hydnumrepandum68/fix/class-break-words
+[33m|[m [34m|[m [1;33m|[m[1;34m\[m [1;32m\[m [1;32m\[m  
+[33m|[m [34m|[m [1;33m|[m * [1;32m|[m [1;32m|[m [33m289ccfb[m[33m ([m[1;31morigin/fix/class-break-words[m[33m)[m replace class break-words with Tailwind v4 wrap-break-word
+[33m|[m [34m|[m [1;33m|[m [1;32m|[m[1;32m/[m [1;32m/[m  
+[33m|[m [34m|[m * [1;32m|[m [1;32m|[m   [33m7cd7995[m Merge pull request #160 from hydnumrepandum68/fix/remove_devbar
+[33m|[m [34m|[m [1;32m|[m[1;32m\[m [1;32m\[m [1;32m\[m  
+[33m|[m [34m|[m [1;32m|[m [1;32m|[m[1;32m/[m [1;32m/[m  
+[33m|[m [34m|[m [1;32m|[m[1;32m/[m[1;32m|[m [1;32m/[m   
+[33m|[m [34m|[m [1;32m|[m [1;32m|[m[1;32m/[m    
+[33m|[m [34m|[m [1;32m|[m * [33m69e5ebe[m[33m ([m[1;31morigin/fix/remove_devbar[m[33m)[m remove all code and files linked to devbar
+[33m|[m [34m|[m [1;32m|[m * [33m7891d9d[m clean comments in .gitignore
+[33m|[m [34m|[m [1;32m|[m[1;32m/[m  
+[33m|[m [34m|[m *   [33m379a1c8[m Merge pull request #156 from hydnumrepandum68/fix/grok_key
+[33m|[m [34m|[m [31m|[m[32m\[m  
+[33m|[m [34m|[m * [32m|[m [33m790bb2f[m Merge pull request #158 from hydnumrepandum68/DOC/main
+[33m|[m [34m|[m[33m/[m[34m|[m [32m|[m 
+[33m|[m[33m/[m[34m|[m [34m|[m [32m|[m 
+[33m|[m [34m|[m [34m|[m [32m|[m * [33m401c281[m[33m ([m[1;31morigin/DOC/main[m[33m)[m upd readme roles and training resources
+[33m|[m [34m|[m [34m|[m [32m|[m * [33mf6bf9fd[m docs: reorganize design folder — move mockups to v1-initial/, add screenshots/, add README
+[33m|[m [34m|[m [34m|[m [32m|[m * [33m894618c[m docs: remove old meeting minutes filenames (kept as -weekly/-kickoff)
+[33m|[m [34m|[m [34m|[m [32m|[m * [33m3f9cff7[m upd ref manual following devops improvement session
+[33m|[m [34m|[m [34m|[m [32m|[m * [33m3646c60[m add old version of git workflow to compare and merge
+[33m|[m [34m|[m [34m|[m [32m|[m[34m/[m  
+[33m|[m [34m|[m [34m|[m[34m/[m[32m|[m   
+[33m|[m [34m|[m * [32m|[m [33m62fb195[m docs: restore docs folder on clean DOC branch
+[33m|[m [34m|[m[33m/[m [32m/[m  
+[33m|[m[33m/[m[34m|[m [32m|[m   
+[33m|[m [34m|[m [32m|[m * [33mcd1ddc5[m[33m ([m[1;31morigin/fix/docker-elk-setup[m[33m)[m automate ELK setup (persistent), add elasticsearch-setup service to docker-compose, add healthchecks for LS and kib, upd setup.sh with ILM policy + index template + Kib Data View import, export kibana-data-view.ndjson for reproducibility and persistence, add logs-elk and logs-setup target to makefile
+[33m|[m [34m|[m [32m|[m[32m/[m  
+[33m|[m [34m|[m * [33m352039a[m[33m ([m[1;31morigin/fix/grok_key[m[33m)[m fix JWT_SECRET
+[33m|[m [34m|[m * [33md0c82f0[m create new .env.example with empty grok key
+[33m|[m [34m|[m * [33mcf4c386[m create new .env.example with empty grok key
+[33m|[m [34m|[m * [33mb75d479[m[33m ([m[1;31morigin/fix/upd_Makefile[m[33m)[m remove init.sql from yaml - obsolete, handles by typeORM
+[33m|[m [34m|[m * [33m758e7af[m Refactor complet. Déploiement en une commande necessaire, amelioration du confort d'utilisation :
+[33m|[m [34m|[m * [33m5ed9c8c[m delete obsolete sample student image
+[33m|[m [34m|[m * [33ma6acfbf[m delete env.example - not useful as is
+[33m|[m [34m|[m[33m/[m  
+[33m|[m[33m/[m[34m|[m   
+[33m|[m [34m|[m *   [33m01c0625[m[33m ([m[1;31morigin/feat/quiz[m[33m)[m merged with main
+[33m|[m [34m|[m [1;31m|[m[33m\[m  
+[33m|[m [34m|[m[33m_[m[1;31m|[m[33m/[m  
+[33m|[m[33m/[m[34m|[m [1;31m|[m   
+* [34m|[m [1;31m|[m   [33meb94479[m Merge pull request #153 from hydnumrepandum68/frontend/ui
+[1;33m|[m[1;34m\[m [34m\[m [1;31m\[m  
+[1;33m|[m * [34m|[m [1;31m|[m [33m0c6e587[m merge
+[1;33m|[m * [34m|[m [1;31m|[m [33m8dbfb95[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[1;33m|[m [1;35m|[m[34m\[m[34m|[m [1;31m|[m 
+[1;33m|[m [1;35m|[m * [1;31m|[m [33m9fd6f53[m  refactor admindashboard into smaller modules improve css
+[1;33m|[m [1;35m|[m * [1;31m|[m [33m04574d5[m add componnent AdminUserProfile
+[1;33m|[m * [1;36m|[m [1;31m|[m [33m724af5f[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[1;33m|[m [31m|[m[1;36m\[m[1;36m|[m [1;31m|[m 
+[1;33m|[m [31m|[m * [1;31m|[m [33ma5e8257[m refactor : extract components and unify admin dashboard styles
+[1;33m|[m * [32m|[m [1;31m|[m [33me724b5d[m merge
+[1;33m|[m * [32m|[m [1;31m|[m [33ma56cdc7[m merge
+[1;33m|[m [33m|[m[32m\[m[32m|[m [1;31m|[m 
+[1;33m|[m [33m|[m * [1;31m|[m [33m131ae0e[m feat: gestion parents (ajout/modif/suppression), validation noms/prénoms backend et frontend, téléphone numérique
+[1;33m|[m [33m|[m * [1;31m|[m [33ma060520[m feat: section utilisateurs - pagination 7/page, classes profs, recherche globale, avatar 96px, noms formatés, responsables légaux, AlertDialog confirmation, suppression icônes
+[1;33m|[m * [34m|[m [1;31m|[m [33m7ac4893[m merge
+[1;33m|[m * [34m|[m [1;31m|[m [33m015d3d4[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[1;33m|[m [35m|[m[34m\[m[34m|[m [1;31m|[m 
+[1;33m|[m [35m|[m * [1;31m|[m [33me1aec7c[m feat: modification la vue des listes des utilisateurs
+[1;33m|[m [35m|[m * [1;31m|[m [33m29ee07d[m feat: refactoring vue détail signalement (ReportDetail), navigation vers profil utilisateur, limite 1500 chars notes/convocations, nom destinataire dans convocation, retour au signalement depuis profil utilisateur, statut reste sur la page après modification
+[1;33m|[m * [36m|[m [1;31m|[m [33m04df063[m check pull merge
+[1;33m|[m [36m|[m[36m/[m [1;31m/[m  
+[1;33m|[m * [1;31m|[m   [33mc57918c[m resolve conflits after merge
+[1;33m|[m [1;31m|[m[1;32m\[m [1;31m\[m  
+[1;33m|[m [1;31m|[m * [1;31m|[m [33mcc2e2aa[m feat: intégration changements frontend/ui - imports @/, traductions, suppressions emojis, nettoyage
+[1;33m|[m [1;31m|[m * [1;31m|[m [33m9b4e20c[m  update student
+[1;33m|[m * [1;32m|[m [1;31m|[m [33m7ed4919[m update components + hooks
+[1;33m|[m * [1;32m|[m [1;31m|[m [33mb0fbb2b[m update delete comment
+[1;33m|[m * [1;32m|[m [1;31m|[m [33mdd1bcf9[m resolved conflicts after merge
+[1;33m|[m [1;33m|[m[1;32m\[m[1;32m|[m [1;31m|[m 
+[1;33m|[m [1;33m|[m * [1;31m|[m [33m30e6bdb[m update admin css i18n
+[1;33m|[m [1;33m|[m * [1;31m|[m [33mb87d1ea[m  correction controlleur.ts
+[1;33m|[m [1;33m|[m * [1;31m|[m [33m29a456a[m fix: forcer algorithme HS256 pour vérification JWT
+[1;33m|[m [1;33m|[m * [1;31m|[m   [33mcb0fd92[m merge: intégration feat/quiz avec RoleHeader
+[1;33m|[m [1;33m|[m [1;35m|[m[1;36m\[m [1;31m\[m  
+[1;33m|[m [1;33m|[m * [1;36m|[m [1;31m|[m [33m832b868[m merge: intégration feat/quiz + fix JWT HS256 + validations utilisateur
+[1;33m|[m [1;33m|[m * [1;36m|[m [1;31m|[m [33m09412bf[m merge: intégration feat/quiz avec corrections RoleHeader
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m5de05b2[m update StudentDashboard + useStudentReportForm
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m   [33m3040449[m Merge branch 'frontend/ui' of github.com:hydnumrepandum68/ft_transcendence into frontend/ui
+[1;33m|[m [31m|[m[32m\[m [1;36m\[m [1;36m\[m [1;31m\[m  
+[1;33m|[m [31m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m290facd[m update frontend StudentReport
+[1;33m|[m * [32m|[m [1;36m|[m [1;36m|[m [1;31m|[m   [33meeed07e[m add quiz
+[1;33m|[m [32m|[m[1;36m\[m [32m\[m [1;36m\[m [1;36m\[m [1;31m\[m  
+[1;33m|[m [32m|[m [1;36m|[m[32m/[m [1;36m/[m [1;36m/[m [1;31m/[m  
+[1;33m|[m [32m|[m[32m/[m[1;36m|[m [1;36m|[m [1;36m/[m [1;31m/[m   
+[1;33m|[m [32m|[m [1;36m|[m [1;36m|[m[1;36m/[m [1;31m/[m    
+[1;33m|[m [32m|[m [1;36m|[m[1;36m/[m[1;36m|[m [1;31m|[m     
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m4970121[m update hooks
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m5ce7a18[m[33m ([m[1;31morigin/frontend/main[m[33m)[m update css
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m2f7997b[m update css
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m9e2ade4[m update css
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m223e6f0[m update colors
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33md7fc8d4[m update jwt token
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33md8a9d5b[m more translations
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33mcf9c3c6[m update translations
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33mea865bc[m update badge
+[1;33m|[m * [1;36m|[m [1;36m|[m [1;31m|[m [33m58fe273[m remove bug quiz after merge
+* [34m|[m [1;36m|[m [1;36m|[m [1;31m|[m   [33m12b6e56[m Merge pull request #151 from hydnumrepandum68/feat/quiz
+[35m|[m[1;36m\[m [34m\[m [1;36m\[m [1;36m\[m [1;31m\[m  
+[35m|[m [1;36m|[m [34m|[m[1;36m/[m [1;36m/[m [1;31m/[m  
+[35m|[m [1;36m|[m[1;36m/[m[34m|[m [1;36m|[m [1;31m|[m   
+[35m|[m [1;36m|[m [34m|[m [1;36m|[m * [33m1b97041[m wip: first part of reconnecting system(not working yet), completlty replaced how players get mapped to rooms, now we use the sub JWT instead of the ClientSocketId, which makes now possible to reconnect a player after he leaved a game.
+[35m|[m [1;36m|[m [34m|[m[1;36m_[m[1;36m|[m[1;36m/[m  
+[35m|[m [1;36m|[m[1;36m/[m[34m|[m [1;36m|[m   
+[35m|[m * [34m|[m [1;36m|[m [33m52e84ac[m wip: added checks to prevent empty payloads to crash the server (in the quiz gateway). Added a check for maximum room, thus preventing clients from flooding the server by creating a lot of rooms. Added a check to prevent a host to (re)start a game while the game has already started. Added a check to prevent enterRevealPhase be triggered twice.
+[35m|[m * [34m|[m [1;36m|[m [33me195352[m wip: added animations to the quiz to feel less static
+[35m|[m * [34m|[m [1;36m|[m [33mf7083bf[m wip: In the goal of making the quiz feel more like a game: added a streak mechanic, answering questions without mistakes multiple times increase a streak(max is 5) which multiply the score you get. Added a speed-based scoring, if you answer fast you get max points, if slower you get less points
+[35m|[m * [34m|[m [1;36m|[m [33m7a40293[m wip: added a JWT check to prevent not logged user connecting through the websocket. Changed questions answer to make them more visible(35% -> Environ 35%). Changed from 10 to 15 questions.
+[35m|[m * [34m|[m [1;36m|[m [33m8ed2b68[m wip: added two small baisc explanations about how to play and game rules
+[35m|[m * [34m|[m [1;36m|[m   [33mbf54e4a[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into feat/quiz
+[35m|[m [1;31m|[m[35m\[m [34m\[m [1;36m\[m  
+[35m|[m [1;31m|[m[35m/[m [34m/[m [1;36m/[m  
+[35m|[m[35m/[m[1;31m|[m [34m|[m [1;36m|[m   
+[35m|[m * [34m|[m [1;36m|[m [33m827cad2[m wip: changed tailwindCss to make so the quiz page apear fully, and shows fully the header and the footer when the window size is big enough.
+[35m|[m [1;32m|[m [34m|[m [1;36m|[m * [33m4dad6ef[m[33m ([m[1;35mrefs/stash[m[33m)[m WIP on frontend/ui: 2c2b042 update colors
+[35m|[m [1;32m|[m [34m|[m [1;36m|[m[34m/[m[1;34m|[m 
+[35m|[m [1;32m|[m [34m|[m[34m/[m[1;36m|[m [1;34m|[m 
+[35m|[m [1;32m|[m [34m|[m [1;36m|[m * [33m6394d0b[m index on frontend/ui: 2c2b042 update colors
+[35m|[m [1;32m|[m [34m|[m [1;36m|[m[34m/[m  
+[35m|[m [1;32m|[m [34m|[m[34m/[m[1;36m|[m   
+[35m|[m [1;32m|[m * [1;36m|[m [33m2c2b042[m update colors
+[35m|[m [1;32m|[m * [1;36m|[m [33m82f999b[m[33m ([m[1;31morigin/frontend-admin[m[33m)[m fix: improve layout and readability on admindashboard
+[35m|[m [1;32m|[m * [1;36m|[m   [33m8853cc7[m fix merge conflicts from main
+[35m|[m [1;32m|[m [1;35m|[m[35m\[m [1;36m\[m  
+[35m|[m [1;32m|[m[35m_[m[1;35m|[m[35m/[m [1;36m/[m  
+[35m|[m[35m/[m[1;32m|[m [1;35m|[m [1;36m|[m   
+* [1;32m|[m [1;35m|[m [1;36m|[m   [33mf591d10[m Merge pull request #142 from hydnumrepandum68/frontend/ui
+[31m|[m[32m\[m [1;32m\[m [1;35m\[m [1;36m\[m  
+[31m|[m * [1;32m|[m [1;35m|[m [1;36m|[m [33m3e11b1c[m update badge
+[31m|[m * [1;32m|[m [1;35m|[m [1;36m|[m   [33md2623fa[m Merge branch 'main' into frontend/ui
+[31m|[m [33m|[m[31m\[m [1;32m\[m [1;35m\[m [1;36m\[m  
+[31m|[m [33m|[m[31m/[m [1;32m/[m [1;35m/[m [1;36m/[m  
+[31m|[m[31m/[m[33m|[m [1;32m|[m [1;35m|[m [1;36m|[m   
+[31m|[m * [1;32m|[m [1;35m|[m [1;36m|[m   [33m8071dba[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[31m|[m [35m|[m[1;36m\[m [1;32m\[m [1;35m\[m [1;36m\[m  
+[31m|[m [35m|[m [1;36m|[m [1;32m|[m[1;36m_[m[1;35m|[m[1;36m/[m  
+[31m|[m [35m|[m [1;36m|[m[1;36m/[m[1;32m|[m [1;35m|[m   
+[31m|[m [35m|[m * [1;32m|[m [1;35m|[m [33m118e44b[m feat: limite max 20 caractères mot de passe frontend et backend
+[31m|[m * [36m|[m [1;32m|[m [1;35m|[m [33m9fdad24[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[31m|[m [1;31m|[m[36m\[m[36m|[m [1;32m|[m [1;35m|[m 
+[31m|[m [1;31m|[m * [1;32m|[m [1;35m|[m [33mdc8db21[m feat: validation champs utilisateur backend et frontend
+[31m|[m [1;31m|[m * [1;32m|[m [1;35m|[m [33maf1cc36[m feat: tri utilisateurs A→Z, Z→A, date création + navigation précédent/suivant dans vue profil
+[31m|[m * [1;32m|[m [1;32m|[m [1;35m|[m [33m1c8b8c4[m qMerge branch 'feat/shadcn-ui-merge' into frontend/ui
+[31m|[m [1;33m|[m[1;32m\[m[1;32m|[m [1;32m|[m [1;35m|[m 
+[31m|[m [1;33m|[m * [1;32m|[m [1;35m|[m [33m0447a25[m fix: bloquer suppression classe avec élèves côté backend et frontend
+[31m|[m [1;33m|[m * [1;32m|[m [1;35m|[m [33mcb4ef40[m fix: bloquer suppression classe avec élèves, fix avatar upload, fix compteur élèves classes
+[31m|[m * [1;34m|[m [1;32m|[m [1;35m|[m [33m2da1d52[m update backend uploads
+[31m|[m * [1;34m|[m [1;32m|[m [1;35m|[m [33mdf810b7[m Merge branch 'feat/shadcn-ui-merge' into frontend/ui
+[31m|[m [1;35m|[m[1;34m\[m[1;34m|[m [1;32m|[m [1;35m|[m 
+[31m|[m [1;35m|[m * [1;32m|[m [1;35m|[m [33m03eb7d5[m fix: actualisation immédiate de l'avatar après upload
+[31m|[m [1;35m|[m * [1;32m|[m [1;35m|[m [33m89081e5[m feat: recherche utilisateurs par nom/prénom dans l'admin
+[31m|[m [1;35m|[m * [1;32m|[m [1;35m|[m [33m0205a52[m feat: pagination section utilisateurs admin
+[31m|[m * [1;36m|[m [1;32m|[m [1;35m|[m [33m80bad85[m Merge branch 'main' into frontend/ui
+[31m|[m [31m|[m[1;36m\[m[1;36m|[m [1;32m|[m [1;35m|[m 
+[31m|[m * [1;36m|[m [1;32m|[m [1;35m|[m [33mbf4f6ef[m doc backend
+[31m|[m * [1;36m|[m [1;32m|[m [1;35m|[m [33m85ba14b[m update doc
+[31m|[m [32m|[m [1;36m|[m [1;32m|[m *   [33m5f5d96c[m fix badge conflict
+[31m|[m [32m|[m [1;36m|[m [1;32m|[m [33m|[m[31m\[m  
+[31m|[m [32m|[m[31m_[m[1;36m|[m[31m_[m[1;32m|[m[31m_[m[33m|[m[31m/[m  
+[31m|[m[31m/[m[32m|[m [1;36m|[m [1;32m|[m [33m|[m   
+* [32m|[m [1;36m|[m [1;32m|[m [33m|[m   [33m0b8bbe5[m Merge pull request #139 from hydnumrepandum68/feat/quiz
+[1;36m|[m[1;32m\[m [32m\[m [1;36m\[m [1;32m\[m [33m\[m  
+[1;36m|[m [1;32m|[m[1;36m_[m[32m|[m[1;36m/[m [1;32m/[m [33m/[m  
+[1;36m|[m[1;36m/[m[1;32m|[m [32m|[m [1;32m/[m [33m/[m   
+[1;36m|[m [1;32m|[m [32m|[m[1;32m/[m [33m/[m    
+[1;36m|[m [1;32m|[m[1;32m/[m[32m|[m [33m|[m     
+[1;36m|[m * [32m|[m [33m|[m   [33me7e7aa0[m Merged main and fixed a small bug where the header wouldn't work properly with the quiz page
+[1;36m|[m [1;31m|[m[1;36m\[m [32m\[m [33m\[m  
+[1;36m|[m [1;31m|[m[1;36m/[m [32m/[m [33m/[m  
+[1;36m|[m[1;36m/[m[1;31m|[m [32m|[m [33m|[m   
+[1;36m|[m * [32m|[m [33m|[m [33m8ce462f[m wip: Fixed uncaught promises in quiz-realtime.gateway. Fixed possible cascade bug in quiz react, also removed a syncrhonous call to again prevent cascade calling. And removed the duplicate input component and replaced by the real one.
+[1;36m|[m * [32m|[m [33m|[m [33ma2b9789[m wip: fixed a small bug where it shows instantly the results of your answer (good answer or wrong anwser) instead of only showing it while reavel phase.
+[1;36m|[m * [32m|[m [33m|[m [33mf9f533a[m wip: Fixed the import button problem. Also fixed the 'Leave' button where it wouldn't leave, now it leaves properly.
+[1;36m|[m * [32m|[m [33m|[m   [33m047f2a9[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into feat/quiz
+[1;36m|[m [1;33m|[m[1;34m\[m [32m\[m [33m\[m  
+[1;36m|[m * [1;34m\[m [32m\[m [33m\[m   [33m612b9d7[m merged feat/quiz
+[1;36m|[m [1;35m|[m[1;36m\[m [1;34m\[m [32m\[m [33m\[m  
+[1;36m|[m * [1;36m|[m [1;34m|[m [32m|[m [33m|[m [33mbd2df79[m wip: decoupled all the socket logic to a react hook. Added back components(Button and Input) to quiz.tsx. Slitghly changed Input component to handle border and max characters limit. Change cors from '*' to the deployment URL 'FRONTEND_URL' or falling back to localhost:5173. Added back and improved reconnection system. Added a check when connecting to the socket to upgrade the connexion to 'Wss' or 'https'. Added an element when somoene didn't anwsered a question, now it shows an explicit message 'You didn't answered'.
+[1;36m|[m [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m *   [33m0f2f4d3[m merge frontend admin
+[1;36m|[m [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m[32m\[m  
+[1;36m|[m [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m * [33m3e1178b[m upd admin dashboard
+[1;36m|[m [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m *   [33md924980[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into DOC/main
+[1;36m|[m [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m [33m|[m[1;36m\[m  
+[1;36m|[m [1;36m|[m[1;36m_[m[1;36m|[m[1;36m_[m[1;34m|[m[1;36m_[m[32m|[m[1;36m_[m[31m|[m[1;36m_[m[33m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m [33m|[m   
+* [1;36m|[m [1;36m|[m [1;34m|[m [32m|[m [31m|[m [33m|[m   [33m857fb43[m Merge pull request #141 from hydnumrepandum68/feat/final-merge
+[1;34m|[m[36m\[m [1;36m\[m [1;36m\[m [1;34m\[m [32m\[m [31m\[m [33m\[m  
+[1;34m|[m [36m|[m[1;34m_[m[1;36m|[m[1;34m_[m[1;36m|[m[1;34m/[m [32m/[m [31m/[m [33m/[m  
+[1;34m|[m[1;34m/[m[36m|[m [1;36m|[m [1;36m|[m [32m|[m [31m|[m [33m|[m   
+[1;34m|[m * [1;36m|[m [1;36m|[m [32m|[m [31m|[m [33m|[m   [33m6c4b38c[m merge: résolution conflits main → feat/final-merge
+[1;34m|[m [32m|[m[1;34m\[m [1;36m\[m [1;36m\[m [32m\[m [31m\[m [33m\[m  
+[1;34m|[m [32m|[m[1;34m/[m [1;36m/[m [1;36m/[m [32m/[m [31m/[m [33m/[m  
+[1;34m|[m[1;34m/[m[32m|[m [1;36m|[m [1;36m|[m [32m/[m [31m/[m [33m/[m   
+[1;34m|[m [32m|[m [1;36m|[m[32m_[m[1;36m|[m[32m/[m [31m/[m [33m/[m    
+[1;34m|[m [32m|[m[32m/[m[1;36m|[m [1;36m|[m [31m|[m [33m|[m     
+* [32m|[m [1;36m|[m [1;36m|[m [31m|[m [33m|[m   [33m6c3dca0[m Merge pull request #134 from hydnumrepandum68/fix/upd_Makefile
+[1;33m|[m[1;34m\[m [32m\[m [1;36m\[m [1;36m\[m [31m\[m [33m\[m  
+[1;33m|[m * [32m|[m [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mc8cf980[m fix: add build command using cache to Makefile
+* [1;34m|[m [32m|[m [1;36m|[m [1;36m|[m [31m|[m [33m|[m   [33md827fbc[m Merge pull request #136 from hydnumrepandum68/docs/eslint
+[1;35m|[m[1;36m\[m [1;34m\[m [32m\[m [1;36m\[m [1;36m\[m [31m\[m [33m\[m  
+[1;35m|[m * [1;34m|[m [32m|[m [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m630669b[m[33m ([m[1;31morigin/docs/eslint[m[33m)[m docs: add eslint guide
+[1;35m|[m[1;35m/[m [1;34m/[m [32m/[m [1;36m/[m [1;36m/[m [31m/[m [33m/[m  
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m0897013[m update adminDashboard
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33md4d23fa[m feat: section mes dossiers avec convocations et notifications par dossier
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m1dcc3d3[m feat: gestion classes, profil prof, section mes dossiers étudiant, uniformisation style
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m603a355[m gestion des classes, enseignants, matieres
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m3684c69[m  ajout des classes
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m78366fd[m fix(seed): nouveaux hash mots de passe + suppression staff
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m270d266[m feat: suppression rôle staff partout - frontend, backend, DB, seed
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mde3ab0d[m feat(admin): profil staff avec matière et classes + fix stats classe
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mb09e863[m fix(stats): graphique signalements par classe - comparer string au lieu d'objet schoolClass
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m70eb99f[m fix(notifications): marquer automatiquement comme lues à l'ouverture + badge mis à jour
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m63beb06[m feat(admin): persistance section dans URL + vue profil utilisateur complet
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mc7c7d3a[m feat(admin): vue profil utilisateur avec infos, parents, modifier, avatar
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m42e2fd1[m fix(admin): navigation header + query param section depuis PrivacyPolicy
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m610abb6[m chore: suppression composants inutilisés
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mc605919[m wip privacypolicy adding RoleHeader
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mbf478be[m create RoleHeader to use with every profileadd some translationsupdate grades
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mf939894[m fix(users): fetchUsers au changement de section + getAllUsers retourne .data.data
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mc14a307[m fix(ui): index.css shadcn, StatCard style actif, badges avec icônes
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m8e71a98[m fix(users): fetchUsers au changement section, avatar timestamp, seed avatars, notifications student
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m90ba4f6[m fix(users): fetchUsers au changement de section + getAllUsers retourne .data.data
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m076d25b[m feat(ui): fusion shadcn/ui + fonctionnalités complètes
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m2ead04a[m[33m ([m[1;31morigin/fix/backend-security[m[33m)[m feat(avatar): upload admin + suppression ancien fichier
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m597d008[m feat(avatar): upload admin + suppression ancien fichier
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m07bf0a3[m feat(avatar): upload et affichage photos utilisateurs
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m3e7d7a7[m fix(admin): affiche victimes pour reporter=victime et temoin
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33ma4dd8bc[m feat(scoring): amélioration fallback IA avec expressions régulières
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mde92ee4[m fix(groq): correction catch malformaté dans scoreAIGroq + extraction JSON robuste
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33me3e710e[m feat: suppression complète de escalated
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33ma87d391[m fix(admin): navigation, filtres, stats, suppression escalader
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mfcda40f[m fix(student-form): confidentialité suspects/victimes + multi-victimes
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m50b7348[m fix(forms): hooks useReportForm et useStudentReportForm adaptés au nouveau schéma
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m2c4ab39[m fix(classes): correction affichage et filtre classes (level+section)
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mc16f7d6[m fix(student-profiles): dateOfBirth varchar → DATE
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mece4072[m feat(suspects): résolution admin freeText → resolvedUser
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mb3c0ad1[m fix(seed): adapte report_suspects au nouveau schéma (freeText + resolvedUserId)
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m12a6508[m refactor(suspects): remplace userId par freeText + resolvedUser
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m4b02155[m fix: add name victime
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33mdb22e66[m fix: correction d erreurs
+[1;35m|[m [1;34m|[m * [1;36m|[m [1;36m|[m [31m|[m [33m|[m   [33m5d4f911[m fix: merge main
+[1;35m|[m [1;34m|[m [31m|[m[32m\[m [1;36m\[m [1;36m\[m [31m\[m [33m\[m  
+[1;35m|[m [1;34m|[m * [32m|[m [1;36m|[m [1;36m|[m [31m|[m [33m|[m [33m7fb71b3[m Sauvegarde des modifications en cours
+[1;35m|[m [1;34m|[m [32m|[m [32m|[m [1;36m|[m [1;36m|[m [31m|[m * [33mec87f5a[m doc: add eslint and extend several concepts
+[1;35m|[m [1;34m|[m[1;35m_[m[32m|[m[1;35m_[m[32m|[m[1;35m_[m[1;36m|[m[1;35m_[m[1;36m|[m[1;35m_[m[31m|[m[1;35m/[m  
+[1;35m|[m[1;35m/[m[1;34m|[m [32m|[m [32m|[m [1;36m|[m [1;36m|[m [31m|[m   
+* [1;34m|[m [32m|[m [32m|[m [1;36m|[m [1;36m|[m [31m|[m   [33m4fa1170[m Merge pull request #131 from hydnumrepandum68/feat/quiz
+[1;34m|[m[1;36m\[m [1;34m\[m [32m\[m [32m\[m [1;36m\[m [1;36m\[m [31m\[m  
+[1;34m|[m [1;36m|[m[1;34m/[m [32m/[m [32m/[m [1;36m/[m [1;36m/[m [31m/[m  
+[1;34m|[m[1;34m/[m[1;36m|[m [32m|[m [32m|[m [1;36m|[m [1;36m/[m [31m/[m   
+[1;34m|[m [1;36m|[m [32m|[m[1;36m_[m[32m|[m[1;36m_[m[1;36m|[m[1;36m/[m [31m/[m    
+[1;34m|[m [1;36m|[m[1;36m/[m[32m|[m [32m|[m [1;36m|[m [31m|[m     
+[1;34m|[m * [32m|[m [32m|[m [1;36m|[m [31m|[m   [33mfc7b5e4[m Merge branch 'main' into feat/quiz
+[1;34m|[m [1;36m|[m[1;34m\[m [32m\[m [32m\[m [1;36m\[m [31m\[m  
+[1;34m|[m [1;36m|[m[1;34m/[m [32m/[m [32m/[m [1;36m/[m [31m/[m  
+[1;34m|[m[1;34m/[m[1;36m|[m [32m|[m [32m|[m [1;36m/[m [31m/[m   
+[1;34m|[m [1;36m|[m [32m|[m[1;36m_[m[32m|[m[1;36m/[m [31m/[m    
+[1;34m|[m [1;36m|[m[1;36m/[m[32m|[m [32m|[m [31m|[m     
+* [1;36m|[m [32m|[m [32m|[m [31m|[m   [33m5a48a66[m[33m ([m[1;32mfrontend/phase1-fixes-b[m[33m)[m Merge pull request #133 from hydnumrepandum68/frontend/main
+[1;31m|[m[1;32m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m * [1;36m\[m [32m\[m [32m\[m [31m\[m   [33m9cf7731[m[33m ([m[1;32mfrontend/main[m[33m)[m Merge pull request #132 from hydnumrepandum68/frontend/phase1-fixes-b
+[1;31m|[m [1;33m|[m[1;34m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m4d4a395[m[33m ([m[1;31morigin/frontend/phase1-fixes-b[m[33m)[m wip adminDashboard adding a list of recipients
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m4becf89[m wip adminDashboard adding a list of recipients
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m3cf41d2[m wip adminDashboard update suivi
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33med9e9b2[m wip adminDashboard update suivi
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m456de13[m wip adminDashboard with shadcn
+[1;31m|[m [1;33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m   [33m8ad616f[m wip AdminDashboard update infos
+[1;31m|[m [1;33m|[m [1;35m|[m[1;36m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [1;33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33mbdc0f2e[m wip AdminDashboard update infos
+[1;31m|[m * [1;36m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   [33m7a59520[m Merge pull request #130 from hydnumrepandum68/feat/front/shadcn
+[1;31m|[m [1;36m|[m[32m\[m [1;36m\[m [1;36m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [1;36m|[m [32m|[m[1;36m_[m[1;36m|[m[1;36m/[m [1;36m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m [1;36m|[m[1;36m/[m[32m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   
+[1;31m|[m [1;36m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33mbd82961[m doc: update meeting minutes 20260520
+[1;31m|[m * [32m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33me4e5d02[m Merge pull request #122 from hydnumrepandum68/feat/front/shadcn
+[1;31m|[m [33m|[m[32m\[m[32m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m 
+[1;31m|[m [33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m43d1a3e[m DOC: update reference manual
+[1;31m|[m [33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m794d44b[m docker: delete obsolete REACT_APP_API_URL
+[1;31m|[m [33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33ma91e44a[m update Makefile and fix seed
+[1;31m|[m [33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m018653d[m doc: delete project audit document as has been logged in git project dashboard
+[1;31m|[m [33m|[m * [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   [33me6da760[m merge front/main into shadcn
+[1;31m|[m [33m|[m [35m|[m[33m\[m [1;36m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [33m|[m [35m|[m[33m/[m [1;36m/[m [1;36m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m [33m|[m[33m/[m[35m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   
+[1;31m|[m * [35m|[m [1;36m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   [33m9a5c999[m Merge pull request #106 from hydnumrepandum68/frontend/phase1-fixes-b
+[1;31m|[m [1;31m|[m[1;36m\[m [35m\[m [1;36m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [1;31m|[m [1;36m|[m [35m|[m[1;36m/[m [1;36m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m [1;31m|[m [1;36m|[m[1;36m/[m[35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   
+[1;31m|[m [1;31m|[m * [35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m1d58b60[m wip AdminDashboard to be clearer
+[1;31m|[m [1;31m|[m * [35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33ma95c24b[m wip AdminDashboard to separate description and victim
+[1;31m|[m [1;31m|[m * [35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m5942add[m update AdminDashboard one report
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33md652625[m doc : update meeting minutes, create react specific doc and draft temp bug list and missing features
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m1406486[m WIP - make mobile friendly
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m9942fda[m improve Makefile: refocus around essentials
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33ma15eb5f[m fix: manual sync of enum reports_status_enum in seed.sql
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33mc6c7b55[m fix(frontend): trim whitespace in form description validation
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m026a76f[m add CORS section to reference manual
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m16d554f[m update button hover effect
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m490c27a[m remove hardcoded color in noteblock
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m747405d[m add avatar component on student profile and reacher profile
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33mfb9baed[m complete shadcn/ui migration — Textarea, Select, Button, Input, Card
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m0832717[m migrate Select to shadcn, fix Autocomplete & Pagination a11y
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33ma80a7d5[m migrate custom card and input to shadcn
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m261d36d[m add shadcn section to documentation
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33me1648e2[m fix button import in UIkit
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m7b90513[m remove old button component and replace with shadcn AA compliant button across all files
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m17eadb9[m Merge branch 'feat/front/shadcn' of github.com:hydnumrepandum68/ft_transcendence into feat/front/shadcn
+[1;31m|[m [1;31m|[m [1;32m|[m[1;31m/[m[1;34m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m 
+[1;31m|[m [1;31m|[m[1;31m/[m[1;32m|[m [1;34m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m 
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33ma43b002[m docs: add graphic charter, design system, full API reference, and update stack
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m48ca42a[m feat(frontend): integrate shadcn/ui with primitive components and revamp UiKit page
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33mf78b453[m config: add @ path alias and init shadcn/ui
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m233727b[m upd meeting minutes
+[1;31m|[m [1;31m|[m [1;32m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m   [33m69407b7[m Merge remote-tracking branch 'origin/main' into feat/front-admindashboard-revamp
+[1;31m|[m [1;31m|[m [1;32m|[m [1;35m|[m[1;31m\[m [1;36m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [1;31m|[m[1;31m_[m[1;32m|[m[1;31m_[m[1;35m|[m[1;31m/[m [1;36m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m[1;31m/[m[1;31m|[m [1;32m|[m [1;35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   
+[1;31m|[m * [1;32m|[m [1;35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m5f13a4c[m Merge pull request #100 from hydnumrepandum68/frontend/phase1-fixes-b
+[1;31m|[m [1;35m|[m[1;32m\[m[1;32m|[m [1;35m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m 
+[1;31m|[m [1;35m|[m [1;32m|[m[1;35m/[m [1;36m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m [1;35m|[m[1;35m/[m[1;32m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m   
+[1;31m|[m [1;35m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m6eb74db[m update AdminDashboard list
+[1;31m|[m * [32m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m [33m4818b55[m Merge pull request #99 from hydnumrepandum68/frontend/phase1-fixes-b
+[1;31m|[m [33m|[m[32m\[m[32m|[m [1;36m|[m [32m|[m [32m|[m [31m|[m 
+[1;31m|[m [33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33md2f9c95[m update AdminDashboard filters
+[1;31m|[m [33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m47eeb0c[m update AdminDashboard with en instead of frdelete escalated statusbigger logoupdate database for the en version
+[1;31m|[m [33m|[m * [1;36m|[m [32m|[m [32m|[m [31m|[m [33m79def19[m fix: name of the volume pgadmindata
+[1;31m|[m [33m|[m [34m|[m * [32m|[m [32m|[m [31m|[m [33m0ace939[m wip: added 16 questions all with a score from 1 to 3 based on how hard a question is. Now the backend takes 10 random questions from questions.json instead of all them in order. Added a leaderboard while the game is running and at the end that shows who is first, second etc. Changed how the front quiz look, now it looks better and it's more easy to read, for exemple the backgroud is set to light blue, some unnecessary text were removed, some other text were made bigger, while also adding the html/TailwindCss for the leaderboard. Now each players use their first name to appear in the leaderboard.
+[1;31m|[m [33m|[m [34m|[m * [32m|[m [32m|[m [31m|[m   [33m6740b31[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into feat/quiz
+[1;31m|[m [33m|[m [34m|[m [35m|[m[1;31m\[m [32m\[m [32m\[m [31m\[m  
+[1;31m|[m [33m|[m[1;31m_[m[34m|[m[1;31m_[m[35m|[m[1;31m/[m [32m/[m [32m/[m [31m/[m  
+[1;31m|[m[1;31m/[m[33m|[m [34m|[m [35m|[m [32m|[m [32m|[m [31m|[m   
+* [33m|[m [34m|[m [35m|[m [32m|[m [32m|[m [31m|[m   [33m1987560[m Merge pull request #101 from hydnumrepandum68/docs/update-meeting-minutes
+[34m|[m[1;32m\[m [33m\[m [34m\[m [35m\[m [32m\[m [32m\[m [31m\[m  
+[34m|[m [1;32m|[m[34m_[m[33m|[m[34m/[m [35m/[m [32m/[m [32m/[m [31m/[m  
+[34m|[m[34m/[m[1;32m|[m [33m|[m [35m|[m [32m|[m [32m|[m [31m|[m   
+[34m|[m * [33m|[m [35m|[m [32m|[m [32m|[m [31m|[m [33m0a4734f[m update meeting minutes
+[34m|[m[34m/[m [33m/[m [35m/[m [32m/[m [32m/[m [31m/[m  
+[34m|[m [33m|[m * [32m|[m [32m|[m [31m|[m [33m9eca9c0[m wip: added 3 real test questions. Changed in quiz.tsx(client) how answers are shown, now they look better.
+[34m|[m [33m|[m * [32m|[m [32m|[m [31m|[m   [33md2fa844[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into feat/quiz
+[34m|[m [33m|[m [1;33m|[m[34m\[m [32m\[m [32m\[m [31m\[m  
+[34m|[m [33m|[m[34m_[m[1;33m|[m[34m/[m [32m/[m [32m/[m [31m/[m  
+[34m|[m[34m/[m[33m|[m [1;33m|[m [32m|[m [32m|[m [31m|[m   
+* [33m|[m [1;33m|[m [32m|[m [32m|[m [31m|[m   [33m01d99b9[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence
+[1;35m|[m[32m\[m [33m\[m [1;33m\[m [32m\[m [32m\[m [31m\[m  
+[1;35m|[m [32m|[m [33m|[m[32m_[m[1;33m|[m[32m_[m[32m|[m[32m/[m [31m/[m  
+[1;35m|[m [32m|[m[32m/[m[33m|[m [1;33m|[m [32m|[m [31m|[m   
+[1;35m|[m * [33m|[m [1;33m|[m [32m|[m [31m|[m [33m3458915[m fix: docker compose
+* [1;36m|[m [33m|[m [1;33m|[m [32m|[m [31m|[m [33mfc0f2a1[m fix: name of the volume
+[1;36m|[m[1;36m/[m [33m/[m [1;33m/[m [32m/[m [31m/[m  
+* [33m|[m [1;33m|[m [32m|[m [31m|[m [33mf1ac1ac[m Merge pull request #98 from hydnumrepandum68/frontend/main
+[31m|[m[33m\[m[33m|[m [1;33m|[m [32m|[m [31m|[m 
+[31m|[m * [1;33m|[m [32m|[m [31m|[m   [33m3ae5719[m Merge pull request #95 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [33m|[m[34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [33m|[m * [1;33m|[m [32m|[m [31m|[m [33ma9f957b[m update en.json to resolve pb
+[31m|[m [33m|[m * [1;33m|[m [32m|[m [31m|[m   [33md998a9a[m resolve conflicts after merge of a11y PR
+[31m|[m [33m|[m [35m|[m[33m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [33m|[m [35m|[m[33m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [33m|[m[33m/[m[35m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m   [33m6711da0[m Merge pull request #96 from hydnumrepandum68/fix/merge-accessibility-a11y
+[31m|[m [1;31m|[m[1;32m\[m [35m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;31m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m [33me35c41b[m feat(a11y): port accessibility from fixes-b into ReporterForm + merge i18n keys
+[31m|[m [1;31m|[m[1;31m/[m [35m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m   [33mac2b38e[m Merge pull request #94 from hydnumrepandum68/frontend/phase1-fixesA
+[31m|[m [1;33m|[m[1;34m\[m [35m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;33m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m [33m0441ccd[m refactor(frontend): extract useReports hook and ReportDetail component, remove any types
+[31m|[m * [1;34m|[m [35m|[m [1;33m|[m [32m|[m [31m|[m [33md27946a[m Merge pull request #93 from hydnumrepandum68/frontend/phase1-fixesA
+[31m|[m [1;35m|[m[1;34m\[m[1;34m|[m [35m|[m [1;33m|[m [32m|[m [31m|[m 
+[31m|[m [1;35m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m [33md1e9dc1[m feat(frontend): create studentdashboard based on reporterdashboard modular structure + create Makefile
+[31m|[m [1;35m|[m[1;35m/[m [35m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m * [35m|[m [1;33m|[m [32m|[m [31m|[m   [33m821c18d[m Merge pull request #91 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [31m|[m[32m\[m [35m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [31m|[m [32m|[m * [1;33m|[m [32m|[m [31m|[m [33mcdf9bd5[m update ReportForm for accessibility
+[31m|[m [31m|[m [32m|[m * [1;33m|[m [32m|[m [31m|[m [33mfda3b49[m update AdminDashboard can not delete our own profile
+[31m|[m [31m|[m [32m|[m * [1;33m|[m [32m|[m [31m|[m [33m75bcbf5[m update AdminDashboard handle delete users
+[31m|[m [31m|[m [32m|[m * [1;33m|[m [32m|[m [31m|[m   [33mc420b8c[m Merge remote-tracking branch 'origin' into frontend/phase1-fixes-b
+[31m|[m [31m|[m [32m|[m [33m|[m[34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [31m|[m [32m|[m * [34m\[m [1;33m\[m [32m\[m [31m\[m   [33m8d81aeb[m Merge branch 'frontend/phase1-fixes-b' of github.com:hydnumrepandum68/ft_transcendence into frontend/phase1-fixes-b
+[31m|[m [31m|[m [32m|[m [35m|[m[36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [31m|[m [32m|[m [35m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m7462f4d[m wip update AdminDashbord to allow or not delete of users
+[31m|[m [31m|[m [32m|[m [35m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m220c504[m update AdminDashboard add translation for email and password error
+[31m|[m [31m|[m [32m|[m [35m|[m[32m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [31m|[m [32m|[m[32m/[m[35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m [31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33mb53d012[m update AdminDashboard add useMemo
+[31m|[m [31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33maf861c3[m update StatsDashboard add useMemo
+[31m|[m [31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m7d657ad[m update AdminDashboard User form validation: email, password, required fields
+[31m|[m [31m|[m[31m/[m [35m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33md6e359e[m Merge pull request #89 from hydnumrepandum68/frontend/phase1-fixesA
+[31m|[m [1;31m|[m[1;32m\[m [35m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m9b1155f[m refactor(frontend): extract ReporterProfile and ReportForm components
+[31m|[m [1;31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33me59460f[m refactor(frontend): extract useReportForm hook from ReporterDashboard
+[31m|[m [1;31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m2a94502[m feat(frontend): reporter - inline validation on multistep report form
+[31m|[m [1;31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m50d699b[m devbar: fix and add role simulation
+[31m|[m [1;31m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m75732b4[m Merge branch 'frontend/main' of github.com:hydnumrepandum68/ft_transcendence into frontend/phase1-fixesA
+[31m|[m [1;31m|[m [1;33m|[m[1;31m\[m [35m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;31m|[m [1;33m|[m[1;31m/[m [35m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [1;31m|[m[1;31m/[m[1;33m|[m [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m * [1;33m|[m [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m3468778[m Merge pull request #90 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [1;35m|[m[1;36m\[m [1;33m\[m [35m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;35m|[m [1;36m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33mc53bec0[m feat(frontend): add error banner on report submission failure
+[31m|[m [1;35m|[m [1;36m|[m * [35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33mf7ff0dc[m refactor(frontend): extract handleVictimSearch + documented code in ReporterDashboard
+[31m|[m [1;35m|[m [1;36m|[m [1;36m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33ma70fe03[m merge phase1 a
+[31m|[m [1;35m|[m [1;36m|[m [1;36m|[m[1;36m/[m[1;35m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m 
+[31m|[m [1;35m|[m [1;36m|[m[1;36m/[m[1;36m|[m[1;35m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [1;35m|[m [1;36m|[m[1;35m/[m[1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m [1;35m|[m[1;35m/[m[1;36m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m * [1;36m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m8d074c9[m Merge pull request #88 from hydnumrepandum68/frontend/phase1-fixesA
+[31m|[m [33m|[m[1;36m\[m [1;36m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [33m|[m [1;36m|[m [1;36m|[m[1;36m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [33m|[m [1;36m|[m[1;36m/[m[1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m [33m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m30326c2[m docs: update meeting minutes 2026-05-06
+[31m|[m [33m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m74df677[m docs: update meeting minutes 2026-05-06
+[31m|[m [33m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m04201e6[m fix(frontend): memoize options and fix description wrapping in ReporterDashboard
+[31m|[m [33m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m907aad5[m fix(frontend): React.memo sur Footer + imports + doc accessibilité
+[31m|[m [33m|[m[33m/[m [1;36m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33ma29dd65[m Merge pull request #87 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [35m|[m[36m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m * [36m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m   [33m2f48c09[m Merge pull request #86 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [1;31m|[m[1;32m\[m [36m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;31m|[m [1;32m|[m [36m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m5940704[m update AdminDashboard replace input by component Input
+[31m|[m [1;31m|[m [1;32m|[m [36m|[m[36m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [1;31m|[m [1;32m|[m * [34m/[m [1;33m/[m [32m/[m [31m/[m [33m0f45992[m update StudentDashboard notifications with aria
+[31m|[m [1;31m|[m [1;32m|[m[1;32m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [1;31m|[m * [34m/[m [1;33m/[m [32m/[m [31m/[m [33m441b56c[m update ReporterDashboard step 6 in viewSection===report
+[31m|[m [1;31m|[m[1;31m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m48c1e62[m Merge pull request #85 from hydnumrepandum68/frontend/phase1-fixes-b
+[31m|[m [1;33m|[m[1;34m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;33m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33meb6e864[m update Login.tsx to add Client-side and server-side validation
+[31m|[m [1;33m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33maa76fc3[m[33m ([m[1;32mfeat/reporter-dashboard[m[33m)[m update ReporterDashboard and Quiz to redirect to the correct page+section
+[31m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m63906fa[m Merge pull request #84 from hydnumrepandum68/frontend/phase1-fixesA
+[31m|[m [1;35m|[m[1;36m\[m [1;34m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33mf181de3[m delete old header file Jeter-ReporterHeader.tsx
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m5ceea3c[m doc: prepare meeting minutes 20260506
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m78988fc[m fix(a11y/admin): focus-visible rings, goTo nav, selected narrowing
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33me8d01e3[m docs: update reference manual and stack
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m4f0d148[m fix(docker): replace anonymous node_modules with named volumes
+[31m|[m [1;35m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m12f42a4[m Merge remote-tracking branch 'origin/frontend/main' into frontend/admindashboard
+[31m|[m [1;35m|[m [31m|[m[32m\[m [1;34m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [1;35m|[m * [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m0bfd756[m upd meeting minutes 20260501 et git workflow
+[31m|[m [1;35m|[m * [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m5c91945[m upd meeting minutes, prepare agenda meeting may 1st, set up tracking in github dashboard
+[31m|[m [1;35m|[m * [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m454d4ce[m docs: rename modules.md to tracking.md
+[31m|[m [1;35m|[m * [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m396cbe8[m docs: bring back meeting notes and resources from docs/pm-meetings
+[31m|[m * [32m|[m [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m8333e1d[m docs: update reference manual and stack
+[31m|[m * [32m|[m [32m|[m [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m8aa6294[m Merge branch 'frontend/main' of github.com:hydnumrepandum68/ft_transcendence into frontend/main
+[31m|[m [32m|[m[32m\[m [32m\[m [32m\[m [1;34m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [32m|[m [32m|[m[32m/[m [32m/[m [1;34m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [32m|[m[32m/[m[32m|[m [32m/[m [1;34m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m   
+[31m|[m [32m|[m [32m|[m[32m/[m [1;34m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m    
+[31m|[m [32m|[m * [1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m8b9cc2d[m Merge pull request #81 from hydnumrepandum68/feat/reporter-dashboard
+[31m|[m [32m|[m [35m|[m[1;34m\[m[1;34m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m 
+[31m|[m [32m|[m [35m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m   [33ma1fd583[m Merge branch 'frontend/main' into feat/reporter-dashboard
+[31m|[m [32m|[m [35m|[m [1;31m|[m[35m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [32m|[m [35m|[m [1;31m|[m[35m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [32m|[m [35m|[m[35m/[m[1;31m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m [32m|[m * [1;31m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m7aeabea[m Merge remote-tracking branch 'origin/main' into frontend/main
+[31m|[m [32m|[m [1;33m|[m[1;34m\[m [1;31m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m62cfc3a[m stepbar: fix steps in buton
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m5bf7531[m stepbar: fix increment
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33m9603d21[m stepbar: fix increment
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33mac202be[m wip: update Header Component on ReporterDashboard
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m [33mac9d82a[m wip: update header from reporterDashboard
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m8dc3911[m wip: integration quiz in reporterDashboard
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m [1;35m|[m[1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m8b8e954[m wip:update auth
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m08a1aa8[m wip:update stepBar
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m [31m|[m[32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m2f4297d[m wip: add subject in the profile of the teacher
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33me9eca36[m update StepBar for the reporter
+[31m|[m [32m|[m [1;33m|[m [1;34m|[m * [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m3bd81f8[m wip:amelioration de la page reporter
+[31m|[m * [1;33m|[m [1;34m|[m [32m|[m [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33mb9a24a5[m Merge pull request #37 from hydnumrepandum68/database/reporter
+[31m|[m [33m|[m[32m\[m [1;33m\[m [1;34m\[m [32m\[m [32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[31m|[m [33m|[m [32m|[m [1;33m|[m[32m_[m[1;34m|[m[32m/[m [32m/[m [1;36m/[m [34m/[m [1;33m/[m [32m/[m [31m/[m  
+[31m|[m [33m|[m [32m|[m[32m/[m[1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   
+[31m|[m * [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33ma5bc941[m Merge pull request #36 from hydnumrepandum68/docs/react
+[31m|[m [35m|[m[36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+* [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m [33m771ad8c[m update: docker-compose
+* [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [34m|[m [1;33m|[m [32m|[m [31m|[m   [33m0d43544[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence
+[1;31m|[m[1;32m\[m [35m\[m [36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[1;31m|[m * [35m\[m [36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m   [33m03739ab[m Merge pull request #97 from hydnumrepandum68/feat/quiz
+[1;31m|[m [34m|[m[1;34m\[m [35m\[m [36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [34m\[m [1;33m\[m [32m\[m [31m\[m  
+[1;31m|[m [34m|[m [1;34m|[m[34m_[m[35m|[m[34m_[m[36m|[m[34m_[m[32m|[m[34m_[m[1;33m|[m[34m_[m[1;34m|[m[34m_[m[32m|[m[34m_[m[1;36m|[m[34m/[m [1;33m/[m [32m/[m [31m/[m  
+[1;31m|[m [34m|[m[34m/[m[1;34m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [1;33m|[m [32m|[m [31m|[m   
+* [34m|[m [1;34m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [1;33m|[m [32m|[m [31m|[m [33maed3181[m add: safeschool doc
+[1;34m|[m [34m|[m [1;34m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m * [32m|[m [31m|[m [33m89ebe8b[m wip: decoupled the questions from quiz-realtime-service to questions.json. Added a statistic system that shows, at revealing phase, how many people answered to a question in pourcentage.
+[1;34m|[m [34m|[m [1;34m|[m [35m|[m[1;34m_[m[36m|[m[1;34m_[m[32m|[m[1;34m_[m[1;33m|[m[1;34m_[m[1;34m|[m[1;34m_[m[32m|[m[1;34m_[m[1;36m|[m[1;34m/[m [32m/[m [31m/[m  
+[1;34m|[m [34m|[m [1;34m|[m[1;34m/[m[35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   
+[1;34m|[m [34m|[m * [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   [33m2c61128[m Merge branch 'main' of github.com:hydnumrepandum68/ft_transcendence into feat/quiz
+[1;34m|[m [34m|[m [1;35m|[m[34m\[m [35m\[m [36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [32m\[m [31m\[m  
+[1;34m|[m [34m|[m [1;35m|[m[34m/[m [35m/[m [36m/[m [32m/[m [1;33m/[m [1;34m/[m [32m/[m [1;36m/[m [32m/[m [31m/[m  
+[1;34m|[m [34m|[m[34m/[m[1;35m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   
+[1;34m|[m * [1;35m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;34m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   [33m5cc0907[m Merge pull request #82 from hydnumrepandum68/fix/docker-compose-named-volumes
+[1;34m|[m [1;34m|[m[32m\[m [1;35m\[m [35m\[m [36m\[m [32m\[m [1;33m\[m [1;34m\[m [32m\[m [1;36m\[m [32m\[m [31m\[m  
+[1;34m|[m [1;34m|[m [32m|[m[1;34m_[m[1;35m|[m[1;34m_[m[35m|[m[1;34m_[m[36m|[m[1;34m_[m[32m|[m[1;34m_[m[1;33m|[m[1;34m/[m [32m/[m [1;36m/[m [32m/[m [31m/[m  
+[1;34m|[m [1;34m|[m[1;34m/[m[32m|[m [1;35m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   
+[1;34m|[m [1;34m|[m * [1;35m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m [33m4386420[m fix(docker): remplacer volumes anonymes node_modules par volumes nommés
+[1;34m|[m [1;34m|[m [32m|[m * [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m [33m4159ba9[m wip: added a timer of 5sec to show if the answer was correct or not before moving to the next question after the client(s) answered
+[1;34m|[m [1;34m|[m [32m|[m * [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m [33m5c15f6f[m wip: added a check to validate a room code. added a button to leave when the game is over. removed testing text(socketerror, socket). added a limit and a check for max players in a room.
+[1;34m|[m [1;34m|[m [32m|[m * [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m [33m691bc2e[m refactor: reduced the number of useState with using a type interface.
+[1;34m|[m [1;34m|[m [32m|[m[1;34m/[m [35m/[m [36m/[m [32m/[m [1;33m/[m [32m/[m [1;36m/[m [32m/[m [31m/[m  
+[1;34m|[m [1;34m|[m[1;34m/[m[32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   
+[1;34m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [31m|[m   [33mce2e685[m Merge pull request #80 from hydnumrepandum68/feat/quiz
+[1;34m|[m [33m|[m[34m\[m [32m\[m [35m\[m [36m\[m [32m\[m [1;33m\[m [32m\[m [1;36m\[m [32m\[m [31m\[m  
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m * [33m07221d9[m merge with reporter
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m[36m_[m[1;33m|[m[36m_[m[32m|[m[36m_[m[1;36m|[m[36m_[m[32m|[m[36m/[m  
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m[36m/[m[32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m   
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m * [33m1c16c25[m[33m ([m[1;31morigin/feat/backend[m[33m)[m fix:correction docker compose
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [35m|[m * [33mdd24807[m[33m ([m[1;31morigin/fix/frontend-studentdashboard[m[33m)[m fix: reporter profile
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [35m|[m * [33m0413ed6[m fix: reporter profile
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m [35m|[m * [33me3e2044[m fix: reporter profile
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m [32m|[m[1;36m_[m[35m|[m[1;36m/[m  
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m [1;36m|[m[1;36m/[m[32m|[m [35m|[m   
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m * [32m|[m [35m|[m [33m06c85a5[m fix: reporter profile
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m[32m/[m [32m/[m [35m/[m  
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m * [32m|[m [35m|[m [33m4bf657d[m[33m ([m[1;32mfix/frontend-studentdashboard[m[33m)[m feat : integrate quiz module
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m * [32m|[m [35m|[m   [33ma69612e[m Merge branch 'feat/quiz' into fix/frontend-studentdashboard
+[1;34m|[m [33m|[m [34m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m[34m\[m [32m\[m [35m\[m  
+[1;34m|[m [33m|[m [34m|[m [32m|[m[34m_[m[35m|[m[34m_[m[36m|[m[34m_[m[32m|[m[34m_[m[1;33m|[m[34m_[m[1;31m|[m[34m/[m [32m/[m [35m/[m  
+[1;34m|[m [33m|[m [34m|[m[34m/[m[32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m   
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m77636cf[m wip: fixed a bug where when the quiz ends it wouldn't properly clean a room, and added very minimal TailWind CSS style
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m365eea9[m wip: merged with main
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m29ac944[m wip: added a probe test before trying to connect to the socket. added a timer system for questions and all player answered system validation. (! still a bug where the room is not cleaned properly after a quiz is done)
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m0ce6b39[m wip: completly clean all the quiz.tsx/quiz-realtime.gateway.ts/quiz-realtime.service.ts. removed unused variable state + debug function, all the indentation are now more clean, startGame no longer throw but returns a state like all the other functions, removed empty handler and unsed function parameter.
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m960dac4[m wip: submitAnswer now returns status-based results instead of throwing for expected cases. and now the frontend recive back the result of the question
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m4b66156[m wip: questions are now stored in the backend instead of in the client, and added small client game staring template
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m25e2e78[m wip: added multiplayer rooms from a code, the first person to join the room is the host and can start the game
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m9d2c3a9[m wip: continuing minimal web socket implementation, now when the page /quiz loads up, the client sends a request to the backend to connect to a websocket.
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m5a16e36[m Added minimal quiz-realtime module to start and added socket.io in package in both frontend and backend
+[1;34m|[m [33m|[m * [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [1;31m|[m [32m|[m [35m|[m [33m3010891[m First commit Quiz. Added a new page Quiz.tsx, and added the route to quiz in App.tsx
+[1;34m|[m [33m|[m[33m/[m [32m/[m [35m/[m [36m/[m [32m/[m [1;33m/[m [1;31m/[m [32m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m * [32m/[m [35m/[m [33m7a881fb[m fix: refonte frontend Tailwind, profil élève avec parents, correction reporter/student dashboard
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m [32m|[m[32m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m * [35m/[m [33mdde5a8c[m refactor: add and secure users routes
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m [32m|[m [1;33m|[m[32m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m [32m|[m[32m/[m[1;33m|[m [35m|[m   
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m * [1;33m|[m [35m|[m [33ma37c537[m wip:delete parentEmail and parentPhone from student_profile
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m * [1;33m|[m [35m|[m [33m57f357a[m wip:update INSERT to match with new structure
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m * [1;33m|[m [35m|[m [33m663cf34[m feat: new structure for the database including teacher with classes, parents with students
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m * [1;33m|[m [35m|[m [33mf6c7824[m feat: update database and backend
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m * [1;33m|[m [35m|[m [33m1c4e85f[m wip:update database with a new structure
+[1;34m|[m [33m|[m [32m|[m [35m|[m [36m|[m[36m/[m [1;33m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m [35m|[m * [1;33m/[m [35m/[m [33mae62664[m wip: ReporterDashboard update Header and ReporterHeaderdelete first pageadd Profil, Ateliers, Quiz
+[1;34m|[m [33m|[m [32m|[m [35m|[m[35m/[m [1;33m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m * [1;33m|[m [35m|[m   [33m6adb079[m Merge pull request #35 from hydnumrepandum68/frontend/admindashboard
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m[1;34m\[m [1;33m\[m [35m\[m  
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m [1;34m|[m[1;33m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m[1;33m/[m[1;34m|[m [35m|[m   
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m * [35m|[m [33m51e138c[m refactor(frontend): types partagés, suppression des any, extraction AdminHeader, UI Kit complet
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m * [35m|[m [33m9098a3c[m refactor(frontend): harmonise i18n, a11y, structure Footer et ajout useLanguage
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m * [35m|[m [33m40d11fd[m delete obsolete bug proof
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m * [35m|[m [33m285e441[m upd api.ts + minor cosmetic changes admindashboard
+[1;34m|[m [33m|[m [32m|[m [1;33m|[m[1;33m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m * [35m|[m   [33m5f46cff[m Merge pull request #30 from hydnumrepandum68/feat/reporter-dashboard
+[1;34m|[m [33m|[m [32m|[m [1;35m|[m[1;36m\[m [35m\[m  
+[1;34m|[m [33m|[m [32m|[m [1;35m|[m * [35m|[m [33m715fcf5[m wip: translations for frontend/reporter
+[1;34m|[m [33m|[m [32m|[m * [1;36m|[m [35m|[m [33m9eb9319[m Fusion de feat/reporter-dashboard dans frontend/main
+[1;34m|[m [33m|[m [32m|[m[33m/[m[1;36m|[m [1;36m|[m [35m|[m 
+[1;34m|[m [33m|[m[33m/[m[32m|[m [1;36m|[m[1;36m/[m [35m/[m  
+[1;34m|[m [33m|[m [32m|[m * [35m|[m [33m743c0d3[m refactor: ReporterDashboard
+[1;34m|[m [33m|[m [32m|[m * [35m|[m [33m0da24d2[m refactor: ReporterDashboard
+[1;34m|[m [33m|[m [32m|[m * [35m|[m [33mcf54181[m merge frontend
+[1;34m|[m [33m|[m [32m|[m [32m|[m [35m|[m * [33mc56fe45[m[33m ([m[1;31morigin/docs/update-git-workflow[m[33m)[m docs: updated git_workflow.md
+[1;34m|[m [33m|[m [32m|[m[33m_[m[32m|[m[33m_[m[35m|[m[33m/[m  
+[1;34m|[m [33m|[m[33m/[m[32m|[m [32m|[m [35m|[m   
+[1;34m|[m * [32m|[m [32m|[m [35m|[m [33md117305[m Merge pull request #29 from hydnumrepandum68/feat/frontend/design-system
+[1;34m|[m[1;34m/[m[32m|[m [32m|[m [32m|[m [35m|[m 
+[1;34m|[m [32m|[m [32m|[m[32m/[m [35m/[m  
+[1;34m|[m [32m|[m[32m/[m[32m|[m [35m|[m   
+[1;34m|[m * [32m|[m [35m|[m [33m6bb7dd2[m[33m ([m[1;32mfeat/frontend/design-system[m[33m)[m fix(frontend): type import, i18n langue par defaut, UI Kit hierarchie visuelle
+[1;34m|[m * [32m|[m [35m|[m [33mca1d16b[m docs: mise a jour manuel de reference
+[1;34m|[m * [32m|[m [35m|[m [33m36bad13[m refactor(frontend): design system complet — composants, i18n, accessibilite
+[1;34m|[m * [32m|[m [35m|[m [33md9d24fd[m feat(frontend): i18n legal pages, fix toggle-devbar, docs update
+[1;34m|[m * [32m|[m [35m|[m [33m34f2316[m feat(frontend): fix flex layout chain, semantic main, FR default lang
+[1;34m|[m * [32m|[m [35m|[m [33m1b12fc3[m docs: add .env system, Vite env loading order, DevBar toggle reference
+[1;34m|[m * [32m|[m [35m|[m [33m31064d8[m feat(frontend): Footer, PrivacyPolicy, TermsOfService, DevBar toggle via .env
+[1;34m|[m * [32m|[m [35m|[m [33m9992b32[m docs: add WCAG section, translate roles/vision, update technical reference
+[1;34m|[m * [32m|[m [35m|[m [33mc4ddb48[m feat(frontend): setup i18n (FR/EN/DE), refactor Login, WCAG AA colors
+[1;34m|[m * [32m|[m [35m|[m [33m4c43e7e[m update manuel reference
+[1;34m|[m * [32m|[m [35m|[m [33m96f3b97[m upd doc and UI kit
+[1;34m|[m * [32m|[m [35m|[m [33m42d454b[m feat(frontend): design system — tokens, composants, UiKit et doc
+[1;34m|[m[1;34m/[m [32m/[m [35m/[m  
+* [32m|[m [35m|[m   [33m2393267[m Merge pull request #27 from hydnumrepandum68/frontend-admin
+[36m|[m[1;31m\[m [32m\[m [35m\[m  
+[36m|[m * [32m\[m [35m\[m   [33m98df877[m[33m ([m[1;32mfrontend-admin[m[33m)[m Merge branch 'main' into frontend-admin
+[36m|[m [1;32m|[m[36m\[m [32m\[m [35m\[m  
+[36m|[m [1;32m|[m[36m/[m [32m/[m [35m/[m  
+[36m|[m[36m/[m[1;32m|[m [32m|[m [35m|[m   
+* [1;32m|[m [32m|[m [35m|[m   [33m1900c5c[m Merge pull request #26 from hydnumrepandum68/feat/frontend/tailwind-setup
+[32m|[m[1;35m\[m [1;32m\[m [32m\[m [35m\[m  
+[32m|[m [1;35m|[m[32m_[m[1;32m|[m[32m/[m [35m/[m  
+[32m|[m[32m/[m[1;35m|[m [1;32m|[m [35m|[m   
+[32m|[m * [1;32m|[m [35m|[m [33mc3088ff[m docs: remove obsolete and update stack/tools docs
+[32m|[m * [1;32m|[m [35m|[m [33m57a8604[m feat(frontend): install and configure TailwindCSS v4
+[32m|[m[32m/[m [1;32m/[m [35m/[m  
+[32m|[m * [35m|[m [33mda8f1dd[m update modules
+[32m|[m * [35m|[m [33m48ddba7[m refactor: AdminDashboard
+[32m|[m * [35m|[m [33m0520a62[m feat: installation of tailwind
+[32m|[m[32m/[m [35m/[m  
+* [35m|[m   [33mb395b33[m Merge pull request #25 from hydnumrepandum68/docs/git-guide
+[1;36m|[m[31m\[m [35m\[m  
+[1;36m|[m * [35m|[m [33ma06a785[m update git_howto with main git commands
+[1;36m|[m * [35m|[m [33m86dd654[m docs: create and detail git workflow guide
+* [31m|[m [35m|[m [33mfcc93a3[m changement du port elsticsearch
+* [31m|[m [35m|[m [33md9285ad[m update admin dashboard
+* [31m|[m [35m|[m   [33mce5afbe[m Merge pull request #24 from hydnumrepandum68/frontend-admin
+[32m|[m[33m\[m [31m\[m [35m\[m  
+[32m|[m * [31m\[m [35m\[m   [33mdba0e62[m Merge branch 'main' into frontend-admin
+[32m|[m [34m|[m[32m\[m [31m\[m [35m\[m  
+[32m|[m [34m|[m[32m/[m [31m/[m [35m/[m  
+[32m|[m[32m/[m[34m|[m [31m|[m [35m|[m   
+* [34m|[m [31m|[m [35m|[m   [33me024819[m Merge pull request #23 from hydnumrepandum68/mockups
+[36m|[m[1;31m\[m [34m\[m [31m\[m [35m\[m  
+* [1;31m\[m [34m\[m [31m\[m [35m\[m   [33m58c4a82[m Merge pull request #22 from hydnumrepandum68/feat/front/admin-dashboard
+[1;32m|[m[31m\[m [1;31m\[m [34m\[m [31m\[m [35m\[m  
+[1;32m|[m [31m|[m [1;31m|[m[31m_[m[34m|[m[31m/[m [35m/[m  
+[1;32m|[m [31m|[m[31m/[m[1;31m|[m [34m|[m [35m|[m   
+[1;32m|[m * [1;31m|[m [34m|[m [35m|[m   [33m4742e98[m Merge branch 'main' into feat/front/admin-dashboard
+[1;32m|[m [1;34m|[m[1;32m\[m [1;31m\[m [34m\[m [35m\[m  
+[1;32m|[m [1;34m|[m[1;32m/[m [1;31m/[m [34m/[m [35m/[m  
+[1;32m|[m[1;32m/[m[1;34m|[m [1;31m|[m [34m|[m [35m|[m   
+* [1;34m|[m [1;31m|[m [34m|[m [35m|[m   [33mada8df6[m Merge pull request #20 from hydnumrepandum68/Moufida
+[1;36m|[m[35m\[m [1;34m\[m [1;31m\[m [34m\[m [35m\[m  
+[1;36m|[m [35m|[m [1;34m|[m[35m_[m[1;31m|[m[35m_[m[34m|[m[35m/[m  
+[1;36m|[m [35m|[m[35m/[m[1;34m|[m [1;31m|[m [34m|[m   
+[1;36m|[m * [1;34m|[m [1;31m|[m [34m|[m [33m11acde2[m correction configuration elk
+[1;36m|[m * [1;34m|[m [1;31m|[m [34m|[m [33mfb9df00[m correction configuration elk
+[1;36m|[m * [1;34m|[m [1;31m|[m [34m|[m [33me345ce4[m correction configuration elk
+[1;36m|[m * [1;34m|[m [1;31m|[m [34m|[m [33m82c60b6[m correction configuration elk
+[1;36m|[m[1;36m/[m [1;34m/[m [1;31m/[m [34m/[m  
+* [1;34m|[m [1;31m|[m [34m|[m   [33m2b6fc3d[m Merge pull request #19 from hydnumrepandum68/Moufida
+[32m|[m[33m\[m [1;34m\[m [1;31m\[m [34m\[m  
+[32m|[m * [1;34m|[m [1;31m|[m [34m|[m [33mab6da38[m remove: suppression des PDF
+[32m|[m * [1;34m|[m [1;31m|[m [34m|[m [33m49a2125[m Ajout du ELK et le score de la gravite
+[32m|[m * [1;34m|[m [1;31m|[m [34m|[m [33m060b0fc[m Ajout du ELK et le score de la gravite
+[32m|[m * [1;34m|[m [1;31m|[m [34m|[m [33me24fda0[m docs: mise a jour README avec ELK, scoring, comptes de test
+[32m|[m * [1;34m|[m [1;31m|[m [34m|[m [33m6fbbf73[m  ELK stack, scoring IA, logging Winston
+[32m|[m[32m/[m [1;34m/[m [1;31m/[m [34m/[m  
+* [1;34m|[m [1;31m|[m [34m|[m   [33md463e6f[m Merge pull request #18 from hydnumrepandum68/Moufida
+[34m|[m[35m\[m [1;34m\[m [1;31m\[m [34m\[m  
+[34m|[m * [1;34m|[m [1;31m|[m [34m|[m [33mef12f88[m convaction individuelle pour chaque personne impliquee dans le signalement
+[34m|[m[34m/[m [1;34m/[m [1;31m/[m [34m/[m  
+[34m|[m * [1;31m|[m [34m|[m [33m05cf93d[m update meeting minutes 20260417 + prepare 20260424
+[34m|[m * [1;31m|[m [34m|[m [33m666f13f[m update meeting minutes
+[34m|[m * [1;31m|[m [34m|[m [33m9c7ef36[m[33m ([m[1;32mfeat/front/admin-dashboard[m[33m)[m upd meeting minutes
+[34m|[m * [1;31m|[m [34m|[m [33m93e2fbc[m upd meeting minutes
+[34m|[m * [1;31m|[m [34m|[m [33m37c3f1e[m add App.tsx and AdminDashboard.tsx
+[34m|[m [35m|[m [1;31m|[m * [33mce66148[m update frontend de la page admin un signalement
+[34m|[m [35m|[m [1;31m|[m * [33md59e452[m update frontend de la page admin un signalement
+[34m|[m [35m|[m [1;31m|[m * [33m58ab9dd[m update frontend de la page admin tous les signalements
+[34m|[m [35m|[m [1;31m|[m * [33m9042578[m update frontend de la page admin signalements
+[34m|[m [35m|[m [1;31m|[m * [33mc0cc8c0[m update signalements page admin
+[34m|[m [35m|[m [1;31m|[m * [33mb3590bf[m Merge remote-tracking branch 'origin/main' into frontend-admin
+[34m|[m [35m|[m [1;31m|[m[1;31m/[m[34m|[m 
+[34m|[m [35m|[m[34m_[m[1;31m|[m[34m/[m  
+[34m|[m[34m/[m[35m|[m [1;31m|[m   
+* [35m|[m [1;31m|[m   [33ma7d24cb[m Merge pull request #17 from hydnumrepandum68/Moufida
+[1;32m|[m[1;33m\[m [35m\[m [1;31m\[m  
+[1;32m|[m * [35m|[m [1;31m|[m [33mfccb335[m restriction directeur - consultation uniquement + statistiques
+[1;32m|[m * [35m|[m [1;31m|[m [33mdb1ddad[m  mise a jour signalement prof et staff
+* [1;33m|[m [35m|[m [1;31m|[m [33m964e73d[m Merge pull request #16 from hydnumrepandum68/Moufida
+[1;34m|[m[1;33m\[m[1;33m|[m [35m|[m [1;31m|[m 
+[1;34m|[m * [35m|[m [1;31m|[m [33m0f6e5b1[m CRUD utilisateurs dans le dashboard admin
+[1;34m|[m * [35m|[m [1;31m|[m [33m9b5b4ee[m notifications convocation envoyees a la victime et aux soupçonnees, enregistrement des etapes de traitement de dossier
+* [1;35m|[m [35m|[m [1;31m|[m   [33ma21bcd1[m Merge pull request #15 from hydnumrepandum68/Moufida
+[1;36m|[m[31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33mad581ca[m Merge pull request #14 from hydnumrepandum68/Moufida
+[32m|[m[33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33mc702882[m Merge pull request #13 from hydnumrepandum68/Moufida
+[34m|[m[35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33m1806b05[m Merge pull request #12 from hydnumrepandum68/Moufida
+[36m|[m[1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33md1b2513[m Merge pull request #11 from hydnumrepandum68/Moufida
+[1;32m|[m[1;33m\[m [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [1;33m\[m [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33m56556f5[m Merge pull request #10 from hydnumrepandum68/Moufida
+[1;34m|[m[1;35m\[m [1;33m\[m [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+* [1;35m\[m [1;33m\[m [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m   [33mbcc0a27[m Merge pull request #9 from hydnumrepandum68/Moufida
+[1;36m|[m[31m\[m [1;35m\[m [1;33m\[m [1;31m\[m [35m\[m [33m\[m [31m\[m [1;35m\[m [35m\[m [1;31m\[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m [35m|[m * [33m60ca3fc[m[33m ([m[1;32mmockups[m[33m)[m update glossary
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m [35m|[m * [33m99ffee1[m update mockups quiz + viewer
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m [35m|[m *   [33m6cec3aa[m Merge branch 'Moufida' into mockups
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m [35m|[m [32m|[m[1;35m\[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m [35m|[m[1;35m_[m[32m|[m[1;35m/[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m [1;35m|[m[1;35m/[m[35m|[m [32m|[m   
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m * [35m|[m [32m|[m [33md61e644[m[33m ([m[1;32mMoufida[m[33m)[m adapter l IA pour le calcul des scores
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m * [35m|[m [32m|[m [33m874958f[m suivi des dossier pour les eleves
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m * [35m|[m [32m|[m [33m23fad1d[m suivi des dossier pour les eleves
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m * [35m|[m [32m|[m [33ma50eb2b[m integration Groq pour analyse IA des signalement
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m [31m|[m[31m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m * [35m|[m [32m|[m [33m0cb83a5[m filtres dashboard admin mis à jour - signalants et soupçonnés
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m * [35m|[m [32m|[m [33mccc1d7e[m  ajout des soupçonnes et meme les profs et le staf peuvent faire un signalement
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m [33m|[m[33m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m * [35m/[m [32m/[m [33mdeae83e[m Seul l eleve peut creer un signalement
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m [35m|[m[35m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m * [35m/[m [32m/[m [33m4767584[m Lancer le projet
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m [1;31m|[m[1;31m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m * [35m/[m [32m/[m [33m139aeb2[m Lancer le projet
+[1;36m|[m [31m|[m [1;35m|[m [1;33m|[m[1;33m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m [1;35m|[m * [35m/[m [32m/[m [33m60f7b25[m Lancer le projet
+[1;36m|[m [31m|[m [1;35m|[m[1;35m/[m [35m/[m [32m/[m  
+[1;36m|[m [31m|[m * [35m/[m [32m/[m [33m9c65cc8[m Technologies utilisées
+[1;36m|[m [31m|[m[31m/[m [35m/[m [32m/[m  
+[1;36m|[m * [35m|[m [32m|[m [33mec1f4a1[m Technologies utilisées
+[1;36m|[m * [35m|[m [32m|[m [33m0754b82[m dashboard admin avec  recherche, filtre et pagination
+[1;36m|[m * [35m|[m [32m|[m [33ma226d2e[m ajout dashboard admin avec stats
+[1;36m|[m * [35m|[m [32m|[m [33ma9cc5de[m  validation UUID + correction overflow
+[1;36m|[m * [35m|[m [32m|[m [33m9647292[m  Autorisation sur reports controller
+[1;36m|[m * [35m|[m [32m|[m [33m13fafb5[m UUID au lieu d'autoincrement + autorisation sur student_profiles
+[1;36m|[m [35m|[m[35m/[m [32m/[m  
+[1;36m|[m * [32m|[m [33m7fd56a5[m ajout service et controller student-profiles + masquage pasword
+[1;36m|[m * [32m|[m   [33me2afa20[m Merge branch 'Moufida' of github.com:hydnumrepandum68/ft_transcendence into Moufida
+[1;36m|[m [34m|[m[35m\[m [32m\[m  
+[1;36m|[m * [35m|[m [32m|[m [33m70b426b[m ajout table student_profiles avec des donnees de test
+[1;36m|[m [35m|[m [35m|[m * [33m51a511e[m update mockups et modules
+[1;36m|[m [35m|[m [35m|[m * [33m23ef515[m update mockups \signalements eleve et admin signalement
+[1;36m|[m [35m|[m [35m|[m * [33m4862a00[m update mockups signalements eleve et admin signalement
+[1;36m|[m [35m|[m [35m|[m *   [33m34879cd[m Merge branch 'main' into mockups
+[1;36m|[m [35m|[m [35m|[m [36m|[m[1;36m\[m  
+[1;36m|[m [35m|[m[1;36m_[m[35m|[m[1;36m_[m[36m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[35m|[m [35m|[m [36m|[m   
+* [35m|[m [35m|[m [36m|[m   [33m2cfa0b7[m Merge pull request #8 from hydnumrepandum68/Moufida
+[1;32m|[m[35m\[m [35m\[m [35m\[m [36m\[m  
+[1;32m|[m [35m|[m [35m|[m[35m/[m [36m/[m  
+[1;32m|[m [35m|[m[35m/[m[35m|[m [36m|[m   
+[1;32m|[m * [35m|[m [36m|[m   [33m2ba6280[m Merge branch 'main' into Moufida
+[1;32m|[m [35m|[m[1;32m\[m [35m\[m [36m\[m  
+[1;32m|[m [35m|[m[1;32m/[m [35m/[m [36m/[m  
+[1;32m|[m[1;32m/[m[35m|[m [35m/[m [36m/[m   
+[1;32m|[m [35m|[m[35m/[m [36m/[m    
+* [35m|[m [36m|[m   [33m08decda[m Merge pull request #7 from hydnumrepandum68/list-modules
+[1;36m|[m[31m\[m [35m\[m [36m\[m  
+[1;36m|[m [31m|[m * [36m|[m [33me007b47[m changement de .env.example
+[1;36m|[m [31m|[m * [36m|[m [33m7a9406e[m mise en forme de README pour github
+[1;36m|[m [31m|[m * [36m|[m [33m3a08f75[m mise en forme de README pour github
+[1;36m|[m [31m|[m * [36m|[m [33m1cc62d4[m changement de stack.md
+[1;36m|[m [31m|[m * [36m|[m [33mb52edde[m ajout seed.sql avec donnees de test et scripts backup/restore
+[1;36m|[m [31m|[m * [36m|[m [33mcedd8d9[m ajout scripts backup et restore base de donnees
+[1;36m|[m [31m|[m * [36m|[m [33m0f7af09[m ajout page signalement eleve avec classification IA basic
+[1;36m|[m [31m|[m * [36m|[m [33m400a326[m ajout frontend login et navigation par role
+[1;36m|[m [31m|[m * [36m|[m [33m30e2e6e[m ajout module signalement avec crud, regles de grade et escalade
+[1;36m|[m [31m|[m * [36m|[m [33md9a6153[m Presentation et installation du projet
+[1;36m|[m [31m|[m * [36m|[m [33mc11673d[m Presentation et installation du projet
+[1;36m|[m [31m|[m * [36m|[m [33m0b1e5ea[m Structure du projet
+[1;36m|[m [31m|[m * [36m|[m [33m2d19562[m Structure du projet
+[1;36m|[m [31m|[m * [36m|[m [33ma94c621[m Structure du projet
+[1;36m|[m [31m|[m * [36m|[m [33m7c09edd[m Presentation du projet et Installation
+[1;36m|[m [31m|[m * [36m|[m [33m641bd4f[m Technical Stack
+[1;36m|[m [31m|[m * [36m|[m [33mb397d90[m add NestJS backend with auth JWT, users, reports entities
+[1;36m|[m [31m|[m * [36m|[m [33mef286ca[m generate auth and users modules with NestJS CLI
+[1;36m|[m [31m|[m * [36m|[m [33m53ebd3a[m initialize NestJS project structure
+[1;36m|[m [31m|[m * [36m|[m [33m2ffc504[m Docker setup (React, NestJS, PostgreSQL)
+[1;36m|[m [31m|[m[1;36m/[m [36m/[m  
+[1;36m|[m[1;36m/[m[31m|[m [36m|[m   
+* [31m|[m [36m|[m   [33maf7bb2a[m Merge pull request #4 from hydnumrepandum68/docs/init-structure
+[32m|[m[33m\[m [31m\[m [36m\[m  
+[32m|[m [33m|[m [31m|[m * [33m95097fe[m update mockups for eleves
+[32m|[m [33m|[m [31m|[m * [33m6799173[m add mockups eleve
+[32m|[m [33m|[m [31m|[m[31m/[m  
+[32m|[m [33m|[m * [33m5ecbc1b[m[33m ([m[1;32mlist-modules[m[33m)[m update glossary and modules
+[32m|[m [33m|[m * [33m4fe9dbb[m update glossary
+[32m|[m [33m|[m * [33m2f25a99[m update glossary, modules, quiz, resources
+[32m|[m [33m|[m * [33m508647e[m add list of modules and doc about harcelement
+[32m|[m [33m|[m[33m/[m  
+[32m|[m * [33m8d19fb9[m[33m ([m[1;32mdocs/init-structure[m[33m)[m docs: initialize collaboration guidelines, roles, meetings, and project docs
+[32m|[m * [33mc14682c[m docs: initialize structure and team roles
+[32m|[m[32m/[m  
+* [33ma18eb5f[m Initial commit
