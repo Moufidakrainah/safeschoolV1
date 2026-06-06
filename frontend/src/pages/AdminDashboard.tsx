@@ -191,7 +191,7 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
-  // ── Formulaire utilisateur (JSX — reste ici car utilise composants shadcn/ui) ──
+  //  Formulaire utilisateur //
   const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -490,8 +490,9 @@ export default function AdminDashboard() {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId , dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
               await fetchUsers();
-              const u = users.find(u => u.id === selectedUser.id);
-              if (u) setSelectedUser({ ...u, firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role });
+              const u = await getUserById(selectedUser.id);
+              console.log('user rechargé:', u?.studentProfile?.dateOfBirth);
+              if (u) setSelectedUser(u);
             }}
             renderUserForm={renderUserForm}
             calcAge={calcAge}
