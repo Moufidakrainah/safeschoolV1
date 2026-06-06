@@ -72,6 +72,9 @@ export interface ReportVictim {
     id: string;
     firstName: string;
     lastName: string;
+    studentProfile?: {
+      schoolClass?: { id: string; level: string; section: string } | null;
+    } | null;
   } | null;
 }
 
