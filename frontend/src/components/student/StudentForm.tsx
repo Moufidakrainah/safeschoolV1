@@ -78,7 +78,14 @@ export default function StudentForm({ user }: StudentFormProps) {
   }
 
   return (
-    <main className="bg-gray-50 font-sans">
+
+    <section className="page-section">
+
+		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+
+
+
+    {/* <main className="bg-gray-50 font-sans"> */}
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
@@ -372,6 +379,9 @@ export default function StudentForm({ user }: StudentFormProps) {
 
         </Card>
       </div>
-    </main>
+    {/* </main> */}
+      </div>
+
+    </section>
   );
 }
