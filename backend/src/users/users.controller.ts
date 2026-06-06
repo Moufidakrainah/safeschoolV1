@@ -24,6 +24,7 @@ import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { validateUUID } from "../utils/validate-uuid";
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller("users")
 @UseGuards(AuthGuard("jwt"))
@@ -78,7 +79,7 @@ export class UsersController {
   }
 
   @Patch(":id/password")
-  async changePassword(@Request() req, @Param("id") id: string, @Body() dto: { password: string }) {
+  async changePassword(@Request() req, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
     validateUUID(id);
     if (req.user.role !== "admin" && req.user.id !== id) {
       throw new ForbiddenException("Accès refusé");

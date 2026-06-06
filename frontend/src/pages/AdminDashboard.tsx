@@ -29,14 +29,12 @@ interface SchoolClass { id: string; level: string; section: string; }
 
 export default function AdminDashboard() {
 
-  // ── Contexte et navigation ──
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const isAdmin = user?.role === 'admin';
 
-  // ── Hook utilisateurs ──
   const {
     users, loadingUsers,
     usersPage, setUsersPage, usersTotalPages,
@@ -54,14 +52,12 @@ export default function AdminDashboard() {
     navigateToUser, calcAge,
   } = useUsers();
 
-  // ── État des signalements ──
   const [reports, setReports]   = useState<Report[]>([]);
   const [loading, setLoading]   = useState(true);
   const [selected, setSelected] = useState<Report | null>(null);
   const [saving, setSaving]     = useState(false);
   const [view, setView]         = useState<'list' | 'detail'>('list');
 
-  // ── État des filtres signalements ──
   const [search, setSearch]               = useState('');
   const [filterGrade, setFilterGrade]     = useState('all');
   const [filterStatus, setFilterStatus]   = useState('all');
@@ -74,7 +70,6 @@ export default function AdminDashboard() {
   const [currentPage, setCurrentPage]     = useState(1);
   const [resetKey, setResetKey]           = useState(0);
 
-  // ── État des notes/convocations ──
   const [notes, setNotes]                     = useState<Note[]>([]);
   const [newNote, setNewNote]                 = useState('');
   const [convocationDate, setConvocationDate] = useState('');
@@ -84,7 +79,6 @@ export default function AdminDashboard() {
   const [sendingConvoc, setSendingConvoc] = useState(false);
   const [convocSuccess, setConvocSuccess] = useState(false);
 
-  // ── État navigation sections ──
   const [viewSection, setViewSection] = useState<'reports' | 'users' | 'stats' | 'classes'>(
     (searchParams.get('section') as 'reports' | 'users' | 'stats' | 'classes') ?? 'reports'
   );
@@ -93,7 +87,6 @@ export default function AdminDashboard() {
     navigate(`/dashboard?section=${viewSection}`, { replace: true });
   }, [viewSection]);
 
-  // ── État divers ──
   const selectedUserId = searchParams.get('userId');
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
   const [suspectSearch, setSuspectSearch] = useState('');
@@ -104,7 +97,6 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-  // ── useEffects ──
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -120,7 +112,6 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
-  // ── Fonctions signalements ──
   const fetchReports = async () => {
     try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
   };
@@ -149,7 +140,6 @@ export default function AdminDashboard() {
     } finally { setResolving(false); }
   };
 
-  // ── Calculs mémorisés signalements ──
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
       if (filterGrade !== 'all' && r.grade !== filterGrade) return false;
@@ -191,23 +181,34 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
-  //  Formulaire utilisateur //
   const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
-      <div><Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
-      <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.firstName &&
-      <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}</div>
-      <div><Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
-      <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.lastName &&
-      <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}</div>
-      <div><Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
-      <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />{errors.email &&
-      <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}</div>
-      <div><Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
-      <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />{errors.password &&
-      <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}</div>
-      <Select value={userForm.role} onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}>
-        <SelectTrigger className="bg-white">
+      <div>
+        <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
+        <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />
+        {errors.firstName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}
+      </div>
+      <div>
+        <Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
+        <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />
+        {errors.lastName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}
+      </div>
+      <div>
+        <Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
+        <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />
+        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+      </div>
+      <div>
+        <Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
+        <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />
+        {errors.password && <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}
+      </div>
+      <Select
+        value={userForm.role}
+        onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}
+        disabled={isEdit}
+      >
+        <SelectTrigger className={`bg-white ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
           <span>
             {userForm.role === "" && t('admin.users.roles.choose')}
             {userForm.role === "student" && t('admin.users.roles.student')}
@@ -227,7 +228,11 @@ export default function AdminDashboard() {
           <div>
             <Label className="text-white text-sm">Classe</Label>
             <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
-              <SelectTrigger className="bg-white mt-1"><SelectValue placeholder={t('admin.users.selectClass')}>{classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}</SelectValue></SelectTrigger>
+              <SelectTrigger className="bg-white mt-1">
+                <SelectValue placeholder={t('admin.users.selectClass')}>
+                  {classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
             </Select>
           </div>
@@ -249,7 +254,6 @@ export default function AdminDashboard() {
                 : null
             )}
           </div>
-          {/* ── Section Parents ── */}
           <div className="mt-2">
             <div className="flex justify-between items-center mb-2">
               <Label className="text-white text-sm">Responsables légaux</Label>
@@ -266,7 +270,6 @@ export default function AdminDashboard() {
                 </button>
               )}
             </div>
-
             {userForm.parents.map((parent, idx) => (
               <ParentFormItem
                 key={idx}
@@ -308,68 +311,67 @@ export default function AdminDashboard() {
     </div>
   );
 
-  // ── Vue détail signalement ──
   if (view === 'detail' && selected) {
     return (
       <main className="min-h-screen bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
-            <ReportDetail
-              selected={selected}
-              filtered={filtered}
-              notes={notes}
-              isAdmin={isAdmin}
-              saving={saving}
-              resolving={resolving}
-              checkedConvocIds={checkedConvocIds}
-              convocDetails={convocDetails}
-              sendingConvoc={sendingConvoc}
-              convocSuccess={convocSuccess}
-              newNote={newNote}
-              activeSuspect={activeSuspect}
-              suspectSearch={suspectSearch}
-              suspectResults={suspectResults}
-              onBack={() => { setView('list'); setSelected(null); }}
-              onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
-              onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
-              onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
-              onAddNote={handleAddNote}
-              onResolveSuspect={handleResolveSuspect}
-              onResolveVictim={async (victimId, userId) => {
-                await resolveVictim(victimId, userId);
-                const updated = await getAllReports();
-                setReports(updated);
-                setSelected(updated.find((r) => r.id === selected?.id) ?? null);
-                setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-              }}
-              onSetActiveSuspect={setActiveSuspect}
-              onSuspectSearch={handleSuspectSearch}
-              onSetNewNote={setNewNote}
-              onToggleConvoc={id => {
-                if (id === '__clear__') { setCheckedConvocIds([]); return; }
-                setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
-              }}
-              onSetConvocDetails={setConvocDetails}
-              onSetSendingConvoc={setSendingConvoc}
-              onSetConvocSuccess={setConvocSuccess}
-              onSetSuspectSearch={setSuspectSearch}
-              onSetSuspectResults={setSuspectResults}
-              onAddNoteRaw={addNote}
-              onLoadNotes={loadNotes}
-              onNavigateToUser={async (userId) => {
-                const currentReportId = selected?.id ?? '';
-                setOriginReportId(currentReportId);
-                setView('list');
-                setSelected(null);
-                setSelectedUser(null);
-                const u = await getUserById(userId);
-                if (u) {
-                  setSelectedUser(u);
-                  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
-                }
-                setViewSection('users');
-                navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
-              }}
+        <ReportDetail
+          selected={selected}
+          filtered={filtered}
+          notes={notes}
+          isAdmin={isAdmin}
+          saving={saving}
+          resolving={resolving}
+          checkedConvocIds={checkedConvocIds}
+          convocDetails={convocDetails}
+          sendingConvoc={sendingConvoc}
+          convocSuccess={convocSuccess}
+          newNote={newNote}
+          activeSuspect={activeSuspect}
+          suspectSearch={suspectSearch}
+          suspectResults={suspectResults}
+          onBack={() => { setView('list'); setSelected(null); }}
+          onPrev={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) - 1])}
+          onNext={() => goTo(filtered[filtered.findIndex(r => r.id === selected.id) + 1])}
+          onUpdateStatus={(status, label) => setConfirmAction({ status, label })}
+          onAddNote={handleAddNote}
+          onResolveSuspect={handleResolveSuspect}
+          onResolveVictim={async (victimId, userId) => {
+            await resolveVictim(victimId, userId);
+            const updated = await getAllReports();
+            setReports(updated);
+            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
+            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+          }}
+          onSetActiveSuspect={setActiveSuspect}
+          onSuspectSearch={handleSuspectSearch}
+          onSetNewNote={setNewNote}
+          onToggleConvoc={id => {
+            if (id === '__clear__') { setCheckedConvocIds([]); return; }
+            setCheckedConvocIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+          }}
+          onSetConvocDetails={setConvocDetails}
+          onSetSendingConvoc={setSendingConvoc}
+          onSetConvocSuccess={setConvocSuccess}
+          onSetSuspectSearch={setSuspectSearch}
+          onSetSuspectResults={setSuspectResults}
+          onAddNoteRaw={addNote}
+          onLoadNotes={loadNotes}
+          onNavigateToUser={async (userId) => {
+            const currentReportId = selected?.id ?? '';
+            setOriginReportId(currentReportId);
+            setView('list');
+            setSelected(null);
+            setSelectedUser(null);
+            const u = await getUserById(userId);
+            if (u) {
+              setSelectedUser(u);
+              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
+            }
+            setViewSection('users');
+            navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
+          }}
         />
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -386,7 +388,6 @@ export default function AdminDashboard() {
     );
   }
 
-  // ── Vue liste ──
   return (
     <main className="min-h-screen bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
@@ -394,7 +395,6 @@ export default function AdminDashboard() {
 
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
-        {/* ── Signalements ── */}
         {viewSection === 'reports' && (
           <>
             <div className="grid grid-cols-5 gap-4 mb-8">
@@ -404,7 +404,9 @@ export default function AdminDashboard() {
               <StatCard label={t('admin.stats.medium')}   value={stats.medium}   color={SEVERITY_COLORS.medium}   active={filterGrade === 'medium'}   onClick={() => { setFilterGrade('medium'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'low'}      onClick={() => { setFilterGrade('low'); setCurrentPage(1); }} />
             </div>
-            <div className="mb-5"><Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} /></div>
+            <div className="mb-5">
+              <Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} />
+            </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
                 <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
@@ -412,14 +414,18 @@ export default function AdminDashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
-                    <SelectItem key={status} value={status}>
-                      <Badge variant={status as BadgeVariant} />
-                    </SelectItem>
+                    <SelectItem key={status} value={status}><Badge variant={status as BadgeVariant} /></SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}><SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}</SelectContent></Select>
-              <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}><SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger><SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent></Select>
+              <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger>
+                <SelectContent><SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}</SelectContent>
+              </Select>
+              <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger>
+                <SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent>
+              </Select>
               <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
@@ -429,13 +435,21 @@ export default function AdminDashboard() {
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
               </div>
             </div>
-            <div className="flex justify-center mb-4"><Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button></div>
-            {loading ? <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p> : filtered.length === 0 ? <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p> : (
+            <div className="flex justify-center mb-4">
+              <Button variant="outline" onClick={handleReset}>{t('admin.filters.reset')}</Button>
+            </div>
+            {loading ? (
+              <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p>
+            ) : filtered.length === 0 ? (
+              <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
+            ) : (
               <ul className="flex flex-col gap-3">
                 {paginated.map(report => (
-                  <li key={report.id} style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
+                  <li key={report.id}
+                    style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
                     className="card-list-item px-6 py-5"
-                    onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }} role="button" tabIndex={0}
+                    onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }}
+                    role="button" tabIndex={0}
                     onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}>
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -459,7 +473,6 @@ export default function AdminDashboard() {
           </>
         )}
 
-        {/* ── Utilisateurs — Vue profil ── */}
         {viewSection === 'users' && isAdmin && selectedUser && (
           <AdminUserProfile
             selectedUser={selectedUser}
@@ -487,11 +500,10 @@ export default function AdminDashboard() {
             onHandleAvatarUpload={handleAvatarUpload}
             onHandleDeleteUser={handleDeleteUser}
             onSaveUser={async () => {
-              await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId , dateOfBirth: userForm.dateOfBirth || undefined }) });
+              await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
               await fetchUsers();
               const u = await getUserById(selectedUser.id);
-              console.log('user rechargé:', u?.studentProfile?.dateOfBirth);
               if (u) setSelectedUser(u);
             }}
             renderUserForm={renderUserForm}
@@ -499,7 +511,6 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* ── Utilisateurs — Vue liste ── */}
         {viewSection === 'users' && isAdmin && !selectedUser && (
           <AdminUsersList
             filteredUsers={filteredUsers}
@@ -519,10 +530,7 @@ export default function AdminDashboard() {
             onFetchUsers={fetchUsers}
             onNavigateToUser={navigateToUser}
             onSetShowUserForm={(v) => {
-              if (v) {
-                // Remet le formulaire à zéro quand on ouvre le formulaire d'ajout
-                setUserForm({ firstName: '', lastName: '', email: '', password: '', role: '', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: ''  });
-              }
+              if (v) setUserForm({ firstName: '', lastName: '', email: '', password: '', role: '', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
               setShowUserForm(v);
             }}
             onSaveUser={handleSaveUser}
@@ -530,13 +538,10 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* ── Stats ── */}
         {viewSection === 'stats' && <StatsDashboard reports={reports} />}
 
-        {/* ── Classes ── */}
         {viewSection === 'classes' && isAdmin && <AdminClasses />}
 
-        {/* ── Modale suppression utilisateur ── */}
         {deleteTarget && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">

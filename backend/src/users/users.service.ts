@@ -23,7 +23,6 @@ export class UsersService {
     private classesRepository: Repository<SchoolClass>,
   ) {}
 
-  // ── Chercher un user par email (sans profil) ──────────────────────────────
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
@@ -31,7 +30,6 @@ export class UsersService {
     });
   }
 
-  // ── Chercher un user par email avec son profil ────────────────────────────
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
@@ -40,7 +38,6 @@ export class UsersService {
     });
   }
 
-  // ── Chercher un user par son ID ───────────────────────────────────────────
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
@@ -48,17 +45,11 @@ export class UsersService {
     });
   }
 
-  // ── Voir tous les utilisateurs avec filtres et pagination ─────────────────
   async findAll(
     role?: string,
     page = 1,
     limit = 10,
-  ): Promise<{
-    data: User[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
+  ): Promise<{ data: User[]; total: number; page: number; totalPages: number }> {
     const query = this.usersRepository
       .createQueryBuilder("user")
       .leftJoinAndSelect("user.studentProfile", "studentProfile")
@@ -66,20 +57,13 @@ export class UsersService {
       .leftJoinAndSelect("user.staffProfile", "staffProfile")
       .leftJoinAndSelect("staffProfile.classes", "staffClasses");
 
-    if (role) {
-      query.where("user.role = :role", { role });
-    }
+    if (role) query.where("user.role = :role", { role });
 
     const total = await query.getCount();
-    const data = await query
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
-
+    const data = await query.skip((page - 1) * limit).take(limit).getMany();
     return { data, total, page, totalPages: Math.ceil(total / limit) };
   }
 
-  // ── Rechercher un user par prénom ou nom ──────────────────────────────────
   async search(query: string): Promise<User[]> {
     return this.usersRepository
       .createQueryBuilder("user")
@@ -93,7 +77,6 @@ export class UsersService {
       .getMany();
   }
 
-  // ── Créer un utilisateur (par auth register) ──────────────────────────────
   async create(
     email: string,
     password: string,
@@ -106,12 +89,10 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  // ── Créer un utilisateur via l'interface admin ────────────────────────────
   async createByAdmin(dto: CreateUserDto): Promise<User> {
-    // Vérifier que l'email n'est pas déjà utilisé
     const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
     if (existing) throw new ConflictException("Cet email est déjà utilisé");
-    // Vérifier l'âge si c'est un élève avec une date de naissance
+
     if (dto.role === 'student' && dto.dateOfBirth) {
       const dob = new Date(dto.dateOfBirth);
       const today = new Date();
@@ -130,7 +111,6 @@ export class UsersService {
     });
     const saved = await this.usersRepository.save(user);
 
-    // Si c'est un élève → créer son profil élève avec classe et date de naissance
     if (dto.role === 'student') {
       const schoolClass = dto.classId
         ? await this.classesRepository.findOne({ where: { id: dto.classId } })
@@ -147,13 +127,13 @@ export class UsersService {
     return saved;
   }
 
-  // ── Modifier un utilisateur (par un admin) ────────────────────────────────
   async updateByAdmin(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
     });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
+
     // Vérifier l'âge si date de naissance fournie
     if (dto.dateOfBirth) {
       const dob = new Date(dto.dateOfBirth);
@@ -172,7 +152,8 @@ export class UsersService {
 
     if (dto.firstName) user.firstName = dto.firstName;
     if (dto.lastName) user.lastName = dto.lastName;
-    if (dto.role) user.role = dto.role as UserRole;
+    // ❌ Le rôle ne peut pas être modifié après la création
+    // if (dto.role) user.role = dto.role as UserRole;
 
     const saved = await this.usersRepository.save(user);
 
@@ -200,7 +181,6 @@ export class UsersService {
     return saved;
   }
 
-  // ── Changer le mot de passe ───────────────────────────────────────────────
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
@@ -215,7 +195,6 @@ export class UsersService {
     );
   }
 
-  // ── Supprimer un utilisateur ──────────────────────────────────────────────
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
     if (id === currentUserId)
       throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
@@ -242,7 +221,6 @@ export class UsersService {
     await this.usersRepository.remove(user);
   }
 
-  // ── Vérifier si un utilisateur peut être supprimé ────────────────────────
   async canDelete(id: string): Promise<{ deletable: boolean }> {
     const hasReports = await this.reportRepository.count({
       where: [
@@ -253,7 +231,6 @@ export class UsersService {
     return { deletable: hasReports === 0 };
   }
 
-  // ── Mettre à jour l'avatar ────────────────────────────────────────────────
   async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user?.avatar && user.avatar !== filename) {
