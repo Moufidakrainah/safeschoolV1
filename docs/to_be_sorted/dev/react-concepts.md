@@ -4,6 +4,71 @@
 
 ---
 
+## Composant vs Hook — quelle différence ?
+
+La distinction de base avant de lire le reste.
+
+### Composant — retourne de l'UI
+
+```tsx
+function UserCard({ name }: { name: string }) {
+  return <div className="card">{name}</div>; // ← retourne du JSX
+}
+```
+
+- Nom en **PascalCase** (`UserCard`, `StatsDashboard`)
+- Retourne toujours du JSX
+- Utilisé dans le JSX : `<UserCard name="Lotfi" />`
+- Peut appeler des hooks
+
+### Hook — retourne de la logique
+
+```tsx
+function useReports() {
+  const [reports, setReports] = useState<Report[]>([]);
+  // ...
+  return { reports, loading, fetchReports }; // ← retourne des données/fonctions, pas du JSX
+}
+```
+
+- Nom commençant par **`use`** (`useReports`, `useAuth`)
+- Ne retourne jamais de JSX
+- Appelé dans le corps d'un composant ou d'un autre hook : `const { reports } = useReports()`
+- Peut appeler d'autres hooks
+
+### Tableau récapitulatif
+
+| | Composant | Hook |
+|---|---|---|
+| Nommage | PascalCase | useXxx |
+| Retourne | JSX | données / fonctions |
+| Utilisé comme | `<Composant />` | `const x = useXxx()` |
+| Peut appeler des hooks | ✅ | ✅ |
+| Peut retourner du JSX | ✅ | ❌ |
+
+### Quand extraire un hook custom
+
+Si un composant dépasse ~150 lignes, c'est souvent parce que la logique (fetch, état, handlers) devrait être dans un hook. Le composant ne garde que le JSX.
+
+```tsx
+// Avant — logique et UI mélangées (difficile à lire, pas réutilisable)
+function AdminDashboard() {
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { fetchReports().then(setReports).finally(...) }, []);
+  const handleDelete = async (id) => { ... setReports(...) };
+  return <div>...</div>;
+}
+
+// Après — logique dans le hook, composant lisible
+function AdminDashboard() {
+  const { reports, loading, handleDelete } = useReports(); // logique déléguée
+  return <div>...</div>;
+}
+```
+
+---
+
 ## TSX / JSX — pourquoi on voit du "HTML" dans du TypeScript
 
 Un fichier `.tsx` est un fichier TypeScript qui contient du **JSX**. JSX est une syntaxe qui ressemble à du HTML, mais ce n'est pas du HTML exécuté tel quel par le navigateur.

@@ -95,6 +95,114 @@ Tous les services sont orchestrés par **Docker Compose** et communiquent via un
 
 ---
 
+## Pourquoi ce stack — justification vs alternatives
+
+Cette section répond à la question de soutenance : "Pourquoi avez-vous choisi cet outil plutôt qu'un autre ?"
+
+### NestJS vs Express / Fastify
+
+| | NestJS | Express |
+|---|---|---|
+| Architecture | Modules, controllers, services imposés | Libre, aucune convention |
+| TypeScript | Natif, décorateurs, injection de dépendances | À configurer manuellement |
+| WebSocket | Gateway intégrée (`@WebSocketGateway`) | Librairie séparée à câbler |
+| Adapté pour | Projets structurés en équipe | Prototypes, microservices simples |
+
+**Choix NestJS** : structure imposée = cohérence dans le code de toute l'équipe. Sans ça, chaque dev aurait organisé son code différemment.
+
+---
+
+### React vs Vue / Angular
+
+| | React | Vue | Angular |
+|---|---|---|---|
+| Courbe d'apprentissage | Moyenne | Faible | Élevée |
+| Taille écosystème | Très large | Large | Large |
+| TypeScript | Optionnel mais courant | Optionnel | Obligatoire |
+| Flexibilité | Haute (bibliothèque) | Haute | Faible (tout imposé) |
+
+**Choix React** : écosystème le plus large, documentation abondante, compatibilité native avec shadcn/ui et la majorité des librairies tierces. Considéré comme framework dans ce sujet (voir section III.3).
+
+---
+
+### Tailwind CSS vs Bootstrap / styled-components
+
+| | Tailwind | Bootstrap | styled-components |
+|---|---|---|---|
+| Approche | Classes utilitaires dans le JSX | Classes CSS prédéfinies | CSS-in-JS par composant |
+| Personnalisation | Totale via `@theme` | Limitée (override variables) | Totale |
+| Bundle final | Purge automatique (très léger) | Import complet par défaut | JS bundle plus lourd |
+| Apprentissage | Syntaxe à mémoriser | Composants clé-en-main | API CSS standard |
+
+**Choix Tailwind** : aucune collision de classe, thème sémantique centralisé dans `index.css`, cohérence avec shadcn/ui (construit sur Tailwind).
+
+---
+
+### shadcn/ui vs Material UI / Ant Design
+
+| | shadcn/ui | Material UI | Ant Design |
+|---|---|---|---|
+| Modèle | Code copié dans le projet | Dépendance npm | Dépendance npm |
+| Personnalisation | Totale (vous possédez le code) | Via `sx` prop / theme | Via token CSS |
+| Design system | Neutre, adaptable | Material Design (Google) | Enterprise (Alibaba) |
+| Accessibilité | Radix UI (excellent) | Bonne | Bonne |
+
+**Choix shadcn/ui** : le code est dans votre dépôt, vous le modifiez sans contrainte. Pas de mise à jour de package qui casse votre UI.
+
+---
+
+### TypeORM vs Prisma
+
+| | TypeORM | Prisma |
+|---|---|---|
+| Intégration NestJS | Native (`@nestjs/typeorm`) | Module tiers |
+| Définition schema | Classes TypeScript décorées | Fichier `.prisma` dédié |
+| Migrations | Automatiques (`synchronize: true` en dev) | Commande CLI explicite |
+| Requêtes complexes | QueryBuilder TypeScript | Prisma Client typé |
+
+**Choix TypeORM** : intégration officielle NestJS, décorateurs dans les entités = une seule source de vérité (la classe TypeScript définit à la fois le type et la table).
+
+---
+
+### Socket.io vs WebSocket natif
+
+| | Socket.io | WebSocket natif |
+|---|---|---|
+| Reconnexion auto | ✅ intégrée | ❌ à implémenter |
+| Rooms / namespaces | ✅ intégrés | ❌ à implémenter |
+| Fallback HTTP | ✅ (polling si WS bloqué) | ❌ |
+| Support NestJS | Gateway dédiée | Gateway mais plus verbeux |
+
+**Choix Socket.io** : rooms nécessaires pour isoler les sessions quiz, reconnexion automatique pour la robustesse.
+
+---
+
+### Vite vs Webpack / Create React App
+
+| | Vite | Webpack | Create React App |
+|---|---|---|---|
+| Démarrage dev | ~300ms | 10-30s | 10-30s |
+| HMR | Module par module (natif ESM) | Rebuild partiel | Rebuild partiel |
+| Config | Quasi-zéro | Verbose | Abstraite (non modifiable) |
+| Tailwind v4 | Plugin natif `@tailwindcss/vite` | PostCSS uniquement | Non supporté |
+
+**Choix Vite** : démarrage instantané, HMR par module (l'état de l'app est conservé entre les modifications), support natif Tailwind v4.
+
+---
+
+### Axios vs fetch natif / TanStack Query
+
+| | Axios | fetch | TanStack Query |
+|---|---|---|---|
+| Intercepteurs | ✅ (injection JWT automatique) | ❌ à wrapper manuellement | ✅ |
+| Gestion erreurs | Throw automatique sur 4xx/5xx | Require vérification manuelle | ✅ |
+| Cache / état loading | ❌ | ❌ | ✅ automatique |
+| Complexité | Faible | Faible | Moyenne |
+
+**Choix Axios** : l'intercepteur JWT (`services/api.ts`) injecte le token sur toutes les requêtes sans répéter le code. TanStack Query aurait été pertinent mais représentait une complexité supplémentaire non justifiée pour ce projet.
+
+---
+
 ## Récapitulatif des ports exposés
 
 | Service | Port interne | Port externe (machine hôte) |
