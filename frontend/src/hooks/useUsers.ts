@@ -98,6 +98,7 @@ export function useUsers(): UseUsersReturn {
     firstName: '', lastName: '', email: '', password: '', role: '',
     classId: '', subject: '', classIds: [] as string[],
     parents: [] as ParentForm[], // liste des parents (max 2) pour la création d'un élève
+    dateOfBirth: '',
   });
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
@@ -159,14 +160,14 @@ export function useUsers(): UseUsersReturn {
     try {
       if (editingUser) {
         // Modification d'un utilisateur existant
-        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
+        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
         if (userForm.role === 'teacher') {
           try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
           catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
         }
       } else {
         // Création d'un nouvel utilisateur
-        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId }) });
+        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
         if (userForm.role === 'teacher') {
           await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
         }
@@ -185,7 +186,7 @@ export function useUsers(): UseUsersReturn {
       }
       await fetchUsers();
       setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [] });
+      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
     } catch {}
   }, [editingUser, userForm, fetchUsers]);
 
@@ -259,11 +260,25 @@ export function useUsers(): UseUsersReturn {
   const navigateToUser = useCallback((u: AdminUser) => {
     setSelectedUser(u);
     navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [] });
+    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
   }, [navigate]);
 
   // ── Valeurs calculées ──
-  const isFormValid = !!(userForm.firstName.trim() && userForm.lastName.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && !errors.firstName && !errors.lastName && !errors.email && !errors.password);
+  const isDateOfBirthValid = userForm.role !== 'student' || !userForm.dateOfBirth || (() => {
+    const dob = new Date(userForm.dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - dob.getFullYear();
+    return age >= 9 && age <= 16;
+  })();
+
+  const isFormValid = !!(
+    userForm.firstName.trim() && 
+    userForm.lastName.trim() && 
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userForm.email) && 
+    userForm.role &&
+    isDateOfBirthValid &&
+    !errors.firstName && !errors.lastName && !errors.email && !errors.password
+  );
 
   const filteredUsers = useMemo(() => {
     return [...allUsers]

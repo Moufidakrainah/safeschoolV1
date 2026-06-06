@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, IsArray, IsUUID, Matches, MaxLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, IsArray, ArrayNotEmpty, Matches, MaxLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class UpdateParentDto {
@@ -30,8 +30,7 @@ export class UpdateParentDto {
   @Transform(({ value }) => value?.trim())
   address?: string;
 
-  @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true, message: 'ID élève invalide' })
-  studentIds?: string[];
+  @ArrayNotEmpty()
+  studentIds: string[];
 }
