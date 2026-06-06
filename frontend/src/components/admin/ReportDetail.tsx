@@ -180,7 +180,7 @@ export default function ReportDetail({
                 {isAdmin && (
                   <button className="text-xs text-blue-500 hover:underline mt-1"
                     onClick={() => { onSetActiveSuspect(activeSuspect === mainVictimId ? null : mainVictimId); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                    {selected.victims?.[0]?.resolvedUser ? 'Modifier' : '🔗 Lier'}
+                    {selected.victims?.[0]?.resolvedUser ? 'Modifier' : ' Lier'}
                   </button>
                 )}
 
