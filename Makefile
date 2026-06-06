@@ -57,12 +57,15 @@ up-app: check-env ## Démarrer uniquement frontend, backend et database (sans EL
 	end=$$(date +%s); \
 	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
+start: check-env ## Démarrer les services sans reconstruire les images
+	$(COMPOSE) up -d
+
 up-be: check-env ## Démarrer backend et database seulement
 	$(COMPOSE) up -d backend database
 	$(MAKE) seed-if-empty
 
 up-elk: check-env ## Démarrer la stack ELK
-	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup
+	$(COMPOSE) up -d elasticsearch logstash kibana
 
 down-elk: ## Arrêter la stack ELK
 	$(COMPOSE) down elasticsearch logstash kibana
@@ -84,9 +87,6 @@ logs-db: ## Suivre les logs de la base de données
 
 logs-elk: ## Suivre les logs de la stack ELK
 	$(COMPOSE) logs -f elasticsearch logstash kibana
-
-logs-setup: ## Afficher les logs du script de setup ELK
-	$(COMPOSE) logs elasticsearch-setup
 
 
 #  === BASE DE DONNÉES ===
@@ -144,4 +144,4 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up down build rebuild re up-be up-elk down-elk logs logs-fe logs-be logs-db wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top logs-elk logs-setup
+.PHONY: all help check-env up down re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top
