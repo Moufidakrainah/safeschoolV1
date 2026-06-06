@@ -11,6 +11,9 @@ import {
   SEVERITY_LABELS,
   severityFromApiGrade,
 } from "@/utils/severity";
+import { useTranslation } from 'react-i18next';
+
+
 
 const statusToBadgeVariant = (status: string) => {
   const map: Record<string, any> = {
@@ -89,14 +92,26 @@ export default function StudentCases({
   const [loadingReports, setLoadingReports] = useState(false);
   const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
   const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+  const { t } = useTranslation();
 
   useEffect(() => {
+	 console.log('user dans StudentCases:', user);
     if (!user?.id) return;
     setLoadingReports(true);
 
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
-        const mine = all.filter((r: any) => r.reporter === "victime");
+			console.log('Detail reports:', all.map((r: any) => ({
+				caseNumber: r.caseNumber,
+				studentId: r.student?.id,
+				userId: user?.id,
+				reporter: r.reporter,
+			})));
+
+        const mine = all.filter((r: any) => 
+			r.reporter === "victime" //  les signalements quand il est victime
+			// r.student?.id === user?.id
+		);
         setMyReports(mine);
 
         const notesMap: Record<string, any[]> = {};
@@ -153,9 +168,37 @@ export default function StudentCases({
     } catch {}
   };
 
+
+
+	// {paginated.map(report => (
+	//   <li key={report.id} style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
+	// 	className="card-list-item px-6 py-5"
+	// 	onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }} role="button" tabIndex={0}
+	// 	onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}>
+	// 	<div className="flex justify-between items-start">
+	// 	  <div className="flex-1">
+	// 		<span className="card-title">{report.type} — {report.reporter}</span>
+	// 		<p className="card-subtitle mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0,120)}...` : report.description}</p>
+	// 		<div className="flex gap-4 card-meta">
+	// 		  <span>{report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
+	// 		  <span>{report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
+	// 		  <span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+	// 		  {report.suspects?.length > 0 && <span>{report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
+	// 		  <span>{report.caseNumber}</span>
+	// 		</div>
+	// 	  </div>
+	// 	  <Badge variant={report.status as BadgeVariant} className="ml-4" />
+	// 	</div>
+	//   </li>
+	// ))}
+
+
+
+
   return (
-    <section className="page-section">
-      <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+	<>
+     {/* <section className="page-section"> */}
+      {/* <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3"> */}
         <div className="relative">
           {loadingReports ? (
             <p className="text-center py-10 text-gray-400">Chargement...</p>
@@ -165,6 +208,137 @@ export default function StudentCases({
             </div>
           ) : (
             <div className="flex flex-col gap-4">
+
+
+
+
+					<ul className="flex flex-col gap-3">
+					{myReports.map((report: any) => {
+						const severity = severityFromApiGrade(report.grade);
+						const convocations = reportNotes[report.id] ?? [];
+						const reportUnreadCount = Object.values(unreadNotifs).filter(
+						(n: any) => n.report?.id === report.id,
+						).length;
+
+						console.log('myReports:', myReports);
+					console.log('loadingReports:', loadingReports);
+
+						return (
+						<li
+							key={report.id}
+							style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
+							className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+						>
+							<div className="flex justify-between items-start mb-3">
+							<div className="flex-1">
+								<div className="flex items-center gap-2 mb-1">
+								<span className="card-title">{report.caseNumber}</span>
+							
+								{reportUnreadCount > 0 && (
+									<span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+									{reportUnreadCount}
+									</span>
+								)}
+								</div>
+								<div className="card-subtitle mt-1 mb-2 capitalize">
+								{report.type} — Je suis victime
+								</div>
+								<div className="card-meta">
+								<span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
+								</div>
+							</div>
+							<Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
+							</div>
+
+							{convocations.length === 0 ? (
+							<p className="text-xs text-gray-400 italic">
+								Aucune convocation pour ce dossier.
+							</p>
+							) : (
+							<div className="flex flex-col gap-2 mt-2">
+								{convocations.map((note: any) => {
+								const { isPast, displayDate, message, recipient } =
+									parseConvocation(note.content);
+								const unreadNotif = !isPast
+									? findUnreadNotifForNote(note, report.id)
+									: null;
+								const isNew = !!unreadNotif;
+
+								return (
+
+
+
+
+
+									// <div
+									// style={{ borderLeft: `3px solid ${isConvocation ? 'var(--color-warning)' : 'var(--color-primary)'}` }}
+									// className={`p-3 m-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
+									// >
+									// <div className="flex justify-between mb-1">
+									// 	<span className={`text-xs font-semibold ${isConvocation ? 'text-warning' : 'text-primary'}`}>
+									// 	{isConvocation ? t('noteblock.convocation') : ''}
+									// 	</span>
+									// 	<span className="text-xs text-gray-400">
+									// 	{new Date(note.createdAt).toLocaleDateString('fr-FR')} à{' '}
+									// 	{new Date(note.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+									// 	{note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
+									// 	</span>
+									// </div>
+									// <p className="text-sm text-gray-700 m-0 text-left">{note.content}</p>
+									// </div>
+
+									
+
+									<div
+									key={note.id}
+									onClick={() => isNew && handleConvocationClick(unreadNotif)}
+									style={{ borderLeft: '3px solid var(--color-warning)'}}
+									className="p-3 m-3 bg-indigo-50"
+									>
+									{isPast ? (
+										<p className="text-gray-400">
+										Un rendez-vous a eu lieu le{' '}
+										<strong>{displayDate}</strong>
+										</p>
+									) : (
+										<div className="flex justify-between mb-1">
+											<span className="text-xs font-semibold text-primary">
+											{t('noteblock.convocation')}
+											</span>
+											<p className="text-sm font-semibold text-gray-700 mb-3">
+												{recipient ? (
+												<span className="text-gray-700">{recipient}</span>
+												) : (
+												'Vous'
+												)}{' '}
+												êtes convoqué(e) le <strong>{displayDate}</strong>
+												{isNew && (
+												<span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+													Nouveau
+												</span>
+												)}
+											</p>
+									
+											<p className="text-gray-600 mt-1 text-xs whitespace-pre-line">
+										
+											</p>
+									
+										</div>
+									)}
+									</div>
+								);
+								})}
+							</div>
+							)}
+						</li>
+						);
+					})}
+					</ul>
+
+
+
+{/* 
+
               {myReports.map((report: any) => {
                 const severity = severityFromApiGrade(report.grade);
                 const convocations = reportNotes[report.id] ?? [];
@@ -280,11 +454,15 @@ export default function StudentCases({
                     )}
                   </div>
                 );
-              })}
+              })} */}
+
+
+
+
+
             </div>
           )}
         </div>
-      </div>
-    </section>
+		</>
   );
 }

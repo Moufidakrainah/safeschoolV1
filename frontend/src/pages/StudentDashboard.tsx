@@ -1,171 +1,219 @@
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import {
-  getStudentParents, getNotifications, markNotificationRead,
-  getAllReports, getNotes,
-} from '@/services/api';
-import type { Parent } from '@/types';
-import StudentProfile from '@/components/student/StudentProfile';
-import StudentCases from '@/components/student/StudentCases';
-import StudentForm from '@/components/student/StudentForm';
-import RoleHeader from '@/components/layout/Header/RoleHeader';
-import { Badge } from '@/components/ui/badge';
-import { SEVERITY_COLORS, SEVERITY_LABELS, severityFromApiGrade } from '@/utils/severity';
+	getStudentParents,
+	getNotifications,
+	markNotificationRead,
+	getAllReports,
+	getNotes,
+} from "@/services/api";
+import type { Parent } from "@/types";
+import StudentProfile from "@/components/student/StudentProfile";
+import StudentCases from "@/components/student/StudentCases";
+import StudentForm from "@/components/student/StudentForm";
+import RoleHeader from "@/components/layout/Header/RoleHeader";
+import { Badge } from "@/components/ui/badge";
+import {
+	SEVERITY_COLORS,
+	SEVERITY_LABELS,
+	severityFromApiGrade,
+} from "@/utils/severity";
 
-type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
+type StudentSection = "profile" | "report" | "quiz" | "cases";
 
 const statusToBadgeVariant = (status: string) => {
-  const map: Record<string, any> = {
-    new: 'new', in_progress: 'in_progress', pending: 'pending',
-    resolved: 'resolved', false_report: 'false_report',
-  };
-  return map[status] ?? 'new';
+	const map: Record<string, any> = {
+		new: "new",
+		in_progress: "in_progress",
+		pending: "pending",
+		resolved: "resolved",
+		false_report: "false_report",
+	};
+	return map[status] ?? "new";
 };
 
 const MONTHS_FR: Record<string, number> = {
-  'janvier':1,'février':2,'mars':3,'avril':4,'mai':5,'juin':6,
-  'juillet':7,'août':8,'septembre':9,'octobre':10,'novembre':11,'décembre':12,
+	janvier: 1,
+	février: 2,
+	mars: 3,
+	avril: 4,
+	mai: 5,
+	juin: 6,
+	juillet: 7,
+	août: 8,
+	septembre: 9,
+	octobre: 10,
+	novembre: 11,
+	décembre: 12,
 };
 
 function parseConvocation(content: string) {
-  const dateMatch = content.match(/(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/);
-  const parts = content.split('\n\n');
-  const message = parts.slice(1).join('\n\n').trim();
-  // Extraire le nom du destinataire si format "Nom est convoqué(e) le ..."
-  const recipientMatch = content.match(/^(.+?) est convoqué/);
-  const recipient = recipientMatch ? recipientMatch[1].trim() : null;
-  if (!dateMatch) {
-    return { isPast: true, displayDate: content.split('\n')[0].replace('📅', '').trim(), message, recipient };
-  }
-  const [, day, monthStr, year, hours, minutes] = dateMatch;
-  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
-  if (!monthNum) {
-    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message, recipient };
-  }
-  const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
-  const isPast = rdvDate < new Date();
-  const displayDate = `${String(day).padStart(2,'0')}/${String(monthNum).padStart(2,'0')}/${year} à ${hours}h${minutes}`;
-  return { isPast, displayDate, message, recipient };
+	const dateMatch = content.match(
+		/(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
+	);
+	const parts = content.split("\n\n");
+	const message = parts.slice(1).join("\n\n").trim();
+	// Extraire le nom du destinataire si format "Nom est convoqué(e) le ..."
+	const recipientMatch = content.match(/^(.+?) est convoqué/);
+	const recipient = recipientMatch ? recipientMatch[1].trim() : null;
+	if (!dateMatch) {
+		return {
+			isPast: true,
+			displayDate: content.split("\n")[0].replace("📅", "").trim(),
+			message,
+			recipient,
+		};
+	}
+	const [, day, monthStr, year, hours, minutes] = dateMatch;
+	const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+	if (!monthNum) {
+		return {
+			isPast: true,
+			displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`,
+			message,
+			recipient,
+		};
+	}
+	const rdvDate = new Date(
+		Number(year),
+		monthNum - 1,
+		Number(day),
+		Number(hours),
+		Number(minutes),
+	);
+	const isPast = rdvDate < new Date();
+	const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
+	return { isPast, displayDate, message, recipient };
 }
 
 export default function StudentDashboard() {
-  const { t } = useTranslation();
-  const { user, logoutUser } = useAuth();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [viewSection, setViewSection] = useState<StudentSection>(
-    (searchParams.get('section') as StudentSection) ?? 'report'
-  );
-  const [parents, setParents]               = useState<Parent[]>([]);
-  const [loadingParents, setLoadingParents] = useState(false);
-  const [notifRefreshKey, setNotifRefreshKey] = useState(0);
-  const [myReports, setMyReports]           = useState<any[]>([]);
-  const [loadingReports, setLoadingReports] = useState(false);
-  const [reportNotes, setReportNotes]       = useState<Record<string, any[]>>({});
-  // notifications non lues : { notifId → notification }
-  const [unreadNotifs, setUnreadNotifs]     = useState<Record<string, any>>({});
+	const { t } = useTranslation();
+	const { user, logoutUser } = useAuth();
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const [viewSection, setViewSection] = useState<StudentSection>(
+		(searchParams.get("section") as StudentSection) ?? "report",
+	);
+	const [parents, setParents] = useState<Parent[]>([]);
+	const [loadingParents, setLoadingParents] = useState(false);
+	const [notifRefreshKey, setNotifRefreshKey] = useState(0);
+	const [myReports, setMyReports] = useState<any[]>([]);
+	const [loadingReports, setLoadingReports] = useState(false);
+	const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
+	// notifications non lues : { notifId → notification }
+	const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    if (user?.id) {
-      setLoadingParents(true);
-      getStudentParents(user.id)
-        .then(data => setParents(data))
-        .catch(() => setParents([]))
-        .finally(() => setLoadingParents(false));
-    }
-  }, [user?.id]);
+	useEffect(() => {
+		if (user?.id) {
+			setLoadingParents(true);
+			getStudentParents(user.id)
+				.then((data) => setParents(data))
+				.catch(() => setParents([]))
+				.finally(() => setLoadingParents(false));
+		}
+	}, [user?.id]);
 
-  useEffect(() => {
-    if (viewSection === 'quiz') navigate('/quiz');
-  }, [viewSection, navigate]);
+	useEffect(() => {
+		if (viewSection === "quiz") navigate("/quiz");
+	}, [viewSection, navigate]);
 
-  useEffect(() => {
-    if (viewSection !== 'cases' || !user?.id) return;
-    setLoadingReports(true);
+	useEffect(() => {
+		if (viewSection !== "cases" || !user?.id) return;
+		setLoadingReports(true);
 
-    Promise.all([getAllReports(), getNotifications()])
-      .then(async ([all, notifs]) => {
-        const mine = all.filter((r: any) => r.reporter === 'victime');
-        setMyReports(mine);
+		Promise.all([getAllReports(), getNotifications()])
+			.then(async ([all, notifs]) => {
+				const mine = all.filter((r: any) => r.reporter === "victime");
+				setMyReports(mine);
 
-        const notesMap: Record<string, any[]> = {};
-        await Promise.all(
-          mine.map(async (r: any) => {
-            try {
-              const notes = await getNotes(r.id);
-              notesMap[r.id] = notes.filter((n: any) => n.type === 'convocation');
-            } catch {
-              notesMap[r.id] = [];
-            }
-          })
-        );
-        setReportNotes(notesMap);
+				const notesMap: Record<string, any[]> = {};
+				await Promise.all(
+					mine.map(async (r: any) => {
+						try {
+							const notes = await getNotes(r.id);
+							notesMap[r.id] = notes.filter(
+								(n: any) => n.type === "convocation",
+							);
+						} catch {
+							notesMap[r.id] = [];
+						}
+					}),
+				);
+				setReportNotes(notesMap);
 
-        // Map notifId → notif pour les non lues
-        const unreadMap: Record<string, any> = {};
-        notifs.filter((n: any) => !n.isRead).forEach((n: any) => {
-          unreadMap[n.id] = n;
-        });
-        setUnreadNotifs(unreadMap);
-      })
-      .catch(() => setMyReports([]))
-      .finally(() => setLoadingReports(false));
-  }, [viewSection, user?.id]);
+				// Map notifId → notif pour les non lues
+				const unreadMap: Record<string, any> = {};
+				notifs
+					.filter((n: any) => !n.isRead)
+					.forEach((n: any) => {
+						unreadMap[n.id] = n;
+					});
+				setUnreadNotifs(unreadMap);
+			})
+			.catch(() => setMyReports([]))
+			.finally(() => setLoadingReports(false));
+	}, [viewSection, user?.id]);
 
-  // Trouver la notification non lue qui correspond à une convocation
-  // On compare le contenu de la note avec le message de la notification
-  const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-    return Object.values(unreadNotifs).find((n: any) => {
-      if (n.report?.id !== reportId) return false;
-      // La notification contient le même contenu que la note (date + message)
-      const noteContent = note.content.replace('📅 ', '').trim();
-      const notifMsg = n.message.replace('Convocation : ', '').trim();
-      return notifMsg.includes(noteContent.split('\n\n')[0].trim()) ||
-             noteContent.includes(notifMsg.split('\n\n')[0].trim());
-    }) ?? null;
-  };
+	// Trouver la notification non lue qui correspond à une convocation
+	// On compare le contenu de la note avec le message de la notification
+	const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
+		return (
+			Object.values(unreadNotifs).find((n: any) => {
+				if (n.report?.id !== reportId) return false;
+				// La notification contient le même contenu que la note (date + message)
+				const noteContent = note.content.replace("📅 ", "").trim();
+				const notifMsg = n.message.replace("Convocation : ", "").trim();
+				return (
+					notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
+					noteContent.includes(notifMsg.split("\n\n")[0].trim())
+				);
+			}) ?? null
+		);
+	};
 
-  const handleConvocationClick = async (notif: any) => {
-    if (!notif) return;
-    try {
-      await markNotificationRead(notif.id);
-      setUnreadNotifs(prev => {
-        const updated = { ...prev };
-        delete updated[notif.id];
-        return updated;
-      });
-      setNotifRefreshKey(k => k + 1);
-    } catch {}
-  };
+	const handleConvocationClick = async (notif: any) => {
+		if (!notif) return;
+		try {
+			await markNotificationRead(notif.id);
+			setUnreadNotifs((prev) => {
+				const updated = { ...prev };
+				delete updated[notif.id];
+				return updated;
+			});
+			setNotifRefreshKey((k) => k + 1);
+		} catch {}
+	};
 
-  const unreadCount = Object.keys(unreadNotifs).length;
+	const unreadCount = Object.keys(unreadNotifs).length;
 
-  return (
-    <main className="min-h-screen bg-gray-50 font-sans">
-      <RoleHeader
-        user={user}
-        logoutUser={logoutUser}
-        studentViewSection={viewSection}
-        studentSetViewSection={setViewSection}
-        studentNotifRefreshKey={notifRefreshKey}
-      />
+	return (
+		<main className="min-h-screen bg-gray-50 font-sans">
+			<RoleHeader
+				user={user}
+				logoutUser={logoutUser}
+				studentViewSection={viewSection}
+				studentSetViewSection={setViewSection}
+				studentNotifRefreshKey={notifRefreshKey}
+			/>
 
-  <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+			<div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+				{viewSection === "profile" && (
+					<StudentProfile
+						user={user}
+						parents={parents}
+						loadingParents={loadingParents}
+					/>
+				)}
 
+				{viewSection === "report" && <StudentForm user={user} />}
 
-      {viewSection === 'profile' && (
-        <StudentProfile user={user} parents={parents} loadingParents={loadingParents} />
-      )}
+				{viewSection === "cases" && (
+					<>
+						<StudentCases user={user} />
 
-      {viewSection === 'report' && <StudentForm user={user} />}
-
-      {viewSection === 'cases' && (
-		<>
-        <StudentCases user={user} />
-
-          {/* <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiersccc</h2>
+						{/* <h2 className="text-2xl font-bold text-gray-800 mb-2">📁 Mes dossiersccc</h2>
           <p className="text-gray-500 text-sm mb-6">Suivi de vos signalements en cours</p>
 
           {loadingReports ? (
@@ -268,11 +316,9 @@ export default function StudentDashboard() {
               })}
             </div>
           )} */}
-		 </>
-      )}
-	</div>
-
-	  </main>
- 
-  );
+					</>
+				)}
+			</div>
+		</main>
+	);
 }
