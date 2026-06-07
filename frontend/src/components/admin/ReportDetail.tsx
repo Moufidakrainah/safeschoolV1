@@ -35,7 +35,7 @@ interface ReportDetailProps {
   onAddNote: (type?: string) => void;
   onSendConvocations: () => void;
   onResolveSuspect: (suspectId: string, userId: string | null) => void;
-  onResolveVictim: (victimId: string, userId: string) => void;
+  onResolveVictim: (victimId: string, userId: string | null) => void;
   onSetActiveSuspect: (id: string | null) => void;
   onSuspectSearch: (q: string) => void;
   onSetNewNote: (v: string) => void;
@@ -65,10 +65,12 @@ export default function ReportDetail({
   const severityColor = SEVERITY_COLORS[severity];
   const [confirmStatus, setConfirmStatus] = useState<{ status: string; label: string } | null>(null);
 
-  // Victime principale
+  // ── Victime principale ──
+  // reporter = 'victime' → le signalant est la victime (r.student)
+  // reporter = 'temoin'  → la victime est dans r.victims[0]
   const mainVictim = selected.reporter === 'victime'
     ? selected.student
-    : selected.victims?.find(v => v.resolvedUser)?.resolvedUser ?? null;
+    : selected.victims?.[0]?.resolvedUser ?? null;
 
   const mainVictimFreeText = selected.reporter === 'temoin'
     ? selected.victims?.[0]?.freeText
@@ -76,17 +78,20 @@ export default function ReportDetail({
 
   const mainVictimClass = selected.reporter === 'victime'
     ? selected.student?.studentProfile?.schoolClass
-    : selected.victims?.find(v => v.resolvedUser)?.resolvedUser?.studentProfile?.schoolClass;
+    : selected.victims?.[0]?.resolvedUser?.studentProfile?.schoolClass;
+
+  // id de la victime principale (pour le système de résolution)
+  const mainVictimId = selected.victims?.[0]?.id;
 
   return (
     <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
-      {/* Titre */}
+      {/* ── Titre ── */}
       <h1 className="text-2xl font-black text-primary text-center mb-4">
         Signalement {selected.caseNumber}
       </h1>
 
-      {/* Navigation */}
+      {/* ── Navigation ── */}
       <div className="flex justify-between items-center mb-4">
         <Button variant="ghost" onClick={onBack}>← Revenir à tous les signalements</Button>
         <div className="flex gap-2">
@@ -95,10 +100,10 @@ export default function ReportDetail({
         </div>
       </div>
 
-      {/* Statut + modifier */}
+      {/* ── Statut + modifier ── */}
       <div className="bg-surface shadow-sm flex items-center justify-between mb-3 px-5 py-3"
-        style={{ borderLeft: `5px solid ${severityColor}` }} >
-        <div className="flex items-center gap-2 ">
+        style={{ borderLeft: `5px solid ${severityColor}` }}>
+        <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500 font-semibold">Statut du signalement :</span>
           <Badge variant={selected.status as BadgeVariant} />
         </div>
@@ -119,58 +124,130 @@ export default function ReportDetail({
         )}
       </div>
 
+      {/* ── Victime principale ── */}
       <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
         <p className="text-sm font-semibold text-gray-700 mb-3">Victime</p>
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
+          {/* Avatar */}
           {mainVictim?.avatar
-            ? <img src={`${AVATAR_BASE}/${mainVictim.avatar}`} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-gray-200" />
-            : <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold text-gray-500">
+            ? <img src={`${AVATAR_BASE}/${mainVictim.avatar}`} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 flex-shrink-0" />
+            : <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold text-gray-500 flex-shrink-0">
                 {mainVictim ? `${mainVictim.firstName?.[0]}${mainVictim.lastName?.[0]}` : '?'}
               </div>
           }
-          <div className={mainVictim?.id ? "cursor-pointer hover:text-primary" : ""}
-            onClick={() => mainVictim?.id && onNavigateToUser(mainVictim.id)}>
-            <p className="font-semibold text-gray-800">
-              {mainVictim ? `${mainVictim.firstName} ${mainVictim.lastName}` : mainVictimFreeText ?? 'Non identifié'}
-            </p>
-            {mainVictimClass && <p className="text-xs text-primary">{mainVictimClass.level} {mainVictimClass.section}</p>}
-            {!mainVictim && mainVictimFreeText && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
-          </div>
-        </div>
 
-        {/* Autres victimes */}
-        {selected.reporter === 'temoin' && selected.victims && selected.victims.length > 1 && (
-          <div className="mt-3 flex flex-col gap-2">
-            {selected.victims.slice(1).map((v) => (
-              <div key={v.id} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  {v.resolvedUser?.avatar
-                    ? <img src={`${AVATAR_BASE}/${v.resolvedUser.avatar}`} alt="" className="w-8 h-8 rounded-full object-cover" />
-                    : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">?</div>
-                  }
-                  <span className="text-blue-600 font-medium">{v.freeText}</span>
-                  {v.resolvedUser && <span className="text-green-600 text-xs">→ {v.resolvedUser.firstName} {v.resolvedUser.lastName}</span>}
-                </div>
+          <div className="flex-1">
+            {/* Nom (texte libre ou nom résolu) */}
+            <p className={`font-semibold text-gray-800 ${mainVictim?.id ? 'cursor-pointer hover:text-primary' : ''}`}
+              onClick={() => mainVictim?.id && onNavigateToUser(mainVictim.id)}>
+              {mainVictimFreeText ?? (mainVictim ? `${mainVictim.firstName} ${mainVictim.lastName}` : 'Non identifié')}
+            </p>
+
+            {/* Classe de la victime */}
+            {mainVictimClass && (
+              <p className="text-xs text-primary">{mainVictimClass.level} {mainVictimClass.section}</p>
+            )}
+
+            {/* Cas reporter = 'temoin' : affiche résolution comme les suspects */}
+            {selected.reporter === 'temoin' && mainVictimId && (
+              <div className="mt-1">
+                {/* Victime résolue → affiche nom + délier */}
+                {selected.victims?.[0]?.resolvedUser && (
+                  <div className="flex items-center gap-1 text-xs text-green-600">
+                    {selected.victims[0].resolvedUser.firstName} {selected.victims[0].resolvedUser.lastName}
+                    {selected.victims[0].resolvedUser.studentProfile?.schoolClass && (
+                      <span className="text-primary ml-1">
+                        {selected.victims[0].resolvedUser.studentProfile.schoolClass.level} {selected.victims[0].resolvedUser.studentProfile.schoolClass.section}
+                      </span>
+                    )}
+                    {isAdmin && (
+                      <button className="text-red-400 hover:underline ml-2"
+                        onClick={() => onResolveVictim(mainVictimId, null)}
+                        disabled={resolving}>
+                        ✕ Délier
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Victime non résolue → "Identité non liée" */}
+                {!selected.victims?.[0]?.resolvedUser && (
+                  <p className="text-xs text-gray-400 italic">Identité non liée</p>
+                )}
+
+                {/* Bouton Lier / Modifier */}
                 {isAdmin && (
-                  <button className="text-xs text-blue-500 hover:underline"
-                    onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                    {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                  <button className="text-xs text-blue-500 hover:underline mt-1"
+                    onClick={() => { onSetActiveSuspect(activeSuspect === mainVictimId ? null : mainVictimId); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
+                    {selected.victims?.[0]?.resolvedUser ? 'Modifier' : '🔗 Lier'}
                   </button>
                 )}
-                {isAdmin && activeSuspect === v.id && (
+
+                {/* Formulaire de recherche */}
+                {isAdmin && activeSuspect === mainVictimId && (
                   <div className="mt-2 border rounded-lg p-2 bg-gray-50 w-full">
                     <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
                       placeholder="Rechercher un élève..." autoFocus
                       className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                     {suspectResults.map((u: any) => (
                       <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
-                        onClick={() => onResolveVictim(v.id, u.id)} disabled={resolving}>
+                        onClick={() => onResolveVictim(mainVictimId, u.id)} disabled={resolving}>
                         {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
                       </button>
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Autres victimes (à partir de l'index 1) ── */}
+        {selected.reporter === 'temoin' && selected.victims && selected.victims.length > 1 && (
+          <div className="mt-3 flex flex-col gap-2">
+            {selected.victims.slice(1).map((v) => (
+              <div key={v.id} className="flex items-start gap-3 text-sm">
+                <div className="flex items-center gap-2 flex-1">
+                  {v.resolvedUser?.avatar
+                    ? <img src={`${AVATAR_BASE}/${v.resolvedUser.avatar}`} alt="" className="w-8 h-8 rounded-full object-cover" />
+                    : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">?</div>
+                  }
+                  <div className="flex-1">
+                    <span className="text-blue-600 font-medium">{v.freeText}</span>
+                    {v.resolvedUser && (
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        → {v.resolvedUser.firstName} {v.resolvedUser.lastName}
+                        {isAdmin && (
+                          <button className="text-red-400 hover:underline ml-2"
+                            onClick={() => onResolveVictim(v.id, null)} disabled={resolving}>
+                            ✕ Délier
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {!v.resolvedUser && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
+                    {isAdmin && (
+                      <button className="text-xs text-blue-500 hover:underline mt-1"
+                        onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
+                        {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                      </button>
+                    )}
+                    {isAdmin && activeSuspect === v.id && (
+                      <div className="mt-2 border rounded-lg p-2 bg-gray-50 w-full">
+                        <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
+                          placeholder="Rechercher un élève..." autoFocus
+                          className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
+                        {suspectResults.map((u: any) => (
+                          <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
+                            onClick={() => onResolveVictim(v.id, u.id)} disabled={resolving}>
+                            {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -178,7 +255,7 @@ export default function ReportDetail({
       </div>
 
       {/* ── Signalement ── */}
-      <div className="bg-surface shadow-sm  px-6 py-4 mb-3"
+      <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
         <p className="text-sm font-semibold text-gray-700 mb-3">Signalement</p>
         <div className="flex flex-wrap gap-4 text-sm mb-4">
@@ -193,8 +270,9 @@ export default function ReportDetail({
           </div>
         )}
       </div>
-      {/* Suspects + Alerteur */}
-            <div className="bg-surface shadow-sm px-6 py-4 mb-3"
+
+      {/* ── Suspects + Alerteur ── */}
+      <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
         <p className="text-sm font-semibold text-gray-700 mb-3">Personnes impliquées</p>
         <div className="grid grid-cols-2 gap-6">
@@ -213,7 +291,7 @@ export default function ReportDetail({
                         </div>
                     }
                     <div className="flex-1">
-                      <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? "cursor-pointer hover:underline" : ""}`}
+                      <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
                         onClick={() => s.resolvedUser?.id && onNavigateToUser(s.resolvedUser.id)}>
                         {s.freeText}
                       </p>
@@ -282,7 +360,7 @@ export default function ReportDetail({
         </div>
       </div>
 
-      {/* ── Card Notes + Convocations ── */}
+      {/* ── Notes ── */}
       <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
@@ -294,14 +372,14 @@ export default function ReportDetail({
         {isAdmin && (
           <div className="flex flex-col gap-2">
             <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1500))} rows={3}
-              placeholder={t('admin.notes.placeholder')} className="resize-y" maxLength={1500} />
+              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1500} />
             <p className="text-xs text-gray-400 text-right">{newNote.length}/1500 {newNote.length >= 1500 && <span className="text-red-500">Limite atteinte</span>}</p>
             <Button onClick={() => onAddNote('note')}>{t('admin.notes.save')}</Button>
           </div>
         )}
       </div>
 
-      {/* Convocations */}
+      {/* ── Convocations ── */}
       {isAdmin && (
         <div className="bg-surface shadow-sm px-6 py-4 mb-3"
           style={{ borderLeft: `5px solid ${severityColor}` }}>

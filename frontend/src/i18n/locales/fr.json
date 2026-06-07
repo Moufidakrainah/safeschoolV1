@@ -75,7 +75,7 @@
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
       "reset": "Réinitialiser",
-      "victimPlaceholder": "Nom de la victime..."
+      "victimPlaceholder": "Filtrer par victime..."
     },
     "status": {
       "pending": "En attente",

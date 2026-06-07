@@ -58,13 +58,15 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
         <span className={dark ? 'text-white text-xs font-semibold' : 'text-xs font-semibold text-gray-700'}>
           Parent {idx + 1}
         </span>
-        <button
-          type="button"
-          className={dark ? 'text-white/60 hover:text-white text-xs' : 'text-gray-400 hover:text-red-500 text-xs'}
+        <span
+          role="button"
+          tabIndex={0}
+          className={`cursor-pointer ${dark ? 'text-white/60 hover:text-white text-xs' : 'text-gray-400 hover:text-red-500 text-xs'}`}
           onClick={onRemove}
+          onKeyDown={e => e.key === 'Enter' && onRemove()}
         >
           ✕ Supprimer
-        </button>
+        </span>
       </div>
 
       {/* Prénom + Nom */}

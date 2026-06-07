@@ -6,14 +6,14 @@ interface StepBarProps {
 export default function StepBar({ steps, currentStep }: StepBarProps) {
   return (
     <div
-      className="bg-white px-8 py-4 border-b border-gray-100"
+    className="w-full"
       role="progressbar"
       aria-valuenow={currentStep}
       aria-valuemin={1}
       aria-valuemax={steps.length}
       aria-label={`Étape ${currentStep} sur ${steps.length}`}
     >
-      <div className="max-w-xl mx-auto flex gap-2">
+      <div className="flex gap-2">
         {steps.map((s, i) => (
           <div key={s} className="flex-1 text-center">
             <div className={`text-xs font-${currentStep === i + 1 ? 'bold' : 'normal'} ${

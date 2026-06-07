@@ -14,6 +14,15 @@ export default function StatsDashboard({ reports }: Props) {
   const [filterClass, setFilterClass] = useState('all');
   const [filterGrade, setFilterGrade] = useState('all');
 
+  // ── Helper : récupère la classe de la victime d'un signalement ──
+  // Si reporter = 'victime' → le signalant est la victime (r.student)
+  // Sinon → cherche parmi les victimes résolues celle qui a une classe
+  const getVictimClass = (r: any) => {
+    if (r.reporter === 'victime') return r.student?.studentProfile?.schoolClass ?? null;
+    const resolved = r.victims?.find((v: any) => v.resolvedUser?.studentProfile?.schoolClass);
+    return resolved?.resolvedUser?.studentProfile?.schoolClass ?? null;
+  };
+
   // ── Filtrage des signalements ──
   const filtered = useMemo(() => {
     return reports
@@ -27,7 +36,7 @@ export default function StatsDashboard({ reports }: Props) {
         return true;
       })
       .filter(r => {
-        const sc = r.student?.studentProfile?.schoolClass;
+        const sc = getVictimClass(r);
         const label = sc ? `${sc.level} ${sc.section}` : '';
         return filterClass === 'all' || label === filterClass;
       })
@@ -46,10 +55,10 @@ export default function StatsDashboard({ reports }: Props) {
     }).filter(d => d.value > 0);
   }, [filtered]);
 
-  // ── Données graphique par classe ──
+  // ── Données graphique par classe (basé sur la classe de la victime) ──
   const allClasses = useMemo(() => [
     ...new Set(reports.map(r => {
-      const sc = r.student?.studentProfile?.schoolClass;
+      const sc = getVictimClass(r);
       return sc ? `${sc.level} ${sc.section}` : null;
     }).filter(Boolean))
   ], [reports]);
@@ -57,9 +66,11 @@ export default function StatsDashboard({ reports }: Props) {
   const classData = useMemo(() => {
     return allClasses.map(c => ({
       classe: c,
-      total:    filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c : false; }).length,
-      critical: filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'critical' : false; }).length,
-      high:     filtered.filter(r => { const sc = r.student?.studentProfile?.schoolClass; return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'high' : false; }).length,
+      total:    filtered.filter(r => { const sc = getVictimClass(r); return sc ? `${sc.level} ${sc.section}` === c : false; }).length,
+      critical: filtered.filter(r => { const sc = getVictimClass(r); return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'critical' : false; }).length,
+      high:     filtered.filter(r => { const sc = getVictimClass(r); return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'high' : false; }).length,
+      medium:   filtered.filter(r => { const sc = getVictimClass(r); return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'medium' : false; }).length,
+    low:      filtered.filter(r => { const sc = getVictimClass(r); return sc ? `${sc.level} ${sc.section}` === c && r.grade === 'low' : false; }).length,
     }));
   }, [allClasses, filtered]);
 
@@ -77,6 +88,7 @@ export default function StatsDashboard({ reports }: Props) {
   // ── Données graphique par statut ──
   const statusData = useMemo(() => {
     const statuses = [
+      { name: 'Nouveau',    key: 'new',          color: '#6366f1' },
       { name: 'En attente', key: 'pending',      color: '#eab308' },
       { name: 'En cours',   key: 'in_progress',  color: '#0f3460' },
       { name: 'Clôturé',    key: 'resolved',     color: '#22c55e' },
@@ -132,7 +144,7 @@ export default function StatsDashboard({ reports }: Props) {
           </SelectContent>
         </Select>
 
-        {/* Filtre classe */}
+        {/* Filtre classe (classe de la victime) */}
         <Select value={filterClass} onValueChange={setFilterClass}>
           <SelectTrigger className="w-48 bg-white">
             <SelectValue>{filterClass === 'all' ? 'Toutes les classes' : filterClass}</SelectValue>
@@ -197,9 +209,9 @@ export default function StatsDashboard({ reports }: Props) {
         </div>
       </div>
 
-      {/* ── Ligne 2 : Signalements par classe ── */}
+      {/* ── Ligne 2 : Signalements par classe de la victime ── */}
       <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par classe</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par classe (victime)</h3>
         {classData.length === 0
           ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
           : (
@@ -211,6 +223,8 @@ export default function StatsDashboard({ reports }: Props) {
                 <Bar dataKey="total" name="Total" fill="#0f3460" />
                 <Bar dataKey="critical" name={SEVERITY_LABELS.critical} fill={SEVERITY_COLORS.critical} />
                 <Bar dataKey="high" name={SEVERITY_LABELS.high} fill={SEVERITY_COLORS.high} />
+                <Bar dataKey="medium" name={SEVERITY_LABELS.medium} fill={SEVERITY_COLORS.medium} />
+                <Bar dataKey="low"    name={SEVERITY_LABELS.low}    fill={SEVERITY_COLORS.low} />
               </BarChart>
             </ResponsiveContainer>
           )}

@@ -167,6 +167,7 @@ export default function AdminUserProfile({
           </div>
           {showParentForm && (
             <ParentFormItem
+              key={editingParent?.id ?? 'new'}
               parent={parentForm}
               idx={editingParent ? profileParents.findIndex(p => p.id === editingParent.id) : profileParents.length}
               dark={false}
@@ -225,22 +226,22 @@ export default function AdminUserProfile({
             {/* Bouton désactivé si formulaire invalide — pas de AlertDialog */}
             {isFormValid ? (
               <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button>{t('admin.users.save')}</Button>
+                <AlertDialogTrigger className="group/button inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity">
+                  {t('admin.users.save')}
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
-                    <AlertDialogDescription asChild>
-                      <div className="text-sm text-gray-700 space-y-1 mt-2">
-                        <p><strong>Prénom :</strong> {userForm.firstName}</p>
-                        <p><strong>Nom :</strong> {userForm.lastName}</p>
-                        <p><strong>Email :</strong> {userForm.email}</p>
-                        <p><strong>Rôle :</strong> {userForm.role}</p>
-                        {userForm.role === 'student' && userForm.classId && <p><strong>Classe :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</p>}
-                        {userForm.role === 'teacher' && userForm.subject && <p><strong>Matière :</strong> {userForm.subject}</p>}
-                        {userForm.password && <p><strong>Mot de passe :</strong> modifié</p>}
-                      </div>
+                    <AlertDialogDescription>
+                      <span className="text-sm text-gray-700 space-y-1 mt-2 flex flex-col gap-1">
+                        <span><strong>Prénom :</strong> {userForm.firstName}</span>
+                        <span><strong>Nom :</strong> {userForm.lastName}</span>
+                        <span><strong>Email :</strong> {userForm.email}</span>
+                        <span><strong>Rôle :</strong> {userForm.role}</span>
+                        {userForm.role === 'student' && userForm.classId && <span><strong>Classe :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</span>}
+                        {userForm.role === 'teacher' && userForm.subject && <span><strong>Matière :</strong> {userForm.subject}</span>}
+                        {userForm.password && <span><strong>Mot de passe :</strong> modifié</span>}
+                      </span>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

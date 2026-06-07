@@ -15,20 +15,21 @@ import { AuthGuard } from "@nestjs/passport";
 import { ReportsService } from "./reports.service";
 import { ReportGrade, ReportStatus } from "./report.entity";
 import { validateUUID } from "../utils/validate-uuid";
+import { IsString, IsBoolean, IsOptional, IsArray } from 'class-validator';
 
 class CreateReportDto {
-  type: string;
-  reporter: string;
-  description: string;
-  isAnonymous: boolean;
-  suspects?: { freeText: string }[];
-  victims?: { freeText: string }[];
-  frequency?: string;
+  @IsString() type: string;
+  @IsString() reporter: string;
+  @IsString() description: string;
+  @IsBoolean() isAnonymous: boolean;
+  @IsOptional() @IsArray() suspects?: { freeText: string }[];
+  @IsOptional() @IsArray() victims?: { freeText: string }[];
+  @IsOptional() @IsString() frequency?: string;
 }
 
 class UpdateReportDto {
-  status?: ReportStatus;
-  grade?: ReportGrade;
+  @IsOptional() @IsString() status?: ReportStatus;
+  @IsOptional() @IsString() grade?: ReportGrade;
 }
 
 @Controller("reports")

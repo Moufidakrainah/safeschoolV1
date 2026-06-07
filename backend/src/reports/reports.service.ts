@@ -98,6 +98,7 @@ export class ReportsService {
         "student", "student.studentProfile", "student.studentProfile.schoolClass",
         "suspects", "suspects.resolvedUser",
         "victims", "victims.resolvedUser",
+        "victims.resolvedUser.studentProfile", "victims.resolvedUser.studentProfile.schoolClass",
       ],
     });
   }
@@ -116,6 +117,7 @@ export class ReportsService {
         "student", "student.studentProfile", "student.studentProfile.schoolClass",
         "suspects", "suspects.resolvedUser",
         "victims", "victims.resolvedUser",
+        "victims.resolvedUser.studentProfile", "victims.resolvedUser.studentProfile.schoolClass",
       ],
     });
     if (!report) throw new NotFoundException("Signalement introuvable");
