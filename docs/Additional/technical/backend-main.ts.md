@@ -106,11 +106,11 @@ Résultat : /app/uploads
 { prefix: '/uploads' } — les fichiers seront accessibles via l'URL /uploads/.... Donc /app/uploads/avatars/photo.jpg sur le disque devient accessible via http://localhost:5000/uploads/avatars/photo.jpg dans le navigateur.
 
 
-ts  await app.listen(process.env.PORT ?? 3000);
+ts  await app.listen(process.env.BACKEND_PORT ?? 3000);
 
 await app.listen(...) — démarre le serveur HTTP et le met en écoute sur un port. C'est ici que le serveur "s'allume" vraiment.
-process.env.PORT — process.env est un objet Node.js qui contient toutes les variables d'environnement du système. PORT est lue depuis l'environnement (définie dans .env ou dans Docker).
-?? 3000 — l'opérateur nullish coalescing. Si process.env.PORT est undefined ou null, on utilise 3000 comme valeur par défaut. C'est différent de || : avec ||, la valeur 0 serait aussi remplacée par 3000, ce qui serait un bug si PORT valait 0.
+process.env.BACKEND_PORT — process.env est un objet Node.js qui contient toutes les variables d'environnement du système. BACKEND_PORT est lue depuis l'environnement (définie dans .env ou dans Docker) — renommée depuis PORT pour la distinguer clairement du port hôte exposé (5000) utilisé dans REACT_APP_API_URL.
+?? 3000 — l'opérateur nullish coalescing. Si process.env.BACKEND_PORT est undefined ou null, on utilise 3000 comme valeur par défaut. C'est différent de || : avec ||, la valeur 0 serait aussi remplacée par 3000, ce qui serait un bug si BACKEND_PORT valait 0.
 
 
 ts}
