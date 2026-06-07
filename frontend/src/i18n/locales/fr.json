@@ -263,8 +263,8 @@
     "success": {
       "iconLabel": "Succès",
       "title": "Signalement transmis",
-      "message": "Votre signalement a bien été reçu. L'équipe de direction en sera informée dans les plus brefs délais.",
-      "notice": "Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.",
+      "message": "Ton signalement a été envoyé. L'équipe de direction va le consulter dans les plus brefs délais.",
+      "notice": "",
       "back": "Retour à l'accueil"
     },
     "steps": {
@@ -335,8 +335,8 @@
       "frequency": "Fréquence",
       "victims": "Victime(s)",
       "suspects": "Suspect(s)",
-      "anonymous": "Je ne veux pas etre contacte au sujet de ce signalement",
-      "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
+      "anonymous": "Coche si tu ne veux pas être contacté au sujet de ce signalement",
+      "anonymousDesc": ""
     },
     "submitting": "Envoi...",
     "submit": "Envoyer le signalement",
@@ -392,8 +392,8 @@
     "success": {
       "iconLabel": "Succès",
       "title": "Signalement transmis",
-      "message": "Votre signalement a bien été reçu. L'équipe de direction en sera informée dans les plus brefs délais.",
-      "notice": "Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — celui-ci est géré directement par l'administration.",
+      "message": "Ton signalement a été envoyé. L'équipe de direction va le consulter dans les plus brefs délais.",
+      "notice": "",
       "back": "Retour à l'accueil"
     },
     "steps": {

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudentReportForm } from '../../hooks/useStudentReportForm';
-import { Button } from '../ui/button';
-import { Card } from '../ui/card';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
+import { Checkbox } from '@/components/ui/checkbox';
+
 
 interface StudentFormProps {
   user: AuthUser | null;
@@ -354,13 +356,15 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ))}
               </dl>
               <label className="flex items-center gap-3 cursor-pointer text-sm mb-5">
-                <input
-                  type="checkbox"
+               
+                <Checkbox
                   checked={isAnonymous}
-                  onChange={e => setIsAnonymous(e.target.checked)}
-                  className="w-4 h-4"
+                  onCheckedChange={setIsAnonymous}
+                  className="bg-white"
                 />
-                <span>{t('reporter.step6.anonymous')} - {t('reporter.step6.anonymousDesc')}</span>
+
+
+                <span>{t('reporter.step6.anonymous')}</span>
               </label>
               {submitError && (
                 <div role="alert" className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2">

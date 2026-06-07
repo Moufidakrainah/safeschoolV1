@@ -319,6 +319,8 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   className="w-4 h-4"
                   aria-label={t('reporter.step6.anonymous')}
                 />
+                
+
                 <span>
                 	{t('reporter.step6.anonymous')} - {t('reporter.step6.anonymousDesc')}
                 </span>
