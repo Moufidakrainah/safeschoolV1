@@ -7,6 +7,7 @@ import StepBar from '../StepBar';
 import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
 interface StudentFormProps {
@@ -17,11 +18,11 @@ export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
 
   const typeOptions = [
-    { label: 'Physique',          value: 'physique',   sub: t('reporter.step2.physicalSub')  },
-    { label: 'Verbal',            value: 'verbal',     sub: t('reporter.step2.verbalSub')    },
-    { label: 'Cyber',             value: 'cyber',      sub: t('reporter.step2.cyberSub')     },
-    { label: 'Exclusion sociale', value: 'exclusion',  sub: t('reporter.step2.exclusionSub') },
-    { label: 'Sexuel',            value: 'sexuel',     sub: t('reporter.step2.sexualSub')    },
+    { label: t('reporter.step2.physical'),         value: 'physique',   sub: t('reporter.step2.physicalSub')  },
+    { label: t('reporter.step2.verbal'),            value: 'verbal',     sub: t('reporter.step2.verbalSub')    },
+    { label: t('reporter.step2.cyber'),            value: 'cyber',      sub: t('reporter.step2.cyberSub')     },
+    { label: t('reporter.step2.exclusion'), value: 'exclusion',  sub: t('reporter.step2.exclusionSub') },
+    { label: t('reporter.step2.sexual'),            value: 'sexuel',     sub: t('reporter.step2.sexualSub')    },
   ];
 
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -94,12 +95,7 @@ export default function StudentForm({ user }: StudentFormProps) {
   return (
 
     <section className="page-section">
-
 		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
-
-
-
-    {/* <main className="bg-gray-50 font-sans"> */}
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="w-full mt-8">
@@ -109,7 +105,7 @@ export default function StudentForm({ user }: StudentFormProps) {
           {step === 1 && (
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">
-                Quelle est ta situation ?
+               {t('reporter.step2.title')}
               </legend>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -168,7 +164,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ))}
               </div>
               {showErrors && !type && (
-                <p role="alert" className="mt-3 text-sm text-red-600">  {t('reporter.validation.typeRequired')}</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">{t('reporter.validation.typeRequired')}</p>
               )}
             </fieldset>
           )}
@@ -181,7 +177,7 @@ export default function StudentForm({ user }: StudentFormProps) {
               <label className="block mb-1 text-sm font-semibold text-gray-700" htmlFor="description">
                 {t('reporter.step3.descriptionLabel')}
               </label>
-              <textarea
+              <Textarea
                 id="description"
                 value={description}
                 onChange={e => setDescription(e.target.value)}
@@ -195,18 +191,17 @@ export default function StudentForm({ user }: StudentFormProps) {
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
               </label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={e => setFrequency(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary bg-white text-gray-700"
-              >
-                <option value="">{t('reporter.step3.frequencyPlaceholder')}</option>
-                <option value="Une fois">{t('reporter.step3.freq1')}</option>
-                <option value="Deux fois">{t('reporter.step3.freq2')}</option>
-                <option value="Trois fois ou plus">{t('reporter.step3.freq3')}</option>
-                <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
-              </select>
+               <Select value={frequency} onValueChange={v => setFrequency(v)}>
+                <SelectTrigger id="frequency" aria-required="true">
+                  <SelectValue placeholder={t('reporter.step3.frequencyPlaceholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
+                  <SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
+                  <SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
+                  <SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
+                </SelectContent>
+              </Select>
               {showErrors && !frequency && (
                 <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
               )}
@@ -220,9 +215,7 @@ export default function StudentForm({ user }: StudentFormProps) {
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step4.subtitle')}</p>
 
               {/* Victimes — saisie libre, plusieurs possibles */}
-              <>
                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                  {/* {whoSignals === 'victime' ? 'Donne le nom de toutes les victimes' : t('reporter.step4.victimLabel')} */}
                  {t('reporter.step4.victimLabel')}
                 </label>
                 <div className="flex gap-2">
@@ -278,9 +271,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                   </div>
                 )}
                 <div className="mt-5" />
-              </>
 
-              {/* Suspects — saisie libre uniquement, pas d'autocomplete */}
               <label className="block mb-2 text-sm font-semibold text-gray-700">
                 {t('reporter.step4.suspectsLabel')}
               </label>
@@ -406,7 +397,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 
         </div>
       </div>
-    {/* </main> */}
       </div>
 
     </section>
