@@ -43,7 +43,7 @@ export default function StudentForm({ user }: StudentFormProps) {
   } = useStudentReportForm(user?.role, t);
 
   const steps = [
-    'Qui signale',
+    t('reporter.steps.who'),
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
@@ -59,30 +59,49 @@ export default function StudentForm({ user }: StudentFormProps) {
   // Écran de confirmation
   if (step === 7) {
     return (
-      <main className="bg-gray-50 font-sans">
-        <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
+
+
+
+    <section className="page-section">
+
+		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+
+
+
         <StepBar steps={steps} currentStep={step} />
-        <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-          <Card className="max-w-md w-full mx-5 text-center">
-            <div className="text-5xl mb-4">✅</div>
-            <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
+      <div className="w-full mt-8">
+
+<div>
+        <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.success.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
             <div className="bg-surface rounded-lg p-4 mb-6 text-left">
               <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
             </div>
-            <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-          </Card>
+			<div className="text-center">
+            <Button className="" onClick={resetForm}>{t('reporter.success.back')}</Button>
+			</div>
+            </div>
         </div>
-      </main>
+        </div>
+        </section>
+
+
     );
   }
 
   return (
-    <main className="bg-gray-50 font-sans">
+
+    <section className="page-section">
+
+		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+
+
+
+    {/* <main className="bg-gray-50 font-sans"> */}
       <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
-      <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-        <Card>
+      <div className="w-full mt-8">
+        <div>
 
           {/* Étape 1 : Victime ou témoin */}
           {step === 1 && (
@@ -95,26 +114,24 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <button
                   onClick={() => setWhoSignals('victime')}
                   className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                    whoSignals === 'victime' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    whoSignals === 'victime' ? 'border-primary bg-white' : 'border-gray-200  bg-surface'
                   }`}
                 >
-                  <div className="text-3xl mb-2">🙋</div>
                   <div className="text-sm font-semibold text-gray-800">Je suis la victime</div>
                   <div className="text-xs text-gray-400 mt-1">Le harcèlement me vise directement</div>
                 </button>
                 <button
                   onClick={() => setWhoSignals('temoin')}
                   className={`px-4 py-6 rounded-lg cursor-pointer text-center transition-all border-2 ${
-                    whoSignals === 'temoin' ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                    whoSignals === 'temoin' ? 'border-primary  bg-white' : 'border-gray-200 bg-surface'
                   }`}
                 >
-                  <div className="text-3xl mb-2">👁️</div>
                   <div className="text-sm font-semibold text-gray-800">Je suis témoin</div>
                   <div className="text-xs text-gray-400 mt-1">J'ai été témoin de harcèlement</div>
                 </button>
               </div>
               {showErrors && !whoSignals && (
-                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ Veuillez choisir votre situation</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">Veuillez choisir votre situation</p>
               )}
             </fieldset>
           )}
@@ -141,7 +158,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); setType(typeOptions[(fallbackIndex - 1 + typeOptions.length) % typeOptions.length].value); }
                     }}
                     className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none ${
-                      type === opt.value ? 'border-primary bg-surface' : 'border-gray-200 bg-white'
+                      type === opt.value ? 'border-primary  bg-white' : 'border-gray-200 bg-surface'
                     } focus-visible:ring-2 focus-visible:ring-primary`}
                   >
                     <div className="text-sm font-semibold text-gray-800">{opt.label}</div>
@@ -150,7 +167,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ))}
               </div>
               {showErrors && !type && (
-                <p role="alert" className="mt-3 text-sm text-red-600">⚠️ {t('reporter.validation.typeRequired')}</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">  {t('reporter.validation.typeRequired')}</p>
               )}
             </fieldset>
           )}
@@ -169,10 +186,10 @@ export default function StudentForm({ user }: StudentFormProps) {
                 onChange={e => setDescription(e.target.value)}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
+                className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
               {showErrors && !description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {t('reporter.validation.descriptionRequired')}</p>
+                <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
               )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
@@ -222,7 +239,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       }
                     }}
                     placeholder="Ex: Prénom Nom - Classe"
-                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <Button
                     variant="outline"
@@ -273,7 +290,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                     }
                   }}
                   placeholder="Ex: Prénom Nom - Classe"
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
                 <Button
                   variant="outline"
@@ -329,7 +346,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ] as const).map(row => (
                   <div key={row.label} className="flex gap-2">
                     <dt className="font-semibold text-gray-700 min-w-[120px]">{row.label} :</dt>
-                    <dd className="text-gray-600 break-words min-w-0">{row.value}</dd>
+                    <dd className="text-gray-600 wrap-break-word min-w-0">{row.value}</dd>
                   </div>
                 ))}
               </dl>
@@ -352,11 +369,20 @@ export default function StudentForm({ user }: StudentFormProps) {
 
           {/* Navigation */}
           <div className="flex justify-between mt-8">
-            <Button variant="ghost" onClick={() => { setShowErrors(false); setStep(s => s - 1); }} disabled={step === 1}>
+
+			{step > 1 && (
+            <Button 
+			variant={step === 1 ? 'ghost' : 'primary'}
+			onClick={() => { setShowErrors(false); setStep(s => s - 1); }} 
+			disabled={step === 1}>
               ← {t('common.previous')}
             </Button>
+			  )}
+
+ <div className="ml-auto">
             {step < 6 ? (
-              <Button onClick={() => {
+              <Button 
+			  onClick={() => {
                 if (isNextDisabled) { setShowErrors(true); return; }
                 setShowErrors(false);
                 setStep(s => s + 1);
@@ -368,10 +394,14 @@ export default function StudentForm({ user }: StudentFormProps) {
                 {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
               </Button>
             )}
+			</div>
           </div>
 
-        </Card>
+        </div>
       </div>
-    </main>
+    {/* </main> */}
+      </div>
+
+    </section>
   );
 }

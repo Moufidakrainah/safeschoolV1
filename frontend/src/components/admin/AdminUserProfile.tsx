@@ -118,6 +118,7 @@ export default function AdminUserProfile({
                 {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
               </div>}
         </div>
+
         <div className="text-center">
           {(() => { const { first, last } = formatName(selectedUser.firstName, selectedUser.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
           <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>

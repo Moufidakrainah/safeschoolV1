@@ -197,9 +197,9 @@ export default function StudentCases({
 
   return (
 	<>
-     <section className="page-section">
+     {/* <section className="page-section"> */}
       {/* <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3"> */}
-        {/* <div className="relative"> */}
+        <div className="relative">
           {loadingReports ? (
             <p className="text-center py-10 text-gray-400">Chargement...</p>
           ) : myReports.length === 0 ? (
@@ -462,8 +462,7 @@ export default function StudentCases({
 
             </div>
           )}
-        {/* </div> */}
-		</section>
+        </div>
 		</>
   );
 }
