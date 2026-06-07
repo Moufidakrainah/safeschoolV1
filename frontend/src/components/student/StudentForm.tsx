@@ -239,7 +239,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       }
                     }}
                     placeholder="Ex: Prénom Nom - Classe"
-                    className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <Button
                     variant="outline"
@@ -290,7 +290,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                     }
                   }}
                   placeholder="Ex: Prénom Nom - Classe"
-                  className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
                 <Button
                   variant="outline"
@@ -369,14 +369,20 @@ export default function StudentForm({ user }: StudentFormProps) {
 
           {/* Navigation */}
           <div className="flex justify-between mt-8">
+
+			{step > 1 && (
             <Button 
 			variant={step === 1 ? 'ghost' : 'primary'}
 			onClick={() => { setShowErrors(false); setStep(s => s - 1); }} 
 			disabled={step === 1}>
               ← {t('common.previous')}
             </Button>
+			  )}
+
+ <div className="ml-auto">
             {step < 6 ? (
-              <Button onClick={() => {
+              <Button 
+			  onClick={() => {
                 if (isNextDisabled) { setShowErrors(true); return; }
                 setShowErrors(false);
                 setStep(s => s + 1);
@@ -388,6 +394,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
               </Button>
             )}
+			</div>
           </div>
 
         </div>
