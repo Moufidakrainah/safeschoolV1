@@ -127,11 +127,11 @@ export default function AdminUserProfile({
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
-            <Button className={`cursor-pointer flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
+            <label className={`cursor-pointer flex items-center gap-1 px-4 py-1 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
               {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                 onChange={async e => { const f = e.target.files?.[0]; if (f) await onHandleAvatarUpload(selectedUser.id, f); }} />
-            </Button>
+            </label>
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}
             </Button>
