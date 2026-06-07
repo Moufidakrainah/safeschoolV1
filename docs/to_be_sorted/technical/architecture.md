@@ -17,7 +17,6 @@ serveurs différents :
 Navigateur
   ├── port 5173 → container frontend  (React / Vite)
   ├── port 5000 → container backend   (NestJS)
-  ├── port 8080 → container pgAdmin   (admin BDD)
   └── port 5601 → container Kibana    (logs)
 ```
 

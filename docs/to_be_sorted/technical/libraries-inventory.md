@@ -122,7 +122,6 @@
 | elasticsearch | `docker.elastic.co/elasticsearch/elasticsearch` | 8.12.0 | 9201→9200 | Stockage et recherche des logs |
 | logstash | `docker.elastic.co/logstash/logstash` | 8.12.0 | 5044 | Pipeline d'ingestion des logs |
 | kibana | `docker.elastic.co/kibana/kibana` | 8.12.0 | 5601 | Interface de visualisation des logs |
-| pgadmin | `dpage/pgadmin4` | latest | 8080 | Interface web PostgreSQL (dev uniquement) |
 
 ---
 

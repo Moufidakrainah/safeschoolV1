@@ -23,7 +23,6 @@ Ce document sert de manuel de reference du projet. Il decrit l'ensemble du fonct
 12. [shadcn/ui — ajouter et migrer des composants](#12-shadcnui--ajouter-et-migrer-des-composants)
 13. [CORS — autoriser le frontend à parler au backend](#13-cors--autoriser-le-frontend-à-parler-au-backend)
 14. [Validation des formulaires côté frontend](#14-validation-des-formulaires-côté-frontend)
-15. [Validation des données côté backend — DTOs et ValidationPipe](#15-validation-des-données-côté-backend--dtos-et-validationpipe)
 
 ---
 
@@ -37,7 +36,7 @@ Un conteneur est comparable à une machine virtuelle très légère. Il contient
 
 ### `docker-compose.yml` — le chef d'orchestre
 
-Ce fichier décrit les **6 services** qui constituent l'application et comment ils interagissent :
+Ce fichier décrit les **7 services** qui constituent l'application et comment ils interagissent :
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -218,23 +217,13 @@ Le backend ne démarre pas avant que la base de données soit prête (`condition
 
 ### `healthcheck`
 
-**PostgreSQL** :
+Pour PostgreSQL :
 ```yaml
 test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
 interval: 5s
 retries: 5
 ```
 Docker interroge Postgres toutes les 5 secondes. Une fois que `pg_isready` répond positivement, le service est marqué `healthy` et les services dépendants peuvent démarrer.
-
-**Backend NestJS** :
-```yaml
-test: ["CMD-SHELL", "nc -z localhost 3000 || exit 1"]
-interval: 10s
-retries: 5
-```
-`nc -z` (netcat zero I/O) vérifie uniquement que quelque chose écoute sur le port TCP 3000, sans envoyer de requête HTTP. C'est intentionnel : NestJS n'a pas de route `GET /` — elle retourne 404. BusyBox `wget` considère un 404 comme un échec et sort avec le code 1, ce qui rendrait le healthcheck systématiquement en échec même si le serveur tourne parfaitement. `nc -z` ne regarde pas le code HTTP — il retourne exit 0 dès que le port accepte des connexions.
-
-**Logstash, Kibana** : utilisent `curl -f` sur leur API de statut respective (`localhost:9600` et `localhost:5601/api/status`). `curl -f` échoue (exit non-0) si le code HTTP est 4xx ou 5xx.
 
 ### Réseau `safeschool_network`
 
@@ -2737,9 +2726,14 @@ La différence entre `Link` et une balise `<a>` HTML classique : `Link` intercep
 
 ### DevBar
 
-~~La DevBar était un composant de développement (barre de navigation rapide) contrôlé par `VITE_DEVBAR` dans `frontend/.env.development` et activé/désactivé via `toggle-devbar.sh`.~~
+`DevBar` est un composant de développement visible uniquement en mode dev grâce à la garde `if (import.meta.env.PROD) return null`. Il n'apparaît pas en production et ne casse rien.
 
-**Supprimée** (branche `fix/remove_devbar`, mergée dans `fix/improve_app_build`) : le composant `DevBar`, le script `toggle-devbar.sh`, et la variable `VITE_DEVBAR` ont été retirés du projet. `App.tsx` ne contient plus la garde `import.meta.env.VITE_DEVBAR` ni le composant `<DevBar />`.
+Le composant et ses imports (`Link`, `useLocation`) restent présents dans le code source en production (ils ne s'affichent pas, mais ils sont inclus dans le bundle).
+
+**À retirer avant livraison :**
+1. Le composant `DevBar` dans `App.tsx`
+2. `Link` et `useLocation` dans la ligne d'import de `react-router-dom` si non utilisés ailleurs
+3. `<DevBar />` dans le JSX de `App`
 
 
 ---
@@ -2805,7 +2799,7 @@ Toutes les requêtes portent automatiquement le header `Authorization: Bearer <t
 |---|---|
 | Pourquoi le backend écoute sur 3000 mais est accessible sur 5000 ? | Mapping de ports dans docker-compose : `"5000:3000"` signifie que le port 3000 du conteneur est exposé sur le port 5000 de la machine hôte. |
 | Que se passe-t-il si on supprime la ligne `/app/node_modules` dans les volumes ? | Le volume `./frontend:/app` écraserait le dossier `node_modules` du conteneur avec celui de la machine hôte (vide ou incompatible). L'app ne démarrerait plus. |
-| Pourquoi le frontend `depends_on` le backend ? | Pour garantir l'ordre de démarrage avec `condition: service_healthy` : le frontend attend que le backend soit `healthy` (port 3000 ouvert) avant de démarrer. Sans cette condition, `depends_on` garantit seulement que le conteneur a démarré, pas qu'il est prêt. |
+| Pourquoi le frontend `depends_on` le backend ? | Pour garantir l'ordre de démarrage. Mais `depends_on` sans `condition: service_healthy` ne garantit pas que le backend est prêt — juste qu'il a démarré. |
 | Que fait `pg_isready` dans le healthcheck ? | Il vérifie que PostgreSQL accepte des connexions. Docker interroge toutes les 5s, et attend que le service soit `healthy` avant de démarrer les services qui en dépendent. |
 | Comment deux services Docker se parlent-ils par nom ? | Via le réseau Docker privé `safeschool_network`. Docker résout les noms de services en IPs internes. Le backend peut appeler `database:5432` directement. |
 | Si on fait `docker compose down`, les données en base sont-elles perdues ? | Non, grâce au volume nommé `pgdata`. Les données persistent sur la machine hôte. `docker compose down -v` les supprimerait. |
@@ -3208,96 +3202,4 @@ setShowErrors(false);    // reset si tout est valide
 ### Ce qu'on n'a pas (et pourquoi c'est OK)
 
 **react-hook-form + Zod** est la solution standard en production — elle gère la validation en temps réel, les types TypeScript automatiques depuis le schéma, le `watch`, etc. Pour SafeSchool, les formulaires sont simples (3-4 champs) et la validation au clic suffit. C'est un choix délibéré de ne pas sur-ingénier.
-
----
-
-## 15. Validation des données côté backend — DTOs et ValidationPipe
-
-### Le problème sans validation
-
-Sans validation côté backend, n'importe quelle donnée peut entrer dans le système. Un DTO sans décorateurs est juste du typage TypeScript — il décrit ce qu'on attend, mais ne vérifie rien à l'exécution.
-
-```ts
-// Avant : typage seul, aucune vérification réelle
-class LoginDto {
-  email: string;
-  password: string;
-}
-```
-
-Si quelqu'un envoie `email: ""` ou `password: 123` (un nombre), le backend l'accepte sans se plaindre. Le typage TypeScript disparaît à la compilation — il ne protège que le développeur qui écrit le code, pas le serveur qui reçoit des requêtes.
-
-### Les DTOs avec `class-validator`
-
-Un DTO (*Data Transfer Object*) est une classe qui décrit la forme exacte des données attendues dans une requête. Avec la librairie `class-validator`, on ajoute des **décorateurs** qui définissent des règles de validation :
-
-```ts
-export class LoginDto {
-  @IsEmail({}, { message: 'Email invalide' })
-  @IsNotEmpty({ message: 'Email obligatoire' })
-  email: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
-  @MinLength(6, { message: 'Mot de passe trop court' })
-  password: string;
-}
-```
-
-Chaque décorateur est une règle :
-- `@IsEmail()` — vérifie que la valeur est un email valide
-- `@IsNotEmpty()` — refuse les chaînes vides
-- `@MinLength(6)` — exige au moins 6 caractères
-- `@IsString()` — vérifie que c'est bien une chaîne de caractères
-- `@IsOptional()` — indique que le champ peut être absent
-
-Les DTOs vivent dans des fichiers dédiés (`dto/login.dto.ts`, `dto/register.dto.ts`, etc.) pour ne pas encombrer le contrôleur.
-
-### Le `ValidationPipe` — ce qui active les règles
-
-Les décorateurs seuls ne font rien. C'est le `ValidationPipe` configuré dans `main.ts` qui les active et les exécute sur chaque requête entrante :
-
-```ts
-app.useGlobalPipes(new ValidationPipe({
-  whitelist: true,            // supprime les champs non déclarés dans le DTO
-  forbidNonWhitelisted: true, // renvoie une erreur si des champs inconnus sont envoyés
-  transform: true,            // active les transformations (@Transform)
-}));
-```
-
-- **`whitelist: true`** : si une requête contient un champ qui n'est pas dans le DTO, ce champ est silencieusement ignoré. Protège contre l'injection de données non attendues.
-- **`forbidNonWhitelisted: true`** : va plus loin — au lieu d'ignorer les champs inconnus, renvoie une erreur 400. Plus strict.
-- **`transform: true`** : permet d'utiliser le décorateur `@Transform` pour transformer les données avant validation (ex : `@Transform(({ value }) => value?.trim())` retire les espaces autour d'une valeur).
-
-### Ce qui se passe à chaque requête
-
-```
-[Navigateur]               [Backend — NestJS]
-     │                           │
-     │  POST /auth/login         │
-     │  { email: "", password }  │
-     │ ─────────────────────── > │
-     │                           │  ValidationPipe
-     │                           │    → applique les règles du LoginDto
-     │                           │    → email vide → @IsNotEmpty échoue
-     │                           │
-     │  400 Bad Request    < ─── │  { message: "Email obligatoire" }
-     │                           │
-     │                           │  Le contrôleur n'est jamais atteint
-```
-
-Si toutes les règles passent, NestJS appelle le contrôleur normalement. Si une seule échoue, il renvoie immédiatement une erreur 400 avec le message correspondant — le code métier ne s'exécute jamais.
-
-### Résumé
-
-| Élément | Rôle |
-|---|---|
-| **DTO** | Décrit la forme des données attendues |
-| **`class-validator`** | Fournit les décorateurs de règles (`@IsEmail`, `@MinLength`…) |
-| **`ValidationPipe`** | Exécute les règles à chaque requête entrante |
-| **`whitelist: true`** | Filtre les champs non déclarés |
-| **`forbidNonWhitelisted`** | Erreur si champs inconnus |
-| **`transform: true`** | Permet les transformations de données (`@Transform`) |
-
-Avant cette configuration : n'importe quelle donnée pouvait entrer dans le backend. Après : les données sont filtrées et validées à l'entrée, avant même que le contrôleur soit exécuté.
 
