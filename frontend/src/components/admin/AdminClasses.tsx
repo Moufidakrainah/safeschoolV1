@@ -210,12 +210,12 @@ export default function AdminClasses() {
 								<div className="bg-surface shadow-sm px-6 py-4 flex justify-between items-center">
 									<div>
 										<p
-											className={`font-bold text ${isSelected ? "text/70" : "text-gray-800"}`}
+											className={`font-bold text ${isSelected ? "text-white/70" : "text-gray-800"}`}
 										>
 											{cls.level} {cls.section}
 										</p>
 										<p
-											className={`text-xs mt-0.5 ${isSelected ? "text/70" : "text-gray-400"}`}
+											className={`text-xs mt-0.5 ${isSelected ? "text-white/70" : "text-gray-400"}`}
 										>
 											{count} élève{count !== 1 ? "s" : ""}
 										</p>
