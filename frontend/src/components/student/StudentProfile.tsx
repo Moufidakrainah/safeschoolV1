@@ -35,14 +35,14 @@ export default function StudentProfile({
   const [error, setError] = useState<string | null>(null);
 
   // Calcule l'âge à partir de la date de naissance
-  const calcAge = (dateOfBirth: string): number => {
-    const dob = new Date(dateOfBirth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-    return age;
-  };
+//   const calcAge = (dateOfBirth: string): number => {
+//     const dob = new Date(dateOfBirth);
+//     const today = new Date();
+//     let age = today.getFullYear() - dob.getFullYear();
+//     const m = today.getMonth() - dob.getMonth();
+//     if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+//     return age;
+//   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
