@@ -77,7 +77,9 @@ export default function StudentForm({ user }: StudentFormProps) {
             <div className="bg-surface rounded-lg p-4 mb-6 text-left">
               <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
             </div>
-            <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
+			<div className="text-center">
+            <Button className="" onClick={resetForm}>{t('reporter.success.back')}</Button>
+			</div>
             </div>
         </div>
         </div>
@@ -184,7 +186,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 onChange={e => setDescription(e.target.value)}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
+                className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
               {showErrors && !description && (
                 <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
@@ -367,7 +369,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 
           {/* Navigation */}
           <div className="flex justify-between mt-8">
-            <Button variant="ghost" onClick={() => { setShowErrors(false); setStep(s => s - 1); }} disabled={step === 1}>
+            <Button 
+			variant={step === 1 ? 'ghost' : 'primary'}
+			onClick={() => { setShowErrors(false); setStep(s => s - 1); }} 
+			disabled={step === 1}>
               ← {t('common.previous')}
             </Button>
             {step < 6 ? (
