@@ -6,14 +6,9 @@ import {
   getNotes,
 } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
-import {
-  SEVERITY_COLORS,
-  SEVERITY_LABELS,
-  severityFromApiGrade,
-} from "@/utils/severity";
+import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
 import { useTranslation } from 'react-i18next';
-
-
+import type { AuthUser } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
   const map: Record<string, any> = {
@@ -27,18 +22,8 @@ const statusToBadgeVariant = (status: string) => {
 };
 
 const MONTHS_FR: Record<string, number> = {
-  janvier: 1,
-  février: 2,
-  mars: 3,
-  avril: 4,
-  mai: 5,
-  juin: 6,
-  juillet: 7,
-  août: 8,
-  septembre: 9,
-  octobre: 10,
-  novembre: 11,
-  décembre: 12,
+  janvier: 1, février: 2, mars: 3, avril: 4, mai: 5, juin: 6,
+  juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
 };
 
 function parseConvocation(content: string) {
@@ -49,6 +34,7 @@ function parseConvocation(content: string) {
   const message = parts.slice(1).join("\n\n").trim();
   const recipientMatch = content.match(/^(.+?) est convoqué/);
   const recipient = recipientMatch ? recipientMatch[1].trim() : null;
+
   if (!dateMatch) {
     return {
       isPast: true,
@@ -57,6 +43,7 @@ function parseConvocation(content: string) {
       recipient,
     };
   }
+
   const [, day, monthStr, year, hours, minutes] = dateMatch;
   const monthNum = MONTHS_FR[monthStr.toLowerCase()];
   if (!monthNum) {
@@ -67,13 +54,8 @@ function parseConvocation(content: string) {
       recipient,
     };
   }
-  const rdvDate = new Date(
-    Number(year),
-    monthNum - 1,
-    Number(day),
-    Number(hours),
-    Number(minutes),
-  );
+
+  const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
   const isPast = rdvDate < new Date();
   const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
   return { isPast, displayDate, message, recipient };
@@ -81,37 +63,23 @@ function parseConvocation(content: string) {
 
 interface StudentCasesProps {
   user: AuthUser | null;
-  onNotifRefresh: () => void;
+  onNotifRefresh?: () => void;
 }
 
-export default function StudentCases({
-  user,
-  onNotifRefresh,
-}: StudentCasesProps) {
+export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps) {
+  const { t } = useTranslation();
   const [myReports, setMyReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
   const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
   const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
-  const { t } = useTranslation();
 
   useEffect(() => {
-	 console.log('user dans StudentCases:', user);
     if (!user?.id) return;
     setLoadingReports(true);
 
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
-			console.log('Detail reports:', all.map((r: any) => ({
-				caseNumber: r.caseNumber,
-				studentId: r.student?.id,
-				userId: user?.id,
-				reporter: r.reporter,
-			})));
-
-        const mine = all.filter((r: any) => 
-			r.reporter === "victime" //  les signalements quand il est victime
-			// r.student?.id === user?.id
-		);
+        const mine = all.filter((r: any) => r.reporter === "victime");
         setMyReports(mine);
 
         const notesMap: Record<string, any[]> = {};
@@ -119,9 +87,7 @@ export default function StudentCases({
           mine.map(async (r: any) => {
             try {
               const notes = await getNotes(r.id);
-              notesMap[r.id] = notes.filter(
-                (n: any) => n.type === "convocation",
-              );
+              notesMap[r.id] = notes.filter((n: any) => n.type === "convocation");
             } catch {
               notesMap[r.id] = [];
             }
@@ -130,11 +96,7 @@ export default function StudentCases({
         setReportNotes(notesMap);
 
         const unreadMap: Record<string, any> = {};
-        notifs
-          .filter((n: any) => !n.isRead)
-          .forEach((n: any) => {
-            unreadMap[n.id] = n;
-          });
+        notifs.filter((n: any) => !n.isRead).forEach((n: any) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
       })
       .catch(() => setMyReports([]))
@@ -142,17 +104,15 @@ export default function StudentCases({
   }, [user?.id]);
 
   const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-    return (
-      Object.values(unreadNotifs).find((n: any) => {
-        if (n.report?.id !== reportId) return false;
-        const noteContent = note.content.replace("📅 ", "").trim();
-        const notifMsg = n.message.replace("Convocation : ", "").trim();
-        return (
-          notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
-          noteContent.includes(notifMsg.split("\n\n")[0].trim())
-        );
-      }) ?? null
-    );
+    return Object.values(unreadNotifs).find((n: any) => {
+      if (n.report?.id !== reportId) return false;
+      const noteContent = note.content.replace("📅 ", "").trim();
+      const notifMsg = n.message.replace("Convocation : ", "").trim();
+      return (
+        notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
+        noteContent.includes(notifMsg.split("\n\n")[0].trim())
+      );
+    }) ?? null;
   };
 
   const handleConvocationClick = async (notif: any) => {
@@ -164,306 +124,106 @@ export default function StudentCases({
         delete updated[notif.id];
         return updated;
       });
-      onNotifRefresh();
+      onNotifRefresh?.();
     } catch {}
   };
 
-
-
-	// {paginated.map(report => (
-	//   <li key={report.id} style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severityFromApiGrade(report.grade)]}` }}
-	// 	className="card-list-item px-6 py-5"
-	// 	onClick={() => { setSelected(report); setView('detail'); loadNotes(report.id); }} role="button" tabIndex={0}
-	// 	onKeyDown={e => e.key === 'Enter' && (setSelected(report), setView('detail'), loadNotes(report.id))}>
-	// 	<div className="flex justify-between items-start">
-	// 	  <div className="flex-1">
-	// 		<span className="card-title">{report.type} — {report.reporter}</span>
-	// 		<p className="card-subtitle mt-1 mb-2">{report.description.length > 120 ? `${report.description.substring(0,120)}...` : report.description}</p>
-	// 		<div className="flex gap-4 card-meta">
-	// 		  <span>{report.isAnonymous ? t('admin.detail.anonymousLabel') : `${report.student?.firstName} ${report.student?.lastName}`}</span>
-	// 		  <span>{report.student?.studentProfile?.schoolClass ? `${report.student.studentProfile.schoolClass.level} ${report.student.studentProfile.schoolClass.section}` : '-'}</span>
-	// 		  <span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
-	// 		  {report.suspects?.length > 0 && <span>{report.suspects.length} {t('admin.detail.suspectsCount')}</span>}
-	// 		  <span>{report.caseNumber}</span>
-	// 		</div>
-	// 	  </div>
-	// 	  <Badge variant={report.status as BadgeVariant} className="ml-4" />
-	// 	</div>
-	//   </li>
-	// ))}
-
-
-
-
   return (
-	<>
-     <section className="page-section">
-      {/* <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3"> */}
-        {/* <div className="relative"> */}
-          {loadingReports ? (
-            <p className="text-center py-10 text-gray-400">Chargement...</p>
-          ) : myReports.length === 0 ? (
-            <div className="bg-white rounded-xl px-6 py-10 text-center shadow-sm">
-              <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
+    <section className="page-section">
+      {loadingReports ? (
+        <p className="text-center py-10 text-gray-400">Chargement...</p>
+      ) : myReports.length === 0 ? (
+        <div className="bg-surface shadow-sm rounded-sm px-6 py-10 text-center">
+          <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {myReports.map((report: any) => {
+            const severity = severityFromApiGrade(report.grade);
+            const convocations = reportNotes[report.id] ?? [];
+            const reportUnreadCount = Object.values(unreadNotifs).filter(
+              (n: any) => n.report?.id === report.id,
+            ).length;
 
-
-
-
-					<ul className="flex flex-col gap-3">
-					{myReports.map((report: any) => {
-						const severity = severityFromApiGrade(report.grade);
-						const convocations = reportNotes[report.id] ?? [];
-						const reportUnreadCount = Object.values(unreadNotifs).filter(
-						(n: any) => n.report?.id === report.id,
-						).length;
-
-						console.log('myReports:', myReports);
-					console.log('loadingReports:', loadingReports);
-
-						return (
-						<li
-							key={report.id}
-							style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
-							className="bg-surface px-6 py-5 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-						>
-							<div className="flex justify-between items-start mb-3">
-							<div className="flex-1">
-								<div className="flex items-center gap-2 mb-1">
-								<span className="card-title">{report.caseNumber}</span>
-							
-								{reportUnreadCount > 0 && (
-									<span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-									{reportUnreadCount}
-									</span>
-								)}
-								</div>
-								<div className="card-subtitle mt-1 mb-2 capitalize">
-								{report.type} — Je suis victime
-								</div>
-								<div className="card-meta">
-								<span>{new Date(report.createdAt).toLocaleDateString('fr-FR')}</span>
-								</div>
-							</div>
-							<Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
-							</div>
-
-							{convocations.length === 0 ? (
-							<p className="text-xs text-gray-400 italic">
-								Aucune convocation pour ce dossier.
-							</p>
-							) : (
-							<div className="flex flex-col gap-2 mt-2">
-								{convocations.map((note: any) => {
-								const { isPast, displayDate, message, recipient } =
-									parseConvocation(note.content);
-								const unreadNotif = !isPast
-									? findUnreadNotifForNote(note, report.id)
-									: null;
-								const isNew = !!unreadNotif;
-
-								return (
-
-
-
-
-
-									// <div
-									// style={{ borderLeft: `3px solid ${isConvocation ? 'var(--color-warning)' : 'var(--color-primary)'}` }}
-									// className={`p-3 m-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
-									// >
-									// <div className="flex justify-between mb-1">
-									// 	<span className={`text-xs font-semibold ${isConvocation ? 'text-warning' : 'text-primary'}`}>
-									// 	{isConvocation ? t('noteblock.convocation') : ''}
-									// 	</span>
-									// 	<span className="text-xs text-gray-400">
-									// 	{new Date(note.createdAt).toLocaleDateString('fr-FR')} à{' '}
-									// 	{new Date(note.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-									// 	{note.author && ` — ${note.author.firstName} ${note.author.lastName}`}
-									// 	</span>
-									// </div>
-									// <p className="text-sm text-gray-700 m-0 text-left">{note.content}</p>
-									// </div>
-
-									
-
-									<div
-									key={note.id}
-									onClick={() => isNew && handleConvocationClick(unreadNotif)}
-									style={{ borderLeft: '3px solid var(--color-warning)'}}
-									className="p-3 m-3 bg-indigo-50"
-									>
-									{isPast ? (
-										<p className="text-gray-400">
-										Un rendez-vous a eu lieu le{' '}
-										<strong>{displayDate}</strong>
-										</p>
-									) : (
-										<div className="flex justify-between mb-1">
-											<span className="text-xs font-semibold text-primary">
-											{t('noteblock.convocation')}
-											</span>
-											<p className="text-sm font-semibold text-gray-700 mb-3">
-												{recipient ? (
-												<span className="text-gray-700">{recipient}</span>
-												) : (
-												'Vous'
-												)}{' '}
-												êtes convoqué(e) le <strong>{displayDate}</strong>
-												{isNew && (
-												<span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-													Nouveau
-												</span>
-												)}
-											</p>
-									
-											<p className="text-gray-600 mt-1 text-xs whitespace-pre-line">
-										
-											</p>
-									
-										</div>
-									)}
-									</div>
-								);
-								})}
-							</div>
-							)}
-						</li>
-						);
-					})}
-					</ul>
-
-
-
-{/* 
-
-              {myReports.map((report: any) => {
-                const severity = severityFromApiGrade(report.grade);
-                const convocations = reportNotes[report.id] ?? [];
-                const reportUnreadCount = Object.values(unreadNotifs).filter(
-                  (n: any) => n.report?.id === report.id,
-                ).length;
-
-                return (
-                  <div
-                    key={report.id}
-                    className="bg-white rounded-xl px-6 py-5 shadow-sm"
-                    style={{
-                      borderLeft: `4px solid ${SEVERITY_COLORS[severity]}`,
-                    }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-sm text-primary">
-                            {report.caseNumber}
-                          </span>
-                          <span
-                            className="text-white text-xs px-3 py-0.5 rounded-full"
-                            style={{ background: SEVERITY_COLORS[severity] }}
-                          >
-                            {SEVERITY_LABELS[severity]}
-                          </span>
-                          {reportUnreadCount > 0 && (
-                            <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                              {reportUnreadCount}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-700 font-semibold mb-1 capitalize">
-                          {report.type} — Je suis victime
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {new Date(report.createdAt).toLocaleDateString(
-                            "fr-FR",
-                          )}
-                        </div>
-                      </div>
-                      <Badge variant={statusToBadgeVariant(report.status)} />
+            return (
+              <li
+                key={report.id}
+                style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
+                className="bg-surface px-6 py-5 shadow-sm rounded-sm"
+              >
+                {/* En-tête du dossier */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="card-title">{report.caseNumber}</span>
+                      {reportUnreadCount > 0 && (
+                        <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                          {reportUnreadCount}
+                        </span>
+                      )}
                     </div>
+                    <p className="card-subtitle mt-1 mb-2 capitalize">
+                      {report.type} — Je suis victime
+                    </p>
+                    <p className="card-meta">
+                      {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
+                </div>
 
-                    {convocations.length === 0 ? (
-                      <p className="text-xs text-gray-400 italic">
-                        Aucune convocation pour ce dossier.
-                      </p>
-                    ) : (
-                      <div className="flex flex-col gap-2 mt-2">
-                        {convocations.map((note: any) => {
-                          const { isPast, displayDate, message, recipient } =
-                            parseConvocation(note.content);
-                          const unreadNotif = !isPast
-                            ? findUnreadNotifForNote(note, report.id)
-                            : null;
-                          const isNew = !!unreadNotif;
+                {/* Convocations */}
+                {convocations.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Aucune convocation pour ce dossier.</p>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-2">
+                    {convocations.map((note: any) => {
+                      const { isPast, displayDate, message, recipient } = parseConvocation(note.content);
+                      const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
+                      const isNew = !!unreadNotif;
 
-                          return (
-                            <div
-                              key={note.id}
-                              onClick={() =>
-                                isNew && handleConvocationClick(unreadNotif)
-                              }
-                              className={`rounded-lg px-4 py-3 text-sm transition-all ${
-                                isPast
-                                  ? "bg-gray-50"
-                                  : isNew
-                                    ? "bg-purple-50 cursor-pointer hover:bg-purple-100"
-                                    : "bg-purple-50"
-                              }`}
-                              style={{
-                                borderLeft: `3px solid ${isPast ? "#d1d5db" : "#7c3aed"}`,
-                              }}
-                            >
-                              {isPast ? (
-                                <p className="text-gray-400">
-                                  Un rendez-vous a eu lieu le{" "}
-                                  <strong>{displayDate}</strong>
-                                </p>
-                              ) : (
-                                <div>
-                                  <p
-                                    className={`text-purple-700 ${isNew ? "font-bold" : "font-semibold"}`}
-                                  >
-                                    {recipient ? (
-                                      <span className="text-gray-700">
-                                        {recipient}
-                                      </span>
-                                    ) : (
-                                      "Vous"
-                                    )}{" "}
-                                    êtes convoqué(e) le{" "}
-                                    <strong>{displayDate}</strong>
-                                    {isNew && (
-                                      <span className="ml-2 text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-                                        Nouveau
-                                      </span>
-                                    )}
-                                  </p>
-                                  {message && (
-                                    <p className="text-gray-600 mt-1 text-xs whitespace-pre-line">
-                                      {message}
-                                    </p>
-                                  )}
-                                </div>
+                      return (
+                        <div
+                          key={note.id}
+                          onClick={() => isNew && handleConvocationClick(unreadNotif)}
+                          style={{ borderLeft: '3px solid var(--color-warning)' }}
+                          className={`p-3 rounded-sm bg-indigo-50 ${isNew ? 'cursor-pointer hover:bg-indigo-100' : ''} transition-colors`}
+                        >
+                          {isPast ? (
+                            <p className="text-gray-400 text-sm">
+                              Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                            </p>
+                          ) : (
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs font-semibold text-primary">
+                                  {t('noteblock.convocation')}
+                                </span>
+                                {isNew && (
+                                  <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
+                                    Nouveau
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm font-semibold text-gray-700">
+                                {recipient ? <span>{recipient}</span> : 'Vous'}{' '}
+                                êtes convoqué(e) le <strong>{displayDate}</strong>
+                              </p>
+                              {message && (
+                                <p className="text-gray-600 mt-1 text-xs whitespace-pre-line">{message}</p>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })} */}
-
-
-
-
-
-            </div>
-          )}
-        {/* </div> */}
-		</section>
-		</>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
