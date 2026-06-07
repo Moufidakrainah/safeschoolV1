@@ -260,7 +260,7 @@ export function useUsers(): UseUsersReturn {
   const navigateToUser = useCallback((u: AdminUser) => {
     setSelectedUser(u);
     navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
+    setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: u.staffProfile?.subject || '', classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
   }, [navigate]);
 
   // ── Valeurs calculées ──
