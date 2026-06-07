@@ -130,7 +130,33 @@ export class ReportsService {
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade) report.grade = updates.grade;
-    if (updates.status) report.status = updates.status;
+    if (updates.status && updates.status !== report.status) {
+      report.status = updates.status;
+      const date = new Date().toLocaleDateString('fr-FR');
+      const statusLabels: Record<string, string> = {
+        pending: 'En attente',
+        in_progress: 'En cours',
+        resolved: 'Résolu',
+        closed: 'Clôturé',
+        rejected: 'Rejeté',
+      };
+      const label = statusLabels[updates.status] ?? updates.status;
+      await this.notesRepository.save(
+        this.notesRepository.create({
+          report,
+          content: `Statut mis à jour : ${label} — ${date}`,
+          type: 'status_change',
+        })
+      );
+      // Notifier l'élève uniquement si l'élève est victime
+      if (report.student?.id && report.reporter === 'victime') {
+        await this.notificationsService.create(
+          report.student.id,
+          id,
+          `Statut de votre dossier ${report.caseNumber} mis à jour : ${label}`,
+        );
+      }
+    }
     return this.reportsRepository.save(report);
   }
 

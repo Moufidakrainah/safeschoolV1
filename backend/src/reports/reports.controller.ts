@@ -99,7 +99,7 @@ export class ReportsController {
       const report = await this.reportsService.findOne(id);
       if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
       const notes = await this.reportsService.getNotes(id);
-      return notes.filter((n: any) => n.type === "convocation");
+      return notes.filter((n: any) => n.type === "convocation" || n.type === "status_change");
     }
     return this.reportsService.getNotes(id);
   }

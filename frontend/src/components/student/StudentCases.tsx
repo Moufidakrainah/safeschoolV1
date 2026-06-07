@@ -26,10 +26,15 @@ const MONTHS_FR: Record<string, number> = {
   juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
 };
 
+function anonymizeConvocation(content: string): string {
+  return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
+}
+
 function parseConvocation(content: string) {
   const dateMatch = content.match(
     /(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
   );
+  content = anonymizeConvocation(content);
   const parts = content.split("\n\n");
   const message = parts.slice(1).join("\n\n").trim();
   const recipientMatch = content.match(/^(.+?) est convoqué/);
@@ -64,9 +69,10 @@ function parseConvocation(content: string) {
 interface StudentCasesProps {
   user: AuthUser | null;
   onNotifRefresh?: () => void;
+  refreshKey?: number;
 }
 
-export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps) {
+export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
   const { t } = useTranslation();
   const [myReports, setMyReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
@@ -87,7 +93,9 @@ export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps
           mine.map(async (r: any) => {
             try {
               const notes = await getNotes(r.id);
-              notesMap[r.id] = notes.filter((n: any) => n.type === "convocation");
+              notesMap[r.id] = notes.filter(
+                (n: any) => n.type === "convocation" || n.type === "status_change"
+              );
             } catch {
               notesMap[r.id] = [];
             }
@@ -101,7 +109,7 @@ export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps
       })
       .catch(() => setMyReports([]))
       .finally(() => setLoadingReports(false));
-  }, [user?.id]);
+  }, [user?.id, refreshKey]);
 
   const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
     return Object.values(unreadNotifs).find((n: any) => {
@@ -140,7 +148,7 @@ export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps
         <ul className="flex flex-col gap-3">
           {myReports.map((report: any) => {
             const severity = severityFromApiGrade(report.grade);
-            const convocations = reportNotes[report.id] ?? [];
+            const notes = reportNotes[report.id] ?? [];
             const reportUnreadCount = Object.values(unreadNotifs).filter(
               (n: any) => n.report?.id === report.id,
             ).length;
@@ -172,12 +180,27 @@ export default function StudentCases({ user, onNotifRefresh }: StudentCasesProps
                   <Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
                 </div>
 
-                {/* Convocations */}
-                {convocations.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Aucune convocation pour ce dossier.</p>
+                {/* Notes : status_change + convocations */}
+                {notes.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
-                    {convocations.map((note: any) => {
+                    {notes.map((note: any) => {
+
+                      // ── Note de changement de statut ──
+                      if (note.type === 'status_change') {
+                        return (
+                          <div
+                            key={note.id}
+                            style={{ borderLeft: '3px solid var(--color-primary)' }}
+                            className="p-3 rounded-sm bg-gray-50"
+                          >
+                            <p className="text-sm text-gray-600">{note.content}</p>
+                          </div>
+                        );
+                      }
+
+                      // ── Convocation ──
                       const { isPast, displayDate, message, recipient } = parseConvocation(note.content);
                       const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
                       const isNew = !!unreadNotif;
