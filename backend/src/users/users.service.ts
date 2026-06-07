@@ -41,7 +41,7 @@ export class UsersService {
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
-      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile", "staffProfile.classes"],
     });
   }
 

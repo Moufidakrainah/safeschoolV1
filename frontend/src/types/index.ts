@@ -39,8 +39,17 @@ export interface AdminUser {
   email: string;
   role: UserRole;
   avatar?: string | null;
-  studentProfile?: { 
-    schoolClass: SchoolClass | null 
+  createdAt: string;
+  studentProfile?: {
+    id?: string;
+    schoolClass: SchoolClass | null;
+    dateOfBirth?: string;
+  } | null;
+  staffProfile?: {
+    id?: string;
+    profession?: string;
+    subject?: string | null;
+    classes?: SchoolClass[];
   } | null;
 }
 

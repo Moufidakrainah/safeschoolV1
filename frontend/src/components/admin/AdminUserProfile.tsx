@@ -39,7 +39,6 @@ export default function AdminUserProfile({
 }: AdminUserProfileProps) {
   const { t } = useTranslation();
 
-  // ── État local ──
   const [editMode, setEditMode] = useState(false);
   const [uploadingAvatarId, setUploadingAvatarId] = useState<string | null>(null);
   const [showParentForm, setShowParentForm] = useState(false);
@@ -48,7 +47,6 @@ export default function AdminUserProfile({
   const [profileParents, setProfileParents] = useState<any[]>([]);
   const [profileStaff, setProfileStaff] = useState<any | null>(null);
 
-  // ── Chargement des parents ──
   useEffect(() => {
     setShowParentForm(false);
     setEditingParent(null);
@@ -67,9 +65,8 @@ export default function AdminUserProfile({
     } else {
       setProfileStaff(null);
     }
-  }, [selectedUser?.id]);
+  }, [selectedUser?.id, selectedUser?.staffProfile]);
 
-  // ── Fonctions locales ──
   const handleSaveParent = async () => {
     const studentProfileId = selectedUser?.studentProfile?.id;
     if (editingParent) {
@@ -88,6 +85,9 @@ export default function AdminUserProfile({
     const updated = await getStudentParents(selectedUser.id);
     setProfileParents(updated);
   };
+
+  // Données staff : priorité à profileStaff (local), sinon selectedUser.staffProfile
+  const staffData = profileStaff ?? selectedUser.staffProfile;
 
   return (
     <section className="page-section">
@@ -126,7 +126,7 @@ export default function AdminUserProfile({
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
-            <label className={`cursor-pointer flex items-center gap-1 px-4 py-1 rounded-lg text-sm font-medium bg-primary text-white hover:opacity-90 ${uploadingAvatarId === selectedUser.id ? 'opacity-50' : ''}`}>
+            <label className={`cursor-pointer inline-flex items-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity ${uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}`}>
               {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                 onChange={async e => { const f = e.target.files?.[0]; if (f) await onHandleAvatarUpload(selectedUser.id, f); }} />
@@ -144,9 +144,9 @@ export default function AdminUserProfile({
           <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
             {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
             {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
-            {(selectedUser.staffProfile?.profession || profileStaff?.profession) && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{profileStaff?.profession ?? selectedUser.staffProfile?.profession}</TableCell></TableRow>}
-            {profileStaff?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{profileStaff.subject}</TableCell></TableRow>}
-            {profileStaff?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{profileStaff.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
+            {staffData?.profession && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{staffData.profession}</TableCell></TableRow>}
+            {staffData?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{staffData.subject}</TableCell></TableRow>}
+            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
           </TableBody></Table>
         </div>
       )}
@@ -222,7 +222,6 @@ export default function AdminUserProfile({
         <>
           {renderUserForm(true)}
           <div className="flex gap-3 justify-end mt-4">
-            {/* Bouton désactivé si formulaire invalide — pas de AlertDialog */}
             {isFormValid ? (
               <AlertDialog>
                 <AlertDialogTrigger className="group/button inline-flex h-10 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity">

@@ -27,6 +27,20 @@ import ParentFormItem from '@/components/admin/ParentFormItem';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
+// Helper pour construire le userForm depuis un utilisateur
+const buildUserForm = (u: any) => ({
+  firstName: u.firstName,
+  lastName: u.lastName,
+  email: u.email,
+  password: '',
+  role: u.role,
+  classId: u.studentProfile?.schoolClass?.id || '',
+  subject: u.staffProfile?.subject || '',
+  classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [],
+  parents: [],
+  dateOfBirth: u.studentProfile?.dateOfBirth ?? '',
+});
+
 export default function AdminDashboard() {
 
   const { user, logoutUser } = useAuth();
@@ -104,7 +118,7 @@ export default function AdminDashboard() {
       getUserById(selectedUserId).then(u => {
         if (u) {
           setSelectedUser(u);
-          setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
+          setUserForm(buildUserForm(u));
         }
       }).catch(() => {});
     }
@@ -367,7 +381,7 @@ export default function AdminDashboard() {
             const u = await getUserById(userId);
             if (u) {
               setSelectedUser(u);
-              setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: '', classIds: [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
+              setUserForm(buildUserForm(u));
             }
             setViewSection('users');
             navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
@@ -502,9 +516,12 @@ export default function AdminDashboard() {
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-              await fetchUsers();
               const u = await getUserById(selectedUser.id);
-              if (u) setSelectedUser(u);
+              if (u) {
+                setSelectedUser(u);
+                setUserForm(buildUserForm(u));
+              }
+              await fetchUsers();
             }}
             renderUserForm={renderUserForm}
             calcAge={calcAge}
