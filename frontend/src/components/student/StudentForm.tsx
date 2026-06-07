@@ -360,7 +360,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                   onChange={e => setIsAnonymous(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span><strong>{t('reporter.step6.anonymous')}</strong> {t('reporter.step6.anonymousDesc')}</span>
+                <span>{t('reporter.step6.anonymous')} - {t('reporter.step6.anonymousDesc')}</span>
               </label>
               {submitError && (
                 <div role="alert" className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2">

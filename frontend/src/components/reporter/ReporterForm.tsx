@@ -320,7 +320,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   aria-label={t('reporter.step6.anonymous')}
                 />
                 <span>
-                  <strong>{t('reporter.step6.anonymous')}</strong> — {t('reporter.step6.anonymousDesc')}
+                	{t('reporter.step6.anonymous')} - {t('reporter.step6.anonymousDesc')}
                 </span>
               </label>
               {/* Bandeau d'erreur si la soumission précédente a échoué */}
@@ -329,7 +329,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   role="alert"
                   className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2"
                 >
-                  <span aria-hidden="true">⚠️</span>
+                  <span aria-hidden="true"></span>
                   {submitError}
                 </div>
               )}

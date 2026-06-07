@@ -335,7 +335,7 @@
       "frequency": "Fréquence",
       "victims": "Victime(s)",
       "suspects": "Suspect(s)",
-      "anonymous": "Signalement anonyme",
+      "anonymous": "Je ne veux pas etre contacte au sujet de ce signalement",
       "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
     },
     "submitting": "Envoi...",
@@ -464,8 +464,8 @@
       "frequency": "Fréquence",
       "victims": "Victime(s)",
       "suspects": "Suspect(s)",
-      "anonymous": "Signalement anonyme",
-      "anonymousDesc": "mon nom ne sera pas visible"
+      "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
+
     },
     "submitting": "Envoi...",
     "submit": "Envoyer le signalement",
