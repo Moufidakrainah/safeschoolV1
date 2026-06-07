@@ -358,7 +358,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
               </Button>
             ) : (
               <Button onClick={handleSubmit} variant="success" disabled={loading}>
-                {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
+                {loading ? t('reporter.submitting') : `${t('reporter.submit')}`}
               </Button>
             )}
           </div>

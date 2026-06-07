@@ -322,21 +322,21 @@
       "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
     },
     "step5": {
-      "title": "Preuves",
-      "subtitle": "Photos, captures d'écran, etc.",
+      "title": "Télécharge tout document utile pour ce signalement",
+      "subtitle": "Attention, tout abus sera sanctionné",
       "soon": "Cette fonctionnalité sera disponible prochainement"
     },
     "step6": {
-      "title": "Validation",
-      "subtitle": "Vérifiez et envoyez votre signalement",
+      "title": "Encore une étape avant la validation",
+      "subtitle": "",
       "who": "Ma situation",
       "type": "Type",
       "description": "Description",
       "frequency": "Fréquence",
-      "victim": "Victime",
-      "suspects": "Suspects",
+      "victims": "Victime(s)",
+      "suspects": "Suspect(s)",
       "anonymous": "Signalement anonyme",
-      "anonymousDesc": "mon nom ne sera pas visible"
+      "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
     },
     "submitting": "Envoi...",
     "submit": "Envoyer le signalement",
@@ -451,19 +451,19 @@
       "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
     },
     "step5": {
-      "title": "Preuves",
-      "subtitle": "Photos, captures d'écran, etc.",
+      "title": "Télécharge tout document utile pour ce signalement",
+      "subtitle": "Attention, tout abus sera sanctionné",
       "soon": "Cette fonctionnalité sera disponible prochainement"
     },
     "step6": {
-      "title": "Validation",
-      "subtitle": "Vérifiez et envoyez votre signalement",
+      "title": "Encore une étape avant la validation",
+      "subtitle": "",
       "who": "Ma situation",
       "type": "Type",
       "description": "Description",
       "frequency": "Fréquence",
-      "victim": "Victime",
-      "suspects": "Suspects",
+      "victims": "Victime(s)",
+      "suspects": "Suspect(s)",
       "anonymous": "Signalement anonyme",
       "anonymousDesc": "mon nom ne sera pas visible"
     },

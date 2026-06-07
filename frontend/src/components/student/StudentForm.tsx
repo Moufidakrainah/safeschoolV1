@@ -328,7 +328,7 @@ export default function StudentForm({ user }: StudentFormProps) {
               <h2 className="text-gray-800 font-bold text-lg mb-2">{t('reporter.step5.title')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step5.subtitle')}</p>
               <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-400 text-center">
-                🚧 {t('reporter.step5.soon')}
+                {t('reporter.step5.soon')}
               </div>
             </div>
           )}
@@ -340,11 +340,11 @@ export default function StudentForm({ user }: StudentFormProps) {
               <p className="text-gray-500 text-sm mb-6">{t('reporter.step6.subtitle')}</p>
               <dl className="bg-gray-50 rounded-lg p-4 mb-5 text-sm space-y-2">
                 {([
-                  { label: 'Situation',                value: whoSignals === 'victime' ? 'Je suis la victime' : 'Je suis témoin' },
+                  { label: t('reporter.step6.who'),                value: whoSignals === 'victime' ? 'Je suis la victime' : 'Je suis témoin' },
                   { label: t('reporter.step6.type'),   value: type        },
                   { label: t('reporter.step6.description'), value: description },
                   { label: t('reporter.step6.frequency'),   value: frequency   },
-                  ...(victimName ? [{ label: 'Victime(s)', value: victimName.split('|').join(', ') }] : []),
+                  ...(victimName ? [{ label: t('reporter.step6.victims'), value: victimName.split('|').join(', ') }] : []),
                   ...(suspects.length > 0 ? [{ label: t('reporter.step6.suspects'), value: suspects.map(s => `${s.firstName} ${s.lastName}`).join(', ') }] : []),
                 ] as const).map(row => (
                   <div key={row.label} className="flex gap-2">
@@ -360,11 +360,11 @@ export default function StudentForm({ user }: StudentFormProps) {
                   onChange={e => setIsAnonymous(e.target.checked)}
                   className="w-4 h-4"
                 />
-                <span><strong>{t('reporter.step6.anonymous')}</strong> — {t('reporter.step6.anonymousDesc')}</span>
+                <span><strong>{t('reporter.step6.anonymous')}</strong> {t('reporter.step6.anonymousDesc')}</span>
               </label>
               {submitError && (
                 <div role="alert" className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2">
-                  <span>⚠️</span>{submitError}
+                  <span></span>{submitError}
                 </div>
               )}
             </div>
@@ -394,7 +394,7 @@ export default function StudentForm({ user }: StudentFormProps) {
               </Button>
             ) : (
               <Button variant="success" onClick={handleSubmit} disabled={loading}>
-                {loading ? t('reporter.submitting') : `${t('reporter.submit')} ✓`}
+                {loading ? t('reporter.submitting') : `${t('reporter.submit')}`}
               </Button>
             )}
 			</div>
