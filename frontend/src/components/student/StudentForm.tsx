@@ -107,9 +107,8 @@ export default function StudentForm({ user }: StudentFormProps) {
           {step === 1 && (
             <fieldset>
               <legend className="text-gray-800 font-bold text-lg mb-2">
-                Tu signales en tant que ?
+                Quelle est ta situation ?
               </legend>
-              <p className="text-gray-500 text-sm mb-6">Sélectionne ta situation</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setWhoSignals('victime')}
@@ -118,7 +117,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                   }`}
                 >
                   <div className="text-sm font-semibold text-gray-800">Je suis la victime</div>
-                  <div className="text-xs text-gray-400 mt-1">Le harcèlement me vise directement</div>
+                  <div className="text-xs text-gray-400 mt-1">J'ai subi du harcèlement</div>
                 </button>
                 <button
                   onClick={() => setWhoSignals('temoin')}
@@ -126,12 +125,12 @@ export default function StudentForm({ user }: StudentFormProps) {
                     whoSignals === 'temoin' ? 'border-primary  bg-white' : 'border-gray-200 bg-surface'
                   }`}
                 >
-                  <div className="text-sm font-semibold text-gray-800">Je suis témoin</div>
-                  <div className="text-xs text-gray-400 mt-1">J'ai été témoin de harcèlement</div>
+                  <div className="text-sm font-semibold text-gray-800">Je suis un témoin</div>
+                  <div className="text-xs text-gray-400 mt-1">J'ai vu quelqu'un subir du harcèlement</div>
                 </button>
               </div>
               {showErrors && !whoSignals && (
-                <p role="alert" className="mt-3 text-sm text-red-600">Veuillez choisir votre situation</p>
+                <p role="alert" className="mt-3 text-sm text-red-600">Clique sur ta situation</p>
               )}
             </fieldset>
           )}
@@ -207,7 +206,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <option value="Tous les jours">{t('reporter.step3.freq4')}</option>
               </select>
               {showErrors && !frequency && (
-                <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {t('reporter.validation.frequencyRequired')}</p>
+                <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
               )}
             </div>
           )}
@@ -221,11 +220,9 @@ export default function StudentForm({ user }: StudentFormProps) {
               {/* Victimes — saisie libre, plusieurs possibles */}
               <>
                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                  {whoSignals === 'victime' ? 'Autres victimes (optionnel)' : t('reporter.step4.victimLabel')}
+                  {/* {whoSignals === 'victime' ? 'Donne le nom de toutes les victimes' : t('reporter.step4.victimLabel')} */}
+                 {t('reporter.step4.victimLabel')}
                 </label>
-                {whoSignals === 'victime' && (
-                  <p className="text-xs text-gray-400 mb-2">Tu es déjà enregistré(e) comme victime. Tu peux ajouter d'autres victimes si besoin.</p>
-                )}
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -238,7 +235,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                         setVictimInput('');
                       }
                     }}
-                    placeholder="Ex: Prénom Nom - Classe"
+                    placeholder="Par exemple : Prénom Nom Classe"
                     className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   />
                   <Button
@@ -251,14 +248,16 @@ export default function StudentForm({ user }: StudentFormProps) {
                     }}
                     disabled={!victimInput.trim()}
                   >
-                    + Ajouter
+                    + Ajoute cette victime
                   </Button>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">Appuie sur Entrée ou clique sur Ajouter</p>
+                <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute cette victime"</p>
                 {victimName && (
-                  <div className="mt-3 flex flex-wrap gap-2">
+
+                <div className="mt-4">
+                  <div className="flex flex-wrap gap-2">
                     {victimName.split('|').map((v, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full text-sm text-blue-600">
+                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
                         <span>{v}</span>
                         <button
                           onClick={() => {
@@ -269,6 +268,11 @@ export default function StudentForm({ user }: StudentFormProps) {
                         >×</button>
                       </div>
                     ))}
+
+
+
+
+                  </div>
                   </div>
                 )}
                 <div className="mt-5" />
@@ -289,7 +293,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       addSuspect({ firstName: suspectInput.trim(), lastName: '' });
                     }
                   }}
-                  placeholder="Ex: Prénom Nom - Classe"
+                  placeholder="Par exemple : Prénom Nom Classe"
                   className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 />
                 <Button
@@ -297,13 +301,13 @@ export default function StudentForm({ user }: StudentFormProps) {
                   onClick={() => { if (suspectInput.trim()) addSuspect({ firstName: suspectInput.trim(), lastName: '' }); }}
                   disabled={!suspectInput.trim()}
                 >
-                  + Ajouter
+                  + Ajoute ce coupable
                 </Button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Appuie sur Entrée ou clique sur Ajouter</p>
-              {suspects.length > 0 ? (
+              <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute ce coupable"</p>
+              {suspects.length > 0 && (
                 <div className="mt-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p>
+                  {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}
                   <div className="flex flex-wrap gap-2">
                     {suspects.map((s, i) => (
                       <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
@@ -311,10 +315,9 @@ export default function StudentForm({ user }: StudentFormProps) {
                         <button onClick={() => removeSuspect(i)} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
                       </div>
                     ))}
+
                   </div>
                 </div>
-              ) : (
-                <p className="text-sm text-gray-300 text-center mt-4">{t('reporter.step4.noSuspect')}</p>
               )}
             </div>
           )}

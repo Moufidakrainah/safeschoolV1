@@ -203,7 +203,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 </SelectContent>
               </Select>
               {showErrors && !frequency && (
-                <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {t('reporter.validation.frequencyRequired')}</p>
+                <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
               )}
             </div>
           )}
