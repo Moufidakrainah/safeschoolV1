@@ -43,7 +43,7 @@ export default function StudentForm({ user }: StudentFormProps) {
   } = useStudentReportForm(user?.role, t);
 
   const steps = [
-    'Qui signale',
+    t('reporter.steps.who'),
     t('reporter.steps.type'),
     t('reporter.steps.facts'),
     t('reporter.steps.people'),
