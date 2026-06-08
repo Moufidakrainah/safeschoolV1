@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -12,20 +13,9 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { StaffProfilesService } from "./staff-profiles.service";
+import { CreateStaffProfileDto } from "./dto/create-staff-profile.dto";
+import { UpdateStaffProfileDto } from "./dto/update-staff-profile.dto";
 import { validateUUID } from "../utils/validate-uuid";
-
-class CreateStaffProfileDto {
-  userId: string;
-  profession: string;
-  subject?: string;
-  classIds?: string[];
-}
-
-class UpdateStaffProfileDto {
-  profession?: string;
-  subject?: string;
-  classIds?: string[];
-}
 
 @Controller("staff-profiles")
 @UseGuards(AuthGuard("jwt"))
@@ -44,6 +34,14 @@ export class StaffProfilesController {
     if (req.user.role !== "admin" && req.user.role !== "director")
       throw new ForbiddenException("Accès refusé");
     return this.staffProfilesService.findAll();
+  }
+
+  @Get("by-user/:userId")
+  async findByUserId(@Param("userId") userId: string, @Request() req) {
+    validateUUID(userId);
+    if (req.user.role !== "admin" && req.user.role !== "director" && req.user.id !== userId)
+      throw new ForbiddenException("Accès refusé");
+    return this.staffProfilesService.findByUserId(userId);
   }
 
   @Get(":id")
@@ -70,21 +68,5 @@ export class StaffProfilesController {
     if (req.user.role !== "admin")
       throw new ForbiddenException("Accès réservé à l'admin");
     return this.staffProfilesService.remove(id);
-  }
-
-  // GET /staff-profiles/by-user/:userId
-  // Récupère le profil staff d'un utilisateur par son userId
-  // Accessible à tous les connectés pour leur propre profil
-  @Get("by-user/:userId")
-  async findByUserId(@Param("userId") userId: string, @Request() req) {
-    validateUUID(userId);
-    if (
-      req.user.role !== "admin" &&
-      req.user.role !== "director" &&
-      req.user.id !== userId
-    ) {
-      throw new ForbiddenException("Accès refusé");
-    }
-    return this.staffProfilesService.findByUserId(userId);
   }
 }
