@@ -1,48 +1,43 @@
+!!!! VERIFIER QU'IL NE RESTE PAS DE TODO !!!!
+
 *This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque.*
 
 
-## Description
+## <br>Description
 
-**SafeSchool** is a web platform for managing school harassment reports in middle schools. Students can report harassment situations they witness or experience. Each report is automatically graded by severity with AI assistance, then routed to and handled by the school's administrative staff (teachers, supervisors, directors).
+**SafeSchool** is a web platform for managing school harassment reports in middle schools. Students and school staff can report harassment situations they witness or experience. Each report is automatically graded by severity with AI assistance, then routed to and handled by the school's administrative staff (teachers, supervisors, directors).
 
 ### Key Features
 
 - Report submission and triage, with AI-assisted severity scoring and sentiment analysis of report descriptions
 - Role-based dashboards for students, reporting staff, and administrators, including full CRUD on users, classes and reports
 - Organization system: schools structured into classes, with students, parents and staff linked to them
-- Real-time multiplayer awareness quiz about school harassment, with leaderboard, spectator mode and remote play across devices
+- Real-time multiplayer quiz on school-harassment awareness, powered by WebSockets
+- Game features include live score updates, leaderboard, and remote play across devices
 - Notification system for report status changes, quiz invitations and other key events
 - Multilingual interface (French / English / German) tested across Chrome, Firefox and Edge
 - Installable Progressive Web App (PWA) with offline support
 - Centralized log management and monitoring via the ELK stack (Elasticsearch, Logstash, Kibana)
 
-<!-- TODO équipe : relire/ajuster cette description et cette liste pour qu'elles correspondent exactement au périmètre livré -->
+<!- TODO équipe : relire/ajuster cette description et cette liste pour qu'elles correspondent exactement au périmètre livré -->
 
 
-## Instructions
+## <br><br>Instructions
 
 ### Prerequisites
 
-| Tool | Version | Notes |
-|------|---------|-------|
-| Docker | 29+ | <!-- TODO : verifier version PC ecoles --> |
-| Docker Compose | v2+ | Use `docker compose`, not `docker-compose` |
-| Make | 4.3+ | <!-- TODO équipe : confirmer la version utilisée par l'équipe --> |
-| Git | 2.x | To clone the repository |
+Docker, Docker Compose, Make, Git.
 
 ### Environment Setup
 
 `.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own:
 
-```bash
-cp .env.example .env
-```
 
 | Variable | Purpose |
 |----------|---------|
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | PostgreSQL connection |
-| `BACKEND_PORT` | Backend (NestJS) listening port |
-| `JWT_SECRET` | Secret used to sign authentication tokens — set a real random value |
+| `BACKEND_PORT` | NestJS listening port |
+| `JWT_SECRET` | Secret used to sign authentication tokens |
 | `REACT_APP_API_URL` | URL the frontend uses to reach the backend API |
 | `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis — <!-- TODO équipe : expliquer comment obtenir une clé et confirmer le comportement de fallback si elle est absente --> |
 | `AI_ENABLED` | Toggles the AI scoring feature on/off |
@@ -52,13 +47,13 @@ cp .env.example .env
 
 ```bash
 # Clone the repository
-git clone <!-- TODO équipe : URL du dépôt de livraison -->
-cd <!-- TODO équipe : nom du dossier -->
+git clone ...
 
 # Start all services
 make all
 
-# Seed the database (optional, for development data)
+# The database is seeded automatically on first run if it's empty.
+# To force a manual re-seed:
 make seed
 ```
 
@@ -66,16 +61,14 @@ make seed
 
 ```bash
 make down       # Stop containers
-make fclean     # Stop + remove volumes (⚠️ deletes all data)
+make fclean     # Stop + remove volumes (deletes all data)
 ```
 
----
 
-## Resources
+## <br><br>Resources
 
 ### References
 
-- [React documentation](https://react.dev)
 - [NestJS documentation](https://nestjs.com)
 - [PostgreSQL documentation](https://www.postgresql.org/docs/)
 - [Docker documentation](https://docs.docker.com)
@@ -83,106 +76,102 @@ make fclean     # Stop + remove volumes (⚠️ deletes all data)
 - [Socket.IO documentation](https://socket.io/docs/v4/)
 - [Elastic (ELK) documentation](https://www.elastic.co/guide/index.html)
 - [Color contrast checker](https://www.acquia.com/fr/products/acquia-web-governance/tools/color-contrast-checker)
+- [React documentation](https://react.dev)
 - [React Beginner Course 2025 : Vite, Tailwind CSS, TypeScript](https://www.youtube.com/watch?v=siTUv1L9ymM&list=PLB_GSA94AMIyqIOyeRolfvuaxr2rA_52j&index=2)
-- Studies on school harassment used to ground the awareness quiz and report grading — see [`Additional/project/resources.md`](../Additional/project/resources.md) for the full list (éducation nationale, e-Enfance, OECD, etc.)
-- <!-- TODO équipe : ajouter vos références spécifiques (NestJS docs déjà listées plus haut, tutoriels suivis, articles, etc.) -->
+- [Studies on school harassment](../Additional/project/resources.md)
+<!- TODO équipe : completez la liste avec quelques sources pertinentes qui vont ont servi au cours du developpement -->
 
 ### AI Usage
 
-AI tools were used during this project both **as a feature of the application** and **as a development aid**:
+AI tools were used during this project both **as a feature of the application** and **as a productivity tool**:
 
-- **In the product**: report descriptions are scored and graded by severity with AI assistance (see the [Sentiment analysis](#modules) module — `backend/src/reports/scoring.service.ts`, Groq API), to help staff triage incoming reports faster.
-- **In development**:
-  - Drafting and restructuring project documentation (this README, the [`Additional/`](../Additional/) knowledge base) — always reviewed and corrected by the team before being kept.
-  - <!-- TODO équipe : compléter avec vos usages réels (debug, revue de code, génération de tests, recherche de librairies, etc.) en précisant l'outil et la tâche -->
+- **In the product**: report descriptions are scored and graded by severity with AI assistance to help staff triage incoming reports faster.
+- **During the project lifecycle**:
+  - Drafting and restructuring project documentation, always reviewed and corrected before being kept.
+  - Helping weigh architecture choices and understand the trade-offs between alternatives.
+  - Generating boilerplate code, always reviewed by the team and adapted to our needs.
+  - Advising on how to prioritize tasks to avoid technical bottlenecks or conflicts.
+  - Debugging: explaining obscure error messages and stack traces, suggesting fixes to investigate.
+  - Researching and comparing libraries before adopting one.
+  - Producing a first draft of UI translations (FR/EN/DE), reviewed and corrected by the team.
+  - Improving technical write-ups: PR descriptions, meeting summaries, issue reports.
+  - Rewriting contribution summaries and README sections in English from rough working notes, then manually reviewing and correcting them before publication.
+  - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
+  <!- TODO équipe : completez avec vos usages réels -->
 
-<!-- TODO équipe : le sujet insiste sur l'honnêteté et la compréhension réelle du contenu généré — soyez précis sur QUI a utilisé quoi et pour QUELLE tâche, vous devrez le justifier à l'oral -->
+## <br><br>Team Information
 
----
+Every team member contributed to the code as well as to the coordination and organization of the collective work.
 
-## Team Information
+| Member | Main role | Technical specialty |
+|--------|-----------|---------------------|
+| eguthman | Project Manager / Scrum Master | Frontend architecture, workflow, infrastructure |
+| mdoan | Product Owner | Frontend, API |
+| mobougri | Technical Lead | Backend, DB, API |
+| quclaque | Technical Lead | Websockets |
+
+
 
 ### 1. Product Owner — mdoan
 
-Defines what the product should do and why. Works closely with the team to make sure the right features are prioritized, prevents scope creep, and adapts priorities based on progress and obstacles.
-
-- Define the product vision and goals.
-- Translate project requirements into prioritized tasks.
-- Document decisions and feature evolution.
-- Manage scope and keep expectations realistic.
-
+<!- TODO mdoan : completer avec une description precise de ton role -->
 ---
 
 ### 2. Project Manager / Scrum Master — eguthman
 
-Ensures the project runs smoothly. Manages the schedule, organizes regular check-ins, removes obstacles, and keeps the team aligned on priorities.
+Coordinated the project workflow, maintained visibility on priorities, and supported the team through planning, documentation and process structure.
 
 - Coordinate the team's tasks and workflow.
+- Design and maintain the GitHub project board structure (views, labels, columns, priorities and module tracking).
 - Organize and facilitate meetings.
+- Prepare meeting agendas in advance and write follow-up meeting minutes to preserve decisions.
 - Track progress and identify blockers.
+- Establish and document collaboration practices for Git, pull requests and code review.
 - Ensure clear communication within the team.
 - Document processes and decisions.
 
 ---
 
-### 3. Technical Leads / Architects — quclaque & mobougri
+### 3. Technical Lead 1 — mobougri
 
-Frontend expertise — architecture decisions, framework choices, UI/UX patterns, state management.
-Backend expertise — API design, database schema, real-time layer (WebSocket), deployment.
+<!- TODO mobougri : completer avec une description precise de ton role -->
 
-Responsibilities:
-- Establish coding standards and best practices.
-- Review critical code changes (quality assurance).
-- Arbitrate diverging implementation approaches.
-- Ensure consistency across the codebase.
+### 4. Technical Lead 2 — quclaque
 
----
+<!- TODO quclaque : completer avec une description precise de ton role -->
 
-No exclusive technical or managerial ownership: every team member contributes to the code as well as to the coordination and organization of the collective work.
 
-| Member | Main role | Technical specialty |
-|--------|-----------|---------------------|
-| eguthman | Project Manager | Frontend |
-| mdoan | Product Owner | Frontend |
-| quclaque | Technical Lead | Backend |
-| mobougri | Technical Lead | Backend |
 
----
 
-## Project Management
+
+
+## <br><br>Project Management
 
 ### Organization
 
-The team held a recurring meeting (most weeks, alternating solo / pair / whole-team work sessions in between — see the minutes archived in [`Additional/meetings/`](../Additional/meetings/)). Each session reviewed progress against the GitHub project board, re-prioritized the backlog, and re-weighted any new work item over 2 hours with the whole team before starting it.
+The team used a lightweight agile workflow centered on a shared GitHub project board. Work was split into issues, tagged by feature area and targeted module, then tracked through dedicated columns and filtered views to keep priorities and tasks readable at any time.
 
-<!-- TODO équipe : préciser le rythme exact (hebdo ?), comment les sprints/jalons étaient définis, et comment le travail était distribué entre membres -->
+The team held recurring meetings throughout the project (most weeks, alternating solo / pair / whole-team work sessions in between — see the minutes archived in [`Additional/meetings/`](../Additional/meetings/)). Each session reviewed progress, prioritized the backlog, clarified blockers and was used to share knowledge.
+
+To improve coordination in a team that was discovering full-stack web development for the first time, project management also included documenting Git workflows, introducing pull-request best practices, monitoring board activity continuously, and recording decisions so the team could recover context between work sessions.
+
+<!- TODO équipe : préciser le rythme exact (hebdo ?), comment les sprints/jalons étaient définis, et comment le travail était distribué entre membres -->
 
 ### Tools
 
-- **GitHub Issues & Projects** — backlog, task tracking and assignment (see the module list in [Modules](#modules), each linked to its tracking issue)
-- **GitHub Pull Requests** — code review workflow (self-assign, designate relevant reviewers, mergeable by the author once at least one approval is given)
-- **Git worktrees** — used during the final sprint to parallelize work without branch-switching overhead (see [`Additional/process/git-worktrees.md`](../Additional/process/git-worktrees.md))
+- **GitHub Issues & Projects** — backlog, task tracking, assignment, labels, module visibility and filtered board views adapted to the project's workflow
+- **GitHub Pull Requests** — code review workflow with documented expectations on review, merge readiness and collaboration hygiene
+- **Git worktrees** — used during the final sprint to minimize branch-switching overhead (see [`Additional/process/git-worktrees.md`](../Additional/process/git-worktrees.md))
 
 ### Communication
 
-- **Slack** — day-to-day quick exchanges and sharing of important information
-- **GitHub** (issues / PR comments) — async, traceable technical discussions
+- **Slack** — day-to-day coordination, quick questions and sharing urgent information
+- **GitHub** (issues / PR comments) — asynchronous, traceable technical discussions and review feedback
+- **Meeting agendas and minutes** — written support for coordination, follow-up and decision traceability across the project
 
-<!-- TODO équipe : confirmer/compléter (Discord ? réunions en présentiel/visio ?) -->
+<!- TODO équipe : confirmer/compléter (Discord ? réunions en présentiel/visio ?) -->
 
----
-
-## Technical Stack
-
-**Frontend :** React 19, TypeScript, Vite, Tailwind CSS, shadcn/ui, React Router, Axios, Socket.io-client, i18next, Recharts
-
-**Backend :** NestJS 11, TypeScript, TypeORM, PostgreSQL (driver `pg`), Passport/JWT, bcrypt, Socket.io, Winston, class-validator
-
-**Database :** PostgreSQL 15
-
-**Infrastructure:** Docker Compose, ELK Stack (Elasticsearch + Logstash + Kibana) 8.12
-
-**Dev tools:** ESLint, Prettier, Jest
+## <br><br>Technical Stack
 
 
 ### Frontend
@@ -190,11 +179,12 @@ The team held a recurring meeting (most weeks, alternating solo / pair / whole-t
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | React | 19 | UI framework |
-| TypeScript | ~5.9 | Type safety |
+| TypeScript | 5 | Type safety |
 | Vite | 8 | Build tool & dev server |
 | Tailwind CSS | 4 | Styling |
-| shadcn/ui | 4 | Component library |
+| shadcn/ui | — | Component library and UI patterns |
 | react-router-dom | 7 | Client-side routing |
+| Axios | 1 | HTTP client |
 | socket.io-client | 4 | Real-time communication |
 | i18next | 26 | Internationalization |
 | recharts | 3 | Charts & data visualization |
@@ -205,13 +195,13 @@ The team held a recurring meeting (most weeks, alternating solo / pair / whole-t
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | NestJS | 11 | Backend framework (modules, controllers, services, guards, pipes, dependency injection) |
-| TypeScript | ~5.7 | Type safety |
+| TypeScript | 5 | Type safety |
 | TypeORM | 0.3 | ORM — maps `*.entity.ts` classes to PostgreSQL tables |
 | socket.io | 4 | Real-time communication (quiz, notifications) |
-| Passport / @nestjs/jwt | — | Authentication (JWT strategy + guards) |
+| Passport / @nestjs/jwt | 11 / 4 | Authentication (JWT strategy + guards) |
 | bcrypt | 6 | Password hashing & salting |
 | class-validator / class-transformer | — | DTO validation on incoming requests |
-| Winston (+ Logstash transport) | 3 | Structured logging, shipped to the ELK stack |
+| Winston | 3 | Structured logging sent to the ELK stack |
 | Multer | — | File upload handling (avatars) |
 
 ### Database
@@ -219,10 +209,6 @@ The team held a recurring meeting (most weeks, alternating solo / pair / whole-t
 | Technology | Version | Purpose |
 |-----------|---------|---------|
 | PostgreSQL | 15 | Main relational database |
-
-**Why PostgreSQL?**
-
-The data model is strongly relational: a report links a student, one or more suspects and victims, notes, classes, staff and parents, with cascading and nullable relations between them (see [Database Schema](#database-schema)). PostgreSQL's mature support for foreign keys, constraints, enums and transactions fits this naturally, and TypeORM's PostgreSQL driver is first-class. Version 15 was used as a stable, well-documented LTS release that runs cleanly in a Docker container alongside the rest of the stack.
 
 ### Infrastructure & Logging
 
@@ -233,20 +219,19 @@ The data model is strongly relational: a report links a student, one or more sus
 | Logstash 8.12 | Log ingestion pipeline |
 | Kibana 8.12 | Log visualization |
 
-### Justification for Major Technical Choices
+### Technical Choices
 
 - **React** — the subject (v21.1) requires a modern JavaScript frontend framework; React was chosen for its mature TypeScript ecosystem (official types, strong tooling support) and quality official documentation (`react.dev`).
 - **NestJS over Express** — Express is minimal: it only routes HTTP requests, leaving architecture, dependency injection, validation and authentication to be designed from scratch. NestJS imposes a clear architecture (modules, controllers, services, guards, pipes, interceptors), which is a real advantage for a multi-person team — everyone knows where code belongs — and its built-in dependency injection makes services unit-testable without tight coupling.
+- **PostgreSQL** — the data model is strongly relational: a report links a student, one or more suspects and victims, notes, classes, staff and parents, with cascading and nullable relations between them (see [Database Schema](#database-schema)). PostgreSQL's support for foreign keys, constraints, enums and transactions fits this naturally, and TypeORM's PostgreSQL driver integrates cleanly with the rest of the stack.
 - **TypeORM** — keeps the database schema in sync with TypeScript entity classes (`*.entity.ts`), giving compile-time safety on queries and relations instead of hand-written SQL strings.
 - **JWT + bcrypt** — stateless authentication (the backend verifies token signatures without a DB round-trip) combined with salted password hashing that's never reversible, satisfying the subject's "hashed, salted" requirement.
 - **Docker Compose** — the stack needs many components (Node.js, PostgreSQL, Elasticsearch...); without containers each developer would install different versions locally, causing incompatibilities. Compose gives identical, isolated environments on every machine and a single-command startup, as required by the subject.
 - **ELK (Elasticsearch, Logstash, Kibana)** — chosen as the Devops module to centralize logs from every service (backend via Winston, infrastructure) into searchable, visualized dashboards rather than scattered container logs.
 
-<!-- TODO équipe : compléter si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
+<!- TODO équipe : compléter si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
 
----
-
-## Database Schema
+## <br><br>Database Schema
 
 All tables use UUID primary keys and are managed through TypeORM entities (`backend/src/**/*.entity.ts`).
 
@@ -316,11 +301,9 @@ notifications
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
 | classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
 
-<!-- TODO équipe : ajouter un schéma ER visuel (ex. export dbdiagram.io / Mermaid) si possible — voir Additional/manuel-reference-projet.md §Mermaid pour la syntaxe déjà explorée -->
+<!- TODO équipe : ajouter un schéma ER visuel (ex. export dbdiagram.io / Mermaid) si possible — voir Additional/manuel-reference-projet.md §Mermaid pour la syntaxe déjà explorée -->
 
----
-
-## Features List
+## <br><br>Features List
 
 | Feature | Description | Team member(s) |
 |---------|-------------|---------------|
@@ -339,9 +322,7 @@ notifications
 | Activity analytics dashboard | Visual insights into user activity (charts, stats) | <!-- login --> |
 | Centralized logging (ELK) | Backend logs shipped via Winston/Logstash to Elasticsearch and visualized in Kibana dashboards | <!-- login --> |
 
-<!-- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
-
----
+<!- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
 
 ## Modules
 
@@ -368,56 +349,50 @@ notifications
 
 **Total: 8 Major × 2 + 10 Minor × 1 = 26 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
 
-<!-- TODO équipe :
+<!- TODO équipe :
   - assigner les logins par module
   - vérifier que chaque module est démontrable intégralement à l'éval (sinon = 0 pt, cf. sujet chap. IV)
   - si certains modules listés ci-dessus ne sont finalement pas livrés, les retirer et recalculer le total
 -->
 
----
 
-## Individual Contributions
+## <br><br>Individual Contributions
 
-<!-- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir EXPLIQUER et JUSTIFIER sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
+<!- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir EXPLIQUER et JUSTIFIER sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
 
 ### eguthman
 
-- <!-- feature / module / component -->
-- <!-- challenges faced and how they were overcome -->
+- Acted as Project Manager / Scrum Master throughout the project. Researched project-management practices suitable for a small 42 team, designed the GitHub board structure, created dedicated views, labels and columns, and maintained a workflow that kept features, modules and priorities visible over time.
+- Built a collaboration framework around Git and pull requests. This included learning more advanced Git workflows, documenting them for the team, and introducing pull-request practices intended to make review, integration and ownership clearer.
+- Organized recurring meetings, prepared agendas beforehand, and wrote meeting minutes afterward so that decisions, blockers and next actions were consistently recorded.
+- Monitored project progress throughout the development cycle and worked on making module tracking more explicit through labels, documentation and board organization.
+- Contributed significantly to documentation and team enablement work by studying the subject in depth, researching unfamiliar web-development concepts, and turning that learning into written guidance that could be shared across the team.
+- On the technical side, helped steer the frontend toward a more modular structure and introduced Tailwind CSS and shadcn/ui to improve consistency, reuse and implementation speed.
+- Later in the project, focused more directly on DevOps and delivery readiness. This included improving the Makefile and Docker Compose setup and working on the ELK integration so that the logging stack could become more usable in practice.
+- Main challenge: much of this contribution was centered on coordination, documentation, process and project reliability rather than on end-user feature development. The way this was addressed was by making the work traceable, reusable and directly supportive of the team's ability to deliver.
 
 ### mdoan
 
-- <!-- feature / module / component -->
-- <!-- challenges faced and how they were overcome -->
+- To be completed by mdoan: describe concrete features, modules, responsibilities and challenges personally handled.
 
 ### mobougri
 
-- <!-- feature / module / component -->
-- <!-- challenges faced and how they were overcome -->
+- To be completed by mobougri: describe concrete features, modules, responsibilities and challenges personally handled.
 
 ### quclaque
 
-- <!-- feature / module / component -->
-- <!-- challenges faced and how they were overcome -->
+- To be completed by quclaque: describe concrete features, modules, responsibilities and challenges personally handled.
 
----
 
-## Additional Information
 
-For deeper documentation beyond what's required here — design process, technical deep-dives, meeting minutes, dev workflow, project vision and more — see [`docs/Additional/`](../Additional/).
+## <br><br>Additional Information
+
+For deeper documentation beyond what is required here — design process, technical deep-dives, meeting minutes, dev workflow, project vision and more — see [`docs/Additional/`](../Additional/).
 
 ### Known Limitations
 
-<!-- TODO équipe : lister les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés). À déterminer juste avant la livraison — voir TODO.md pour les derniers points en suspens. -->
-
-- <!-- limitation 1 -->
+<!- TODO équipe : lister les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés). À déterminer juste avant la livraison — voir TODO.md pour les derniers points en suspens. -->
 
 ### License
 
 This project was created as part of the 42 School curriculum (common core, "ft_transcendence") and is intended for educational and evaluation purposes only.
-
-<!-- TODO équipe : confirmer s'il faut une licence plus formelle (ex. MIT) ou si la mention 42 ci-dessus suffit -->
-
-### Credits
-
-*This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque.*
