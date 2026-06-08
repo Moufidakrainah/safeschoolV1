@@ -39,7 +39,7 @@ Docker, Docker Compose, Make, Git.
 | `BACKEND_PORT` | NestJS listening port |
 | `JWT_SECRET` | Secret used to sign authentication tokens |
 | `REACT_APP_API_URL` | URL the frontend uses to reach the backend API |
-| `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis — <!-- TODO équipe : expliquer comment obtenir une clé et confirmer le comportement de fallback si elle est absente --> |
+| `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis |
 | `AI_ENABLED` | Toggles the AI scoring feature on/off |
 | `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL` | Log shipping configuration for the ELK stack |
 
@@ -53,15 +53,15 @@ git clone ...
 make all
 
 # The database is seeded automatically on first run if it's empty.
-# To force a manual re-seed:
-make seed
+# To force a manual re-seed: make seed
+
 ```
 
 ### Stop the Project
 
 ```bash
 make down       # Stop containers
-make fclean     # Stop + remove volumes (deletes all data)
+make fclean     # Down + remove volumes
 ```
 
 
@@ -79,7 +79,7 @@ make fclean     # Stop + remove volumes (deletes all data)
 - [React documentation](https://react.dev)
 - [React Beginner Course 2025 : Vite, Tailwind CSS, TypeScript](https://www.youtube.com/watch?v=siTUv1L9ymM&list=PLB_GSA94AMIyqIOyeRolfvuaxr2rA_52j&index=2)
 - [Studies on school harassment](../Additional/project/resources.md)
-<!- TODO équipe : completez la liste avec quelques sources pertinentes qui vont ont servi au cours du developpement -->
+<br><!- TODO équipe : completez la liste avec quelques sources pertinentes qui vont ont servi au cours du developpement -->
 
 ### AI Usage
 
@@ -91,31 +91,31 @@ AI tools were used during this project both **as a feature of the application** 
   - Helping weigh architecture choices and understand the trade-offs between alternatives.
   - Generating boilerplate code, always reviewed by the team and adapted to our needs.
   - Advising on how to prioritize tasks to avoid technical bottlenecks or conflicts.
-  - Debugging: explaining obscure error messages and stack traces, suggesting fixes to investigate.
+  - Debugging: explaining error messages and stack traces, suggesting fixes to investigate.
   - Researching and comparing libraries before adopting one.
   - Producing a first draft of UI translations (FR/EN/DE), reviewed and corrected by the team.
   - Improving technical write-ups: PR descriptions, meeting summaries, issue reports.
   - Rewriting contribution summaries and README sections in English from rough working notes, then manually reviewing and correcting them before publication.
   - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
-  <!- TODO équipe : completez avec vos usages réels -->
+  <br><!- TODO équipe : completez avec vos usages réels -->
 
 ## <br><br>Team Information
 
-Every team member contributed to the code as well as to the coordination and organization of the collective work.
+Every team member contributed to the code as well as to the organization of the collective work.
 
 | Member | Main role | Technical specialty |
 |--------|-----------|---------------------|
 | eguthman | Project Manager / Scrum Master | Frontend architecture, workflow, infrastructure |
-| mdoan | Product Owner | Frontend, API |
+| mdoan | Product Owner | Frontend, Design, API |
 | mobougri | Technical Lead | Backend, DB, API |
-| quclaque | Technical Lead | Websockets |
+| quclaque | Technical Lead | Websockets, Backend |
 
 
 
 ### 1. Product Owner — mdoan
 
 <!- TODO mdoan : completer avec une description precise de ton role -->
----
+
 
 ### 2. Project Manager / Scrum Master — eguthman
 
@@ -129,8 +129,6 @@ Coordinated the project workflow, maintained visibility on priorities, and suppo
 - Establish and document collaboration practices for Git, pull requests and code review.
 - Ensure clear communication within the team.
 - Document processes and decisions.
-
----
 
 ### 3. Technical Lead 1 — mobougri
 
@@ -155,8 +153,6 @@ The team held recurring meetings throughout the project (most weeks, alternating
 
 To improve coordination in a team that was discovering full-stack web development for the first time, project management also included documenting Git workflows, introducing pull-request best practices, monitoring board activity continuously, and recording decisions so the team could recover context between work sessions.
 
-<!- TODO équipe : préciser le rythme exact (hebdo ?), comment les sprints/jalons étaient définis, et comment le travail était distribué entre membres -->
-
 ### Tools
 
 - **GitHub Issues & Projects** — backlog, task tracking, assignment, labels, module visibility and filtered board views adapted to the project's workflow
@@ -169,7 +165,6 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **GitHub** (issues / PR comments) — asynchronous, traceable technical discussions and review feedback
 - **Meeting agendas and minutes** — written support for coordination, follow-up and decision traceability across the project
 
-<!- TODO équipe : confirmer/compléter (Discord ? réunions en présentiel/visio ?) -->
 
 ## <br><br>Technical Stack
 
@@ -196,11 +191,11 @@ To improve coordination in a team that was discovering full-stack web developmen
 |-----------|---------|---------|
 | NestJS | 11 | Backend framework (modules, controllers, services, guards, pipes, dependency injection) |
 | TypeScript | 5 | Type safety |
-| TypeORM | 0.3 | ORM — maps `*.entity.ts` classes to PostgreSQL tables |
+| TypeORM | 0.3 | ORM used to map TypeScript entities to PostgreSQL tables |
 | socket.io | 4 | Real-time communication (quiz, notifications) |
 | Passport / @nestjs/jwt | 11 / 4 | Authentication (JWT strategy + guards) |
-| bcrypt | 6 | Password hashing & salting |
-| class-validator / class-transformer | — | DTO validation on incoming requests |
+| bcrypt | 6 | Secure password hashing |
+| class-validator / class-transformer | — | Validation of incoming request data |
 | Winston | 3 | Structured logging sent to the ELK stack |
 | Multer | — | File upload handling (avatars) |
 
@@ -221,19 +216,41 @@ To improve coordination in a team that was discovering full-stack web developmen
 
 ### Technical Choices
 
-- **React** — the subject (v21.1) requires a modern JavaScript frontend framework; React was chosen for its mature TypeScript ecosystem (official types, strong tooling support) and quality official documentation (`react.dev`).
-- **NestJS over Express** — Express is minimal: it only routes HTTP requests, leaving architecture, dependency injection, validation and authentication to be designed from scratch. NestJS imposes a clear architecture (modules, controllers, services, guards, pipes, interceptors), which is a real advantage for a multi-person team — everyone knows where code belongs — and its built-in dependency injection makes services unit-testable without tight coupling.
-- **PostgreSQL** — the data model is strongly relational: a report links a student, one or more suspects and victims, notes, classes, staff and parents, with cascading and nullable relations between them (see [Database Schema](#database-schema)). PostgreSQL's support for foreign keys, constraints, enums and transactions fits this naturally, and TypeORM's PostgreSQL driver integrates cleanly with the rest of the stack.
-- **TypeORM** — keeps the database schema in sync with TypeScript entity classes (`*.entity.ts`), giving compile-time safety on queries and relations instead of hand-written SQL strings.
-- **JWT + bcrypt** — stateless authentication (the backend verifies token signatures without a DB round-trip) combined with salted password hashing that's never reversible, satisfying the subject's "hashed, salted" requirement.
-- **Docker Compose** — the stack needs many components (Node.js, PostgreSQL, Elasticsearch...); without containers each developer would install different versions locally, causing incompatibilities. Compose gives identical, isolated environments on every machine and a single-command startup, as required by the subject.
-- **ELK (Elasticsearch, Logstash, Kibana)** — chosen as the Devops module to centralize logs from every service (backend via Winston, infrastructure) into searchable, visualized dashboards rather than scattered container logs.
+- **React** — the subject requires a modern JavaScript frontend framework, and React gave us a widely used ecosystem with solid TypeScript support and accessible documentation.
+- **NestJS** —  provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
+- **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
+- **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
+- **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
+- **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process.
+- **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
 
 <!- TODO équipe : compléter si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
 
 ## <br><br>Database Schema
 
-All tables use UUID primary keys and are managed through TypeORM entities (`backend/src/**/*.entity.ts`).
+All tables use UUID primary keys and are managed through TypeORM entities.
+
+### ER Diagram
+
+```mermaid
+erDiagram
+  USERS ||--o| STUDENT_PROFILES : has
+  USERS ||--o| STAFF_PROFILES : has
+  USERS ||--o{ REPORTS : submits
+  USERS ||--o{ REPORT_SUSPECTS : resolves
+  USERS ||--o{ REPORT_VICTIMS : resolves
+  USERS ||--o{ REPORT_NOTES : writes
+  USERS ||--o{ NOTIFICATIONS : receives
+
+  CLASSES ||--o{ STUDENT_PROFILES : contains
+  CLASSES }o--o{ STAFF_PROFILES : assigned_to
+  PARENTS }o--o{ STUDENT_PROFILES : linked_to
+
+  REPORTS ||--o{ REPORT_SUSPECTS : includes
+  REPORTS ||--o{ REPORT_VICTIMS : includes
+  REPORTS ||--o{ REPORT_NOTES : contains
+  REPORTS ||--o{ NOTIFICATIONS : triggers
+```
 
 ### Tables and Relationships
 
@@ -301,26 +318,25 @@ notifications
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
 | classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
 
-<!- TODO équipe : ajouter un schéma ER visuel (ex. export dbdiagram.io / Mermaid) si possible — voir Additional/manuel-reference-projet.md §Mermaid pour la syntaxe déjà explorée -->
-
 ## <br><br>Features List
 
 | Feature | Description | Team member(s) |
 |---------|-------------|---------------|
-| Authentication | Email/password signup & login secured with bcrypt + JWT, route guards by role | <!-- login --> |
-| Report management | Students submit harassment reports (with optional anonymity); staff triage, grade, annotate (notes) and update report status | <!-- login --> |
-| AI severity scoring & sentiment analysis | Each report is automatically scored and graded by severity, combining rule-based heuristics with AI sentiment analysis of the description | <!-- login --> |
-| User & role management | Admins can view/edit/delete users and manage roles (student, teacher, staff, director, admin) with role-specific dashboards | <!-- login --> |
-| Organization system | Schools structured into classes; students, parents and staff are linked to classes with create/read/update support | <!-- login --> |
-| Real-time awareness quiz | Multiplayer quiz on harassment-prevention knowledge, playable remotely, with live leaderboard and spectator mode | <!-- login --> |
-| Notification system | Real-time notifications for report status changes, quiz invitations and other key events | <!-- login --> |
-| Custom design system / UI kit | Reusable component library (10+ components) with a defined color palette, typography and icons | <!-- login --> |
-| Internationalization | Full UI translation across French, English and German with a language switcher | <!-- login --> |
-| Progressive Web App | Installable, offline-capable frontend (service worker, manifest) | <!-- login --> |
-| Advanced search | Filtering, sorting and pagination over reports/users | <!-- login --> |
-| Privacy Policy & Terms of Service | Accessible, project-specific legal pages (footer links) | <!-- login --> |
-| Activity analytics dashboard | Visual insights into user activity (charts, stats) | <!-- login --> |
-| Centralized logging (ELK) | Backend logs shipped via Winston/Logstash to Elasticsearch and visualized in Kibana dashboards | <!-- login --> |
+| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | <!-- login --> |
+| Report submission and follow-up | Students and school staff can submit harassment reports, optionally anonymously, then follow their status as the case is handled. | <!-- login --> |
+| Report review workflow | Authorized staff can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | <!-- login --> |
+| AI-assisted report analysis | Report descriptions can be analyzed to help estimate severity and support triage. | <!-- login --> |
+| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | <!-- login --> |
+| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | <!-- login --> |
+| Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | <!-- login --> |
+| Notification system | The platform notifies users about report updates, quiz events and other important actions. | <!-- login --> |
+| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | <!-- login --> |
+| Internationalization | The interface is available in French, English and German through a language switcher. | <!-- login --> |
+| Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | <!-- login --> |
+| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | <!-- login --> |
+| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | <!-- login --> |
+| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | <!-- login --> |
+| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | <!-- login --> |
 
 <!- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
 
@@ -328,37 +344,36 @@ notifications
 
 | Module | Category | Type | Points | Description / justification | Team member(s) |
 |--------|----------|------|--------|------------------------------|---------------|
-| Use a framework for both frontend and backend | Web | Major | 2 | React (frontend) + NestJS (backend) — see [Justification for Major Technical Choices](#technical-stack) | <!-- login --> |
-| Real-time features — WebSockets (Quiz) | Web | Major | 2 | Live multiplayer quiz state, scoring and leaderboard pushed over Socket.io with graceful reconnection (`quiz-realtime` module) | <!-- login --> |
-| ORM database (TypeORM) | Web | Minor | 1 | All persistence goes through TypeORM entities mapped to PostgreSQL tables | <!-- login --> |
-| Advanced search functionality | Web | Minor | 1 | Filtering, sorting and pagination on report/user listings | <!-- login --> |
-| Progressive Web App (PWA) | Web | Minor | 1 | Installable app with offline support via service worker + manifest | <!-- login --> |
-| 10 reusable components — Custom design system | Web | Minor | 1 | Component library with a defined color palette, typography and icons (see [`Additional/design/design-system.md`](../Additional/design/design-system.md)) | <!-- login --> |
-| Notification system | Web | Minor | 1 | Real-time notifications for report status changes, quiz invites, etc. | <!-- login --> |
-| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | AI-assisted sentiment analysis feeding into the report severity score (`scoring.service.ts`) | <!-- login --> |
-| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Full UI translation (FR/EN/DE) with a language switcher, all user-facing text translatable | <!-- login --> |
-| Support 3 browsers | Accessibility & i18n | Minor | 1 | Tested and fixed on Chrome + 2 additional browsers — see [`Additional/technical/additionalBrowsers.md`](../Additional/technical/additionalBrowsers.md) | <!-- login --> |
-| Advanced permissions system (CRUD) | User Management | Major | 2 | Admins can view/edit/delete users and manage roles (student, teacher, staff, director, admin), with role-specific views and actions | <!-- login --> |
-| Organization system | User Management | Major | 2 | Schools structured into classes; create/read/update of classes, with students, parents and staff linked to them | <!-- login --> |
-| User activity analytics dashboard | User Management | Minor | 1 | Visual insights into user/report activity | <!-- login --> |
-| Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | The real-time awareness quiz serves as the project's "game": clear rules, scoring and win conditions, live multiplayer matches | <!-- login --> |
-| Remote players | Gaming & UX | Major | 2 | Two or more players can join the same quiz session from separate computers, with reconnection handling | <!-- login --> |
-| Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Quiz sessions support 3+ simultaneous participants with synchronized state | <!-- login --> |
-| Spectator mode | Gaming & UX | Minor | 1 | Users can watch ongoing quiz sessions in real time | <!-- login --> |
-| Infrastructure for log management (ELK) | Devops | Major | 2 | Elasticsearch + Logstash + Kibana pipeline for centralized backend logs (Winston transport), with dashboards — see [`Additional/technical/elk.md`](../Additional/technical/elk.md) | <!-- login --> |
+| Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | <!-- login --> |
+| Real-time features — WebSockets (Quiz) | Web | Major | 2 | Implemented through a Socket.io quiz module that synchronizes room state, scores and progression between connected players in real time. | <!-- login --> |
+| ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | <!-- login --> |
+| Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | <!-- login --> |
+| Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | <!-- login --> |
+| 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | <!-- login --> |
+| Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | <!-- login --> |
+| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented as AI-assisted analysis of report text to support severity scoring and triage. | <!-- login --> |
+| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | <!-- login --> |
+| Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | <!-- login --> |
+| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | <!-- login --> |
+| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | <!-- login --> |
+| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | <!-- login --> |
+| Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Implemented as a complete browser-based awareness quiz with rules, scoring, question flow and shared match state. | <!-- login --> |
+| Remote players | Gaming & UX | Major | 2 | Implemented by allowing players on separate devices to join the same live quiz room and play together over the network. | <!-- login --> |
+| Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Implemented with quiz rooms that support more than two simultaneous players in the same match. | <!-- login --> |
+| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | <!-- login --> |
 
-**Total: 8 Major × 2 + 10 Minor × 1 = 26 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
+**Total: 8 Major × 2 + 9 Minor × 1 = 25 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
 
 <!- TODO équipe :
   - assigner les logins par module
-  - vérifier que chaque module est démontrable intégralement à l'éval (sinon = 0 pt, cf. sujet chap. IV)
+  - vérifier que chaque module est démontrable intégralement à l'éval
   - si certains modules listés ci-dessus ne sont finalement pas livrés, les retirer et recalculer le total
 -->
 
 
 ## <br><br>Individual Contributions
 
-<!- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir EXPLIQUER et JUSTIFIER sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
+<!- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir expliquer et justifier sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
 
 ### eguthman
 
@@ -391,8 +406,8 @@ For deeper documentation beyond what is required here — design process, techni
 
 ### Known Limitations
 
-<!- TODO équipe : lister les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés). À déterminer juste avant la livraison — voir TODO.md pour les derniers points en suspens. -->
+<!- TODO équipe : lister les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés).  -->
 
 ### License
 
-This project was created as part of the 42 School curriculum (common core, "ft_transcendence") and is intended for educational and evaluation purposes only.
+This project was created as part of the 42 School curriculum (common core, "ft_transcendence") and is intended for educational and evaluation purposes as of June 2026.
