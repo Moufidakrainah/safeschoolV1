@@ -421,12 +421,12 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                     }}
                     disabled={!suspectInput.trim()}
                   >
-                    + Ajoute ce coupable
+                    + Ajoute ce harceleur
                   </Button>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">
                   Appuie sur la touche "Entrée" de ton clavier ou clique sur
-                  "Ajoute ce coupable"
+                  "Ajoute ce harceleur"
                 </p>
                 {suspects.length > 0 && (
                   <div className="mt-4">
@@ -478,7 +478,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 <p className="text-gray-500 text-sm mb-6">
                   {t("reporter.step6.subtitle")}
                 </p>
-                <dl className="bg-gray-50 rounded-lg p-4 mb-5 text-sm space-y-2">
+                <dl className="rounded-lg p-4 mb-5 text-sm space-y-2">
                   {(
                     [
                       { label: t("reporter.step6.who"), value: whoSignals },

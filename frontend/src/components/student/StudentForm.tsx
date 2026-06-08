@@ -295,10 +295,10 @@ export default function StudentForm({ user }: StudentFormProps) {
                   onClick={() => { if (suspectInput.trim()) addSuspect({ firstName: suspectInput.trim(), lastName: '' }); }}
                   disabled={!suspectInput.trim()}
                 >
-                  + Ajoute ce coupable
+                  + Ajoute ce harceleur
                 </Button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute ce coupable"</p>
+              <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute ce harceleur"</p>
               {suspects.length > 0 && (
                 <div className="mt-4">
                   {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}

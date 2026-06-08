@@ -97,7 +97,7 @@
       "reportedBy": "Signalé par",
       "anonymousLabel": "Anonyme",
       "victim": "Victime",
-      "suspects": "Suspect(s)",
+      "suspects": "Harceleur(s)",
       "noSuspect": "Aucun suspect indiqué",
       "suspectsCount": "coupable(s)",
       "type": "Type",
@@ -313,7 +313,7 @@
       "title": "Qui est concerné par ce signalement ?",
       "subtitle": "",
       "victimLabel": "Donne le nom de toutes les victimes (un par ligne)",
-      "suspectsLabel": "Donne le nom de tous les coupables (un par ligne)",
+      "suspectsLabel": "Donne le nom de tous les harceleurs (un par ligne)",
       "searchPlaceholder": "Rechercher par nom ou prénom...",
       "selected": "sélectionné(e)",
       "addFreeText": "Ajouter",
@@ -334,7 +334,7 @@
       "description": "Description",
       "frequency": "Fréquence",
       "victims": "Victime(s)",
-      "suspects": "Suspect(s)",
+      "suspects": "Harceleur(s)",
       "anonymous": "Coche si tu ne veux pas être contacté au sujet de ce signalement",
       "anonymousDesc": ""
     },
@@ -463,7 +463,7 @@
       "description": "Description",
       "frequency": "Fréquence",
       "victims": "Victime(s)",
-      "suspects": "Suspect(s)",
+      "suspects": "Harceleur(s)",
       "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
 
     },
