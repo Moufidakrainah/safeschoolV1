@@ -329,7 +329,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 ] as const).map(row => (
                   <div key={row.label} className="flex gap-2">
                     <dt className="font-semibold text-gray-700 min-w-[120px]">{row.label} :</dt>
-                    <dd className="text-gray-600 break-words min-w-0">{row.value}</dd>
+                    <dd className="text-gray-600 wrap-break-word min-w-0">{row.value}</dd>
                   </div>
                 ))}
               </dl>
