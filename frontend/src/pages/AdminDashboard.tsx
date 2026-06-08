@@ -17,6 +17,8 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
 import Pagination from '../components/Pagination';
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note } from '../types';
@@ -111,6 +113,8 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
+
+
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -172,6 +176,17 @@ export default function AdminDashboard() {
   const totalPages = useMemo(() => Math.ceil(filtered.length / itemsPerPage), [filtered]);
   const paginated  = useMemo(() => filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filtered, currentPage]);
 
+
+const reportsPerPage = 7;
+
+// const reportsTotalPages = Math.ceil(filtered.length / reportsPerPage);
+
+// const onSetReportsPage = (p: number) => setReportsPage(p);
+
+const onFetchReports = async (page: number) => {
+  await fetchReports(page)
+};
+
   const stats = useMemo(() => ({
     total: reports.length,
     critical: reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
@@ -195,7 +210,14 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
   };
 
-  const renderUserForm = (isEdit = false) => (
+  const renderUserForm = (
+	 isEdit = false,
+  reportsPage: number,
+  reportsTotalPages: number,
+  onSetReportsPage: (p: number) => void,
+  onFetchReports: (p: number) => void
+) => (
+  <>
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -323,6 +345,7 @@ export default function AdminDashboard() {
         </>
       )}
     </div>
+	</>
   );
 
   if (view === 'detail' && selected) {
@@ -483,7 +506,93 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} />
+            {/* <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} /> */}
+
+
+			{/* {Math.ceil(filtered.length / 7) > 1 && (
+				<PaginationShadcn className="mt-4">
+					<PaginationContent>
+						<PaginationItem>
+							<PaginationPrevious
+							onClick={() => { if (currentPage > 1) { onSetUsersPage(currentPage - 1); onFetchUsers(currentPage - 1); } }}
+							className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+						</PaginationItem>
+						{Array.from({ length: Math.ceil(filtered.length / 7) }, (_, i) => i + 1).map(p => (
+							<PaginationItem key={p}>
+							<PaginationLink
+								isActive={p === currentPage}
+								onClick={() => { onSetUsersPage(p); onFetchUsers(p); }}
+								className="cursor-pointer">{p}</PaginationLink>
+							</PaginationItem>
+						))}
+						<PaginationItem>
+							<PaginationNext
+							onClick={() => { if (currentPage < totalPages) { onSetUsersPage(currentPage + 1); onFetchUsers(currentPage + 1); } }}
+							className={currentPage === Math.ceil(filtered.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+						</PaginationItem>
+					</PaginationContent>
+				</PaginationShadcn>
+			)} */}
+
+
+{totalPages > 1 && (
+  <PaginationShadcn className="mt-4">
+    <PaginationContent>
+
+      {/* Précédent */}
+      <PaginationItem>
+        <PaginationPrevious
+          onClick={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1)
+              onFetchReports(currentPage - 1)
+            }
+          }}
+          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+      {/* Numéros */}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+        <PaginationItem key={p}>
+          <PaginationLink
+            isActive={p === currentPage}
+            onClick={() => {
+              setCurrentPage(p)
+              onFetchReports(p)
+            }}
+            className="cursor-pointer"
+          >
+            {p}
+          </PaginationLink>
+        </PaginationItem>
+      ))}
+
+      {/* Suivant */}
+      <PaginationItem>
+        <PaginationNext
+          onClick={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1)
+              onFetchReports(currentPage + 1)
+            }
+          }}
+          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+    </PaginationContent>
+  </PaginationShadcn>
+)}
+
+
+
+
+
+
+
+
+
           </>
         )}
 

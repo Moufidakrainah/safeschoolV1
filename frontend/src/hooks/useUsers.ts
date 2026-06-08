@@ -86,7 +86,9 @@ export function useUsers(): UseUsersReturn {
   const [usersTotal, setUsersTotal]     = useState(0);
   const [usersSearch, setUsersSearch]   = useState('');
   const [usersSort, setUsersSort]       = useState<'asc' | 'desc' | 'date'>('asc');
-  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([]);
+  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([ 'student',
+  'teacher',
+  'admin',]);
   const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});

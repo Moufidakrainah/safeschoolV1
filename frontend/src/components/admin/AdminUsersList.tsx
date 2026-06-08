@@ -6,6 +6,7 @@ import { getUserById } from '@/services/api';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
+import { useState, useEffect } from "react";
 
 interface AdminUsersListProps {
     filteredUsers: AdminUser[];        // la liste des utilisateurs
@@ -23,12 +24,14 @@ interface AdminUsersListProps {
     onSetUsersSearch: (s: string) => void;                    // changer le texte de recherche
     onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;    // changer le tri
     onSetUsersRoleFilter: (f: string[]) => void;              // changer les filtres de rôle
+
     onSetUsersPage: (p: number) => void;                      // changer la page
     onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
     onSaveUser: () => void;                                   // sauvegarder un utilisateur
     renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
+
 }
 
 
@@ -54,20 +57,14 @@ export default function AdminUserList({
   renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
+// const [usersRoleFilter, onSetUsersRoleFilter] = useState<string[]>(['student', 'teacher', 'admin']);
+
     return (
         <section>
             {/* 1. Titre + tri + bouton ajouter */}
             <div className="flex justify-between items-center mb-5">
-                <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2>
-                <div className="flex items-center gap-2">
-                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
-                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
-                    <option value="asc">A → Z</option>
-                    <option value="desc">Z → A</option>
-                    <option value="date">Date création</option>
-                    </select>
-                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
-                </div>
+                {/* <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2> */}
+                
             </div>
             {/* 2. Barre de recherche */}
             <div className="flex gap-2 mb-3">
@@ -79,7 +76,8 @@ export default function AdminUserList({
                 </Button>
             </div>
             {/* 3. Filtres roles */}
-            <div className="flex gap-4 mb-4 flex-wrap items-center">
+            <div className="flex gap-4 mb-4 flex-wrap justify-between items-center">
+				<div className="flex gap-10">
                 {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
                     <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                     <Checkbox
@@ -95,6 +93,18 @@ export default function AdminUserList({
                     {r.label}
                     </label>
                 ))}
+			</div>
+				<div className="flex items-center gap-2">
+                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
+                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
+                    <option value="asc">A → Z</option>
+                    <option value="desc">Z → A</option>
+                    <option value="date">Date création</option>
+                    </select>
+                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
+                </div>
+
+
             </div>
             {/* Formulaire ajout */}
                 {showUserForm && (
@@ -115,22 +125,23 @@ export default function AdminUserList({
                     {filteredUsers.slice((usersPage - 1) * 7, usersPage * 7).map(u => {
                     const { first, last } = formatName(u.firstName, u.lastName);
                     return (
-                        <li key={u.id} className="shadow-sm rounded-sm">
-                        <div className="card-list-item"
+                        <li key={u.id}>
+                        <div className="card-list-item h-[100px]"
                             onClick={async () => {
                             const freshU = await getUserById(u.id);
                             if (freshU) onNavigateToUser(freshU);
                             }}>
-                            <div className="flex items-stretch">
-                            <div style={{ width: '96px', height: '96px', flexShrink: 0, overflow: 'hidden', borderRadius: 0 }}>
+                            <div className="flex h-full">
+                              <div className="w-[100px] h-full shrink-0">
                                 {u.avatar
                                 ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
-                                    alt={u.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                : <div style={{ width: '96px', height: '96px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold', color: '#9ca3af' }}>
+                                    alt={u.firstName}  className="w-full h-full object-cover block"/>
+                                :  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+       
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
                             </div>
-                            <div className="flex-1 px-6 py-5" style={{ minHeight: '80px' }}>
+                            <div className="flex-1 px-5 py-5" style={{ minHeight: '80px' }}>
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
