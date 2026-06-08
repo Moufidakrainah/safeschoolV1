@@ -72,6 +72,27 @@ export class QuizRealtimeGateway
         void this.server.in(roomId).socketsLeave(roomId);
       },
     );
+
+    // A disconnected player's grace period expired and they were removed
+    this.quizRealtimeService.setOnPlayerExpired(
+      ({ roomId, result, revealPayload }) => {
+        if (result.status === "room-closed") {
+          this.server.to(roomId).emit("quiz:room:closed", { roomId });
+          return;
+        }
+
+        if (result.snapshot) {
+          this.server.to(roomId).emit("quiz:room:update", result.snapshot);
+        }
+
+        if (revealPayload) {
+          this.server
+            .to(roomId)
+            .emit("quiz:score:update", revealPayload.roomSnapshot);
+          this.server.to(roomId).emit("quiz:question:reveal", revealPayload);
+        }
+      },
+    );
   }
 
 	handleConnection(client: Socket) {
@@ -125,12 +146,45 @@ export class QuizRealtimeGateway
 			if (update.snapshot) {
 				this.server.to(update.roomId).emit('quiz:room:update', update.snapshot);
 			}
+
+			if (update.revealPayload) {
+				this.server.to(update.roomId).emit('quiz:score:update', update.revealPayload.roomSnapshot);
+				this.server.to(update.roomId).emit('quiz:question:reveal', update.revealPayload);
+			}
 		}
 	}
 
 	private getPlayerId(client: Socket): string | undefined {
 		const user = client.data.user as { sub?: string } | undefined;
 		return user?.sub;
+	}
+
+	// Bring a reconnecting player back in sync with an in-progress game: replay
+	// the current question, scores, any active reveal, and their own answer
+	private sendReconnectState(client: Socket, roomId: string, playerId: string) {
+		const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
+		if (!snapshot || snapshot.status !== 'in-progress') return;
+
+		const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(roomId);
+		if (questionSnapshot) {
+			client.emit('quiz:question', questionSnapshot);
+		}
+
+		client.emit('quiz:score:update', snapshot);
+
+		const revealSnapshot = this.quizRealtimeService.getRevealSnapshot(roomId);
+		if (revealSnapshot) {
+			client.emit('quiz:question:reveal', revealSnapshot);
+		}
+
+		const answerState = this.quizRealtimeService.getPlayerAnswerState(roomId, playerId);
+		if (answerState?.hasAnswered && answerState.questionId !== null) {
+			client.emit('quiz:answer:restore', {
+				questionId: answerState.questionId,
+				selectedIndex: answerState.selectedIndex,
+				hasAnswered: true,
+			});
+		}
 	}
 
   @SubscribeMessage("quiz:ping")
@@ -225,9 +279,14 @@ export class QuizRealtimeGateway
 			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
 		}
 
+		// Reconnecting mid-game: replay the current game state to this client
+		if (result.status === 'reconnected') {
+			this.sendReconnectState(client, payload.roomId, playerId);
+		}
+
     return {
       event: "quiz:joined",
-      data: result.snapshot,
+      data: { ...result.snapshot, selfId: playerId },
     };
   }
 

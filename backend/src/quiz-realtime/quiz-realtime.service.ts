@@ -131,6 +131,15 @@ interface DisconnectUpdate {
 	// The room was emptied and deleted as a result of the disconnect.
 	closed: boolean;
 	snapshot: RoomSnapshot | null;
+	// Set when the disconnect made every remaining connected player "answered",
+	// so the question should be revealed right away
+	revealPayload: QuestionRevealPayload | null;
+}
+
+interface PlayerExpiredPayload {
+	roomId: string;
+	result: LeaveRoomResult;
+	revealPayload: QuestionRevealPayload | null;
 }
 
 type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
@@ -187,6 +196,7 @@ export class QuizRealtimeService {
   private readonly rooms = new Map<string, QuizRoom>();
   private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
   private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
+  private onPlayerExpired?: (payload: PlayerExpiredPayload) => void;
 
   createPongMessage(payload: string | undefined, clientId: string) {
     return {
@@ -305,6 +315,7 @@ export class QuizRealtimeService {
     if (room.players.size === 0) {
       this.clearQuestionTimer(room);
       this.clearRevealTimer(room);
+      this.clearAllDisconnectTimers(room);
       this.rooms.delete(roomId);
       return { status: "room-closed", snapshot: null };
     }
@@ -416,11 +427,10 @@ export class QuizRealtimeService {
 		room.selectedAnswerByPlayerId.set(playerId, selectedIndex);
 		room.answeredPlayerIds.add(playerId);
 
-    const allAnswered = [...room.players.keys()].every((id) =>
-      room.answeredPlayerIds.has(id),
-    );
+    // Disconnected players are skipped: only connected players need to have
+    // answered for the question to advance.
     let revealPayload: QuestionRevealPayload | null = null;
-    if (allAnswered) {
+    if (this.allConnectedAnswered(room)) {
       revealPayload = this.enterRevealPhase(room);
     }
 
@@ -430,6 +440,12 @@ export class QuizRealtimeService {
 			answerResult: { roomId, playerId, questionId, isCorrect, basePoints, multiplier, pointsEarned, streak: player.streak },
 			revealPayload,
 		};
+	}
+
+	private allConnectedAnswered(room: QuizRoom): boolean {
+		const connected = [...room.players.values()].filter((player) => player.connected);
+		if (connected.length === 0) return false;
+		return connected.every((player) => room.answeredPlayerIds.has(player.playerId));
 	}
 
   setOnQuestionTimedOut(
@@ -442,6 +458,12 @@ export class QuizRealtimeService {
     handler: ((payload: QuestionRevealPayload) => void) | undefined,
   ) {
     this.onQuestionRevealed = handler;
+  }
+
+  setOnPlayerExpired(
+    handler: ((payload: PlayerExpiredPayload) => void) | undefined,
+  ) {
+    this.onPlayerExpired = handler;
   }
 
 	// Called when a socket disconnects. During a running game the player is kept
@@ -463,6 +485,7 @@ export class QuizRealtimeService {
 					roomId,
 					closed: result.status === 'room-closed',
 					snapshot: result.snapshot,
+					revealPayload: null,
 				});
 				continue;
 			}
@@ -477,17 +500,25 @@ export class QuizRealtimeService {
 				RECONNECT_GRACE_MS,
 			);
 
+			// Now that this player no longer counts, the remaining connected players
+			// may already have all answered — reveal immediately so nobody waits
+			let revealPayload: QuestionRevealPayload | null = null;
+			if (room.revealEndsAt === null && this.allConnectedAnswered(room)) {
+				revealPayload = this.enterRevealPhase(room);
+			}
+
 			updates.push({
 				roomId,
 				closed: false,
 				snapshot: this.getRoomSnapshot(roomId),
+				revealPayload,
 			});
 		}
 
 		return updates;
 	}
 
-	// Grace period elapsed without a reconnect: remove the player for good.
+	// Grace period elapsed without a reconnect: remove the player for good
 	private expirePlayer(roomId: string, playerId: string) {
 		const room = this.rooms.get(roomId);
 		if (!room) return;
@@ -495,7 +526,30 @@ export class QuizRealtimeService {
 		const player = room.players.get(playerId);
 		if (!player || player.connected) return; // reconnected in the meantime
 
-		this.leaveRoom(roomId, playerId);
+		const result = this.leaveRoom(roomId, playerId);
+
+		// Removing them may complete the current question for everyone still here
+		let revealPayload: QuestionRevealPayload | null = null;
+		const remaining = this.rooms.get(roomId);
+		if (
+			remaining &&
+			remaining.status === 'in-progress' &&
+			remaining.revealEndsAt === null &&
+			this.allConnectedAnswered(remaining)
+		) {
+			revealPayload = this.enterRevealPhase(remaining);
+		}
+
+		this.onPlayerExpired?.({ roomId, result, revealPayload });
+	}
+
+	private clearAllDisconnectTimers(room: QuizRoom) {
+		for (const player of room.players.values()) {
+			if (player.disconnectTimer) {
+				clearTimeout(player.disconnectTimer);
+				player.disconnectTimer = null;
+			}
+		}
 	}
 
   getRoomSnapshot(roomId: string) {
@@ -510,9 +564,47 @@ export class QuizRealtimeService {
 				clientId: player.playerId,
 				name: player.name,
 				score: player.score,
+				connected: player.connected,
 			})),
 		};
 	}
+
+  // Per-player view of the current question, used to restore a reconnecting
+  // player's "already answered" UI state.
+  getPlayerAnswerState(roomId: string, playerId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    return {
+      questionId: currentQuestion?.id ?? null,
+      hasAnswered: room.answeredPlayerIds.has(playerId),
+      selectedIndex: room.selectedAnswerByPlayerId.get(playerId) ?? null,
+    };
+  }
+
+  // Reveal payload for the question currently being revealed, if any. Used to
+  // catch a reconnecting player up to the reveal phase
+  getRevealSnapshot(roomId: string): QuestionRevealPayload | null {
+    const room = this.rooms.get(roomId);
+    if (!room || room.revealEndsAt === null) return null;
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion) return null;
+
+    return {
+      roomId: room.roomId,
+      questionId: currentQuestion.id,
+      correctIndex: currentQuestion.correctIndex,
+      answerStatistics: this.getAnswerStatistics(
+        room,
+        currentQuestion.options.length,
+      ),
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      revealEndsAt: room.revealEndsAt,
+      revealDurationMs: REVEAL_TIME_MS,
+    };
+  }
 
   getQuestionSnapshot(roomId: string) {
     const room = this.rooms.get(roomId);
@@ -633,6 +725,7 @@ export class QuizRealtimeService {
     if (!hasMoreQuestions) {
       const roomSnapshot = this.getRoomSnapshot(room.roomId);
       room.status = "finished";
+      this.clearAllDisconnectTimers(room);
       room.players.clear();
       this.rooms.delete(room.roomId);
       return {
