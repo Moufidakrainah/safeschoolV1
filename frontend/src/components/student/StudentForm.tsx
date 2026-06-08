@@ -8,6 +8,7 @@ import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Textarea } from "../ui/textarea";
 
 
 interface StudentFormProps {
