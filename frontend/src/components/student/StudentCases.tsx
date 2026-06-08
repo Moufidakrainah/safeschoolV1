@@ -164,11 +164,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="card-title">{report.caseNumber}</span>
-                      {reportUnreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                          {reportUnreadCount}
-                        </span>
-                      )}
+
                     </div>
                     <p className="card-subtitle mt-1 mb-2 capitalize">
                       {report.type} — Je suis victime
