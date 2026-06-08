@@ -141,7 +141,7 @@ export function useReportForm(
 );
 
   const resetForm = () => {
-    setStep(0);
+    setStep(1);
     setType('');
     setDescription('');
     setFrequency('');

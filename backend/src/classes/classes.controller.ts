@@ -12,17 +12,9 @@ import {
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ClassesService } from "./classes.service";
+import { CreateClassDto } from "./dto/create-class.dto";
+import { UpdateClassDto } from "./dto/update-class.dto";
 import { validateUUID } from "../utils/validate-uuid";
-
-class CreateClassDto {
-  level: string;
-  section: string;
-}
-
-class UpdateClassDto {
-  level?: string;
-  section?: string;
-}
 
 @Controller("classes")
 @UseGuards(AuthGuard("jwt"))

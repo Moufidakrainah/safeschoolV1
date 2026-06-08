@@ -62,6 +62,7 @@ export default function ReporterDashboard() {
   return (
     <>
       {/* <ReporterHeader {...headerProps} /> */}
+    <main className="min-h-screen bg-gray-50 font-sans">
 
 		<RoleHeader
 			user={user}
@@ -69,6 +70,8 @@ export default function ReporterDashboard() {
 			reporterViewSection={viewSection}
 			reporterSetViewSection={setViewSection}
 			/>
+      <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+
       {viewSection === 'profile' && (
         <ReporterProfile
           user={user}
@@ -77,6 +80,9 @@ export default function ReporterDashboard() {
         />
       )}
       {viewSection === 'report' && <ReporterForm user={user} />}
+
+      </div>
+    </main>
     </>
   );
 }

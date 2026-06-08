@@ -9,15 +9,21 @@ export class ClassesService {
     @InjectRepository(SchoolClass) private classRepo: Repository<SchoolClass>,
   ) {}
 
+  // Création d'une nouvelle classe
   async create(level: string, section: string): Promise<SchoolClass> {
-    const schoolClass = this.classRepo.create({ level, section });
+    const schoolClass = this.classRepo.create({
+      level: level.trim(),
+      section: section.trim(),
+    });
     return this.classRepo.save(schoolClass);
   }
 
+  // Récupération de toutes les classes
   async findAll(): Promise<SchoolClass[]> {
-    return this.classRepo.find({ relations: ["staff"] });
+    return this.classRepo.find();
   }
 
+  // Récupération d'une classe par son id
   async findOne(id: string): Promise<SchoolClass> {
     const schoolClass = await this.classRepo.findOne({
       where: { id },
@@ -27,16 +33,17 @@ export class ClassesService {
     return schoolClass;
   }
 
+  // Modification d'une classe
   async update(id: string, dto: { level?: string; section?: string }): Promise<SchoolClass> {
     const schoolClass = await this.findOne(id);
-    if (dto.level) schoolClass.level = dto.level;
-    if (dto.section) schoolClass.section = dto.section;
+    if (dto.level) schoolClass.level = dto.level.trim();
+    if (dto.section) schoolClass.section = dto.section.trim();
     return this.classRepo.save(schoolClass);
   }
 
+  // Suppression d'une classe (bloquée si des élèves sont inscrits)
   async remove(id: string): Promise<void> {
     const schoolClass = await this.findOne(id);
-    // Vérifier qu'il n'y a pas d'élèves dans cette classe
     const studentCount = await this.classRepo
       .createQueryBuilder('class')
       .leftJoin('student_profiles', 'sp', 'sp."classId" = class.id')
