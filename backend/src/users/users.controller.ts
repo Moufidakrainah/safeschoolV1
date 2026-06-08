@@ -21,22 +21,22 @@ import * as path from "path";
 import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
 import { UsersService } from "./users.service";
-import { validateUserFields } from "./user-validation";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 import { validateUUID } from "../utils/validate-uuid";
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller("users")
 @UseGuards(AuthGuard("jwt"))
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
- 
   @Get("search")
   async search(@Query("q") q: string) {
     if (!q || q.length < 2) return [];
     return this.usersService.search(q);
   }
 
-  
   @Get()
   async findAll(
     @Request() req,
@@ -52,87 +52,34 @@ export class UsersController {
     return this.usersService.findAll(role, pageNum, limitNum);
   }
 
-  
   @Get(":id")
   async findOne(@Param("id") id: string, @Request() req) {
     validateUUID(id);
-    if (
-      req.user.role !== "admin" &&
-      req.user.role !== "director" &&
-      req.user.id !== id
-    ) {
+    if (req.user.role !== "admin" && req.user.role !== "director" && req.user.id !== id) {
       throw new ForbiddenException("Accès refusé");
     }
     return this.usersService.findById(id);
   }
 
-  
   @Post()
-  async createUser(
-    @Request() req,
-    @Body()
-    dto: {
-      email: string;
-      password: string;
-      firstName: string;
-      lastName: string;
-      role: string;
-      schoolClass?: string;
-    },
-  ) {
+  async createUser(@Request() req, @Body() dto: CreateUserDto) {
     if (req.user.role !== "admin") {
       throw new ForbiddenException("Seul l'admin peut créer des utilisateurs");
     }
-    const error = validateUserFields({
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      email: dto.email,
-      password: dto.password,
-      currentFirstName: dto.firstName,
-      currentLastName: dto.lastName,
-    });
-    if (error) throw new BadRequestException(error);
     return this.usersService.createByAdmin(dto);
   }
 
-  
   @Patch(":id")
-  async updateUser(
-    @Request() req,
-    @Param("id") id: string,
-    @Body()
-    dto: {
-      email?: string;
-      firstName?: string;
-      lastName?: string;
-      role?: string;
-      schoolClass?: string;
-      password?: string;
-    },
-  ) {
+  async updateUser(@Request() req, @Param("id") id: string, @Body() dto: UpdateUserDto) {
     validateUUID(id);
     if (req.user.role !== "admin") {
-      throw new ForbiddenException(
-        "Seul l'admin peut modifier des utilisateurs",
-      );
+      throw new ForbiddenException("Seul l'admin peut modifier des utilisateurs");
     }
-    const error = validateUserFields({
-      firstName: dto.firstName,
-      lastName: dto.lastName,
-      email: dto.email,
-      password: dto.password,
-    });
-    if (error) throw new BadRequestException(error);
     return this.usersService.updateByAdmin(id, dto);
   }
 
-  
   @Patch(":id/password")
-  async changePassword(
-    @Request() req,
-    @Param("id") id: string,
-    @Body() dto: { password: string },
-  ) {
+  async changePassword(@Request() req, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
     validateUUID(id);
     if (req.user.role !== "admin" && req.user.id !== id) {
       throw new ForbiddenException("Accès refusé");
@@ -140,7 +87,6 @@ export class UsersController {
     return this.usersService.changePassword(id, dto.password);
   }
 
- 
   @Get(':id/can-delete')
   async canDelete(@Request() req, @Param('id') id: string) {
     validateUUID(id);
@@ -152,12 +98,11 @@ export class UsersController {
   async deleteUser(@Request() req, @Param("id") id: string) {
     validateUUID(id);
     if (req.user.role !== "admin") {
-      throw new ForbiddenException(
-        "Seul l'admin peut supprimer des utilisateurs",
-      );
+      throw new ForbiddenException("Seul l'admin peut supprimer des utilisateurs");
     }
     return this.usersService.deleteByAdmin(id, req.user.id);
   }
+
   @Post(':id/avatar')
   @UseInterceptors(FileInterceptor('avatar', {
     storage: diskStorage({
@@ -173,19 +118,14 @@ export class UsersController {
       }
       cb(null, true);
     },
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
+    limits: { fileSize: 2 * 1024 * 1024 },
   }))
-  async uploadAvatar(
-    @Param('id') id: string,
-    @UploadedFile() file: any,
-    @Request() req,
-  ) {
+  async uploadAvatar(@Param('id') id: string, @UploadedFile() file: any, @Request() req) {
     validateUUID(id);
     if (req.user.role !== 'admin' && req.user.id !== id) {
       throw new ForbiddenException('Accès refusé');
     }
     if (!file) throw new BadRequestException('Aucun fichier envoyé');
-    // Renommer en nom.prenom.ext
     const user = await this.usersService.findById(id);
     const ext = path.extname(file.filename);
     let newFilename = file.filename;
@@ -199,5 +139,4 @@ export class UsersController {
     }
     return this.usersService.updateAvatar(id, newFilename);
   }
-
 }

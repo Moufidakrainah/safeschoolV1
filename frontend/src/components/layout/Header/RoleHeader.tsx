@@ -14,6 +14,7 @@ interface RoleHeaderProps {
   studentViewSection?: 'profile' | 'report' | 'quiz' | 'cases';
   studentSetViewSection?: (s: 'profile' | 'report' | 'quiz' | 'cases') => void;
   studentNotifRefreshKey?: number;
+  studentOnNotifRefresh?: () => void;
   reporterViewSection?: 'profile' | 'report' | 'quiz';
   reporterSetViewSection?: (s: 'profile' | 'report' | 'quiz') => void;
 }
@@ -21,11 +22,10 @@ interface RoleHeaderProps {
 function RoleHeader({
   user, logoutUser,
   adminViewSection, adminSetViewSection, adminFetchUsers, adminSetSelected, adminSetView,
-  studentViewSection, studentSetViewSection, studentNotifRefreshKey,
+  studentViewSection, studentSetViewSection, studentNotifRefreshKey, studentOnNotifRefresh,
   reporterViewSection, reporterSetViewSection,
 }: RoleHeaderProps) {
   if (!user) return null;
-
   switch (user.role) {
     case 'admin':
     case 'director':
@@ -44,6 +44,7 @@ function RoleHeader({
           user={user} logoutUser={logoutUser}
           viewSection={studentViewSection!} setViewSection={studentSetViewSection!}
           notifRefreshKey={studentNotifRefreshKey}
+          onNotifRefresh={studentOnNotifRefresh}
         />
       );
     case 'teacher':

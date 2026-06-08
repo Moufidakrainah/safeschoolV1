@@ -58,7 +58,7 @@ export default function AdminUserList({
         <section>
             {/* 1. Titre + tri + bouton ajouter */}
             <div className="flex justify-between items-center mb-5">
-                <h2 className="text-xl font-bold text-gray-800">{t('admin.users.title')}</h2>
+                <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2>
                 <div className="flex items-center gap-2">
                     <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
                     className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
@@ -125,7 +125,7 @@ export default function AdminUserList({
                             <div style={{ width: '96px', height: '96px', flexShrink: 0, overflow: 'hidden', borderRadius: 0 }}>
                                 {u.avatar
                                 ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
-                                    alt={u.firstName} style={{ width: '96px', height: '96px', objectFit: 'cover', display: 'block' }} />
+                                    alt={u.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                 : <div style={{ width: '96px', height: '96px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold', color: '#9ca3af' }}>
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
