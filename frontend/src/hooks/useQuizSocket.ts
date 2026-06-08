@@ -331,6 +331,9 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
     return () => {
       cancelled = true;
       clearGiveUpTimer();
+      if (joinedRoomRef.current) {
+        socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });
+      }
       socketRef.current?.disconnect();
       socketRef.current = null;
     };

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import AdminHeader from '@/components/layout/AdminHeader/AdminHeader';
 import StudentHeader from '@/components/layout/StudentHeader/StudentHeader';
 import ReporterHeader from '@/components/layout/ReporterHeader/ReporterHeader';
@@ -17,7 +18,7 @@ interface RoleHeaderProps {
   reporterSetViewSection?: (s: 'profile' | 'report' | 'quiz') => void;
 }
 
-export default function RoleHeader({
+function RoleHeader({
   user, logoutUser,
   adminViewSection, adminSetViewSection, adminFetchUsers, adminSetSelected, adminSetView,
   studentViewSection, studentSetViewSection, studentNotifRefreshKey,
@@ -56,3 +57,5 @@ export default function RoleHeader({
       return null;
   }
 }
+
+export default memo(RoleHeader);
