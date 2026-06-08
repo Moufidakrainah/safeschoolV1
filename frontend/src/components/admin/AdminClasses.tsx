@@ -112,7 +112,7 @@ export default function AdminClasses() {
 	}
 
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="page-section">
 			{/*liste des classes */}
 			<div className=" flex-shrink-0">
 				<div className="flex justify-end items-center mb-4">

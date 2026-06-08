@@ -44,34 +44,6 @@ export default function StudentProfile({
       return age;
     };
 
-//   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-//     const file = e.target.files?.[0];
-//     if (!file || !user) return;
-//     setUploading(true);
-//     setError(null);
-//     try {
-//       const formData = new FormData();
-//       formData.append("avatar", file);
-//       const token = localStorage.getItem("token");
-//       const res = await fetch(`${API_BASE}/users/${user.id}/avatar`, {
-//         method: "POST",
-//         headers: { Authorization: `Bearer ${token}` },
-//         body: formData,
-//       });
-//       const data = await res.json();
-//       if (data.avatar) {
-//         setAvatar(data.avatar);
-//         updateUser({ avatar: data.avatar }); // ← met à jour le contexte + localStorage
-//       } else {
-//         setError("Erreur lors de l'upload");
-//       }
-//     } catch {
-//       setError("Erreur lors de l'upload");
-//     } finally {
-//       setUploading(false);
-//     }
-//   };
-
   return (
     <section className="page-section">
 
@@ -99,16 +71,7 @@ export default function StudentProfile({
             <p className="text-sm text-gray-700 mt-1">{user?.email}</p>
           </div>
 
-          {/* <label className={`cursor-pointer inline-flex items-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-            {uploading ? 'Upload...' : 'Changer la photo'}
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleUpload}
-            />
-          </label>
-          {error && <p className="text-red-500 text-xs">{error}</p>} */}
+       
         </div>
       </div>
 
@@ -136,7 +99,7 @@ export default function StudentProfile({
       </div>
 
       {/* Parents */}
-      <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
+      <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
         <p className="text-sm font-semibold text-muted-foreground mb-2">Responsables légaux</p>
         {loadingParents ? (
           <p className="text-sm text-gray-400 text-center py-4">Chargement...</p>

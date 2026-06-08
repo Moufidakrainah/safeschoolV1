@@ -125,7 +125,7 @@ export default function StatsDashboard({ reports }: Props) {
   };
 
   return (
-    <section className="flex flex-col gap-4">
+		<section className="page-section">
 
       {/* ── Filtres ── */}
       <div className="flex flex-wrap gap-3 items-center">

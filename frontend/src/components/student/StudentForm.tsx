@@ -97,7 +97,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 
     <section className="page-section">
 		<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
-      <h1 className="sr-only">{t('reporter.title.createAReport')}</h1>
       <StepBar steps={steps} currentStep={step} />
       <div className="w-full mt-8">
         <div>

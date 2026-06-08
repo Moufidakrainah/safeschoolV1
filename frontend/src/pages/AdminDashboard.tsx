@@ -350,7 +350,7 @@ const onFetchReports = async (page: number) => {
 
   if (view === 'detail' && selected) {
     return (
-      <main className="min-h-screen bg-gray-50 font-sans">
+      <main className="flex-1 bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
         <ReportDetail
@@ -426,7 +426,7 @@ const onFetchReports = async (page: number) => {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -506,33 +506,7 @@ const onFetchReports = async (page: number) => {
                 ))}
               </ul>
             )}
-            {/* <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} /> */}
-
-
-			{/* {Math.ceil(filtered.length / 7) > 1 && (
-				<PaginationShadcn className="mt-4">
-					<PaginationContent>
-						<PaginationItem>
-							<PaginationPrevious
-							onClick={() => { if (currentPage > 1) { onSetUsersPage(currentPage - 1); onFetchUsers(currentPage - 1); } }}
-							className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-						</PaginationItem>
-						{Array.from({ length: Math.ceil(filtered.length / 7) }, (_, i) => i + 1).map(p => (
-							<PaginationItem key={p}>
-							<PaginationLink
-								isActive={p === currentPage}
-								onClick={() => { onSetUsersPage(p); onFetchUsers(p); }}
-								className="cursor-pointer">{p}</PaginationLink>
-							</PaginationItem>
-						))}
-						<PaginationItem>
-							<PaginationNext
-							onClick={() => { if (currentPage < totalPages) { onSetUsersPage(currentPage + 1); onFetchUsers(currentPage + 1); } }}
-							className={currentPage === Math.ceil(filtered.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-						</PaginationItem>
-					</PaginationContent>
-				</PaginationShadcn>
-			)} */}
+           
 
 
 {totalPages > 1 && (
