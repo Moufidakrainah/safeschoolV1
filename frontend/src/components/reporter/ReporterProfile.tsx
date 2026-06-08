@@ -119,28 +119,28 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
 
       {/* Informations personnelles */}
-      <Card className="p-6 mb-4 shadow-sm">
+      <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
         <h3 className="text-primary font-bold text-sm mb-4">Informations personnelles</h3>
         <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <tbody>
+        <Table className="w-full text-sm">
+          <TableBody>
             {[
               { label: t('reporter.profile.firstName'), value: user?.firstName },
               { label: t('reporter.profile.lastName'),  value: user?.lastName  },
               { label: t('reporter.profile.email'),     value: user?.email     },
             ].map(row => (
-              <tr key={row.label} className="border-b border-gray-100">
-                <td className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                <td className="py-2 text-gray-700">{row.value}</td>
-              </tr>
+              <TableRow key={row.label} className="border-b border-gray-100">
+                <TableCell className="py-2 text-gray-400 font-semibold w-2/5">{row.label}</TableCell>
+                <TableCell className="py-2 text-gray-700">{row.value}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         </div>
-      </Card>
+      </div>
 
       {/* Profil professionnel */}
-      <Card className="p-6 shadow-sm">
+      <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
         <h3 className="text-primary font-bold text-sm mb-4">Profil professionnel</h3>
 
         {loadingProfile ? (
@@ -150,20 +150,20 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
         ) : (
           <>
             <div className="overflow-x-auto">
-            <table className="w-full text-sm mb-4">
-              <tbody>
-                <tr className="border-b border-gray-100">
-                  <td className="py-2 text-gray-400 font-semibold w-2/5">Profession</td>
-                  <td className="py-2 text-gray-700 capitalize">{staffProfile.profession}</td>
-                </tr>
+            <Table className="w-full text-sm mb-4">
+              <TableBody>
+                <TableRow className="border-b border-gray-100">
+                  <TableCell className="py-2 text-gray-400 font-semibold w-2/5">Profession</TableCell>
+                  <TableCell className="py-2 text-gray-700 capitalize">{staffProfile.profession}</TableCell>
+                </TableRow>
                 {staffProfile.subject && (
-                  <tr className="border-b border-gray-100">
-                    <td className="py-2 text-gray-400 font-semibold w-2/5">Matière</td>
-                    <td className="py-2 text-gray-700">{staffProfile.subject}</td>
-                  </tr>
+                  <TableRow className="border-b border-gray-100">
+                    <TableCell className="py-2 text-gray-400 font-semibold w-2/5">Matière</TableCell>
+                    <TableCell className="py-2 text-gray-700">{staffProfile.subject}</TableCell>
+                  </TableRow>
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
             </div>
 
             {staffProfile.classes.length > 0 && (
@@ -180,7 +180,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
             )}
           </>
         )}
-      </Card>
+      </div>
     {/* </main> */}
     </section>
   );

@@ -22,7 +22,8 @@ interface StudentHeaderProps {
   onNotifRefresh?: () => void;
 }
 
-export default function StudentHeader({ user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
+export default function StudentHeader({ 
+	user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
   const { t } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);

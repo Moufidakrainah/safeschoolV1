@@ -1,21 +1,32 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState, useCallback } from 'react';
 import Header from '../Header/Header';
+import { getNotifications, getUnreadCount, markNotificationRead } from '../../../services/api';
 import type { AuthUser } from '../../../types';
 
 type ReporterSection = 'profile' | 'report' | 'quiz';
+
+interface Notification {
+  id: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 interface ReporterHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
   viewSection: ReporterSection;
   setViewSection: (s: ReporterSection) => void;
+  notifRefreshKey?: number;
+  onNotifRefresh?: () => void;
 }
 
 export default function ReporterHeader({
   user,
   logoutUser,
   viewSection,
-  setViewSection,
+  setViewSection, notifRefreshKey = 0, onNotifRefresh 
 }: ReporterHeaderProps) {
   const { t } = useTranslation();
 
@@ -25,9 +36,57 @@ export default function ReporterHeader({
     { key: 'quiz',     label: t('reporter.nav.quiz') },
   ];
 
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+
+  const fetchNotifs = useCallback(async () => {
+    try {
+      const [countData, notifs] = await Promise.all([getUnreadCount(), getNotifications()]);
+      setUnreadCount(prev => {
+        if (prev !== (countData.count ?? 0)) onNotifRefresh?.();
+        return countData.count ?? 0;
+      });
+      setNotifications(notifs);
+    } catch {
+      setUnreadCount(0);
+      setNotifications([]);
+    }
+  }, [onNotifRefresh]);
+
+
+  useEffect(() => {
+    fetchNotifs();
+    const interval = setInterval(fetchNotifs, 30000);
+    return () => clearInterval(interval);
+  }, [fetchNotifs]);
+
+  useEffect(() => {
+    if (notifRefreshKey > 0) fetchNotifs();
+  }, [notifRefreshKey, fetchNotifs]);
+
+  const handleNotifClick = async (notif: Notification) => {
+    if (!notif.isRead) {
+      try {
+        await markNotificationRead(notif.id);
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev =>
+          prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
+        );
+        onNotifRefresh?.();
+      } catch {}
+    }
+  };
+
+
   return (
     <header>
-      <Header user={user} logoutUser={logoutUser} />
+      <Header 
+        user={user}
+        logoutUser={logoutUser}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        onNotifClick={handleNotifClick}
+      />
 
       <nav
         className="bg-primary px-8 py-0 flex items-center gap-8"
