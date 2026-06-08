@@ -43,10 +43,10 @@ export default function Quiz() {
     leaveRoom,
     startGame,
     submitAnswer,
-  } = useQuizSocket(user?.firstName);
+  } = useQuizSocket(user?.firstName, user?.id);
 
-  // Snapshot each player's rank at the start of every question so the live
-  // leaderboard can show how positions shifted during the reveal.
+  // Capture le rang de chaque joueur au début de chaque question pour que le
+  // classement en direct puisse montrer comment les positions ont bougé pendant la révélation
   const prevRanksRef = useRef<Record<string, number>>({});
   const questionNumber = questionState?.questionNumber ?? null;
   useEffect(() => {
@@ -56,7 +56,7 @@ export default function Quiz() {
       .sort((a, b) => b.score - a.score)
       .forEach((p, i) => { ranks[p.clientId] = i + 1; });
     prevRanksRef.current = ranks;
-    // Only re-snapshot when the question changes, not on every score update.
+    // On ne recapture que quand la question change, pas à chaque mise à jour du score
   }, [questionNumber]);
 
   const headerProps = {
@@ -68,7 +68,7 @@ export default function Quiz() {
     studentSetViewSection: setViewSection,
   };
 
-  // ── Lobby: join screen
+  // ── Écran d'accueil : rejoindre une salle
   if (!joinedRoom) {
     return (
       <div className="flex flex-col flex-1 min-h-0">
@@ -110,7 +110,7 @@ export default function Quiz() {
     );
   }
 
-  // ── Waiting room
+  // ── Salle d'attente
   if (gamePhase === 'lobby') {
     return (
       <div className="flex flex-col flex-1 min-h-0">
@@ -121,13 +121,17 @@ export default function Quiz() {
             {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
             {players.length > 0 && (
               <ul className="space-y-1">
-                {players.map((p) => (
-                  <li key={p.clientId} className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className={`w-2 h-2 rounded-full ${p.clientId === myClientId ? 'bg-primary' : 'bg-gray-300'}`} />
-                    <span className={p.clientId === myClientId ? 'font-semibold text-primary' : ''}>{p.name}</span>
-                    {p.clientId === myClientId && <span className="text-xs text-gray-400">(vous)</span>}
-                  </li>
-                ))}
+                {players.map((p) => {
+                  const isDisconnected = p.connected === false;
+                  return (
+                    <li key={p.clientId} className={`flex items-center gap-2 text-sm ${isDisconnected ? 'text-gray-400' : 'text-gray-700'}`}>
+                      <span className={`w-2 h-2 rounded-full ${isDisconnected ? 'bg-amber-400' : p.clientId === myClientId ? 'bg-primary' : 'bg-gray-300'}`} />
+                      <span className={p.clientId === myClientId && !isDisconnected ? 'font-semibold text-primary' : ''}>{p.name}</span>
+                      {p.clientId === myClientId && <span className="text-xs text-gray-400">(vous)</span>}
+                      {isDisconnected && <span className="text-xs text-amber-500">(déconnecté)</span>}
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 flex flex-col gap-2">
@@ -154,7 +158,7 @@ export default function Quiz() {
     );
   }
 
-  // ── Game over: leaderboard
+  // ── Fin de partie : classement
   if (gamePhase === 'over') {
     const board = finalLeaderboard ?? [];
     return (
@@ -208,7 +212,7 @@ export default function Quiz() {
     );
   }
 
-  // ── Playing
+  // ── En jeu
   const secondsLeft = Math.ceil(timeLeftMs / 1000);
   const isRevealing = questionState?.revealEndsAt != null;
   const timerPct = questionState?.timeLimitMs
@@ -225,13 +229,19 @@ export default function Quiz() {
       <div className="flex items-center justify-center flex-1 bg-surface py-8 overflow-y-auto">
         <div className="w-full max-w-lg rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
 
-          {/* Header row */}
+          {/* Ligne d'en-tête */}
           <div className="flex items-center justify-between text-sm text-gray-500">
             <span>Salle : {joinedRoom}</span>
             <span>{questionState?.questionNumber ?? '–'} / {questionState?.totalQuestions ?? '–'}</span>
           </div>
 
-          {/* Timer bar + countdown */}
+          {reconnecting && (
+            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-center text-sm text-amber-600">
+              Connexion perdue — reconnexion en cours…
+            </p>
+          )}
+
+          {/* Barre de minuteur + décompte */}
           {!isRevealing && (
             <div className="flex items-center gap-3">
               <div className="h-2 flex-1 rounded-full bg-gray-100 overflow-hidden">
@@ -251,7 +261,7 @@ export default function Quiz() {
             </div>
           )}
 
-          {/* Streak / multiplier banner */}
+          {/* Bannière de série / multiplicateur */}
           {!isRevealing && (
             <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
               <div className="flex flex-col">
@@ -281,7 +291,7 @@ export default function Quiz() {
               {/* Question */}
               <h2 key={questionState.questionNumber} className="quiz-rise text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
 
-              {/* Answer feedback */}
+              {/* Retour sur la réponse */}
               {isRevealing && questionState.lastAnswerCorrect && questionState.basePoints != null && (
                 <div className="quiz-rise rounded-xl border border-green-100 bg-green-50 px-4 py-3 flex flex-col gap-3">
                   <span className="text-sm font-semibold text-green-600">Bonne réponse !</span>
@@ -310,7 +320,7 @@ export default function Quiz() {
                 </div>
               )}
 
-              {/* Waiting states */}
+              {/* États d'attente */}
               {!isRevealing && questionState.hasAnswered && (
                 <p className="text-sm text-gray-400">Réponse envoyée. En attente des autres joueurs…</p>
               )}
@@ -324,7 +334,7 @@ export default function Quiz() {
                 <p className="text-sm text-gray-400">Prochaine question dans {secondsLeft}s</p>
               )}
 
-              {/* Answer buttons */}
+              {/* Boutons de réponse */}
               <ul className="grid grid-cols-2 gap-3">
                 {questionState.question.options.map((opt, i) => {
                   const isCorrect = isRevealing && i === questionState.correctIndex;
@@ -359,7 +369,7 @@ export default function Quiz() {
                 })}
               </ul>
 
-              {/* Reveal stats */}
+              {/* Statistiques de révélation */}
               {isRevealing && questionState.answerStatistics.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Résultats</p>
@@ -379,7 +389,7 @@ export default function Quiz() {
                 </div>
               )}
 
-              {/* Live leaderboard during reveal — with rank movement */}
+              {/* Classement en direct pendant la révélation — avec mouvement de rang */}
               {isRevealing && sortedPlayers.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Classement en direct</p>

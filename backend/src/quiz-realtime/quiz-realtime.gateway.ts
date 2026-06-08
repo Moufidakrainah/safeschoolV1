@@ -73,7 +73,7 @@ export class QuizRealtimeGateway
       },
     );
 
-    // A disconnected player's grace period expired and they were removed
+    // La période de grâce d'un joueur déconnecté a expiré et il a été retiré
     this.quizRealtimeService.setOnPlayerExpired(
       ({ roomId, result, revealPayload }) => {
         if (result.status === "room-closed") {
@@ -159,8 +159,8 @@ export class QuizRealtimeGateway
 		return user?.sub;
 	}
 
-	// Bring a reconnecting player back in sync with an in-progress game: replay
-	// the current question, scores, any active reveal, and their own answer
+	// Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
+	// la question en cours, les scores, toute révélation active et sa propre réponse
 	private sendReconnectState(client: Socket, roomId: string, playerId: string) {
 		const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
 		if (!snapshot || snapshot.status !== 'in-progress') return;
@@ -224,6 +224,30 @@ export class QuizRealtimeGateway
 			};
 		}
 
+		// Une seule salle active par compte : si ce compte est déjà en ligne dans une salle
+		// (un autre onglet, ou une autre salle), on refuse de rejoindre et on laisse cette salle
+		// intacte. Se reconnecter après une vraie coupure n'est pas affecté car la
+		// présence restante n'est plus "connectée"
+		const activeRoomId = this.quizRealtimeService.getActiveRoomId(playerId, client.id);
+		if (activeRoomId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'already-in-room', snapshot: null },
+			};
+		}
+
+		// Nettoie toute présence restante (déconnectée) dans les autres salles pour que le
+		// compte ne soit suivi que dans une seule salle, puis rafraîchit ces salles
+		const evictions = this.quizRealtimeService.evictFromOtherRooms(playerId, payload.roomId);
+		for (const eviction of evictions) {
+			void client.leave(eviction.roomId);
+			if (eviction.result.status === 'room-closed') {
+				this.server.to(eviction.roomId).emit('quiz:room:closed', { roomId: eviction.roomId });
+			} else if (eviction.result.snapshot) {
+				this.server.to(eviction.roomId).emit('quiz:room:update', eviction.result.snapshot);
+			}
+		}
+
 		const result = this.quizRealtimeService.joinRoom({
 			roomId: payload.roomId,
 			playerId,
@@ -279,7 +303,7 @@ export class QuizRealtimeGateway
 			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
 		}
 
-		// Reconnecting mid-game: replay the current game state to this client
+		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
 		if (result.status === 'reconnected') {
 			this.sendReconnectState(client, payload.roomId, playerId);
 		}

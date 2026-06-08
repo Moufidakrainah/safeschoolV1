@@ -18,23 +18,23 @@ interface QuestionPublic {
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
 const QUESTIONS_PER_GAME = 15;
 const QUESTION_TIME_LIMIT_MS = 30_000;
-// Hard cap on concurrent rooms to prevent a client from exhausting memory by
-// flooding `quiz:join` with unique room codes.
+// Limite stricte du nombre de salles simultanées pour empêcher un client de
+// saturer la mémoire en inondant `quiz:join` de codes de salle uniques
 const MAX_CONCURRENT_ROOMS = 500;
 
 const REVEAL_TIME_MS = 5_000;
-// How long a disconnected player's state is kept so they can reconnect and
-// resume an in-progress game. After this, their state is dropped from the room
+// Durée de conservation de l'état d'un joueur déconnecté pour qu'il puisse se reconnecter et
+// reprendre une partie en cours. Passé ce délai, son état est supprimé de la salle
 const RECONNECT_GRACE_MS = 60_000;
 
-// Speed tiers: faster correct answers are worth more base points
+// Paliers de vitesse : répondre correctement plus vite rapporte plus de points de base
 const SPEED_TIERS: { withinMs: number; points: number }[] = [
 	{ withinMs: 3_000, points: 3 },
 	{ withinMs: 7_000, points: 2 },
 ];
-// If answered in more than 7 seconds the 1 point is given
+// Si la réponse prend plus de 7 secondes, 1 point est attribué
 const SPEED_SLOW_POINTS = 1;
-// Max possible combo streak
+// Série de combo maximale possible
 const MAX_STREAK_MULTIPLIER = 5;
 
 function speedBasePoints(elapsedMs: number): number {
@@ -59,9 +59,9 @@ function pickRandomQuestions(
 type GameStatus = "waiting" | "in-progress" | "finished";
 
 interface QuizPlayer {
-	// Stable identity (JWT `sub`) that survives socket reconnects
+	// Identité stable (JWT `sub`) qui survit aux reconnexions du socket
 	playerId: string;
-	// Current live socket id, or null while the player is disconnected
+	// Id du socket actif actuel, ou null tant que le joueur est déconnecté
 	socketId: string | null;
 	name: string;
 	score: number;
@@ -73,10 +73,10 @@ interface QuizPlayer {
 
 interface QuizRoom {
 	roomId: string;
-	// Host identity (stable playerId, not a socket id)
+	// Identité de l'hôte (playerId stable, pas un id de socket)
 	hostId: string;
 	status: GameStatus;
-	// Keyed by stable playerId.
+	// Indexé par playerId stable
 	players: Map<string, QuizPlayer>;
 	questions: QuestionInternal[];
 	currentQuestionIndex: number;
@@ -125,14 +125,14 @@ interface SubmitAnswerInput {
 	selectedIndex: number;
 }
 
-// One entry per room a disconnecting socket was part of
+// Une entrée par salle dont le socket en déconnexion faisait partie
 interface DisconnectUpdate {
 	roomId: string;
-	// The room was emptied and deleted as a result of the disconnect.
+	// La salle a été vidée et supprimée suite à la déconnexion
 	closed: boolean;
 	snapshot: RoomSnapshot | null;
-	// Set when the disconnect made every remaining connected player "answered",
-	// so the question should be revealed right away
+	// Défini quand la déconnexion fait que tous les joueurs connectés restants ont "répondu",
+	// pour que la question soit révélée immédiatement
 	revealPayload: QuestionRevealPayload | null;
 }
 
@@ -215,8 +215,8 @@ export class QuizRealtimeService {
 
 		let room = this.rooms.get(roomId);
 
-		// Reconnect: the player is already a member (possibly mid-game). Re-attach
-		// the new socket and cancel any pending grace-period removal
+		// Reconnexion : le joueur est déjà membre (peut-être en pleine partie). On rattache
+		// le nouveau socket et on annule toute suppression de période de grâce en attente
 		if (room && room.players.has(playerId)) {
 			const player = room.players.get(playerId)!;
 			if (player.disconnectTimer) {
@@ -321,7 +321,7 @@ export class QuizRealtimeService {
     }
 
 		if (room.hostId === playerId) {
-			// Prefer a still-connected player as the new host.
+			// On préfère un joueur encore connecté comme nouvel hôte
 			const nextHost =
 				[...room.players.values()].find((candidate) => candidate.connected) ??
 				(room.players.values().next().value as QuizPlayer | undefined);
@@ -336,12 +336,48 @@ export class QuizRealtimeService {
     };
   }
 
+	// Renvoie la salle dans laquelle ce compte est actuellement EN LIGNE (connecté sur un
+	// socket autre que `exceptSocketId`), ou null. Sert à refuser un deuxième onglet ou une
+	// deuxième salle tant que le compte est encore activement dans une. Une présence laissée
+	// dans un état de grâce "déconnecté" ne compte pas, donc se reconnecter
+	// après une vraie coupure reste autorisé
+	getActiveRoomId(playerId: string, exceptSocketId: string): string | null {
+		for (const room of this.rooms.values()) {
+			const player = room.players.get(playerId);
+			if (player && player.connected && player.socketId !== exceptSocketId) {
+				return room.roomId;
+			}
+		}
+		return null;
+	}
+
+	// Impose une seule salle par compte : retire complètement ce joueur de toutes les salles
+	// sauf `keepRoomId`. Renvoie les résultats de sortie pour que la gateway puisse rafraîchir
+	// les salles dont le joueur a été retiré
+	evictFromOtherRooms(
+		playerId: string,
+		keepRoomId: string,
+	): Array<{ roomId: string; result: LeaveRoomResult }> {
+		const evictions: Array<{ roomId: string; result: LeaveRoomResult }> = [];
+
+		for (const otherRoomId of [...this.rooms.keys()]) {
+			if (otherRoomId === keepRoomId) continue;
+			const room = this.rooms.get(otherRoomId);
+			if (!room || !room.players.has(playerId)) continue;
+
+			const result = this.leaveRoom(otherRoomId, playerId);
+			evictions.push({ roomId: otherRoomId, result });
+		}
+
+		return evictions;
+	}
+
 	startGame(roomId: string, playerId: string): StartGameResult {
 		const room = this.rooms.get(roomId);
 		if (!room) return { status: 'room-not-found', snapshot: null };
 		if (room.hostId !== playerId) return { status: 'not-host', snapshot: null };
 
-		// Prevent a host from restarting a game mid-game
+		// Empêche un hôte de relancer une partie en pleine partie
 		if (room.status !== 'waiting') return { status: 'already-in-progress', snapshot: null };
 
 		this.clearQuestionTimer(room);
@@ -427,8 +463,8 @@ export class QuizRealtimeService {
 		room.selectedAnswerByPlayerId.set(playerId, selectedIndex);
 		room.answeredPlayerIds.add(playerId);
 
-    // Disconnected players are skipped: only connected players need to have
-    // answered for the question to advance.
+    // Les joueurs déconnectés sont ignorés : seuls les joueurs connectés ont besoin
+    // d'avoir répondu pour que la question avance
     let revealPayload: QuestionRevealPayload | null = null;
     if (this.allConnectedAnswered(room)) {
       revealPayload = this.enterRevealPhase(room);
@@ -466,9 +502,9 @@ export class QuizRealtimeService {
     this.onPlayerExpired = handler;
   }
 
-	// Called when a socket disconnects. During a running game the player is kept
-	// in a "disconnected" state for a grace period so they can reconnect and
-	// resume; outside of a running game they are removed immediately
+	// Appelé quand un socket se déconnecte. Pendant une partie en cours, le joueur est gardé
+	// dans un état "déconnecté" pendant une période de grâce pour qu'il puisse se reconnecter et
+	// reprendre ; en dehors d'une partie en cours, il est retiré immédiatement
 	markDisconnected(socketId: string): DisconnectUpdate[] {
 		const updates: DisconnectUpdate[] = [];
 
@@ -478,7 +514,7 @@ export class QuizRealtimeService {
 
 			const roomId = room.roomId;
 
-			// No live game to resume — drop the player straight away.
+			// Aucune partie en cours à reprendre — on retire le joueur tout de suite
 			if (room.status !== 'in-progress') {
 				const result = this.leaveRoom(roomId, player.playerId);
 				updates.push({
@@ -487,6 +523,22 @@ export class QuizRealtimeService {
 					snapshot: result.snapshot,
 					revealPayload: null,
 				});
+				continue;
+			}
+
+			// Si personne d'autre n'est encore connecté (ex : une partie solo), il n'y a aucune
+			// partie en cours à garder en vie pour une reconnexion — on détruit toute la salle pour
+			// que le joueur ne puisse pas revenir dans une salle fantôme vide
+			const otherConnected = [...room.players.values()].some(
+				(candidate) => candidate.playerId !== player.playerId && candidate.connected,
+			);
+			if (!otherConnected) {
+				this.clearQuestionTimer(room);
+				this.clearRevealTimer(room);
+				this.clearAllDisconnectTimers(room);
+				room.players.clear();
+				this.rooms.delete(roomId);
+				updates.push({ roomId, closed: true, snapshot: null, revealPayload: null });
 				continue;
 			}
 
@@ -500,8 +552,8 @@ export class QuizRealtimeService {
 				RECONNECT_GRACE_MS,
 			);
 
-			// Now that this player no longer counts, the remaining connected players
-			// may already have all answered — reveal immediately so nobody waits
+			// Maintenant que ce joueur ne compte plus, les joueurs connectés restants
+			// ont peut-être déjà tous répondu — on révèle immédiatement pour que personne n'attende
 			let revealPayload: QuestionRevealPayload | null = null;
 			if (room.revealEndsAt === null && this.allConnectedAnswered(room)) {
 				revealPayload = this.enterRevealPhase(room);
@@ -518,17 +570,17 @@ export class QuizRealtimeService {
 		return updates;
 	}
 
-	// Grace period elapsed without a reconnect: remove the player for good
+	// La période de grâce s'est écoulée sans reconnexion : on retire le joueur définitivement
 	private expirePlayer(roomId: string, playerId: string) {
 		const room = this.rooms.get(roomId);
 		if (!room) return;
 
 		const player = room.players.get(playerId);
-		if (!player || player.connected) return; // reconnected in the meantime
+		if (!player || player.connected) return; // reconnecté entre-temps
 
 		const result = this.leaveRoom(roomId, playerId);
 
-		// Removing them may complete the current question for everyone still here
+		// Les retirer peut compléter la question en cours pour tous ceux encore présents
 		let revealPayload: QuestionRevealPayload | null = null;
 		const remaining = this.rooms.get(roomId);
 		if (
@@ -569,8 +621,8 @@ export class QuizRealtimeService {
 		};
 	}
 
-  // Per-player view of the current question, used to restore a reconnecting
-  // player's "already answered" UI state.
+  // Vue par joueur de la question en cours, utilisée pour restaurer l'état d'UI
+  // "déjà répondu" d'un joueur qui se reconnecte
   getPlayerAnswerState(roomId: string, playerId: string) {
     const room = this.rooms.get(roomId);
     if (!room) return null;
@@ -583,8 +635,8 @@ export class QuizRealtimeService {
     };
   }
 
-  // Reveal payload for the question currently being revealed, if any. Used to
-  // catch a reconnecting player up to the reveal phase
+  // Données de révélation de la question en cours de révélation, le cas échéant. Sert à
+  // mettre à jour un joueur qui se reconnecte jusqu'à la phase de révélation
   getRevealSnapshot(roomId: string): QuestionRevealPayload | null {
     const room = this.rooms.get(roomId);
     if (!room || room.revealEndsAt === null) return null;
@@ -661,7 +713,7 @@ export class QuizRealtimeService {
 		const currentQuestion = room.questions[room.currentQuestionIndex];
 		if (!currentQuestion) return null;
 
-		// Players who never answered this question lose their streak.
+		// Les joueurs qui n'ont jamais répondu à cette question perdent leur série
 		for (const player of room.players.values()) {
 			if (!room.answeredPlayerIds.has(player.playerId)) {
 				player.streak = 0;
