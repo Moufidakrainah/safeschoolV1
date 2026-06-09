@@ -38,11 +38,13 @@ export default function StudentForm({ user }: StudentFormProps) {
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
+    fieldErrors,
+    handleNext,
     suspects, suspectInput, searchingUsers,
     victimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
-    handleSubmit, handleSuspectSearch,
+    handleSubmit, handleSuspectSearch, clearFieldErrors,
     addSuspect, removeSuspect, resetForm,
   } = useStudentReportForm(user?.role, t);
 
@@ -188,6 +190,9 @@ export default function StudentForm({ user }: StudentFormProps) {
               {showErrors && !description && (
                 <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
               )}
+              {fieldErrors.description && (
+                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {fieldErrors.description}</p>
+              )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
               </label>
@@ -204,6 +209,9 @@ export default function StudentForm({ user }: StudentFormProps) {
               </Select>
               {showErrors && !frequency && (
                 <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
+              )}
+              {fieldErrors.frequency && (
+                <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {fieldErrors.frequency}</p>
               )}
             </div>
           )}
@@ -239,6 +247,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                       if (victimInput.trim()) {
                         setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
                         setVictimInput('');
+                        clearFieldErrors();
                       }
                     }}
                     disabled={!victimInput.trim()}
@@ -252,15 +261,21 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <div className="mt-4">
                   <div className="flex flex-wrap gap-2">
                     {victimName.split('|').map((v, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
-                        <span>{v}</span>
-                        <button
-                          onClick={() => {
-                            const arr = victimName.split('|').filter((_, idx) => idx !== i);
-                            setVictimName(arr.join('|'));
-                          }}
-                          className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
-                        >×</button>
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+                          <span>{v}</span>
+                          <button
+                            onClick={() => {
+                              const arr = victimName.split('|').filter((_, idx) => idx !== i);
+                              setVictimName(arr.join('|'));
+                              clearFieldErrors();
+                            }}
+                            className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
+                          >×</button>
+                        </div>
+                        {fieldErrors[`victim_${i}`] && (
+                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`victim_${i}`]}</p>
+                        )}
                       </div>
                     ))}
 
@@ -291,7 +306,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 />
                 <Button
                   variant="outline"
-                  onClick={() => { if (suspectInput.trim()) addSuspect({ firstName: suspectInput.trim(), lastName: '' }); }}
+                  onClick={() => { if (suspectInput.trim()) { addSuspect({ firstName: suspectInput.trim(), lastName: '' }); clearFieldErrors(); } }}
                   disabled={!suspectInput.trim()}
                 >
                   + Ajoute ce harceleur
@@ -303,9 +318,14 @@ export default function StudentForm({ user }: StudentFormProps) {
                   {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}
                   <div className="flex flex-wrap gap-2">
                     {suspects.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
-                        <span>{s.firstName} {s.lastName}</span>
-                        <button onClick={() => removeSuspect(i)} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+                          <span>{s.firstName} {s.lastName}</span>
+                          <button onClick={() => { removeSuspect(i); clearFieldErrors(); }} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
+                        </div>
+                        {fieldErrors[`suspect_${i}`] && (
+                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`suspect_${i}`]}</p>
+                        )}
                       </div>
                     ))}
 
@@ -381,9 +401,7 @@ export default function StudentForm({ user }: StudentFormProps) {
             {step < 6 ? (
               <Button 
 			  onClick={() => {
-                if (isNextDisabled) { setShowErrors(true); return; }
-                setShowErrors(false);
-                setStep(s => s + 1);
+                handleNext();
               }}>
                 {t('common.next')} →
               </Button>
