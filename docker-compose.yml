@@ -10,9 +10,19 @@ services:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - safeschool_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
+# == BACKEND =================================================
 
   backend:
     build:
@@ -30,9 +40,18 @@ services:
       database:
         condition: service_healthy
       logstash:
-        condition: service_started
+        condition: service_healthy
     networks:
       - safeschool_network
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
+# == BASE DE DONNÉES =========================================
 
   database:
     image: postgres:15-alpine
@@ -53,20 +72,8 @@ services:
     networks:
       - safeschool_network
 
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: safeschool_pgadmin
-    ports:
-      - "8080:80"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@safeschool.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-    volumes:
-      - pgadmindata:/var/lib/pgadmin
-    depends_on:
-      - database
-    networks:
-      - safeschool_network
+
+# == Logs et monitoring ================================
 
 ### === ELK ===
   elasticsearch:
@@ -95,7 +102,6 @@ services:
       - "5044:5044"
     volumes:
       - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
-      #  logstash_data:/usr/share/logstash/data 
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -150,60 +156,10 @@ volumes:
   kibanadata:
   frontend_node_modules:
   backend_node_modules:
-  pgadmindata:
+
+
+# == RÉSEAU ==================================================
 
 networks:
   safeschool_network:
     driver: bridge
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    

@@ -19,8 +19,11 @@ check-env: ## Vérifier que le fichier .env existe
 	@test -f $(ENV_FILE) || { echo "$(ENV_FILE) manquant."; exit 1; }
 
 up: check-env ## Construire, démarrer et injecter les données si base vide
-	$(COMPOSE) up -d --build
-	$(MAKE) seed-if-empty
+	@start=$$(date +%s); \
+	$(COMPOSE) up -d --build; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
 down: ## Arrêter tous les services
 	$(COMPOSE) down
@@ -36,16 +39,26 @@ build: check-env ## Construire les images sans démarrer
 	$(COMPOSE) build
 
 rebuild: check-env ## Reconstruire sans cache et redémarrer
-	$(COMPOSE) down
-	$(COMPOSE) build --no-cache
-	$(COMPOSE) up -d
-	$(MAKE) seed-if-empty
+	@start=$$(date +%s); \
+	$(COMPOSE) down; \
+	$(COMPOSE) build --no-cache; \
+	$(COMPOSE) up -d; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
+
 
 # == SERVICE PAR SERVICE ==
 
-up-fe: check-env ## Démarrer uniquement le frontend, backend et database
-	$(COMPOSE) up -d frontend backend database
-	$(MAKE) seed-if-empty
+up-app: check-env ## Démarrer uniquement frontend, backend et database (sans ELK ni pgadmin)
+	@start=$$(date +%s); \
+	$(COMPOSE) up -d --no-deps --build frontend backend database; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
+
+start: check-env ## Démarrer les services sans reconstruire les images
+	$(COMPOSE) up -d
 
 up-be: check-env ## Démarrer backend et database seulement
 	$(COMPOSE) up -d backend database
@@ -77,7 +90,6 @@ logs-elk: ## Suivre les logs de la stack ELK
 
 logs-setup: ## Afficher les logs du script de setup ELK
 	$(COMPOSE) logs elasticsearch-setup
-
 
 #  === BASE DE DONNÉES ===
 
