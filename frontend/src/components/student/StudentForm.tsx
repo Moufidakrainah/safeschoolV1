@@ -191,7 +191,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
               )}
               {fieldErrors.description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {fieldErrors.description}</p>
+                <p role="alert" className="mb-4 text-sm text-red-600">{fieldErrors.description}</p>
               )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
@@ -211,7 +211,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
               )}
               {fieldErrors.frequency && (
-                <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {fieldErrors.frequency}</p>
+                <p role="alert" className="mt-2 text-sm text-red-600">{fieldErrors.frequency}</p>
               )}
             </div>
           )}
@@ -274,7 +274,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                           >×</button>
                         </div>
                         {fieldErrors[`victim_${i}`] && (
-                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`victim_${i}`]}</p>
+                          <p className="text-xs text-red-600 pl-2">{fieldErrors[`victim_${i}`]}</p>
                         )}
                       </div>
                     ))}
@@ -324,7 +324,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                           <button onClick={() => { removeSuspect(i); clearFieldErrors(); }} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
                         </div>
                         {fieldErrors[`suspect_${i}`] && (
-                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`suspect_${i}`]}</p>
+                          <p className="text-xs text-red-600 pl-2">{fieldErrors[`suspect_${i}`]}</p>
                         )}
                       </div>
                     ))}

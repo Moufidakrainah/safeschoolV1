@@ -21,7 +21,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn(className)}
+      className={cn("p-2 text-sm font-semibold text-muted-foreground", className)}
       {...props}
     />
   )
@@ -55,7 +55,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 ",
+        "transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 ",
         className
       )}
       {...props}
@@ -76,18 +76,45 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCellLeft({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-top wrap-break-word",
+        "p-2 font-semibold text-muted-foreground w-1/2",
         className
       )}
       {...props}
     />
   )
 }
+
+function TableCellParent({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "p-2 font-semibold text-primary w-1/2 text-lg",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "text-primary",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 
 function TableCaption({
   className,
@@ -110,5 +137,7 @@ export {
   TableHead,
   TableRow,
   TableCell,
+  TableCellLeft,
   TableCaption,
+  TableCellParent, 
 }
