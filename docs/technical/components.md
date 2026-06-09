@@ -8,7 +8,7 @@ The module requires a minimum of 10 reusable components with a consistent design
 
 ## Layer 1 — shadcn/ui Primitives (`components/ui/`)
 
-These components are copied into the project via `npx shadcn@latest add <component>` — they are not a runtime dependency but owned code. They are built on `@base-ui/react` (Base UI, the successor to Radix UI), which provides keyboard navigation, focus management, and ARIA compliance out of the box.
+These components are copied into the project via `npx shadcn@latest add <component>` — they are not a runtime dependency but owned code. They are built on **Radix UI**, which provides keyboard navigation, focus management, and ARIA compliance out of the box.
 
 | Component | File | Radix primitive | Usage in SafeSchool |
 |---|---|---|---|
@@ -49,7 +49,7 @@ The practical rule is simple: if a component could be reused in another product 
 
 All components consume tokens defined in `frontend/src/index.css`:
 
-- **Colors**: `--color-primary`, `--color-critical/high/medium/low`, `--color-surface` — see [`design/colors.md`](../design/colors.md)
+- **Colors**: `--color-primary`, `--color-critical/high/medium/low`, `--color-surface` — see [`design/graphic-charter.md`](../design/graphic-charter.md)
 - **Typography**: Geist Variable font, Tailwind utility classes (`text-4xl font-black`, `text-sm text-gray-600`, etc.)
 - **Radius**: controlled by shadcn variable `--radius: 0.625rem`, applied via `rounded-sm/md/lg/xl`
 

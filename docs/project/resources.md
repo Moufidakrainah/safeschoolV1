@@ -1,5 +1,7 @@
 # Resources
 
+> Reference library used during the project. Links are primarily in French as the subject domain (school harassment in France) is covered mainly by French-language sources.
+
 ## Studies & Statistics
 
 [Definition du harcelement](https://www.education.gouv.fr/non-au-harcelement/qu-est-ce-que-le-harcelement-325361)

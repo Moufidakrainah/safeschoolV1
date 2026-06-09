@@ -10,13 +10,12 @@ The mockups in [`mockups/v1-initial/`](./mockups/v1-initial/) were produced at t
 
 ### Phase 2 — Final UI
 
-As the application took shape, the interface evolved toward a design system built on **shadcn/ui** and **Tailwind CSS v4**. The visual rules are documented in [`graphic-charter.md`](./graphic-charter.md) and [`colors.md`](./colors.md).
+As the application took shape, the interface evolved toward a design system built on **shadcn/ui** and **Tailwind CSS v4**. The visual rules are documented in [`graphic-charter.md`](./graphic-charter.md).
 
 ## Files
 
 | File | Description |
 |---|---|
-| [`colors.md`](./colors.md) | Color palette and token reference |
-| [`graphic-charter.md`](./graphic-charter.md) | Graphic charter: typography, spacing, radius, shadows |
+| [`graphic-charter.md`](./graphic-charter.md) | Graphic charter: colors, typography, spacing, radius, shadows |
 | [`design-system.md`](./design-system.md) | Component strategy and UI conventions |
 | [`mockups/v1-initial/`](./mockups/v1-initial/) | Initial mockups (March 2026) |

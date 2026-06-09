@@ -1,75 +1,75 @@
-# Charte graphique — SafeSchool
+# Graphic Charter — SafeSchool
 
-> Référence des tokens visuels du projet : couleurs, typographie, espacement, radius.  
-> Source de vérité : `frontend/src/index.css` (`@theme`) et composants shadcn (`@theme inline`).  
-> Pour la stratégie de composants : voir [`design-system.md`](./design-system.md).
+> Visual token reference for the project: colors, typography, spacing, radius.
+> Source of truth: `frontend/src/index.css` (`@theme`) and shadcn components (`@theme inline`).
+> For component strategy: see [`design-system.md`](./design-system.md).
 
 ---
 
-## Couleurs
+## Colors
 
-### Couleurs principales
+### Primary colors
 
-| Token CSS | Classe Tailwind | Hex | Contraste / Usage |
+| CSS token | Tailwind class | Hex | Contrast / Usage |
 |---|---|---|---|
-| `--color-primary` | `bg-primary` `text-primary` `border-primary` | `#006278` | 5,0:1 sur blanc — WCAG AA. Navbar, footer, boutons, accents. |
-| `--color-primary-hover` | `hover:bg-primary-hover` | `#004f62` | 7,1:1 sur blanc — WCAG AAA. État hover du bouton primary. |
-| `--color-surface` | `bg-surface` | `#ebfcff` | Fond des pages (light background). |
+| `--color-primary` | `bg-primary` `text-primary` `border-primary` | `#006278` | 5.0:1 on white — WCAG AA. Navbar, footer, buttons, accents. |
+| `--color-primary-hover` | `hover:bg-primary-hover` | `#004f62` | 7.1:1 on white — WCAG AAA. Hover state for primary buttons. |
+| `--color-surface` | `bg-surface` | `#ebfcff` | Page background (light background). |
 
-> Note technique : `--color-primary` est contrôlé via la variable shadcn `--primary` dans `:root`.  
-> Modifier la couleur brand = modifier `--primary` dans `frontend/src/index.css`.
+> Technical note: `--color-primary` is controlled via the shadcn variable `--primary` in `:root`.
+> To change the brand color, update `--primary` in `frontend/src/index.css`.
 
-### Sévérité des signalements
+### Report severity colors
 
-| Token CSS | Classe Tailwind | Hex | Niveau |
+| CSS token | Tailwind class | Hex | Level |
 |---|---|---|---|
-| `--color-critical` | `bg-critical` `text-critical` | `#cc0000` | Critique (rouge foncé) |
-| `--color-high` | `bg-high` `text-high` | `#ff914d` | Grave (orange) |
-| `--color-medium` | `bg-medium` `text-medium` | `#ffde59` | Moyen (jaune) |
-| `--color-low` | `bg-low` `text-low` | `#74cc00` | Faible (vert) |
+| `--color-critical` | `bg-critical` `text-critical` | `#cc0000` | Critical (dark red) |
+| `--color-high` | `bg-high` `text-high` | `#ff914d` | High (orange) |
+| `--color-medium` | `bg-medium` `text-medium` | `#ffde59` | Medium (yellow) |
+| `--color-low` | `bg-low` `text-low` | `#74cc00` | Low (green) |
 
-### Variables shadcn (sémantiques)
+### shadcn semantic variables
 
-Ces variables sont gérées par shadcn/ui dans `index.css` et mappées sur les tokens Tailwind :
+These variables are managed by shadcn/ui in `index.css` and mapped to Tailwind tokens:
 
-| Variable CSS | Usage shadcn |
+| CSS variable | shadcn usage |
 |---|---|
-| `--primary` | Fond des boutons `default`, accents (= `#006278`) |
-| `--primary-foreground` | Texte sur `--primary` (blanc) |
-| `--background` | Fond de page par défaut |
-| `--foreground` | Texte principal |
-| `--muted` | Zones atténuées |
-| `--muted-foreground` | Texte secondaire |
-| `--border` | Bordures |
-| `--destructive` | Actions destructives (rouge) |
+| `--primary` | Background for `default` buttons, accents (= `#006278`) |
+| `--primary-foreground` | Text on `--primary` (white) |
+| `--background` | Default page background |
+| `--foreground` | Main text color |
+| `--muted` | Muted / dimmed areas |
+| `--muted-foreground` | Secondary text |
+| `--border` | Borders |
+| `--destructive` | Destructive actions (red) |
 
-> Ne pas modifier les variables shadcn directement. Passer par `--primary` pour la couleur brand.
+> Do not modify shadcn variables directly. Use `--primary` to change the brand color.
 
 ---
 
-## Typographie
+## Typography
 
-| Niveau | Classe Tailwind | Usage |
+| Level | Tailwind class | Usage |
 |---|---|---|
-| Heading XL | `text-4xl font-black` | Titres de page principaux |
-| Heading L | `text-2xl font-bold` | Titres de section |
-| Heading M | `text-xl font-semibold` | Sous-titres |
-| Corps | `text-base` | Texte courant |
-| Secondaire | `text-sm text-gray-600` | Descriptions, champs |
-| Légende | `text-xs text-gray-400` | Métadonnées, labels |
-| Code/Token | `font-mono text-sm` | Valeurs techniques |
+| Heading XL | `text-4xl font-black` | Main page titles |
+| Heading L | `text-2xl font-bold` | Section titles |
+| Heading M | `text-xl font-semibold` | Sub-titles |
+| Body | `text-base` | Regular text |
+| Secondary | `text-sm text-gray-600` | Descriptions, field hints |
+| Caption | `text-xs text-gray-400` | Metadata, labels |
+| Code / Token | `font-mono text-sm` | Technical values |
 
-**Police principale :** Geist Variable (chargée via `@fontsource-variable/geist`), fallback `system-ui, Roboto, sans-serif`.
+**Primary font:** Geist Variable (loaded via `@fontsource-variable/geist`), fallback `system-ui, Roboto, sans-serif`.
 
-> Valeurs legacy dans `frontend/src/styles/theme.ts` (`fontFamily`, `fontSize`) — à ne plus utiliser pour les nouveaux composants. Utiliser les classes Tailwind à la place.
+> Legacy values in `frontend/src/styles/theme.ts` (`fontFamily`, `fontSize`) — do not use for new components. Use Tailwind classes instead.
 
 ---
 
 ## Radius
 
-Radius définis par shadcn via la variable `--radius: 0.625rem` dans `:root`, déclinée automatiquement :
+Radius values defined by shadcn via the variable `--radius: 0.625rem` in `:root`, automatically scaled:
 
-| Classe Tailwind | Valeur |
+| Tailwind class | Value |
 |---|---|
 | `rounded-sm` | `calc(var(--radius) * 0.6)` ≈ 4px |
 | `rounded-md` | `calc(var(--radius) * 0.8)` ≈ 5px |
@@ -80,29 +80,30 @@ Radius définis par shadcn via la variable `--radius: 0.625rem` dans `:root`, d�
 
 ---
 
-## Espacement
+## Spacing
 
-Système Tailwind v4 par défaut (base 4 = 1rem) :
+Default Tailwind v4 spacing system (base 4 = 1rem):
 
-| Classe | Valeur | Usage type |
+| Class | Value | Typical usage |
 |---|---|---|
-| `gap-1` / `p-1` | 0,25 rem | Micro-espacement (icônes) |
-| `gap-2` / `p-2` | 0,5 rem | Inline groupes |
-| `gap-4` / `p-4` | 1 rem | Padding de carte, gap de grille |
-| `gap-6` / `p-6` | 1,5 rem | Padding de section |
-| `gap-8` | 2 rem | Séparation entre composants |
-| `gap-10` | 2,5 rem | Séparation entre sections de page |
+| `gap-1` / `p-1` | 0.25 rem | Micro-spacing (icons) |
+| `gap-2` / `p-2` | 0.5 rem | Inline groups |
+| `gap-4` / `p-4` | 1 rem | Card padding, grid gap |
+| `gap-6` / `p-6` | 1.5 rem | Section padding |
+| `gap-8` | 2 rem | Separation between components |
+| `gap-10` | 2.5 rem | Separation between page sections |
 
 ---
 
-## Ombres
+## Shadows
 
-Ombre standard : `shadow-sm` (Tailwind) pour les cartes et panneaux.  
-Ombre legacy disponible dans `frontend/src/styles/theme.ts` : `0 2px 10px rgba(0,0,0,0.06)` — non utilisée dans les nouveaux composants.
+Standard shadow: `shadow-sm` (Tailwind) for cards and panels.
+Legacy shadow available in `frontend/src/styles/theme.ts`: `0 2px 10px rgba(0,0,0,0.06)` — not used in new components.
 
 ---
 
 ## Logo
 
-- Fichiers dans `frontend/public/logos/`
-- Ne pas inclure le logo directement dans les composants React — référencer depuis `public/` via chemin absolu `/logos/...`
+- Files in `frontend/public/logos/`
+- Do not include the logo directly in React components — reference it from `public/` via absolute path `/logos/...`
+

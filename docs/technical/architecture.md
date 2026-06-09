@@ -196,16 +196,16 @@ SERVER
         │
         └── ReportsService.create() runs
               ├── AI scoring service analyzes the description
-              │     └── Returns grade = "urgent" (example)
+              │     └── Returns grade = "high" (example)
               │
               ├── TypeORM creates the report:
               │     INSERT INTO reports (title, grade, status, studentId...)
-              │     VALUES ("...", "urgent", "pending", 2)
+              │     VALUES ("...", "high", "pending", 2)
               │               ↕ SQL
               │     PostgreSQL saves → returns id=5 ✅
               │
               └── NestJS responds:
-                    { id:5, grade:"urgent", status:"pending", ... }
+                    { id:5, grade:"high", status:"pending", ... }
                           ↕ HTTP
 BROWSER
   └── Axios receives the response
@@ -219,7 +219,7 @@ BROWSER
 
 ```
 ✅ Report submitted successfully
-AI-assigned grade: 🟠 Urgent
+AI-assigned grade: High
 Status: Pending review
 ```
 
@@ -237,4 +237,4 @@ Status: Pending review
 
 | id | title | grade | status | studentId | isAnonymous |
 |----|-------|-------|--------|-----------|-------------|
-| 5 | … | urgent | pending | 2 | false |
+| 5 | … | high | pending | 2 | false |

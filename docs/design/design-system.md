@@ -1,15 +1,15 @@
-# Système de composants — SafeSchool
+# Component System — SafeSchool
 
-> Stratégie d'organisation des composants React, règles de migration vers shadcn/ui, et inventaire.  
-> Pour les tokens visuels (couleurs, typo, radius) : voir [`graphic-charter.md`](./graphic-charter.md).
+> Component organisation strategy, shadcn/ui rules, and install instructions.
+> For visual tokens (colors, typography, radius): see [`graphic-charter.md`](./graphic-charter.md).
 
 ---
 
-## Deux couches de composants
+## Two-layer component architecture
 
 ```
 frontend/src/components/
-├── ui/          ← Primitives shadcn/ui (générées, basées sur Radix)
+├── ui/          ← shadcn/ui primitives (generated, Radix-based)
 │   ├── button.tsx
 │   ├── badge.tsx
 │   ├── card.tsx
@@ -20,88 +20,57 @@ frontend/src/components/
 │   ├── avatar.tsx
 │   └── tabs.tsx
 │
-├── Button.tsx   ← Composants app métier (wrappent la logique SafeSchool)
+├── Button.tsx   ← Application business components (SafeSchool-specific logic)
 ├── Badge.tsx
 ├── Card.tsx
 ├── ...
-├── layout/      ← Composants de mise en page (Header, AdminHeader, ...)
-├── reporter/    ← Composants spécifiques au flux de signalement
-└── student/     ← Composants liés aux profils élèves
+├── layout/      ← Layout components (Header, AdminHeader, …)
+├── reporter/    ← Components specific to the report submission flow
+└── student/     ← Components related to student profiles
 ```
 
-### `components/ui/` — Primitives shadcn/ui
+### `components/ui/` — shadcn/ui primitives
 
-- Code **copié** dans le repo par `npx shadcn@latest add <composant>` (pas une dépendance npm).
-- Construits sur **Radix UI** : accessibilité, navigation clavier, ARIA garantis.
-- Stylés via Tailwind + variables CSS (`--primary`, `--border`, etc. depuis `index.css`).
-- À **ne pas modifier** sauf pour ajuster le style global (modifier `index.css` à la place).
-- Documentés dans l'onglet "shadcn/ui primitives" du UI Kit.
+- Code **copied** into the repo via `npx shadcn@latest add <component>` (not an npm dependency).
+- Built on **Radix UI**: accessibility, keyboard navigation, and ARIA compliance guaranteed.
+- Styled via Tailwind + CSS variables (`--primary`, `--border`, etc. from `index.css`).
+- **Do not modify** except to adjust global styles (modify `index.css` instead).
+- Documented in the "shadcn/ui primitives" tab of the UI Kit.
 
-### `components/*.tsx` et sous-dossiers — Composants app métier
+### `components/*.tsx` and subdirectories — Application business components
 
-- Composants spécifiques à SafeSchool : logique d'affichage des signalements, badges de sévérité, StatCard, etc.
-- Certains wrappent ou coexistent avec leurs équivalents shadcn (ex : `Badge.tsx` vs `components/ui/badge.tsx`).
-- Documentés dans l'onglet "Composants app" du UI Kit.
+- SafeSchool-specific components: report display logic, severity badges, StatCard, etc.
+- Some wrap or coexist with their shadcn equivalents (e.g. `Badge.tsx` vs `components/ui/badge.tsx`).
+- Documented in the "App components" tab of the UI Kit.
+
+For the full component inventory, see [`technical/components.md`](../technical/components.md).
 
 ---
 
-## Règle de migration
+## Migration rule
 
 | Situation | Action |
 |---|---|
-| **Nouvelle feature** | Utiliser les primitives shadcn (`components/ui/`) en priorité |
-| **Composant app existant touché** | Évaluer si le remplacer par shadcn apporte une valeur réelle (accessibilité, cohérence) |
-| **Composant app existant non touché** | Ne pas migrer — principe "ne toucher que ce qu'on modifie" |
-| **Composant métier fort** | Garder le composant app (ex : `Badge` avec variants métier, `StatCard`) même si shadcn a un équivalent |
+| **New feature** | Use shadcn primitives (`components/ui/`) first |
+| **Existing app component being modified** | Evaluate whether replacing it with shadcn adds real value (accessibility, consistency) |
+| **Existing app component not being touched** | Do not migrate — follow the "only touch what you change" principle |
+| **Strong business component** | Keep the app component (e.g. `Badge` with business variants, `StatCard`) even if shadcn has an equivalent |
 
 ---
 
-## Composants shadcn installés
-
-| Composant | Fichier | Primitives Radix | Usage principal |
-|---|---|---|---|
-| Button | `ui/button.tsx` | — | Boutons génériques, actions dans Cards |
-| Badge | `ui/badge.tsx` | — | Labels statut sémantique shadcn |
-| Input | `ui/input.tsx` | — | Champs de formulaire basiques |
-| Label | `ui/label.tsx` | `@radix-ui/react-label` | Label accessible pour champs |
-| Select | `ui/select.tsx` | `@radix-ui/react-select` | Listes déroulantes accessibles |
-| Card | `ui/card.tsx` | — | Conteneurs visuels avec Header/Content |
-| Separator | `ui/separator.tsx` | `@radix-ui/react-separator` | Séparateurs horizontaux/verticaux |
-| Avatar | `ui/avatar.tsx` | `@radix-ui/react-avatar` | Avatars avec fallback initiales |
-| Tabs | `ui/tabs.tsx` | `@radix-ui/react-tabs` | Navigation par onglets |
-
-### Installer un nouveau composant
+## Installing a new shadcn component
 
 ```sh
-docker compose exec frontend sh -c "cd /app && npx shadcn@latest add <nom>"
+docker compose exec frontend sh -c "cd /app && npx shadcn@latest add <name>"
 ```
 
-Liste disponible : https://ui.shadcn.com/docs/components
+Full component list: https://ui.shadcn.com/docs/components
 
 ---
 
-## Composants app métier
+## Points to watch
 
-| Composant | Fichier | Description |
-|---|---|---|
-| AppButton | `Button.tsx` | Bouton avec variants métier (primary, danger, warning, success, login…) |
-| AppBadge | `Badge.tsx` | Badge avec variants sévérité (critical/high/medium/low) et statut (pending/closed…) |
-| AppCard | `Card.tsx` | Carte blanche avec bordure gauche colorée optionnelle |
-| AppInput | `Input.tsx` | Champ texte avec label intégré, themes dark/light |
-| AppSelect | `Select.tsx` | Select natif stylé |
-| StatCard | `StatCard.tsx` | Carte statistique avec couleur et état actif |
-| NoteBlock | `NoteBlock.tsx` | Bloc de note / convocation administrative |
-| StepBar | `StepBar.tsx` | Barre de progression multi-étapes |
-| Pagination | `Pagination.tsx` | Contrôles de pagination |
-| Autocomplete | `Autocomplete.tsx` | Champ texte avec suggestions utilisateurs |
-| Header | `Header.tsx` | Navigation principale (tous rôles) |
-| AdminHeader | `layout/AdminHeader/` | Navigation admin avec sections |
-| Footer | `Footer.tsx` | Pied de page |
+- **Name conflicts**: `Badge`, `Card`, `Input`, `Select` exist in both layers (app + shadcn). Imports from `@/components/ui/` target shadcn; relative imports (`../components/Badge`) target app components.
+- **Primary color**: Tailwind `bg-primary` uses `var(--primary)` via `@theme inline`. Changing the brand color means changing `--primary` in `:root` in `index.css`.
+- **Dark mode**: shadcn variables under `.dark {}` in `index.css`. Not actively enabled — `dark:` suffix is available if needed.
 
----
-
-## Points d'attention
-
-- **Conflits de noms** : `Badge`, `Card`, `Input`, `Select` existent en double (app + shadcn). Les imports depuis `@/components/ui/` visent shadcn, les imports relatifs (`../components/Badge`) visent les composants app.
-- **Couleur primary** : Tailwind `bg-primary` utilise `var(--primary)` via `@theme inline`. Changer la couleur brand = changer `--primary` dans `:root` dans `index.css`.
-- **Dark mode** : Variables shadcn dans `.dark {}` dans `index.css`. Non activé activement — suffixe `dark:` disponible si besoin.

@@ -25,7 +25,7 @@ README when more detail is useful.
 
 | Area | Recommended documents |
 |---|---|
-| Architecture and end-to-end understanding | [`technical/architecture.md`](./technical/architecture.md), [`technical/api.md`](./technical/api.md) |
+| Architecture and end-to-end understanding | [`technical/architecture.md`](./technical/architecture.md), [`technical/api.md`](./technical/api.md), [`technical/backend.md`](./technical/backend.md) |
 | WebSocket / quiz | [`technical/websocket.md`](./technical/websocket.md) |
 | ELK / logging | [`technical/elk-guide.md`](./technical/elk-guide.md) |
 | PWA | [`technical/pwa.md`](./technical/pwa.md) |
