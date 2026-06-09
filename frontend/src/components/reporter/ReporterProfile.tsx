@@ -6,6 +6,7 @@ import { useState } from "react";
 import { formatName } from "@/utils/formatName";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
+import { API_BASE } from "@/config";
 
 
 
@@ -30,8 +31,7 @@ interface ReporterProfileProps {
 }
 
 
-const AVATAR_BASE = "http://localhost:5000/uploads/avatars/";
-const API_BASE = "http://localhost:5000";
+const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
 
 
 

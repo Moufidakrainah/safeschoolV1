@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getUserById } from '@/services/api';
+import { API_BASE } from '@/config';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
@@ -124,7 +125,7 @@ export default function AdminUserList({
                             <div className="flex items-stretch">
                             <div style={{ width: '96px', height: '96px', flexShrink: 0, overflow: 'hidden', borderRadius: 0 }}>
                                 {u.avatar
-                                ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
+                                ? <img src={`${API_BASE}/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
                                     alt={u.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                 : <div style={{ width: '96px', height: '96px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold', color: '#9ca3af' }}>
                                     {u.firstName?.[0]}{u.lastName?.[0]}
