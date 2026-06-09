@@ -6,6 +6,60 @@
 
 ---
 
+## Vue d'ensemble du système
+
+```mermaid
+flowchart LR
+  Browser[Browser]
+
+  subgraph Frontend
+    ReactApp[React + Vite frontend]
+  end
+
+  subgraph Backend
+    API[NestJS HTTP API]
+    WS[Quiz realtime gateway\nSocket.io]
+    Auth[Authentication\nJWT + bcrypt]
+    AI[AI scoring service]
+    Logger[Winston + Logstash transport]
+  end
+
+  subgraph Data
+    DB[(PostgreSQL)]
+  end
+
+  subgraph Observability
+    LS[Logstash]
+    ES[Elasticsearch]
+    Kibana[Kibana]
+  end
+
+  Browser -->|HTTP / UI| ReactApp
+  ReactApp -->|REST API calls| API
+  ReactApp <-->|Realtime quiz events| WS
+  API --> Auth
+  API --> AI
+  API --> DB
+  WS --> DB
+  API --> Logger
+  WS --> Logger
+  Logger --> LS
+  LS --> ES
+  Kibana --> ES
+```
+
+### Lecture rapide
+
+- The browser loads the React frontend and interacts with the application through the UI.
+- Standard application actions go through the NestJS HTTP API.
+- Real-time quiz interactions use the Socket.io gateway handled by the same backend.
+- Application data is stored in PostgreSQL through the backend.
+- Authentication relies on JWT tokens and bcrypt-hashed passwords.
+- Report scoring can call the AI service when that feature is enabled.
+- Logs are sent through Logstash to Elasticsearch and inspected in Kibana.
+
+---
+
 ## Architecture réseau actuelle vs cible
 
 ### État actuel (dev, HTTP)

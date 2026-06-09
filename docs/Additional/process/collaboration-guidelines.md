@@ -1,7 +1,7 @@
-# Team Collaboration Guidelines (Phase 1)
+# Team Collaboration Guidelines
 
-These guidelines define how we collaborate on documentation and code during the first project phase.
-The goal is to move fast, keep visibility, and avoid heavy process too early.
+These guidelines define how we collaborate on documentation and code.
+The goal is to move fast while keeping visibility.
 
 ## Scope
 
