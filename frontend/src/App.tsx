@@ -10,6 +10,7 @@ import ReporterDashboard from '@/pages/ReporterDashboard';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import { Footer } from '@/components/layout/Footer/Footer';
+import { OfflineBanner } from '@/components/layout/OfflineBanner/OfflineBanner';
 import UiKit from '@/pages/UiKit';
 import Quiz from '@/pages/Quiz';
 
@@ -35,6 +36,7 @@ function HomeRedirect() {
 export default function App() {
   return (
     <div className="flex flex-col min-h-screen">
+      <OfflineBanner />
       <div className="flex-1 flex flex-col">
         <Routes>
           {/* Routes publiques */}

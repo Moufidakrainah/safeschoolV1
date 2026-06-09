@@ -1,4 +1,7 @@
 {
+  "offline": {
+    "message": "You are offline"
+  },
   "login": {
     "labelEmail": "Username",
     "labelPassword": "Password",
