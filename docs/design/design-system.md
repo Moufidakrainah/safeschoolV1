@@ -35,13 +35,13 @@ frontend/src/components/
 - Construits sur **Radix UI** : accessibilité, navigation clavier, ARIA garantis.
 - Stylés via Tailwind + variables CSS (`--primary`, `--border`, etc. depuis `index.css`).
 - À **ne pas modifier** sauf pour ajuster le style global (modifier `index.css` à la place).
-- Documentés dans l'onglet "shadcn/ui primitives" du [UI Kit](/uikit).
+- Documentés dans l'onglet "shadcn/ui primitives" du UI Kit.
 
 ### `components/*.tsx` et sous-dossiers — Composants app métier
 
 - Composants spécifiques à SafeSchool : logique d'affichage des signalements, badges de sévérité, StatCard, etc.
 - Certains wrappent ou coexistent avec leurs équivalents shadcn (ex : `Badge.tsx` vs `components/ui/badge.tsx`).
-- Documentés dans l'onglet "Composants app" du [UI Kit](/uikit).
+- Documentés dans l'onglet "Composants app" du UI Kit.
 
 ---
 

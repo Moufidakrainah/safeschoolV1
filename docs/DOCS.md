@@ -13,7 +13,7 @@ This folder contains supplementary documentation for the project. It serves two 
 | [`technical/architecture.md`](./technical/architecture.md) | Best high-level entry point: system overview, main flows, frontend/backend/database/logging interactions |
 | [`technical/api.md`](./technical/api.md) | Map of the backend routes and main API areas |
 | [`technical/websocket.md`](./technical/websocket.md) | Support document for the real-time quiz and WebSocket module |
-| [`technical/elk.md`](./technical/elk.md) | Support document for the ELK log-management module |
+| [`technical/elk-guide.md`](./technical/elk-guide.md) | Support document for the ELK log-management module |
 | [`technical/pwa.md`](./technical/pwa.md) | Support document for the PWA module |
 | [`technical/components.md`](./technical/components.md) | Support document for the reusable-components / design-system module |
 | [`design/design-system.md`](./design/design-system.md) | Visual and UI-system overview |
@@ -27,7 +27,7 @@ README when more detail is useful.
 |---|---|
 | Architecture and end-to-end understanding | [`technical/architecture.md`](./technical/architecture.md), [`technical/api.md`](./technical/api.md) |
 | WebSocket / quiz | [`technical/websocket.md`](./technical/websocket.md) |
-| ELK / logging | [`technical/elk.md`](./technical/elk.md), [`technical/elk-guide.md`](./technical/elk-guide.md) |
+| ELK / logging | [`technical/elk-guide.md`](./technical/elk-guide.md) |
 | PWA | [`technical/pwa.md`](./technical/pwa.md) |
 | Security | [`technical/security.md`](./technical/security.md) |
 | Design system | [`technical/components.md`](./technical/components.md), [`design/design-system.md`](./design/design-system.md) |
