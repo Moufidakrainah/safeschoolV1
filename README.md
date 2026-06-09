@@ -2,8 +2,8 @@
 
 *This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque.*
 
-
-## <br>Description
+---
+## Description
 
 **SafeSchool** is a web platform for managing school harassment reports in middle schools. Students and school staff can report harassment situations they witness or experience. Each report is automatically graded by severity with AI assistance, then routed to and handled by the school's administrative staff (teachers, supervisors, directors).
 
@@ -21,8 +21,8 @@
 
 <!- TODO équipe : relire/ajuster cette description en anglais et cette liste pour qu'elles correspondent exactement au périmètre livré -->
 
-
-## <br><br>Instructions
+---
+## Instructions
 
 ### Prerequisites
 
@@ -84,7 +84,7 @@ If the sample dataset has been seeded, the following accounts can be used for de
 | `prof@safeschool.com` | `prof123` | teacher | `/reporter` |
 | `agent@safeschool.com` | `staff123` | staff | `/reporter` |
 
-
+---
 ## Resources
 
 ### Official Documentation
@@ -133,7 +133,8 @@ AI tools were used during this project both **as a feature of the application** 
   - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
   <br><!- TODO équipe : completez en anglais avec vos usages réels -->
 
-## <br><br>Team Information
+---
+## Team Information
 
 Every team member contributed to the code as well as to the organization of the collective work.
 
@@ -173,11 +174,8 @@ Coordinated the project workflow, maintained visibility on priorities, and suppo
 <!- TODO quclaque : completer en anglais avec une description precise de ton role -->
 
 
-
-
-
-
-## <br><br>Project Management
+---
+## Project Management
 
 ### Organization
 
@@ -199,8 +197,8 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **GitHub** (issues / PR comments) — asynchronous, traceable technical discussions and review feedback
 - **Meeting agendas and minutes** — written support for coordination, follow-up and decision traceability across the project
 
-
-## <br><br>Technical Stack
+---
+## Technical Stack
 
 
 ### Frontend
@@ -260,7 +258,8 @@ To improve coordination in a team that was discovering full-stack web developmen
 
 <!- TODO équipe : compléter en anglais si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
 
-## <br><br>Database Schema
+---
+## Database Schema
 
 All tables use UUID primary keys and are managed through TypeORM entities.
 
@@ -352,14 +351,15 @@ notifications
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
 | classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
 
-## <br><br>Features List
+---
+## Features List
 
 | Feature | Description | Team member(s) |
 |---------|-------------|---------------|
 | Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | <!-- login --> |
 | Report submission and follow-up | Students and school staff can submit harassment reports, optionally anonymously, then follow their status as the case is handled. | <!-- login --> |
 | Report review workflow | Authorized staff can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | <!-- login --> |
-| AI-assisted report analysis | Report descriptions can be analyzed to help estimate severity and support triage. | <!-- login --> |
+| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | <!-- login --> |
 | User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | <!-- login --> |
 | School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | <!-- login --> |
 | Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | <!-- login --> |
@@ -374,6 +374,7 @@ notifications
 
 <!- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
 
+---
 ## Modules
 
 | Module | Category | Type | Points | Description / justification | Team member(s) |
@@ -385,7 +386,7 @@ notifications
 | Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | <!-- login --> |
 | 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | <!-- login --> |
 | Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | <!-- login --> |
-| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented as AI-assisted analysis of report text to support severity scoring and triage. | <!-- login --> |
+| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | <!-- login --> |
 | Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | <!-- login --> |
 | Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | <!-- login --> |
 | Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | <!-- login --> |
@@ -404,8 +405,8 @@ notifications
   - si certains modules listés ci-dessus ne sont finalement pas livrés, les retirer et recalculer le total
 -->
 
-
-## <br><br>Individual Contributions
+---
+## Individual Contributions
 
 <!- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir expliquer et justifier sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
 
@@ -433,8 +434,8 @@ notifications
 - TODO quclaque: describe concrete features, modules, responsibilities and challenges personally handled.
 
 
-
-## <br><br>Additional Information
+---
+## Additional Information
 
 For deeper documentation beyond what is required here — architecture overview, API map, WebSocket quiz flow, ELK, PWA, design-system material, meeting minutes and workflow notes — start with [`docs/DOCS.md`](docs/DOCS.md).
 

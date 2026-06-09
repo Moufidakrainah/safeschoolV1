@@ -1,6 +1,6 @@
 # Component System — SafeSchool
 
-> Component organisation strategy, shadcn/ui rules, and install instructions.
+> Component organisation strategy, shadcn/ui usage guidelines, and install instructions.
 > For visual tokens (colors, typography, radius): see [`graphic-charter.md`](./graphic-charter.md).
 
 ---
@@ -9,52 +9,77 @@
 
 ```
 frontend/src/components/
-├── ui/          ← shadcn/ui primitives (generated, Radix-based)
+├── ui/                    ← shadcn/ui primitives (generated, Radix-based)
 │   ├── button.tsx
 │   ├── badge.tsx
 │   ├── card.tsx
 │   ├── input.tsx
 │   ├── select.tsx
 │   ├── label.tsx
-│   ├── separator.tsx
+│   ├── checkbox.tsx
+│   ├── textarea.tsx
+│   ├── table.tsx
+│   ├── tabs.tsx
 │   ├── avatar.tsx
-│   └── tabs.tsx
+│   ├── separator.tsx
+│   ├── sheet.tsx
+│   ├── alert-dialog.tsx
+│   └── pagination.tsx
 │
-├── Button.tsx   ← Application business components (SafeSchool-specific logic)
-├── Badge.tsx
-├── Card.tsx
-├── ...
-├── layout/      ← Layout components (Header, AdminHeader, …)
-├── reporter/    ← Components specific to the report submission flow
-└── student/     ← Components related to student profiles
+├── Autocomplete.tsx       ← shared application components
+├── ConvocationSelector.tsx
+├── NoteBlock.tsx
+├── Pagination.tsx
+├── StatCard.tsx
+├── StepBar.tsx
+│
+├── admin/                 ← feature-specific components
+│   ├── AdminClasses.tsx
+│   ├── AdminUsersList.tsx
+│   ├── AdminUserProfile.tsx
+│   ├── ReportDetail.tsx
+│   ├── StatsDashboard.tsx
+│   └── ParentFormItem.tsx
+├── layout/                ← navigation structure
+│   ├── Header/
+│   ├── AdminHeader/
+│   ├── ReporterHeader/
+│   ├── StudentHeader/
+│   └── Footer/
+├── reporter/
+│   ├── ReporterForm.tsx
+│   └── ReporterProfile.tsx
+└── student/
+    ├── StudentProfile.tsx
+    ├── StudentForm.tsx
+    └── StudentCases.tsx
 ```
 
 ### `components/ui/` — shadcn/ui primitives
 
-- Code **copied** into the repo via `npx shadcn@latest add <component>` (not an npm dependency).
-- Built on **Radix UI**: accessibility, keyboard navigation, and ARIA compliance guaranteed.
-- Styled via Tailwind + CSS variables (`--primary`, `--border`, etc. from `index.css`).
-- **Do not modify** except to adjust global styles (modify `index.css` instead).
-- Documented in the "shadcn/ui primitives" tab of the UI Kit.
+- Copied into the project via `npx shadcn@latest add <component>` — **owned code**, not an npm dependency.
+- Built on **Radix UI**: keyboard navigation, focus management, and ARIA compliance out of the box.
+- Styled through Tailwind + CSS variables (`--primary`, `--border`, etc. defined in `index.css`).
+- Do not modify these files directly — adjust `index.css` to change global appearance.
 
-### `components/*.tsx` and subdirectories — Application business components
+### Application components
 
-- SafeSchool-specific components: report display logic, severity badges, StatCard, etc.
-- Some wrap or coexist with their shadcn equivalents (e.g. `Badge.tsx` vs `components/ui/badge.tsx`).
-- Documented in the "App components" tab of the UI Kit.
+Generic utilities (`StatCard`, `NoteBlock`, `StepBar`, `Autocomplete`, `Pagination`, `ConvocationSelector`) are shared across features and sit at the top level. Feature-specific components live under `admin/`, `reporter/`, `student/`, and `layout/`.
+
+The boundary is simple: if a component could exist in another product without knowing about reports, roles, or the quiz, it belongs in `components/ui/`. If it encodes SafeSchool-specific behavior or vocabulary, it belongs in the application layer.
 
 For the full component inventory, see [`technical/components.md`](../technical/components.md).
 
 ---
 
-## Migration rule
+## Which layer to use
 
-| Situation | Action |
+| Situation | Decision |
 |---|---|
-| **New feature** | Use shadcn primitives (`components/ui/`) first |
-| **Existing app component being modified** | Evaluate whether replacing it with shadcn adds real value (accessibility, consistency) |
-| **Existing app component not being touched** | Do not migrate — follow the "only touch what you change" principle |
-| **Strong business component** | Keep the app component (e.g. `Badge` with business variants, `StatCard`) even if shadcn has an equivalent |
+| **New UI element** | Start with a shadcn primitive from `components/ui/` |
+| **SafeSchool-specific behavior or state** | Build an application component on top |
+| **Feature logic confined to one area** | Place it under the relevant subdirectory (`admin/`, `reporter/`, etc.) |
+| **Reusable across several pages or roles** | Keep it at the top level of `components/` |
 
 ---
 
@@ -70,7 +95,8 @@ Full component list: https://ui.shadcn.com/docs/components
 
 ## Points to watch
 
-- **Name conflicts**: `Badge`, `Card`, `Input`, `Select` exist in both layers (app + shadcn). Imports from `@/components/ui/` target shadcn; relative imports (`../components/Badge`) target app components.
-- **Primary color**: Tailwind `bg-primary` uses `var(--primary)` via `@theme inline`. Changing the brand color means changing `--primary` in `:root` in `index.css`.
-- **Dark mode**: shadcn variables under `.dark {}` in `index.css`. Not actively enabled — `dark:` suffix is available if needed.
+- **Name overlap**: `Badge`, `Card`, `Input`, `Select`, `Pagination` exist in both layers. Imports from `@/components/ui/` target the shadcn version; relative imports target the application version.
+- **Brand color**: `bg-primary` uses `var(--primary)` via `@theme inline`. To change the brand color, update `--primary` in `:root` inside `index.css`.
+- **Dark mode**: shadcn variables under `.dark {}` in `index.css`. Not currently activated — the `dark:` suffix is available if needed.
+
 

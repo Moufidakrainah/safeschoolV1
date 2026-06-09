@@ -119,6 +119,8 @@ To confirm the application is actually sending logs (not just manual tests):
 3. In Discover, search for the corresponding event in recent logs
 4. Verify that the `type` field matches the action (`auth_event`, `report_event`, `scoring_event`)
 
+<!- TODO équipe : ajouter ici un exemple concret de document JSON tel qu'il apparaît dans Kibana Discover après la création d'un signalement (copier-coller depuis Kibana → Discover → expand document). Champs attendus : @timestamp, level, type, caseNumber, grade, score, aiReason, userId. -->
+
 ---
 
 ## Configuration

@@ -1,6 +1,6 @@
 # Additional Documentation
 
-This folder contains supplementary documentation for the project. It serves two purposes:
+This folder contains additional documentation for the project. It serves two purposes:
 
 - explaining how the project works end to end
 - showing how the team organized and delivered the work
@@ -52,7 +52,7 @@ supporting references, but they are not the best first entry points for understa
 | Folder | What's in it |
 |---|---|
 | [`technical/`](./technical/) | Technical notes, implementation details and focused deep dives |
-| [`design/`](./design/) | Design process, mockups, visual references and UI rules (see [`design/README_design.md`](./design/README_design.md)) |
+| [`design/`](./design/) | Design process, mockups, visual references and UI rules (see [`design/graphic-charter.md`](./design/graphic-charter.md)) |
 | [`process/`](./process/) | Workflow notes, conventions, migration notes and collaboration material |
 | [`project/`](./project/) | Product framing, glossary, resource lists and project-oriented notes |
 

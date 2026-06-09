@@ -6,6 +6,16 @@
 
 ---
 
+## Design process
+
+The SafeSchool interface was developed through an iterative two-phase process.
+
+**Phase 1 — Initial mockups (March 2026):** The mockups in [`design/mockups/`](./design/mockups/) were produced at the start of the project to frame the screen structure and main user flows. They helped identify the key views (report submission, profile, quiz) and informed the component breakdown before development began.
+
+**Phase 2 — Final UI:** As the application took shape, the interface converged toward a design system built on **shadcn/ui** and **Tailwind CSS v4**. The visual rules documented below are the result of that process.
+
+---
+
 ## Colors
 
 ### Primary colors
