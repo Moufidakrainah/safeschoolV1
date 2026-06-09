@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AuthUser } from "../../types";
+import type { AuthUser } from "@/types";
 import { formatName } from "@/utils/formatName";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
@@ -54,7 +54,6 @@ export default function StudentProfile({
 
 	return (
 		<section className="page-section">
-			
 			{/* Avatar + nom + bouton */}
 			<div className="bg-surface shadow-sm py-8 mb-3">
 				<div className="flex flex-col items-center gap-3">
@@ -71,20 +70,20 @@ export default function StudentProfile({
 						</div>
 					)}
 
-					<div className="text-center">
+					<div className="text-center mt-4">
 						{(() => {
 							const { first, last } = formatName(
 								user?.firstName,
 								user?.lastName,
 							);
 							return (
-								<h2 className="text-2xl font-bold text-primary ">
+								<h2 className="text-2xl font-bold text-primary mb-4">
 									{first} {last}
 								</h2>
 							);
 						})()}
-						<span className="text-sm text-primary capitalize">
-							{user?.role}
+						<span className="text-sm text-primary">
+							{t(`student.profile.role`)}
 						</span>
 						<p className="text-sm text-primary mt-4">{user?.email}</p>
 					</div>
@@ -97,7 +96,7 @@ export default function StudentProfile({
 					<TableBody>
 						{user?.studentProfile?.schoolClass && (
 							<TableRow>
-								<TableCellLeft>Classe</TableCellLeft>
+								<TableCellLeft>{t(`student.profile.class`)}</TableCellLeft>
 								<TableCell>
 									{user.studentProfile.schoolClass.level}{" "}
 									{user.studentProfile.schoolClass.section}
@@ -106,7 +105,7 @@ export default function StudentProfile({
 						)}
 						{user?.studentProfile?.dateOfBirth && (
 							<TableRow>
-								<TableCellLeft>Date de naissance</TableCellLeft>
+								<TableCellLeft>{t(`student.profile.dob`)}</TableCellLeft>
 								<TableCell>
 									{new Date(user.studentProfile.dateOfBirth).toLocaleDateString(
 										"fr-FR",
@@ -121,15 +120,15 @@ export default function StudentProfile({
 
 			{/* Parents */}
 			<div className="bg-surface shadow-sm px-8 py-4">
-				<TableHeader>Responsables légaux</TableHeader>
+				<TableHeader>{t(`student.profile.officialParents`)}</TableHeader>
 
 				{loadingParents ? (
 					<div className="text-sm text-gray-400 text-center py-4">
-						Chargement...
+						{t(`student.profile.loading`)}
 					</div>
 				) : parents.length === 0 ? (
 					<div className="text-sm text-gray-400 text-center py-4">
-						Aucun responsable légal enregistré
+						{t(`student.profile.noParent`)}
 					</div>
 				) : (
 					<Table>
@@ -146,9 +145,15 @@ export default function StudentProfile({
 										</TableRow>
 
 										{[
-											{ label: "Email", value: p.email },
-											{ label: "Téléphone", value: p.phone ?? "—" },
-											{ label: "Adresse", value: p.address ?? "—" },
+											{ label: t(`student.profile.email`), value: p.email },
+											{
+												label: t(`student.profile.phone`),
+												value: p.phone ?? "—",
+											},
+											{
+												label: t(`student.profile.address`),
+												value: p.address ?? "—",
+											},
 										].map((row) => (
 											<TableRow key={`${p.id}-${row.label}`}>
 												<TableCellLeft>{row.label}</TableCellLeft>

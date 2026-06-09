@@ -360,7 +360,14 @@
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Email",
-      "role": "Rôle"
+      "dob": "Date de naissance", 
+      "class": "Classe", 
+      "role": "Élève", 
+	  "phone":"Téléphone",
+	  "address":"Adresse",
+      "officialParents":"Responsables légaux",
+      "loading":"Chargement", 
+      "noParent":"Aucun responsable légal"
     },
     "workshop": {
       "title": "Ateliers",
