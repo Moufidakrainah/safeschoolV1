@@ -27,12 +27,12 @@
 }
 
 
-body, #root
+html, body, #root
 {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
   font-family: var(--font-sans);
+  height:100%;
 }
 
 @theme inline {
@@ -83,6 +83,10 @@ body, #root
 }
 
 :root {
+  --critical:     oklch(0.566576 0.25625 20);  
+  --high:         oklch(0.559 0.1672 50); 
+  --medium:       oklch(0.542024 0.129688 100); 
+  --low:          oklch(0.517472 0.198438 150);
   --background:      oklch(1 0 0);
   --foreground:      oklch(0.145 0 0);
   --text-light: 	oklch(0.967 0.0029 264.54);
@@ -123,50 +127,16 @@ body, #root
   --sidebar-ring:      oklch(0.708 0 0);
 }
 
-/* .dark {
-  --background:      oklch(0.145 0 0);
-  --foreground:      oklch(0.985 0 0);
-  --card:      oklch(0.205 0 0);
-  --card-foreground:      oklch(0.985 0 0);
-  --popover:      oklch(0.205 0 0);
-  --popover-foreground:      oklch(0.985 0 0);
-  --primary:      oklch(0.922 0 0);
-  --primary-foreground:      oklch(0.205 0 0);
-  --secondary:      oklch(0.269 0 0);
-  --secondary-foreground:      oklch(0.985 0 0);
-  --muted:      oklch(0.269 0 0);
-  --muted-foreground:      oklch(0.708 0 0);
-  --accent:      oklch(0.269 0 0);
-  --accent-foreground:      oklch(0.985 0 0);
-  --destructive:      oklch(0.704 0.191 22.216);
-  --success:             oklch(0.55 0.15 152);
-  --success-foreground:  oklch(0.985 0 0);
-  --warning:             oklch(0.62 0.25 294);
-  --warning-foreground:  oklch(0.985 0 0);
-  --border:      oklch(1 0 0 / 10%);
-  --input:      oklch(1 0 0 / 15%);
-  --ring:      oklch(0.556 0 0);
-  --chart-1:      oklch(0.87 0 0);
-  --chart-2:      oklch(0.556 0 0);
-  --chart-3:      oklch(0.439 0 0);
-  --chart-4:      oklch(0.371 0 0);
-  --chart-5:      oklch(0.269 0 0);
-  --sidebar:      oklch(0.205 0 0);
-  --sidebar-foreground:      oklch(0.985 0 0);
-  --sidebar-primary:      oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground:      oklch(0.985 0 0);
-  --sidebar-accent:      oklch(0.269 0 0);
-  --sidebar-accent-foreground:      oklch(0.985 0 0);
-  --sidebar-border:      oklch(1 0 0 / 10%);
-  --sidebar-ring:      oklch(0.556 0 0);
-} */
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
+  html, body, #root {
+    @apply h-full;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-primary;
   }
   html {
     @apply font-sans;
@@ -228,14 +198,14 @@ body, #root
   }
 
   .card-subtitle {
-    @apply text-xs text-gray-600;
+    @apply text-xs;
   }
 
   .card-meta {
-    @apply text-xs text-gray-400;
+    @apply text-xs;
   }
 
   .page-section {
-  @apply bg-gray-50 min-h-screen px-5 py-8;
+  @apply bg-gray-50  px-5 py-8;
 }
 }
