@@ -100,10 +100,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 	];
 
 	const frequencyLabels: Record<string, string> = {
-	'Une fois':          t('reporter.step3.freq1'),
-	'Deux fois':         t('reporter.step3.freq2'),
-	'Trois fois ou plus':t('reporter.step3.freq3'),
-	'Tous les jours':    t('reporter.step3.freq4'),
+		"Une fois": t("reporter.step3.freq1"),
+		"Deux fois": t("reporter.step3.freq2"),
+		"Trois fois ou plus": t("reporter.step3.freq3"),
+		"Tous les jours": t("reporter.step3.freq4"),
 	};
 
 	useEffect(() => {
@@ -125,7 +125,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 							<div className=" text-sm mb-6">
 								{t("reporter.success.message")}
 							</div>
-							
+
 							<div className="text-center mt-6">
 								<Button onClick={resetForm}>
 									{t("reporter.success.back")}
@@ -260,15 +260,29 @@ export default function StudentForm({ user }: StudentFormProps) {
 										id="frequency"
 										className="bg-white text-primary"
 									>
-										<SelectValue
-											placeholder={t("reporter.step3.frequencyPlaceholder")}
-										/>
+										<SelectValue>
+											{{
+												"Une fois": t("reporter.step3.freq1"),
+												"Deux fois": t("reporter.step3.freq2"),
+												"Trois fois ou plus": t("reporter.step3.freq3"),
+												"Tous les jours": t("reporter.step3.freq4"),
+											}[frequency] || t("reporter.step3.frequencyPlaceholder")}
+										</SelectValue>
 									</SelectTrigger>
 									<SelectContent className="text-primary">
-										<SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
-										<SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
-										<SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
-										<SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
+										
+										<SelectItem value="Une fois">
+											{t("reporter.step3.freq1")}
+										</SelectItem>
+										<SelectItem value="Deux fois">
+											{t("reporter.step3.freq2")}
+										</SelectItem>
+										<SelectItem value="Trois fois ou plus">
+											{t("reporter.step3.freq3")}
+										</SelectItem>
+										<SelectItem value="Tous les jours">
+											{t("reporter.step3.freq4")}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 								{showErrors && !frequency && !fieldErrors.frequency && (
@@ -312,7 +326,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 												setVictimInput("");
 											}
 										}}
-										placeholder="Par exemple : Prénom Nom Classe"
+										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2"
 									/>
 									<Button
@@ -332,12 +346,11 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}}
 										disabled={victimInput.trim().length < 2}
 									>
-										+ Ajoute cette victime
+										{t("reporter.step4.addVictim")}
 									</Button>
 								</div>
 								<p className="text-xs mt-4">
-									Appuie sur la touche "Entrée" de ton clavier ou clique sur
-									"Ajoute cette victime"
+									{t("reporter.step4.add+Victim")}
 								</p>
 								{victimName && (
 									<div className="mt-4">
@@ -392,7 +405,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 												});
 											}
 										}}
-										placeholder="Par exemple : Prénom Nom Classe"
+										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 									/>
 									<Button
@@ -410,12 +423,12 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}}
 										disabled={suspectInput.trim().length < 2}
 									>
-										+ Ajoute ce harceleur
+											{t("reporter.step4.addSuspect")}
+
 									</Button>
 								</div>
-								<p className="text-xs text-gray-400 mt-1">
-									Appuie sur la touche "Entrée" de ton clavier ou clique sur
-									"Ajoute ce harceleur"
+								<p className="text-xs mt-4">
+									{t("reporter.step4.add+Suspect")}
 								</p>
 								{suspects.length > 0 && (
 									<div className="mt-4">
@@ -432,13 +445,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 																removeSuspect(i);
 																clearFieldErrors();
 															}}
-															className="text-red-500 font-bold cursor-pointer bg-transparent border-none"
+															className="text-critical font-bold cursor-pointer bg-transparent border-none"
 														>
 															x
 														</button>
 													</div>
 													{fieldErrors[`suspect_${i}`] && (
-														<p className="text-xs text-red-600 pl-2">
+														<p className="text-xs text-critical pl-2">
 															{fieldErrors[`suspect_${i}`]}
 														</p>
 													)}
@@ -479,8 +492,8 @@ export default function StudentForm({ user }: StudentFormProps) {
 												label: t("reporter.step6.who"),
 												value:
 													whoSignals === "victime"
-														? "Je suis la victime"
-														: "Je suis témoin",
+														? t("reporter.step6.victim")
+														: t("reporter.step6.suspect")
 											},
 											{ label: t("reporter.step6.type"), value: type },
 											{
