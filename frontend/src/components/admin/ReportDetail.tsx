@@ -221,7 +221,7 @@ export default function ReportDetail({
                     : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">?</div>
                   }
                   <div className="flex-1">
-                    <span className="text-blue-600 font-medium">{v.freeText}</span>
+                    <span className="text-gray-800 font-medium">{v.freeText}</span>
                     {v.resolvedUser && (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                         → {v.resolvedUser.firstName} {v.resolvedUser.lastName}
@@ -298,7 +298,7 @@ export default function ReportDetail({
                         </div>
                     }
                     <div className="flex-1">
-                      <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
+                      <p className={`text-sm font-medium text-gray-800 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
                         onClick={() => s.resolvedUser?.id && onNavigateToUser(s.resolvedUser.id)}>
                         {s.freeText}
                       </p>
