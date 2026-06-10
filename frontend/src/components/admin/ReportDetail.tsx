@@ -221,7 +221,7 @@ export default function ReportDetail({
                     : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">?</div>
                   }
                   <div className="flex-1">
-                    <span className="text-blue-600 font-medium">{v.freeText}</span>
+                    <span className="text-gray-800 font-medium">{v.freeText}</span>
                     {v.resolvedUser && (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                         → {v.resolvedUser.firstName} {v.resolvedUser.lastName}
@@ -298,7 +298,7 @@ export default function ReportDetail({
                         </div>
                     }
                     <div className="flex-1">
-                      <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
+                      <p className={`text-sm font-medium text-gray-800 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
                         onClick={() => s.resolvedUser?.id && onNavigateToUser(s.resolvedUser.id)}>
                         {s.freeText}
                       </p>
@@ -405,8 +405,8 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`}`; })()
-                    : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -439,8 +439,8 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`; })()
-                          : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`; })();
+                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
+                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);
