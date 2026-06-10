@@ -9,3 +9,4 @@ backups/
 *.pdf
 *.docx
 .env.local
+frontend_code_updated.txt
