@@ -9,4 +9,5 @@ backups/
 *.pdf
 *.docx
 .env.local
+backend/uploads/
 nginx/certs/

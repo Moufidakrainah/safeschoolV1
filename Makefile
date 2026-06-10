@@ -88,7 +88,7 @@ rebuild: check-env ## Reconstruire sans cache et redémarrer
 
 # == SERVICE PAR SERVICE ==
 
-up-app: check-env ## Démarrer uniquement frontend, backend et database (sans ELK ni pgadmin)
+up-app: check-env ## Démarrer uniquement frontend, backend et database
 	@start=$$(date +%s); \
 	$(COMPOSE) up -d --no-deps --build frontend backend database; \
 	$(MAKE) seed-if-empty; \

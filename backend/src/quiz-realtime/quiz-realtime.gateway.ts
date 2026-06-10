@@ -78,6 +78,27 @@ export class QuizRealtimeGateway
         void this.server.in(roomId).socketsLeave(roomId);
       },
     );
+
+    // La période de grâce d'un joueur déconnecté a expiré et il a été retiré
+    this.quizRealtimeService.setOnPlayerExpired(
+      ({ roomId, result, revealPayload }) => {
+        if (result.status === "room-closed") {
+          this.server.to(roomId).emit("quiz:room:closed", { roomId });
+          return;
+        }
+
+        if (result.snapshot) {
+          this.server.to(roomId).emit("quiz:room:update", result.snapshot);
+        }
+
+        if (revealPayload) {
+          this.server
+            .to(roomId)
+            .emit("quiz:score:update", revealPayload.roomSnapshot);
+          this.server.to(roomId).emit("quiz:question:reveal", revealPayload);
+        }
+      },
+    );
   }
 
 	handleConnection(client: Socket) {
@@ -121,24 +142,56 @@ export class QuizRealtimeGateway
 	handleDisconnect(client: Socket) {
 		this.logger.log(`quiz client disconnected: ${client.id}`);
 
-    const updates = this.quizRealtimeService.removeClientFromAllRooms(
-      client.id,
-    );
-    for (const update of updates) {
-      if (update.result.status === "room-closed") {
-        this.server
-          .to(update.roomId)
-          .emit("quiz:room:closed", { roomId: update.roomId });
-        continue;
-      }
+		const updates = this.quizRealtimeService.markDisconnected(client.id);
+		for (const update of updates) {
+			if (update.closed) {
+				this.server.to(update.roomId).emit('quiz:room:closed', { roomId: update.roomId });
+				continue;
+			}
 
-      if (update.result.snapshot) {
-        this.server
-          .to(update.roomId)
-          .emit("quiz:room:update", update.result.snapshot);
-      }
-    }
-  }
+			if (update.snapshot) {
+				this.server.to(update.roomId).emit('quiz:room:update', update.snapshot);
+			}
+
+			if (update.revealPayload) {
+				this.server.to(update.roomId).emit('quiz:score:update', update.revealPayload.roomSnapshot);
+				this.server.to(update.roomId).emit('quiz:question:reveal', update.revealPayload);
+			}
+		}
+	}
+
+	private getPlayerId(client: Socket): string | undefined {
+		const user = client.data.user as { sub?: string } | undefined;
+		return user?.sub;
+	}
+
+	// Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
+	// la question en cours, les scores, toute révélation active et sa propre réponse
+	private sendReconnectState(client: Socket, roomId: string, playerId: string) {
+		const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
+		if (!snapshot || snapshot.status !== 'in-progress') return;
+
+		const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(roomId);
+		if (questionSnapshot) {
+			client.emit('quiz:question', questionSnapshot);
+		}
+
+		client.emit('quiz:score:update', snapshot);
+
+		const revealSnapshot = this.quizRealtimeService.getRevealSnapshot(roomId);
+		if (revealSnapshot) {
+			client.emit('quiz:question:reveal', revealSnapshot);
+		}
+
+		const answerState = this.quizRealtimeService.getPlayerAnswerState(roomId, playerId);
+		if (answerState?.hasAnswered && answerState.questionId !== null) {
+			client.emit('quiz:answer:restore', {
+				questionId: answerState.questionId,
+				selectedIndex: answerState.selectedIndex,
+				hasAnswered: true,
+			});
+		}
+	}
 
   @SubscribeMessage("quiz:ping")
   handlePing(
@@ -169,9 +222,42 @@ export class QuizRealtimeGateway
 			};
 		}
 
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized', snapshot: null },
+			};
+		}
+
+		// Une seule salle active par compte : si ce compte est déjà en ligne dans une salle
+		// (un autre onglet, ou une autre salle), on refuse de rejoindre et on laisse cette salle
+		// intacte. Se reconnecter après une vraie coupure n'est pas affecté car la
+		// présence restante n'est plus "connectée"
+		const activeRoomId = this.quizRealtimeService.getActiveRoomId(playerId, client.id);
+		if (activeRoomId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'already-in-room', snapshot: null },
+			};
+		}
+
+		// Nettoie toute présence restante (déconnectée) dans les autres salles pour que le
+		// compte ne soit suivi que dans une seule salle, puis rafraîchit ces salles
+		const evictions = this.quizRealtimeService.evictFromOtherRooms(playerId, payload.roomId);
+		for (const eviction of evictions) {
+			void client.leave(eviction.roomId);
+			if (eviction.result.status === 'room-closed') {
+				this.server.to(eviction.roomId).emit('quiz:room:closed', { roomId: eviction.roomId });
+			} else if (eviction.result.snapshot) {
+				this.server.to(eviction.roomId).emit('quiz:room:update', eviction.result.snapshot);
+			}
+		}
+
 		const result = this.quizRealtimeService.joinRoom({
 			roomId: payload.roomId,
-			clientId: client.id,
+			playerId,
+			socketId: client.id,
 			playerName: payload.playerName,
 		});
 
@@ -215,28 +301,22 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		if (result.status === 'joined') {
+		if (result.status === 'joined' || result.status === 'reconnected') {
 			void client.join(payload.roomId);
 		}
 
-    if (result.snapshot) {
-      this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
-    }
+		if (result.snapshot) {
+			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
+		}
 
-    if (result.status === "already-joined") {
-      return {
-        event: "quiz:join:ignored",
-        data: {
-          roomId: payload.roomId,
-          reason: "already-in-room",
-          snapshot: result.snapshot,
-        },
-      };
-    }
+		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
+		if (result.status === 'reconnected') {
+			this.sendReconnectState(client, payload.roomId, playerId);
+		}
 
     return {
       event: "quiz:joined",
-      data: result.snapshot,
+      data: { ...result.snapshot, selfId: playerId },
     };
   }
 
@@ -252,25 +332,29 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		const result = this.quizRealtimeService.leaveRoom(payload.roomId, client.id);
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
 
-    if (result.status === "room-not-found") {
-      return {
-        event: "quiz:leave:ignored",
-        data: { roomId: payload.roomId, reason: "room-not-found" },
-      };
-    }
+		const result = this.quizRealtimeService.leaveRoom(payload.roomId, playerId);
 
-    if (result.status === "not-in-room") {
-      return {
-        event: "quiz:leave:ignored",
-        data: {
-          roomId: payload.roomId,
-          reason: "not-in-room",
-          snapshot: result.snapshot,
-        },
-      };
-    }
+		if (result.status === 'room-not-found') {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'room-not-found' },
+			};
+		}
+
+		if (result.status === 'not-in-room') {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'not-in-room', snapshot: result.snapshot },
+			};
+		}
 
 		void client.leave(payload.roomId);
 
@@ -306,14 +390,22 @@ export class QuizRealtimeGateway
 			};
 		}
 
-		const result = this.quizRealtimeService.startGame(payload.roomId, client.id);
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
 
-    if (result.status !== "started") {
-      return {
-        event: "quiz:start:ignored",
-        data: { roomId: payload.roomId, reason: result.status },
-      };
-    }
+		const result = this.quizRealtimeService.startGame(payload.roomId, playerId);
+
+		if (result.status !== 'started') {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: payload.roomId, reason: result.status },
+			};
+		}
 
     this.server.to(payload.roomId).emit("quiz:game:started", result.snapshot);
 
@@ -335,7 +427,9 @@ export class QuizRealtimeGateway
 		@MessageBody() payload: SubmitAnswerPayload,
 		@ConnectedSocket() client: Socket,
 	) {
+		const playerId = this.getPlayerId(client);
 		if (
+			!playerId ||
 			!payload ||
 			!isNonEmptyString(payload.roomId) ||
 			!isInteger(payload.questionId) ||
@@ -346,9 +440,9 @@ export class QuizRealtimeGateway
 				event: 'quiz:answer:ignored',
 				data: {
 					roomId: payload?.roomId ?? null,
-					playerId: client.id,
+					playerId: playerId ?? null,
 					questionId: payload?.questionId ?? null,
-					reason: 'invalid-payload',
+					reason: playerId ? 'invalid-payload' : 'unauthorized',
 					snapshot: null,
 				},
 			};
@@ -356,23 +450,23 @@ export class QuizRealtimeGateway
 
 		const result = this.quizRealtimeService.submitAnswer({
 			roomId: payload.roomId,
-			clientId: client.id,
+			playerId,
 			questionId: payload.questionId,
 			selectedIndex: payload.selectedIndex,
 		});
 
-    if (result.status !== "accepted") {
-      return {
-        event: "quiz:answer:ignored",
-        data: {
-          roomId: payload.roomId,
-          playerId: client.id,
-          questionId: payload.questionId,
-          reason: result.status,
-          snapshot: result.roomSnapshot,
-        },
-      };
-    }
+		if (result.status !== 'accepted') {
+			return {
+				event: 'quiz:answer:ignored',
+				data: {
+					roomId: payload.roomId,
+					playerId,
+					questionId: payload.questionId,
+					reason: result.status,
+					snapshot: result.roomSnapshot,
+				},
+			};
+		}
 
     client.emit("quiz:answer:result", result.answerResult);
 
@@ -388,13 +482,13 @@ export class QuizRealtimeGateway
         .emit("quiz:question:reveal", result.revealPayload);
     }
 
-    return {
-      event: "quiz:answer:accepted",
-      data: {
-        roomId: payload.roomId,
-        playerId: client.id,
-        questionId: payload.questionId,
-      },
-    };
-  }
+		return {
+			event: 'quiz:answer:accepted',
+			data: {
+				roomId: payload.roomId,
+				playerId,
+				questionId: payload.questionId,
+			},
+		};
+	}
 }
