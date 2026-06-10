@@ -36,16 +36,25 @@ export interface UseStudentReportFormReturn {
   addSuspect: (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect: (index: number) => void;
   resetForm: () => void;
+  validateDescription: (desc: string) => string | null;
+  validateName: (name: string) => string | null;
+  victimError: string;
+  setVictimError: React.Dispatch<React.SetStateAction<string>>;
+  suspectError: string;
+  setSuspectError: React.Dispatch<React.SetStateAction<string>>;
+  descriptionError: string;
+  setDescriptionError: React.Dispatch<React.SetStateAction<string>>;
 }
 
 function validateName(name: string): string | null {
   if (name.length < 2) return 'Le nom doit contenir au moins 2 caractères';
-  if (name.length > 100) return 'Le nom ne peut pas dépasser 100 caractères';
-  if (/(.)\1{4,}/.test(name)) return 'Le nom contient des caractères répétitifs invalides';
+  if (name.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
+  if (!/^(?!(.)\1{4,})[\p{L}\s\-']+$/u.test(name)) return 'Le nom contient des caractères invalides ou répétitifs';
   return null;
 }
 
 function validateDescription(desc: string): string | null {
+  if (!desc.trim()) return 'La description est obligatoire';
   if (desc.length < 20) return 'La description doit contenir au moins 20 caractères';
   if (desc.length > 2000) return 'La description ne peut pas dépasser 2000 caractères';
   if (/(.)\1{9,}/.test(desc)) return 'La description semble invalide (caractères répétitifs détectés)';
@@ -74,6 +83,9 @@ export function useStudentReportForm(
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [descriptionError, setDescriptionError] = useState('');
+  const [victimError, setVictimError] = useState('');
+  const [suspectError, setSuspectError] = useState('');
   const [showErrors, setShowErrors] = useState(false);
   const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
@@ -85,7 +97,7 @@ export function useStudentReportForm(
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
-    (step === 3 && (!description.trim() || !frequency));
+    (step === 3 && (!!validateDescription(description) || !frequency));
 
   const handleNext = () => {
     const errors: Record<string, string> = {};
@@ -166,6 +178,10 @@ export function useStudentReportForm(
   const handleSuspectSearch = async (value: string) => { setSuspectInput(value); };
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    const name = `${suspect.firstName} ${suspect.lastName}`.trim();
+    const err = validateName(name);
+    if (err) { setSuspectError(err); return; }
+    setSuspectError('');
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
@@ -205,6 +221,8 @@ export function useStudentReportForm(
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim,
     handleSubmit, handleNext, clearFieldErrors,
+    validateDescription, validateName, descriptionError, setDescriptionError,
+    victimError, setVictimError, suspectError, setSuspectError,
     handleSuspectSearch,
     addSuspect, removeSuspect, resetForm,
   };

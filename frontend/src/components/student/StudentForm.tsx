@@ -45,6 +45,9 @@ export default function StudentForm({ user }: StudentFormProps) {
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
     handleSubmit, handleSuspectSearch, clearFieldErrors,
+    validateDescription, validateName, descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, setSuspectError,
     addSuspect, removeSuspect, resetForm,
   } = useStudentReportForm(user?.role, t);
 
@@ -183,16 +186,13 @@ export default function StudentForm({ user }: StudentFormProps) {
               <Textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={e => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
                 className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
-              {showErrors && !description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
-              )}
-              {fieldErrors.description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {fieldErrors.description}</p>
+              {(descriptionError || fieldErrors.description) && (
+                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {descriptionError || fieldErrors.description}</p>
               )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
@@ -235,6 +235,9 @@ export default function StudentForm({ user }: StudentFormProps) {
                     onKeyDown={e => {
                       if (e.key === 'Enter' && victimInput.trim()) {
                         e.preventDefault();
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
                         setVictimInput('');
                       }
@@ -246,6 +249,9 @@ export default function StudentForm({ user }: StudentFormProps) {
                     variant="outline"
                     onClick={() => {
                       if (victimInput.trim()) {
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
                         setVictimInput('');
                         clearFieldErrors();
@@ -257,6 +263,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute cette victime"</p>
+                {victimError && <p role="alert" className="text-sm text-red-600 mt-1">⚠️ {victimError}</p>}
                 {victimName && (
 
                 <div className="mt-4">
@@ -314,6 +321,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 </Button>
               </div>
               <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute ce coupable"</p>
+                {suspectError && <p role="alert" className="text-sm text-red-600 mt-1">⚠️ {suspectError}</p>}
               {suspects.length > 0 && (
                 <div className="mt-4">
                   {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}

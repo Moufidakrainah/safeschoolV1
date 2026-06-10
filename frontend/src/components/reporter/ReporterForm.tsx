@@ -63,6 +63,10 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     addSuspect,
     removeSuspect,
     resetForm,
+    descriptionError, setDescriptionError,
+    victimError,
+    suspectError,
+    validateDescription,
   } = useReportForm(user?.role, t);
 
   // Labels des étapes affichés dans la StepBar.
@@ -257,15 +261,15 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 <Textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
                   placeholder={t("reporter.step3.descriptionPlaceholder")}
                   rows={5}
                   aria-required="true"
                   className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
                 />
-                {showErrors && !description && (
+                {descriptionError && (
                   <p role="alert" className="mb-4 text-sm text-red-600">
-                    {t("reporter.validation.descriptionRequired")}
+                    {descriptionError}
                   </p>
                 )}
                 <label
@@ -360,6 +364,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   Appuie sur la touche "Entrée" de ton clavier ou clique sur
                   "Ajoute cette victime"
                 </p>
+                {victimError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{victimError}</p>
+                )}
                 {victimName && (
                   <div className="mt-4">
                     <div className="flex flex-wrap gap-2">
@@ -428,6 +435,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   Appuie sur la touche "Entrée" de ton clavier ou clique sur
                   "Ajoute ce coupable"
                 </p>
+                {suspectError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>
+                )}
                 {suspects.length > 0 && (
                   <div className="mt-4">
                     {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}
