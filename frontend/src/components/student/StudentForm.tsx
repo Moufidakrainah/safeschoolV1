@@ -270,7 +270,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 										</SelectValue>
 									</SelectTrigger>
 									<SelectContent className="text-primary">
-										
 										<SelectItem value="Une fois">
 											{t("reporter.step3.freq1")}
 										</SelectItem>
@@ -349,9 +348,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										{t("reporter.step4.addVictim")}
 									</Button>
 								</div>
-								<p className="text-xs mt-4">
-									{t("reporter.step4.add+Victim")}
-								</p>
+								<p className="text-xs mt-4">{t("reporter.step4.add+Victim")}</p>
 								{victimName && (
 									<div className="mt-4">
 										<div className="flex flex-wrap gap-2">
@@ -423,8 +420,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}}
 										disabled={suspectInput.trim().length < 2}
 									>
-											{t("reporter.step4.addSuspect")}
-
+										{t("reporter.step4.addSuspect")}
 									</Button>
 								</div>
 								<p className="text-xs mt-4">
@@ -493,7 +489,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 												value:
 													whoSignals === "victime"
 														? t("reporter.step6.victim")
-														: t("reporter.step6.suspect")
+														: t("reporter.step6.suspect"),
 											},
 											{ label: t("reporter.step6.type"), value: type },
 											{

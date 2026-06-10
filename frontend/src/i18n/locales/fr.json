@@ -430,7 +430,10 @@
 	"cases": {
 		"loading": "Chargement en cours",
 		"noReport": "Aucun signalement trouvé",
-		"iAmVictim": "Je suis une victime"
+		"iAmVictim": "Je suis une victime",
+		"noUpdate": "Aucune mise à jour pour ce dossier",
+		"meeting": "Un rendez-vous a eu lieu le",
+		"summoned": " est convoqué(e) le "
 	}
   },
   "privacy": {

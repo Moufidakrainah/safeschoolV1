@@ -166,10 +166,12 @@ export default function StudentCases({
 	return (
 		<section className="page-section">
 			{loadingReports ? (
-				<p className="text-center py-10 text-gray-400">{t("student.cases.loading")}</p>
+				<p className="text-center py-10 text-gray-400">
+					{t("student.cases.loading")}
+				</p>
 			) : myReports.length === 0 ? (
-				<div className="bg-surface shadow-sm px-6 py-10 text-center">
-					<p className="text-gray-400 text-sm">{t("student.cases.noReport")}</p>
+				<div className="bg-surface shadow-sm py-20 text-center">
+					<p className="text-m">{t("student.cases.noReport")}</p>
 				</div>
 			) : (
 				<ul className="flex flex-col gap-3">
@@ -183,11 +185,11 @@ export default function StudentCases({
 						return (
 							<li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
 								{/* En-tête du dossier */}
-								<div className="flex justify-between items-start">
+								<div className="flex  items-start">
 									<div className="flex-1">
 										<span className="card-title">{report.caseNumber}</span>
-										<p className="card-subtitle mt-2 capitalize">
-											{report.type} - Je suis victime
+										<p className="card-subtitle mt-2 ">
+											{report.type} - {t("student.cases.iAmVictim")}
 										</p>
 										<p className="card-meta mt-2">
 											{new Date(report.createdAt).toLocaleDateString("fr-FR")}
@@ -198,8 +200,8 @@ export default function StudentCases({
 
 								{/* Notes : status_change + convocations */}
 								{notes.length === 0 ? (
-									<p className="text-xs text-primary italic">
-										Aucune mise à jour pour ce dossier.
+									<p className="text-sm italic mt-6">
+										{t("student.cases.noUpdate")}
 									</p>
 								) : (
 									<div className="flex flex-col gap-2 mt-2">
@@ -214,9 +216,7 @@ export default function StudentCases({
 														}}
 														className="p-3 bg-white"
 													>
-														<p className="text-sm text-primary">
-															{note.content}
-														</p>
+														<p className="text-sm">{note.content}</p>
 													</div>
 												);
 											}
@@ -241,28 +241,26 @@ export default function StudentCases({
 													className={`p-3 bg-indigo-50`}
 												>
 													{isPast ? (
-														<p className="text-primary text-sm">
-															Un rendez-vous a eu lieu le{" "}
+														<p className="text-m">
+															{t("student.cases.meeting")}{" "}
 															<strong>{displayDate}</strong>
 														</p>
 													) : (
 														<div>
 															<div className="flex justify-between">
-																<span className="text-xs font-semibold text-primary">
+																<span className="text-xs font-semibold">
 																	{t("noteblock.convocation")}
 																</span>
 																{isNew && (
 																	<Badge variant="new_red" className="ml-4" />
 																)}
 															</div>
-															<p className="text-sm font-semibold text-primary">
-																{recipient ? <span>{recipient}</span> : ""} est
-																convoqué(e) le {displayDate}
+															<p className="text-m font-semibold ">
+																{recipient ? <span>{recipient}</span> : ""}{" "}
+																{t("student.cases.summoned")} {displayDate}
 															</p>
 															{message && (
-																<p className="text-primary mt-1 text-xs">
-																	{message}
-																</p>
+																<p className="mt-1 text-xs">{message}</p>
 															)}
 														</div>
 													)}

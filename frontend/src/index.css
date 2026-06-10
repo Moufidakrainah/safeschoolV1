@@ -198,11 +198,11 @@ html, body, #root
   }
 
   .card-subtitle {
-    @apply text-xs text-gray-600;
+    @apply text-xs;
   }
 
   .card-meta {
-    @apply text-xs text-gray-400;
+    @apply text-xs;
   }
 
   .page-section {
