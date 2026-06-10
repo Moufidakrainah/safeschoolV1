@@ -7,7 +7,7 @@ import {
 } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import type { AuthUser } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
@@ -22,12 +22,22 @@ const statusToBadgeVariant = (status: string) => {
 };
 
 const MONTHS_FR: Record<string, number> = {
-  janvier: 1, février: 2, mars: 3, avril: 4, mai: 5, juin: 6,
-  juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
+  janvier: 1,
+  février: 2,
+  mars: 3,
+  avril: 4,
+  mai: 5,
+  juin: 6,
+  juillet: 7,
+  août: 8,
+  septembre: 9,
+  octobre: 10,
+  novembre: 11,
+  décembre: 12,
 };
 
 function anonymizeConvocation(content: string): string {
-  return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
+  return content.replace(/^.+? est convoqué/, "Vous êtes convoqué");
 }
 
 function parseConvocation(content: string) {
@@ -43,7 +53,7 @@ function parseConvocation(content: string) {
   if (!dateMatch) {
     return {
       isPast: true,
-      displayDate: content.split("\n")[0].replace("📅", "").trim(),
+      displayDate: content.split("\n")[0].trim(),
       message,
       recipient,
     };
@@ -60,7 +70,13 @@ function parseConvocation(content: string) {
     };
   }
 
-  const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
+  const rdvDate = new Date(
+    Number(year),
+    monthNum - 1,
+    Number(day),
+    Number(hours),
+    Number(minutes),
+  );
   const isPast = rdvDate < new Date();
   const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
   return { isPast, displayDate, message, recipient };
@@ -72,7 +88,11 @@ interface StudentCasesProps {
   refreshKey?: number;
 }
 
-export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
+export default function StudentCases({
+  user,
+  onNotifRefresh,
+  refreshKey = 0,
+}: StudentCasesProps) {
   const { t } = useTranslation();
   const [myReports, setMyReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
@@ -94,7 +114,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
             try {
               const notes = await getNotes(r.id);
               notesMap[r.id] = notes.filter(
-                (n: any) => n.type === "convocation" || n.type === "status_change"
+                (n: any) =>
+                  n.type === "convocation" || n.type === "status_change",
               );
             } catch {
               notesMap[r.id] = [];
@@ -104,7 +125,11 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         setReportNotes(notesMap);
 
         const unreadMap: Record<string, any> = {};
-        notifs.filter((n: any) => !n.isRead).forEach((n: any) => { unreadMap[n.id] = n; });
+        notifs
+          .filter((n: any) => !n.isRead)
+          .forEach((n: any) => {
+            unreadMap[n.id] = n;
+          });
         setUnreadNotifs(unreadMap);
       })
       .catch(() => setMyReports([]))
@@ -112,15 +137,17 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
   }, [user?.id, refreshKey]);
 
   const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-    return Object.values(unreadNotifs).find((n: any) => {
-      if (n.report?.id !== reportId) return false;
-      const noteContent = note.content.replace("📅 ", "").trim();
-      const notifMsg = n.message.replace("Convocation : ", "").trim();
-      return (
-        notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
-        noteContent.includes(notifMsg.split("\n\n")[0].trim())
-      );
-    }) ?? null;
+    return (
+      Object.values(unreadNotifs).find((n: any) => {
+        if (n.report?.id !== reportId) return false;
+        const noteContent = note.content.trim();
+        const notifMsg = n.message.replace("Convocation : ", "").trim();
+        return (
+          notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
+          noteContent.includes(notifMsg.split("\n\n")[0].trim())
+        );
+      }) ?? null
+    );
   };
 
   const handleConvocationClick = async (notif: any) => {
@@ -154,82 +181,89 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
             ).length;
 
             return (
-              <li
-                key={report.id}
-                style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
-                className="bg-surface px-6 py-5 shadow-sm"
-              >
+              <li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
                 {/* En-tête du dossier */}
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="card-title">{report.caseNumber}</span>
-
-                    </div>
-                    <p className="card-subtitle mt-1 mb-2 capitalize">
-                      {report.type} — Je suis victime
+                    <span className="card-title">{report.caseNumber}</span>
+                    <p className="card-subtitle mt-2 capitalize">
+                      {report.type} - Je suis victime
                     </p>
-                    <p className="card-meta">
-                      {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                    <p className="card-meta mt-2">
+                      {new Date(report.createdAt).toLocaleDateString("fr-FR")}
                     </p>
                   </div>
-                  <Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
+                  <Badge variant={statusToBadgeVariant(report.status)} />
                 </div>
 
                 {/* Notes : status_change + convocations */}
                 {notes.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
+                  <p className="text-xs text-primary italic">
+                    Aucune mise à jour pour ce dossier.
+                  </p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
                     {notes.map((note: any) => {
-
                       // ── Note de changement de statut ──
-                      if (note.type === 'status_change') {
+                      if (note.type === "status_change") {
                         return (
                           <div
                             key={note.id}
-                            style={{ borderLeft: '3px solid var(--color-primary)' }}
-                            className="p-3 bg-gray-50"
+                            style={{
+                              borderLeft: "3px solid var(--color-primary)",
+                            }}
+                            className="p-3 bg-white"
                           >
-                            <p className="text-sm text-gray-600">{note.content}</p>
+                            <p className="text-sm text-primary">
+                              {note.content}
+                            </p>
                           </div>
                         );
                       }
 
                       // ── Convocation ──
-                      const { isPast, displayDate, message, recipient } = parseConvocation(note.content);
-                      const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
+                      const { isPast, displayDate, message, recipient } =
+                        parseConvocation(note.content);
+                      const unreadNotif = !isPast
+                        ? findUnreadNotifForNote(note, report.id)
+                        : null;
                       const isNew = !!unreadNotif;
 
                       return (
                         <div
                           key={note.id}
-                          onClick={() => isNew && handleConvocationClick(unreadNotif)}
-                          style={{ borderLeft: '3px solid var(--color-warning)' }}
-                          className={`p-3 bg-indigo-50 ${isNew ? 'cursor-pointer hover:bg-indigo-100' : ''} transition-colors`}
+                          onClick={() =>
+                            isNew && handleConvocationClick(unreadNotif)
+                          }
+                          style={{
+                            borderLeft: "3px solid var(--color-warning)",
+                          }}
+                          className={`p-3 bg-indigo-50`}
                         >
                           {isPast ? (
-                            <p className="text-gray-400 text-sm">
-                              Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                            <p className="text-primary text-sm">
+                              Un rendez-vous a eu lieu le{" "}
+                              <strong>{displayDate}</strong>
                             </p>
                           ) : (
                             <div>
-                              <div className="flex justify-between items-center mb-1">
+                              <div className="flex justify-between">
                                 <span className="text-xs font-semibold text-primary">
-                                  {t('noteblock.convocation')}
+                                  {t("noteblock.convocation")}
                                 </span>
                                 {isNew && (
-                                  <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-                                    Nouveau
-                                  </span>
+                                  <Badge variant="new_red" className="ml-4" />
                                 )}
                               </div>
-                              <p className="text-sm font-semibold text-gray-700">
-                                {recipient ? <span>{recipient}</span> : 'Vous'}{' '}
-                                êtes convoqué(e) le <strong>{displayDate}</strong>
+                              <p className="text-sm font-semibold text-primary">
+                                {recipient ? <span>{recipient}</span> : "Tu"}{" "}
+                                es convoqué(e) le{" "}
+                                {displayDate}
                               </p>
                               {message && (
-                                <p className="text-gray-600 mt-1 text-xs whitespace-pre-line">{message}</p>
+                                <p className="text-primary mt-1 text-xs">
+                                  {message}
+                                </p>
                               )}
                             </div>
                           )}
