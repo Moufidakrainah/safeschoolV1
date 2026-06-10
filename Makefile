@@ -63,7 +63,7 @@ certs-renew: ## (Re)générer les certificats TLS, en écrasant les existants
 		-keyout $(CERT_DIR)/privkey.pem \
 		-out $(CERT_DIR)/fullchain.pem \
 		-subj "/CN=localhost" \
-		-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$$ip" 2>/dev/null; \
+		-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
 	echo "Certificats générés dans $(CERT_DIR)/"
 
 re: ## Remettre à zéro et redémarrer

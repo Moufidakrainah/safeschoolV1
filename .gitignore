@@ -10,4 +10,5 @@ backups/
 *.docx
 .env.local
 backend/uploads/
-nginx/certs/
+nginx/certs/*
+!nginx/certs/.gitkeep
