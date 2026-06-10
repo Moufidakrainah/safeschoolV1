@@ -6,7 +6,9 @@
     "loading": "Logging in...",
     "errorEmailFormat": "Invalid email format.",
     "errorPasswordLength": "The password must contain at least 6 characters.",
-    "error": "Incorrect credentials."
+    "error": "Incorrect credentials.",
+    "errorRequired": "Please fill in all fields.",
+    "keepEmpty": "(leave empty to keep unchanged)"
   },
   "nav": {
     "logout": "Log out"
@@ -135,7 +137,8 @@
         "teacher": "Teacher",
         "staff": "Staff",
         "admin": "Admin",
-        "director": "Director"
+        "director": "Director",
+        "choose": "Select a role"
       },
       "errorEmailFormat": "Invalid email format.",
       "errorPasswordLength": "The password must contain at least 6 characters.",
@@ -157,6 +160,9 @@
     "title": {
       "oneReport": "Details of a report",
       "allReports": "All reports"
+    },
+    "teacher": {
+      "subjectTeached": "Subject taught"
     }
   },
   "badge": {
@@ -306,7 +312,8 @@
       "victim": "Victim",
       "suspects": "Suspects",
       "anonymous": "Anonymous report",
-      "anonymousDesc": "my name will not be visible"
+      "anonymousDesc": "my name will not be visible",
+      "victims": "Victim(s)"
     },
     "submitting": "Sending...",
     "submit": "Submit report",
@@ -419,5 +426,12 @@
       "title": "6. Amendments to These Terms",
       "body": "These terms of use may be updated at any time by the administration. Users will be notified of any material changes. Continued use of the application after notification constitutes acceptance of the revised terms."
     }
+  },
+  "notifications": {
+    "notifs": "Notifications",
+    "loading": "Loading",
+    "no": "No notifications",
+    "report": "Report",
+    "read": "Read"
   }
 }

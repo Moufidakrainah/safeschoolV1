@@ -6,7 +6,9 @@
     "loading": "Anmeldung läuft...",
     "errorEmailFormat": "Ungültiges E-Mail-Format.",
     "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
-    "error": "Falsche Anmeldeinformationen."
+    "error": "Falsche Anmeldeinformationen.",
+    "errorRequired": "Bitte füllen Sie alle Felder aus.",
+    "keepEmpty": "(leer lassen, um unverändert zu bleiben)"
   },
   "nav": {
     "logout": "Abmelden"
@@ -135,7 +137,8 @@
         "teacher": "Lehrer",
         "staff": "Personal",
         "admin": "Admin",
-        "director": "Direktor"
+        "director": "Direktor",
+        "choose": "Rolle auswählen"
       },
       "errorEmailFormat": "Ungültiges E-Mail-Format.",
       "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
@@ -157,6 +160,9 @@
     "title": {
       "oneReport": "Einzelheiten eines Berichts",
       "allReports": "Alle Berichte"
+    },
+    "teacher": {
+      "subjectTeached": "Unterrichtetes Fach"
     }
   },
   "badge": {
@@ -340,7 +346,8 @@
       "victim": "Opfer",
       "suspects": "Verdächtige",
       "anonymous": "Anonyme Meldung",
-      "anonymousDesc": "mein Name wird nicht sichtbar sein"
+      "anonymousDesc": "mein Name wird nicht sichtbar sein",
+      "victims": "Opfer"
     },
     "submitting": "Wird gesendet...",
     "submit": "Meldung absenden",
@@ -388,5 +395,12 @@
       "title": "6. Änderungen dieser Bedingungen",
       "body": "Diese Nutzungsbedingungen können von der Verwaltung jederzeit aktualisiert werden. Nutzer werden über wesentliche Änderungen informiert. Die weitere Nutzung der Anwendung nach der Benachrichtigung gilt als Zustimmung zu den überarbeiteten Bedingungen."
     }
+  },
+  "notifications": {
+    "notifs": "Benachrichtigungen",
+    "loading": "Laden",
+    "no": "Keine Benachrichtigungen",
+    "report": "Meldung",
+    "read": "Gelesen"
   }
 }
