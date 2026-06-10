@@ -61,7 +61,7 @@ export default function AdminDashboard() {
     deleteTarget, setDeleteTarget, isDeleting, isBlocked, deleteError,
     filteredUsers,
     fetchUsers, fetchClassesList,
-    handleSaveUser, handleDeleteUser, confirmDelete,
+    handleSaveUser, handleDeleteUser, confirmDelete, validateAll,
     handleAvatarUpload, updateField, toggleClassId,
     navigateToUser, calcAge,
   } = useUsers();
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
         <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{errors.email}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
@@ -551,6 +551,7 @@ export default function AdminDashboard() {
               setShowUserForm(v);
             }}
             onSaveUser={handleSaveUser}
+            onValidateAll={validateAll}
             renderUserForm={renderUserForm}
           />
         )}

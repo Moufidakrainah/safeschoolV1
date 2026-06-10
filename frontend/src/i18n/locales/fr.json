@@ -7,7 +7,7 @@
     "errorRequired": "Veuillez remplir tous les champs.",
     "errorEmailFormat": "Format d'email invalide.",
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-    "error": "Identifiants incorrects.", 
+    "error": "Identifiant ou mot de passe incorrect.", 
 	"keepEmpty": "(laisser vide pour ne pas changer)"
   },
   "nav": {
@@ -157,7 +157,9 @@
       "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements",
       "deleteError": "Une erreur est survenue lors de la suppression",
       "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte", 
-	  "name": "Lettres, apostrophes ou tirets uniquement (max 20 caractères)", 
+	  "errorRequired": "Ce champ est obligatoire",
+          "errorEmailFormat": "Format d'email invalide",
+          "name": "Lettres, tirets et apostrophes uniquement (2-20 caractères)", 
 	  "tooLong":"Email trop long (max 50 caractères)", 
 	  "atLeast": "Minimum 12 caractères", 
 	  "atLeastOneNumber":"Au moins un chiffre requis", 

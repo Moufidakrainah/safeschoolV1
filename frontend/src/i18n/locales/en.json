@@ -4,7 +4,6 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "errorRequired": "Please fill in all fields.",
     "errorEmailFormat": "Invalid email format.",
     "errorPasswordLength": "The password must contain at least 6 characters.",
     "error": "Incorrect credentials."
@@ -143,7 +142,17 @@
       "deleteConfirm": "Do you really want to delete this user?",
       "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
       "deleteError": "An error occurred during deletion.",
-      "deleteSelf": "You cannot delete your own account"
+      "deleteSelf": "You cannot delete your own account",
+      "name": "Letters, hyphens and apostrophes only (2-20 characters)",
+      "errorRequired": "This field is required",
+      "tooLong": "Too long (max 50 characters)",
+      "atLeast": "Minimum 12 characters",
+      "atLeastOneNumber": "At least one digit required",
+      "atLeastOneMinus": "At least one lowercase letter required",
+      "atLeastOneMajor": "At least one uppercase letter required",
+      "atLeastOneSpecial": "At least one special character required",
+      "noFirstName": "Password must not contain first name",
+      "noLastName": "Password must not contain last name"
     },
     "title": {
       "oneReport": "Details of a report",

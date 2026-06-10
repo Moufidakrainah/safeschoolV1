@@ -40,20 +40,17 @@ export class ReportsService {
         (student as any).studentProfile?.schoolClass?.level ?? "",
         suspects,
       );
-
     const year = new Date().getFullYear();
     const lastReport = await this.reportsRepository
       .createQueryBuilder("report")
       .where("report.caseNumber LIKE :pattern", { pattern: `#${year}-%` })
       .orderBy("report.caseNumber", "DESC")
       .getOne();
-
     let nextNumber = 1;
     if (lastReport?.caseNumber) {
       nextNumber = parseInt(lastReport.caseNumber.split("-")[1]) + 1;
     }
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
-
     const report = this.reportsRepository.create({
       type, reporter, description, grade,
       aiScore: finalScore, aiReason,
@@ -61,14 +58,11 @@ export class ReportsService {
       status: ReportStatus.PENDING,
     });
     const savedReport = await this.reportsRepository.save(report);
-
     for (const suspect of suspects) {
       await this.suspectsRepository.save(
         this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
       );
     }
-
-    // Si reporter = victime, ajouter automatiquement le student comme première victime
     if (reporter === 'victime') {
       await this.victimsRepository.save(
         this.victimsRepository.create({
@@ -78,14 +72,11 @@ export class ReportsService {
         })
       );
     }
-
-    // Ajouter les autres victimes saisies
     for (const victim of victims) {
       await this.victimsRepository.save(
         this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })
       );
     }
-
     return this.reportsRepository.findOne({
       where: { id: savedReport.id },
       relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
@@ -179,7 +170,7 @@ export class ReportsService {
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
-        const userId = targetRole.split("_")[1];
+        const userId = targetRole.slice("suspect_".length);
         const suspect = report.suspects?.find(s => s.resolvedUser?.id === userId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
@@ -187,7 +178,7 @@ export class ReportsService {
           );
         }
       } else if (targetRole?.startsWith("victim_")) {
-        const userId = targetRole.split("_")[1];
+        const userId = targetRole.slice("victim_".length);
         const victim = report.victims?.find(v => v.resolvedUser?.id === userId);
         if (victim?.resolvedUser?.id) {
           await this.notificationsService.create(

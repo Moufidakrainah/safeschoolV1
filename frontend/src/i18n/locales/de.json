@@ -4,7 +4,6 @@
     "labelPassword": "Passwort",
     "submit": "Anmelden",
     "loading": "Anmeldung läuft...",
-    "errorRequired": "Bitte füllen Sie alle Felder aus.",
     "errorEmailFormat": "Ungültiges E-Mail-Format.",
     "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
     "error": "Falsche Anmeldeinformationen."
@@ -143,7 +142,17 @@
       "deleteConfirm": "Möchten Sie diesen Benutzer wirklich löschen?",
       "deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist..",
       "deleteError": "Beim Löschen ist ein Fehler aufgetreten..",
-      "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen"
+      "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen",
+      "name": "Nur Buchstaben, Bindestriche und Apostrophe (2-20 Zeichen)",
+      "errorRequired": "Dieses Feld ist erforderlich",
+      "tooLong": "Too long (max 50 characters)",
+      "atLeast": "Minimum 12 characters",
+      "atLeastOneNumber": "At least one digit required",
+      "atLeastOneMinus": "At least one lowercase letter required",
+      "atLeastOneMajor": "At least one uppercase letter required",
+      "atLeastOneSpecial": "At least one special character required",
+      "noFirstName": "Password must not contain first name",
+      "noLastName": "Password must not contain last name"
     },
     "title": {
       "oneReport": "Einzelheiten eines Berichts",
