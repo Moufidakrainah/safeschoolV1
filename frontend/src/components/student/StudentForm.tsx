@@ -51,8 +51,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 		},
 	];
 
-	const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
 	const {
 		step,
 		setStep,
@@ -106,6 +104,8 @@ export default function StudentForm({ user }: StudentFormProps) {
 		"Tous les jours": t("reporter.step3.freq4"),
 	};
 
+	const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
 	useEffect(() => {
 		const index = typeOptions.findIndex((o) => o.value === type);
 		if (index >= 0) cardRefs.current[index]?.focus();
@@ -119,7 +119,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 					<StepBar steps={steps} currentStep={step} />
 					<div className="w-full mt-8">
 						<div>
-							<h2 className=" font-bold text-lg mb-2">
+							<h2 className="font-bold text-lg mb-2">
 								{t("reporter.success.title")}
 							</h2>
 							<div className=" text-sm mb-6">
@@ -147,7 +147,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 1 : Victime ou témoin */}
 						{step === 1 && (
 							<fieldset>
-								<legend className="font-bold text-lg mb-2 text-primary">
+								<legend className="font-bold text-lg mb-2">
 									{t("reporter.step2.title")}
 								</legend>
 								<div className="grid grid-cols-2 gap-3 mt-6">
@@ -159,10 +159,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 												: "border-gray-200"
 										}`}
 									>
-										<div className="text-m font-semibold text-primary">
+										<div className="text-m font-semibold">
 											{t("reporter.step2.iAmTheVictim")}
 										</div>
-										<div className="text-sm text-primary text-gray-600 mt-1">
+										<div className="text-sm text-gray-600 mt-1">
 											{t("reporter.step2.iWasHarassed")}
 										</div>
 									</button>
@@ -207,10 +207,8 @@ export default function StudentForm({ user }: StudentFormProps) {
 													: "border-gray-200"
 											}`}
 										>
-											<div className="text-m font-semibold text-primary">
-												{opt.label}
-											</div>
-											<div className="text-sm text-primary mt-1">{opt.sub}</div>
+											<div className="text-m font-semibold">{opt.label}</div>
+											<div className="text-sm mt-1">{opt.sub}</div>
 										</button>
 									))}
 								</div>
@@ -225,10 +223,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 3 : Description + fréquence */}
 						{step === 3 && (
 							<div>
-								<h2 className="text-primary font-bold text-lg mb-2">
+								<h2 className="font-bold text-lg mb-2">
 									{t("reporter.step3.title")}
 								</h2>
-								<div className="text-m font-semibold text-primary mt-6 mb-6">
+								<div className="text-m font-semibold mt-6 mb-6">
 									{t("reporter.step3.descriptionLabel")}
 								</div>
 								<Textarea
@@ -249,17 +247,14 @@ export default function StudentForm({ user }: StudentFormProps) {
 										{fieldErrors.description}
 									</p>
 								)}
-								<div className="mb-4 mt-4 text-m font-semibold text-primary">
+								<label className="block mb-2 mt-4 text-sm font-semibold text-gray-700">
 									{t("reporter.step3.frequencyLabel")}
-								</div>
+								</label>
 								<Select
 									value={frequency}
 									onValueChange={(v) => setFrequency(v)}
 								>
-									<SelectTrigger
-										id="frequency"
-										className="bg-white text-primary"
-									>
+									<SelectTrigger id="frequency" className="bg-white">
 										<SelectValue>
 											{{
 												"Une fois": t("reporter.step3.freq1"),
@@ -269,7 +264,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 											}[frequency] || t("reporter.step3.frequencyPlaceholder")}
 										</SelectValue>
 									</SelectTrigger>
-									<SelectContent className="text-primary">
+									<SelectContent>
 										<SelectItem value="Une fois">
 											{t("reporter.step3.freq1")}
 										</SelectItem>
@@ -354,7 +349,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										<div className="flex flex-wrap gap-2">
 											{victimName.split("|").map((v, i) => (
 												<div key={i} className="flex flex-col gap-1">
-													<div className="flex  gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+													<div className="flex gap-2 bg-surface px-3 py-1 rounded-full text-sm">
 														<span>{v}</span>
 														<button
 															onClick={() => {
@@ -381,7 +376,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								)}
 								<div className="mt-5" />
 
-								<label className="block mb-3 mt-6  text-m font-semibold">
+								<label className="block mb-3 mt-6 text-m font-semibold">
 									{t("reporter.step4.suspectsLabel")}
 								</label>
 								<div className="flex gap-2 items-center">
@@ -428,11 +423,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 								</p>
 								{suspects.length > 0 && (
 									<div className="mt-4">
-										{/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}
 										<div className="flex flex-wrap gap-2">
 											{suspects.map((s, i) => (
 												<div key={i} className="flex flex-col gap-1">
-													<div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+													<div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm">
 														<span>
 															{s.firstName} {s.lastName}
 														</span>

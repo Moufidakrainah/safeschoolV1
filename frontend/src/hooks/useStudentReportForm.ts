@@ -95,12 +95,10 @@ export function useStudentReportForm(
 	const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(
 		null,
 	);
-
 	const isNextDisabled =
 		(step === 1 && !whoSignals) ||
 		(step === 2 && !type) ||
 		(step === 3 && (!description.trim() || !frequency));
-
 	const handleNext = () => {
 		const errors: Record<string, string> = {};
 
