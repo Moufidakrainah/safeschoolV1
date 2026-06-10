@@ -215,7 +215,8 @@
       "email": "Email",
       "role": "Occupation",
       "subject": "Subject",
-      "subjectUnknown": "Unknown"
+      "subjectUnknown": "Unknown",
+      "job": "Job"
     },
     "roles": {
       "teacher": "Teacher",
@@ -349,7 +350,10 @@
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
-      "role": "Role"
+      "role": "Role",
+      "class": "Class",
+      "dob": "Date of birth",
+      "officialParents": "Parents"
     },
     "workshop": {
       "title": "Workshops",

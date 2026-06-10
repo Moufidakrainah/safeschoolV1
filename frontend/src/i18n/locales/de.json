@@ -249,7 +249,8 @@
       "email": "E-Mail",
       "role": "Beruf",
       "subject": "Fach",
-      "subjectUnknown": "Unbekannt"
+      "subjectUnknown": "Unbekannt",
+      "job": "Beruf"
     },
     "roles": {
       "teacher": "Lehrer",
@@ -402,5 +403,12 @@
     "no": "Keine Benachrichtigungen",
     "report": "Meldung",
     "read": "Gelesen"
+  },
+  "student": {
+    "profile": {
+      "class": "Klasse",
+      "dob": "Geburtsdatum",
+      "officialParents": "Eltern"
+    }
   }
 }
