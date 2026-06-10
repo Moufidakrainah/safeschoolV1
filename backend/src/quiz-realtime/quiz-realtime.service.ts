@@ -1,18 +1,24 @@
 import { Injectable } from "@nestjs/common";
 import questionsData from "./questions.json";
 
+// Les questions sont stockées avec leur texte et leurs options traduits dans chaque langue
+// supportée. Le client reçoit toutes les langues et choisit librement laquelle afficher
+type QuizLocale = "fr" | "en" | "de";
+type LocalizedText = Record<QuizLocale, string>;
+type LocalizedOptions = Record<QuizLocale, string[]>;
+
 interface QuestionInternal {
   id: number;
-  text: string;
-  options: string[];
+  text: LocalizedText;
+  options: LocalizedOptions;
   correctIndex: number;
   score: number;
 }
 
 interface QuestionPublic {
   id: number;
-  text: string;
-  options: string[];
+  text: LocalizedText;
+  options: LocalizedOptions;
 }
 
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
@@ -650,7 +656,8 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        currentQuestion.options.length,
+        // Le nombre d'options est identique dans toutes les langues ; on en prend une
+        currentQuestion.options.fr.length,
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
@@ -743,7 +750,8 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        currentQuestion.options.length,
+        // Le nombre d'options est identique dans toutes les langues ; on en prend une
+        currentQuestion.options.fr.length,
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
