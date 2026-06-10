@@ -26,27 +26,27 @@ export default function StudentForm({ user }: StudentFormProps) {
 	const typeOptions = [
 		{
 			label: t("reporter.step2.physical"),
-			value: t("reporter.step2.physical"),
+			value: "physique",
 			sub: t("reporter.step2.physicalSub"),
 		},
 		{
 			label: t("reporter.step2.verbal"),
-			value: t("reporter.step2.verbal"),
+			value: "verbal",
 			sub: t("reporter.step2.verbalSub"),
 		},
 		{
 			label: t("reporter.step2.cyber"),
-			value: t("reporter.step2.cyber"),
+			value: "cyber",
 			sub: t("reporter.step2.cyberSub"),
 		},
 		{
 			label: t("reporter.step2.exclusion"),
-			value: t("reporter.step2.exclusion"),
+			value: "exclusion",
 			sub: t("reporter.step2.exclusionSub"),
 		},
 		{
 			label: t("reporter.step2.sexual"),
-			value: t("reporter.step2.sexual"),
+			value: "sexual",
 			sub: t("reporter.step2.sexualSub"),
 		},
 	];
