@@ -193,9 +193,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<legend className="text-primary font-bold text-lg mb-2">
 									{t("reporter.step2.title")}
 								</legend>
-								<div
-									className="grid grid-cols-2 gap-3 mt-6"
-								>
+								<div className="grid grid-cols-2 gap-3 mt-6">
 									{typeOptions.map((opt, index) => (
 										<button
 											key={opt.value}
@@ -224,52 +222,46 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 3 : Description + fréquence */}
 						{step === 3 && (
 							<div>
-								<h2 className="text-gray-800 font-bold text-lg mb-2">
+								<h2 className="text-primary font-bold text-lg mb-2">
 									{t("reporter.step3.title")}
 								</h2>
-								<p className="text-gray-500 text-sm mb-6">
-									{t("reporter.step3.subtitle")}
-								</p>
-								<label
-									className="block mb-1 text-sm font-semibold text-gray-700"
-									htmlFor="description"
-								>
+								<div className="text-m font-semibold text-primary mt-6 mb-6">
 									{t("reporter.step3.descriptionLabel")}
-								</label>
+								</div>
 								<Textarea
 									id="description"
 									value={description}
 									onChange={(e) => setDescription(e.target.value)}
 									placeholder={t("reporter.step3.descriptionPlaceholder")}
-									rows={5}
-									className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
+									rows={7}
+									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
 								/>
-								{showErrors && !description && (
-									<p role="alert" className="mb-4 text-sm text-red-600">
+								{showErrors && !description && !fieldErrors.description && (
+									<p role="alert" className="mt-4 text-sm text-critical">
 										{t("reporter.validation.descriptionRequired")}
 									</p>
 								)}
 								{fieldErrors.description && (
-									<p role="alert" className="mb-4 text-sm text-red-600">
+									<p role="alert" className="mt-4 text-sm text-critical">
 										{fieldErrors.description}
 									</p>
 								)}
-								<label
-									className="block mb-2 mt-4 text-sm font-semibold text-gray-700"
-									htmlFor="frequency"
-								>
+								<div className="mb-4 mt-4 text-m font-semibold text-primary">
 									{t("reporter.step3.frequencyLabel")}
-								</label>
+								</div>
 								<Select
 									value={frequency}
 									onValueChange={(v) => setFrequency(v)}
 								>
-									<SelectTrigger id="frequency" aria-required="true">
+									<SelectTrigger
+										id="frequency"
+										className="bg-white text-primary"
+									>
 										<SelectValue
 											placeholder={t("reporter.step3.frequencyPlaceholder")}
 										/>
 									</SelectTrigger>
-									<SelectContent>
+									<SelectContent className="text-primary">
 										<SelectItem value="Une fois">
 											{t("reporter.step3.freq1")}
 										</SelectItem>
@@ -284,13 +276,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 										</SelectItem>
 									</SelectContent>
 								</Select>
-								{showErrors && !frequency && (
-									<p role="alert" className="mt-2 text-sm text-red-600">
+								{showErrors && !frequency && !fieldErrors.frequency && (
+									<p role="alert" className="mt-2 text-sm text-critical">
 										{t("reporter.validation.frequencyRequired")}
 									</p>
 								)}
 								{fieldErrors.frequency && (
-									<p role="alert" className="mt-2 text-sm text-red-600">
+									<p role="alert" className="mt-2 text-sm text-critical">
 										{fieldErrors.frequency}
 									</p>
 								)}
@@ -300,19 +292,17 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 4 : Victime et suspects */}
 						{step === 4 && (
 							<div>
-								<h2 className="text-gray-800 font-bold text-lg mb-2">
+								<h2 className="font-bold text-lg mb-2">
 									{t("reporter.step4.title")}
 								</h2>
-								<p className="text-gray-500 text-sm mb-6">
-									{t("reporter.step4.subtitle")}
-								</p>
 
 								{/* Victimes — saisie libre, plusieurs possibles */}
-								<label className="block mb-2 text-sm font-semibold text-gray-700">
+								<div className="mb-3 mt-6 text-m font-semibold ">
 									{t("reporter.step4.victimLabel")}
-								</label>
-								<div className="flex gap-2">
+								</div>
+								<div className="flex gap-2 items-center">
 									<input
+										maxLength={50}
 										type="text"
 										value={victimInput}
 										onChange={(e) => setVictimInput(e.target.value)}
@@ -328,10 +318,12 @@ export default function StudentForm({ user }: StudentFormProps) {
 											}
 										}}
 										placeholder="Par exemple : Prénom Nom Classe"
-										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2"
 									/>
 									<Button
-										variant="outline"
+										variant={
+											victimInput.trim().length >= 2 ? "primary" : "outline"
+										}
 										onClick={() => {
 											if (victimInput.trim()) {
 												setVictimName((prev) =>
@@ -343,12 +335,12 @@ export default function StudentForm({ user }: StudentFormProps) {
 												clearFieldErrors();
 											}
 										}}
-										disabled={!victimInput.trim()}
+										disabled={victimInput.trim().length < 2}
 									>
 										+ Ajoute cette victime
 									</Button>
 								</div>
-								<p className="text-xs text-gray-400 mt-1">
+								<p className="text-xs mt-4">
 									Appuie sur la touche "Entrée" de ton clavier ou clique sur
 									"Ajoute cette victime"
 								</p>
@@ -357,7 +349,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										<div className="flex flex-wrap gap-2">
 											{victimName.split("|").map((v, i) => (
 												<div key={i} className="flex flex-col gap-1">
-													<div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+													<div className="flex  gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
 														<span>{v}</span>
 														<button
 															onClick={() => {
@@ -367,13 +359,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 																setVictimName(arr.join("|"));
 																clearFieldErrors();
 															}}
-															className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
+															className="text-critical font-bold cursor-pointer"
 														>
-															×
+															x
 														</button>
 													</div>
 													{fieldErrors[`victim_${i}`] && (
-														<p className="text-xs text-red-600 pl-2">
+														<p className="text-xs text-critical pl-2">
 															{fieldErrors[`victim_${i}`]}
 														</p>
 													)}
@@ -384,11 +376,12 @@ export default function StudentForm({ user }: StudentFormProps) {
 								)}
 								<div className="mt-5" />
 
-								<label className="block mb-2 text-sm font-semibold text-gray-700">
+								<label className="block mb-3 mt-6  text-m font-semibold">
 									{t("reporter.step4.suspectsLabel")}
 								</label>
-								<div className="flex gap-2">
+								<div className="flex gap-2 items-center">
 									<input
+										maxLength={50}
 										type="text"
 										value={suspectInput}
 										onChange={(e) => {
@@ -408,7 +401,9 @@ export default function StudentForm({ user }: StudentFormProps) {
 										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 									/>
 									<Button
-										variant="outline"
+										variant={
+											suspectInput.trim().length >= 2 ? "primary" : "outline"
+										}
 										onClick={() => {
 											if (suspectInput.trim()) {
 												addSuspect({
@@ -418,7 +413,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 												clearFieldErrors();
 											}
 										}}
-										disabled={!suspectInput.trim()}
+										disabled={suspectInput.trim().length < 2}
 									>
 										+ Ajoute ce harceleur
 									</Button>
@@ -444,7 +439,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 															}}
 															className="text-red-500 font-bold cursor-pointer bg-transparent border-none"
 														>
-															×
+															x
 														</button>
 													</div>
 													{fieldErrors[`suspect_${i}`] && (
@@ -463,13 +458,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 5 : Preuves */}
 						{step === 5 && (
 							<div>
-								<h2 className="text-gray-800 font-bold text-lg mb-2">
+								<h2 className="font-bold text-lg mb-2">
 									{t("reporter.step5.title")}
 								</h2>
-								<p className="text-gray-500 text-sm mb-6">
+								<div className="mb-3 mt-6 text-m font-semibold ">
 									{t("reporter.step5.subtitle")}
-								</p>
-								<div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-400 text-center">
+								</div>
+								<div className="p-4 text-m text-center">
 									{t("reporter.step5.soon")}
 								</div>
 							</div>
@@ -478,13 +473,11 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 6 : Récapitulatif */}
 						{step === 6 && (
 							<div>
-								<h2 className="text-gray-800 font-bold text-lg mb-2">
+								<h2 className="font-bold text-lg mb-6">
 									{t("reporter.step6.title")}
 								</h2>
-								<p className="text-gray-500 text-sm mb-6">
-									{t("reporter.step6.subtitle")}
-								</p>
-								<dl className="bg-gray-50 rounded-lg p-4 mb-5 text-sm space-y-2">
+
+								<dl className="text-m space-y-3">
 									{(
 										[
 											{
@@ -524,22 +517,19 @@ export default function StudentForm({ user }: StudentFormProps) {
 										] as const
 									).map((row) => (
 										<div key={row.label} className="flex gap-2">
-											<dt className="font-semibold text-gray-700 min-w-[120px]">
+											<div className="font-semibold min-w-[110px]">
 												{row.label} :
-											</dt>
-											<dd className="text-gray-600 wrap-break-word min-w-0">
-												{row.value}
-											</dd>
+											</div>
+											<div>{row.value}</div>
 										</div>
 									))}
 								</dl>
-								<label className="flex items-center gap-3 cursor-pointer text-sm mb-5">
+								<label className="flex items-center gap-3 cursor-pointer text-m mb-6 mt-6">
 									<Checkbox
 										checked={isAnonymous}
 										onCheckedChange={setIsAnonymous}
-										className="bg-white"
+										className="bg-white border-2 border-gray-200 "
 									/>
-
 									<span>{t("reporter.step6.anonymous")}</span>
 								</label>
 								{submitError && (
@@ -547,7 +537,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 										role="alert"
 										className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg mb-2"
 									>
-										<span></span>
 										{submitError}
 									</div>
 								)}

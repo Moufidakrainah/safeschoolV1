@@ -455,7 +455,9 @@
       "addFreeText": "Ajouter",
       "suspectsAdded": "Suspects ajoutés",
       "removeSuspect": "Retirer",
-      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
+      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape",
+
+"nameTooLong": "Le nom ne peut pas dépasser 50 caractères"
     },
     "step5": {
       "title": "Télécharge tout document utile pour ce signalement",
