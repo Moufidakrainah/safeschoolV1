@@ -190,68 +190,31 @@ export default function StudentForm({ user }: StudentFormProps) {
 						{/* Étape 2 : Type de harcèlement */}
 						{step === 2 && (
 							<fieldset>
-								<legend className="text-gray-800 font-bold text-lg mb-2">
+								<legend className="text-primary font-bold text-lg mb-2">
 									{t("reporter.step2.title")}
 								</legend>
-								<p className="text-gray-500 text-sm mb-6">
-									{t("reporter.step2.subtitle")}
-								</p>
 								<div
-									role="radiogroup"
-									aria-label={t("reporter.step2.title")}
-									className="grid grid-cols-2 gap-3"
+									className="grid grid-cols-2 gap-3 mt-6"
 								>
 									{typeOptions.map((opt, index) => (
-										<div
+										<button
 											key={opt.value}
-											ref={(el) => (cardRefs.current[index] = el)}
-											role="radio"
-											aria-checked={type === opt.value}
-											tabIndex={type === opt.value ? 0 : -1}
 											onClick={() => setType(opt.value)}
-											onKeyDown={(e) => {
-												const currentIndex = typeOptions.findIndex(
-													(o) => o.value === type,
-												);
-												const fallbackIndex =
-													currentIndex === -1 ? 0 : currentIndex;
-												if (e.key === " " || e.key === "Enter") {
-													e.preventDefault();
-													setType(opt.value);
-												}
-												if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-													e.preventDefault();
-													setType(
-														typeOptions[
-															(fallbackIndex + 1) % typeOptions.length
-														].value,
-													);
-												}
-												if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-													e.preventDefault();
-													setType(
-														typeOptions[
-															(fallbackIndex - 1 + typeOptions.length) %
-																typeOptions.length
-														].value,
-													);
-												}
-											}}
-											className={`px-4 py-4 rounded-lg cursor-pointer text-center transition-all border-2 outline-none ${
+											className={`px-6 py-6 rounded-lg text-center border-2 outline-none ${
 												type === opt.value
 													? "border-primary  bg-white"
-													: "border-gray-200 bg-surface"
-											} focus-visible:ring-2 focus-visible:ring-primary`}
+													: "border-gray-200"
+											}`}
 										>
-											<div className="text-sm font-semibold text-gray-800">
+											<div className="text-m font-semibold text-primary">
 												{opt.label}
 											</div>
-											<div className="text-xs text-gray-400">{opt.sub}</div>
-										</div>
+											<div className="text-sm text-primary mt-1">{opt.sub}</div>
+										</button>
 									))}
 								</div>
 								{showErrors && !type && (
-									<p role="alert" className="mt-3 text-sm text-red-600">
+									<p role="alert" className="mt-3 text-sm text-critical">
 										{t("reporter.validation.typeRequired")}
 									</p>
 								)}
