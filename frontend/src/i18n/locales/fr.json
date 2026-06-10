@@ -227,7 +227,10 @@
       "email": "Email",
       "role": "Rôle",
       "subject": "Matière",
-      "subjectUnknown": "Non renseignée"
+      "subjectUnknown": "Non renseignée", 
+	  "upload":"En cours de chargement",
+	  "change":"Modifier la photo",
+	  "job":"Profil professionnel"
     },
     "workshop": {
       "title": "Ateliers",
@@ -318,7 +321,7 @@
       "title": "Qui est concerné par ce signalement ?",
       "subtitle": "",
       "victimLabel": "Donne le nom de toutes les victimes (une par ligne)",
-	  "peoplePlaceholder": "Par exemple : Prénom + Nom + Classe",
+	  "peoplePlaceholder": "Par exemple : Prénom + Nom",
       "suspectsLabel": "Donne le nom de tous les harceleurs (un par ligne)",
 	  "addVictim":"Ajoute cette victime",
 	  "add+Victim":"Appuie sur la touche `Entrée` de ton clavier ou clique sur `Ajoute cette victime`",

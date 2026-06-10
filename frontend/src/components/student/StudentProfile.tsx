@@ -122,7 +122,7 @@ export default function StudentProfile({
 			<div className="bg-surface shadow-sm px-8 py-4">
 				<TableHeader>{t(`student.profile.officialParents`)}</TableHeader>
 
-				{loadingParents ? (
+				{/* {loadingParents ? (
 					<div className="text-sm text-center py-4">
 						{t(`student.profile.loading`)}
 					</div>
@@ -130,7 +130,7 @@ export default function StudentProfile({
 					<div className="text-sm text-center py-4">
 						{t(`student.profile.noParent`)}
 					</div>
-				) : (
+				) : ( */}
 					<Table>
 						<TableBody>
 							{parents.map((p) => {
@@ -165,7 +165,7 @@ export default function StudentProfile({
 							})}
 						</TableBody>
 					</Table>
-				)}
+				{/* )} */}
 			</div>
 		</section>
 	);
