@@ -656,8 +656,7 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        // Le nombre d'options est identique dans toutes les langues ; on en prend une
-        currentQuestion.options.fr.length,
+		this.getSafeOptionCount(room, currentQuestion),
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
@@ -750,8 +749,7 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        // Le nombre d'options est identique dans toutes les langues ; on en prend une
-        currentQuestion.options.fr.length,
+		this.getSafeOptionCount(room, currentQuestion),
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
@@ -804,6 +802,20 @@ export class QuizRealtimeService {
   private toPublicQuestion(q: QuestionInternal): QuestionPublic {
     return { id: q.id, text: q.text, options: q.options };
   }
+
+	private getSafeOptionCount(room: QuizRoom, question: QuestionInternal): number {
+		const localeLengths = Object.values(question.options).map(
+			(options) => options.length,
+		);
+		const maxLocaleLength = localeLengths.length > 0 ? Math.max(...localeLengths) : 0;	
+		// Sécurise aussi les statistiques si des indices déjà soumis dépassent la taille
+		// d'une locale, ou si correctIndex pointe au-delà
+		const maxSelectedIndex = Array.from(room.selectedAnswerByPlayerId.values()).reduce(
+			(max, selectedIndex) => Math.max(max, selectedIndex),
+			-1,
+		);	
+		return Math.max(maxLocaleLength, question.correctIndex + 1, maxSelectedIndex + 1, 0);
+	}
 
   private getAnswerStatistics(
     room: QuizRoom,
