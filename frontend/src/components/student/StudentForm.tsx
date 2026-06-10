@@ -108,23 +108,19 @@ export default function StudentForm({ user }: StudentFormProps) {
 	if (step === 7) {
 		return (
 			<section className="page-section">
-				<div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
+				<div className="bg-surface shadow-sm px-6 py-8">
 					<StepBar steps={steps} currentStep={step} />
 					<div className="w-full mt-8">
 						<div>
-							<h2 className="text-gray-800 font-bold text-lg mb-2">
+							<h2 className=" font-bold text-lg mb-2">
 								{t("reporter.success.title")}
 							</h2>
-							<p className="text-gray-500 text-sm mb-6">
+							<div className=" text-sm mb-6">
 								{t("reporter.success.message")}
-							</p>
-							<div className="bg-surface rounded-lg p-4 mb-6 text-left">
-								<p className="text-sm text-gray-600">
-									{t("reporter.success.notice")}
-								</p>
 							</div>
-							<div className="text-center">
-								<Button className="" onClick={resetForm}>
+							
+							<div className="text-center mt-6">
+								<Button onClick={resetForm}>
 									{t("reporter.success.back")}
 								</Button>
 							</div>
@@ -160,7 +156,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 											{t("reporter.step2.iAmTheVictim")}
 										</div>
 										<div className="text-sm text-primary text-gray-600 mt-1">
-											J'ai subi du harcèlement
+											{t("reporter.step2.iWasHarassed")}
 										</div>
 									</button>
 									<button
@@ -175,13 +171,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 											{t("reporter.step2.iAmTheWitness")}
 										</div>
 										<div className="text-sm text-primary mt-1">
-											J'ai vu quelqu'un subir du harcèlement
+											{t("reporter.step2.iSawHarassed")}
 										</div>
 									</button>
 								</div>
 								{showErrors && !whoSignals && (
 									<p role="alert" className="mt-3 text-sm text-critical">
-										Clique sur ta situation
+										{t("reporter.step2.chooseOne")}
 									</p>
 								)}
 							</fieldset>
@@ -257,21 +253,25 @@ export default function StudentForm({ user }: StudentFormProps) {
 										id="frequency"
 										className="bg-white text-primary"
 									>
-										<SelectValue
+										{/* <SelectValue
 											placeholder={t("reporter.step3.frequencyPlaceholder")}
-										/>
+											
+										/> */}
+										    <SelectValue placeholder={t("reporter.step3.frequencyPlaceholder")}>
+      {frequency ? t(`reporter.step3.freq_${frequency}`) : t("reporter.step3.frequencyPlaceholder")}
+    </SelectValue>
 									</SelectTrigger>
 									<SelectContent className="text-primary">
-										<SelectItem value="Une fois">
+										<SelectItem value="One">
 											{t("reporter.step3.freq1")}
 										</SelectItem>
-										<SelectItem value="Deux fois">
+										<SelectItem value="Two">
 											{t("reporter.step3.freq2")}
 										</SelectItem>
-										<SelectItem value="Trois fois ou plus">
+										<SelectItem value="Three">
 											{t("reporter.step3.freq3")}
 										</SelectItem>
-										<SelectItem value="Tous les jours">
+										<SelectItem value="Four">
 											{t("reporter.step3.freq4")}
 										</SelectItem>
 									</SelectContent>

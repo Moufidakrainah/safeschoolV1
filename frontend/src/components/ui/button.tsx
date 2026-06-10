@@ -22,7 +22,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         success: "bg-low text-white hover:bg-low/90",
         warning: "bg-warning text-warning-foreground hover:bg-warning/90",
-        login: "bg-white text-primary border border-white hover:bg-primary/50",
+        login: "bg-white text-primary border border-white hover:bg-white/70",
       },
       size: {
         default:
