@@ -253,27 +253,19 @@ export default function StudentForm({ user }: StudentFormProps) {
 										id="frequency"
 										className="bg-white text-primary"
 									>
-										{/* <SelectValue
+										<SelectValue
 											placeholder={t("reporter.step3.frequencyPlaceholder")}
 											
-										/> */}
-										    <SelectValue placeholder={t("reporter.step3.frequencyPlaceholder")}>
+										/>
+										    {/* <SelectValue placeholder={t("reporter.step3.frequencyPlaceholder")}>
       {frequency ? t(`reporter.step3.freq_${frequency}`) : t("reporter.step3.frequencyPlaceholder")}
-    </SelectValue>
+    </SelectValue> */}
 									</SelectTrigger>
 									<SelectContent className="text-primary">
-										<SelectItem value="One">
-											{t("reporter.step3.freq1")}
-										</SelectItem>
-										<SelectItem value="Two">
-											{t("reporter.step3.freq2")}
-										</SelectItem>
-										<SelectItem value="Three">
-											{t("reporter.step3.freq3")}
-										</SelectItem>
-										<SelectItem value="Four">
-											{t("reporter.step3.freq4")}
-										</SelectItem>
+                  <SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
+                  <SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
+                  <SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
+                  <SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
 									</SelectContent>
 								</Select>
 								{showErrors && !frequency && !fieldErrors.frequency && (
