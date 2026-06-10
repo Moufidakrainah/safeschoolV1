@@ -99,6 +99,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 		t("reporter.steps.validate"),
 	];
 
+	const frequencyLabels: Record<string, string> = {
+	'Une fois':          t('reporter.step3.freq1'),
+	'Deux fois':         t('reporter.step3.freq2'),
+	'Trois fois ou plus':t('reporter.step3.freq3'),
+	'Tous les jours':    t('reporter.step3.freq4'),
+	};
+
 	useEffect(() => {
 		const index = typeOptions.findIndex((o) => o.value === type);
 		if (index >= 0) cardRefs.current[index]?.focus();
@@ -255,17 +262,13 @@ export default function StudentForm({ user }: StudentFormProps) {
 									>
 										<SelectValue
 											placeholder={t("reporter.step3.frequencyPlaceholder")}
-											
 										/>
-										    {/* <SelectValue placeholder={t("reporter.step3.frequencyPlaceholder")}>
-      {frequency ? t(`reporter.step3.freq_${frequency}`) : t("reporter.step3.frequencyPlaceholder")}
-    </SelectValue> */}
 									</SelectTrigger>
 									<SelectContent className="text-primary">
-                  <SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
-                  <SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
-                  <SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
-                  <SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
+										<SelectItem value="Une fois">{t('reporter.step3.freq1')}</SelectItem>
+										<SelectItem value="Deux fois">{t('reporter.step3.freq2')}</SelectItem>
+										<SelectItem value="Trois fois ou plus">{t('reporter.step3.freq3')}</SelectItem>
+										<SelectItem value="Tous les jours">{t('reporter.step3.freq4')}</SelectItem>
 									</SelectContent>
 								</Select>
 								{showErrors && !frequency && !fieldErrors.frequency && (
