@@ -66,11 +66,18 @@ export default function ReportDetail({
   const [confirmStatus, setConfirmStatus] = useState<{ status: string; label: string } | null>(null);
 
   // ── Victime principale ──
-  // reporter = 'victime' → le signalant est la victime (r.student)
-  // reporter = 'temoin'  → la victime est dans r.victims[0]
+  // Trier les victims : alerteur (resolvedUser.id === student.id) en premier
+  const sortedVictims = selected.victims
+    ? [...selected.victims].sort((a, b) => {
+        if (a.resolvedUser?.id === selected.student?.id) return -1;
+        if (b.resolvedUser?.id === selected.student?.id) return 1;
+        return 0;
+      })
+    : [];
+
   const mainVictim = selected.reporter === 'victime'
     ? selected.student
-    : selected.victims?.[0]?.resolvedUser ?? null;
+    : sortedVictims?.[0]?.resolvedUser ?? null;
 
   const mainVictimFreeText = selected.reporter === 'temoin'
     ? selected.victims?.[0]?.freeText
@@ -204,9 +211,9 @@ export default function ReportDetail({
         </div>
 
         {/* ── Autres victimes (à partir de l'index 1) ── */}
-        {selected.reporter === 'temoin' && selected.victims && selected.victims.length > 1 && (
+        {sortedVictims && sortedVictims.length > 1 && (
           <div className="mt-3 flex flex-col gap-2">
-            {selected.victims.slice(1).map((v) => (
+            {sortedVictims.slice(1).map((v) => (
               <div key={v.id} className="flex items-start gap-3 text-sm">
                 <div className="flex items-center gap-2 flex-1">
                   {v.resolvedUser?.avatar
