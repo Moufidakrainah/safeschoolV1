@@ -172,40 +172,27 @@ export class ReportsService {
     const saved = await this.notesRepository.save(note);
 
     if (type === "convocation") {
-      if (targetRole === "victime" || targetRole === "temoin") {
+      if (targetRole === "alerteur" || targetRole === "victime" || targetRole === "temoin") {
         if (report.student?.id) {
           await this.notificationsService.create(
             report.student.id, reportId, `Convocation : ${content}`,
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
-        const suspectIndex = parseInt(targetRole.split("_")[1]);
-        const suspect = report.suspects?.[suspectIndex];
+        const userId = targetRole.split("_")[1];
+        const suspect = report.suspects?.find(s => s.resolvedUser?.id === userId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
           );
         }
       } else if (targetRole?.startsWith("victim_")) {
-        const victimIndex = parseInt(targetRole.split("_")[1]);
-        const victim = report.victims?.[victimIndex];
+        const userId = targetRole.split("_")[1];
+        const victim = report.victims?.find(v => v.resolvedUser?.id === userId);
         if (victim?.resolvedUser?.id) {
           await this.notificationsService.create(
             victim.resolvedUser.id, reportId, `Convocation : ${content}`,
           );
-        }
-      } else {
-        if (report.student?.id) {
-          await this.notificationsService.create(
-            report.student.id, reportId, `Convocation : ${content}`,
-          );
-        }
-        for (const suspect of report.suspects ?? []) {
-          if (suspect.resolvedUser?.id) {
-            await this.notificationsService.create(
-              suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
-            );
-          }
         }
       }
     }

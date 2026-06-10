@@ -99,7 +99,15 @@ export class ReportsController {
       const report = await this.reportsService.findOne(id);
       if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
       const notes = await this.reportsService.getNotes(id);
-      return notes.filter((n: any) => n.type === "convocation" || n.type === "status_change");
+      const user = req.user;
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return notes.filter((n: any) => {
+        if (n.type === "status_change") return true;
+        if (n.type === "convocation") {
+          return n.content.toLowerCase().includes(fullName);
+        }
+        return false;
+      });
     }
     return this.reportsService.getNotes(id);
   }
@@ -114,6 +122,7 @@ export class ReportsController {
     if (dto.content && dto.content.length > 1500)
       throw new BadRequestException("Le contenu ne peut pas dépasser 1500 caractères");
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
+    console.log('addNote targetRole:', dto.targetRole);
     return this.reportsService.addNote(id, dto.content, dto.type || "note", req.user, dto.targetRole);
   }
 }

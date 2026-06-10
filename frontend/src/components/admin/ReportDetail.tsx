@@ -405,8 +405,8 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`}`; })()
-                    : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -439,8 +439,8 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`; })()
-                          : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`; })();
+                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
+                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);
