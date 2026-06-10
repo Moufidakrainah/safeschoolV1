@@ -10,11 +10,15 @@ async function bootstrap() {
     throw new Error("JWT_SECRET manquant dans les variables d'environnement");
   }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  // En-têtes de sécurité HTTP (HSTS, X-Frame-Options, etc.).
+  // En-têtes de sécurité HTTP (X-Frame-Options, nosniff, etc.).
+  // hsts: false -> sinon, après un make prod en HTTPS, le navigateur force
+  // HTTPS sur tout localhost (HSTS) et make dev (HTTP) devient inaccessible
+  // sans purge manuelle. Peu utile ici (certificat auto-signé, pas de domaine).
   // crossOriginResourcePolicy en "cross-origin" : sinon les avatars servis
   // par le backend seraient bloqués quand le frontend de dev (port 5173)
   // les charge depuis une autre origine (port 5000).
   app.use(helmet({
+    hsts: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
   }));
   app.useGlobalPipes(new ValidationPipe({
