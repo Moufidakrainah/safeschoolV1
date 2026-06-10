@@ -157,7 +157,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}`}
 									>
 										<div className="text-m font-semibold text-primary">
-											Je suis la victime
+											{t("reporter.step2.iAmTheVictim")}
 										</div>
 										<div className="text-sm text-primary text-gray-600 mt-1">
 											J'ai subi du harcèlement
@@ -172,7 +172,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}`}
 									>
 										<div className="text-m font-semibold text-primary">
-											Je suis un témoin
+											{t("reporter.step2.iAmTheWitness")}
 										</div>
 										<div className="text-sm text-primary mt-1">
 											J'ai vu quelqu'un subir du harcèlement

@@ -64,7 +64,7 @@ export default function StudentProfile({
 							alt={`${user?.firstName} ${user?.lastName}`}
 						/>
 					) : (
-						<div className="w-56 h-56 rounded-full border-4 border-primary flex items-center justify-center text-8xl text-primary">
+						<div className="w-56 h-56 rounded-full border-4 border-primary flex items-center justify-center text-8xl">
 							{user?.firstName?.[0]}
 							{user?.lastName?.[0]}
 						</div>
@@ -77,15 +77,15 @@ export default function StudentProfile({
 								user?.lastName,
 							);
 							return (
-								<h2 className="text-2xl font-bold text-primary mb-4">
+								<h2 className="text-2xl font-bold mb-4">
 									{first} {last}
 								</h2>
 							);
 						})()}
-						<span className="text-sm text-primary">
+						<span className="text-sm ">
 							{t(`student.profile.role`)}
 						</span>
-						<p className="text-sm text-primary mt-4">{user?.email}</p>
+						<p className="text-sm mt-4">{user?.email}</p>
 					</div>
 				</div>
 			</div>
@@ -123,11 +123,11 @@ export default function StudentProfile({
 				<TableHeader>{t(`student.profile.officialParents`)}</TableHeader>
 
 				{loadingParents ? (
-					<div className="text-sm text-gray-400 text-center py-4">
+					<div className="text-sm text-center py-4">
 						{t(`student.profile.loading`)}
 					</div>
 				) : parents.length === 0 ? (
-					<div className="text-sm text-gray-400 text-center py-4">
+					<div className="text-sm text-center py-4">
 						{t(`student.profile.noParent`)}
 					</div>
 				) : (

@@ -283,6 +283,8 @@
     },
     "step2": {
       "title": "D'après toi, c'est quel type de harcèlement ?",
+	  "iAmTheVictim": "Je suis une victime", 
+	  "iAmTheWitness": "Je suis un témoin", 
       "subtitle": "",
       "physical": "Physique",
       "physicalSub": "Coups, bousculades",
