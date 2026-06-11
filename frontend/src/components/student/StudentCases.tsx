@@ -157,7 +157,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
               <li
                 key={report.id}
                 style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
-                className="bg-surface px-6 py-5 shadow-sm rounded-sm"
+                className="bg-surface px-6 py-5 shadow-sm"
               >
                 {/* En-tête du dossier */}
                 <div className="flex justify-between items-start mb-3">
@@ -189,7 +189,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                           <div
                             key={note.id}
                             style={{ borderLeft: '3px solid var(--color-primary)' }}
-                            className="p-3 rounded-sm bg-gray-50"
+                            className="p-3 bg-gray-50"
                           >
                             <p className="text-sm text-gray-600">{note.content}</p>
                           </div>
@@ -206,7 +206,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                           key={note.id}
                           onClick={() => isNew && handleConvocationClick(unreadNotif)}
                           style={{ borderLeft: `3px solid ${SEVERITY_COLORS[severity]}` }}
-                          className={`p-3 rounded-sm bg-gray-50 ${isNew ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
+                          className={`p-3 bg-gray-50 ${isNew ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
                         >
                           {isPast ? (
                             <p className="text-gray-400 text-sm">
