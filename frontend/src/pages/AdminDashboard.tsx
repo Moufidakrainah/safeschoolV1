@@ -423,13 +423,18 @@ export default function AdminDashboard() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
-                  <Badge variant={filterStatus as BadgeVariant} />
+                <SelectTrigger aria-label={t('admin.filters.status')}>
+                  <SelectValue>
+                    {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
-                    <SelectItem key={status} value={status}><Badge variant={status as BadgeVariant} /></SelectItem>
-                  ))}
+                  <SelectItem value="all">{t('admin.filters.allStatuses')}</SelectItem>
+                  <SelectItem value="new">{t('badge.new')}</SelectItem>
+                  <SelectItem value="in_progress">{t('badge.in_progress')}</SelectItem>
+                  <SelectItem value="pending">{t('badge.pending')}</SelectItem>
+                  <SelectItem value="resolved">{t('badge.resolved')}</SelectItem>
+                  <SelectItem value="false_report">{t('badge.false_report')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
