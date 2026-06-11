@@ -350,10 +350,14 @@
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
-      "role": "Role",
+      "role": "Student",
       "class": "Class",
       "dob": "Date of birth",
-      "officialParents": "Parents"
+      "officialParents": "Parents",
+      "loading": "Loading...",
+      "noParent": "No legal guardian registered",
+      "phone": "Phone",
+      "address": "Address"
     },
     "workshop": {
       "title": "Workshops",

@@ -408,7 +408,13 @@
     "profile": {
       "class": "Klasse",
       "dob": "Geburtsdatum",
-      "officialParents": "Eltern"
+      "officialParents": "Eltern",
+      "role": "Schüler",
+      "loading": "Laden...",
+      "noParent": "Kein Erziehungsberechtigter registriert",
+      "email": "E-Mail",
+      "phone": "Telefon",
+      "address": "Adresse"
     }
   }
 }

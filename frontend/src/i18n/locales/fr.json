@@ -357,10 +357,14 @@
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Email",
-      "role": "Rôle",
+      "role": "Élève",
       "class": "Classe",
       "dob": "Date de naissance",
-      "officialParents": "Parents"
+      "officialParents": "Parents",
+      "loading": "Chargement...",
+      "noParent": "Aucun responsable légal enregistré",
+      "phone": "Téléphone",
+      "address": "Adresse"
     },
     "workshop": {
       "title": "Ateliers",
