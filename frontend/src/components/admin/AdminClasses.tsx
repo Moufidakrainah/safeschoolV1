@@ -72,7 +72,6 @@ const CLASSES_PER_PAGE = 7;
 					: [];
 			setStudents(allUsers.filter((u: any) => u.role === "student"));
 		} catch (e) {
-			console.error("Erreur chargement", e);
 		} finally {
 			setLoading(false);
 		}

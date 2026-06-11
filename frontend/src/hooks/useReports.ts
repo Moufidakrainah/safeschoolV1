@@ -121,7 +121,6 @@ export function useReports(): UseReportsReturn {
       const data = await getAllReports();
       setReports(data);
     } catch {
-      console.error('Erreur chargement signalements');
     } finally {
       setLoading(false);
     }
@@ -139,7 +138,6 @@ export function useReports(): UseReportsReturn {
       setView('list');
       setSelected(null);
     } catch {
-      console.error('Erreur mise à jour statut');
     } finally {
       setSaving(false);
     }
@@ -151,7 +149,6 @@ export function useReports(): UseReportsReturn {
       const data = await getNotes(reportId);
       setNotes(data);
     } catch {
-      console.error('Erreur chargement notes');
     }
   }, []);
 
@@ -176,7 +173,6 @@ export function useReports(): UseReportsReturn {
       if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); }
       else setNewNote('');
     } catch {
-      console.error('Erreur ajout note');
     }
   }, [selected, newNote, convocationMessage, convocationDate, loadNotes]);
 
