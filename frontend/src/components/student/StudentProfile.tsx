@@ -120,7 +120,7 @@ export default function StudentProfile({
 
 			{/* Parents */}
 			<div className="bg-surface shadow-sm px-8 py-4">
-				<TableHeader>{t(`student.profile.officialParents`)}</TableHeader>
+				<div className="p-2 text-sm font-semibold text-muted-foreground">{t(`student.profile.officialParents`)}</div>
 
 				{/* {loadingParents ? (
 					<div className="text-sm text-center py-4">

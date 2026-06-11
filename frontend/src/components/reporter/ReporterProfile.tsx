@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 
+// ─── Types ──────────────────────────────────────────────────────────────────
+
 interface StaffClass {
 	id: string;
 	level: string;
@@ -36,6 +38,8 @@ interface ReporterProfileProps {
 
 const AVATAR_BASE = "http://localhost:5000/uploads/avatars/";
 const API_BASE = "http://localhost:5000";
+
+// ─── Composant ──────────────────────────────────────────────────────────────
 
 export default function ReporterProfile({
 	user,
@@ -65,7 +69,7 @@ export default function ReporterProfile({
 			const data = await res.json();
 			if (data.avatar) {
 				setAvatar(data.avatar);
-				updateUser({ avatar: data.avatar });
+				updateUser({ avatar: data.avatar }); // ← met à jour le contexte + localStorage
 			} else {
 				setError("Erreur lors de l'upload");
 			}
@@ -111,7 +115,7 @@ export default function ReporterProfile({
 					</div>
 
 					<label
-						className={`cursor-pointer inline-flex items-center gap-1 h-8 px-4 py-2 rounded-md text-sm bg-primary text-white hover:opacity-90`}
+						className={`cursor-pointer inline-flex items-center gap-1 h-8 px-4 py-2 rounded-md text-sm  bg-primary text-white hover:opacity-90 `}
 					>
 						{uploading
 							? t(`reporter.profile.upload`)
@@ -154,19 +158,12 @@ export default function ReporterProfile({
 			</div>
 
 			{/* Profil professionnel */}
-			<div className="bg-surface shadow-sm px-8 py-4">
-				<TableHeader>{t(`reporter.profile.job`)}</TableHeader>
-
-				{loadingProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Chargement...
-					</p>
-				) : !staffProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Aucun profil professionnel enregistré
-					</p>
-				) : (
-					<Table>
+<div className="bg-surface shadow-sm px-8 py-4">
+				{/* <div className="p-2 font-semibold  w-1/2 text-lg">
+	
+						 */}
+						{/* {t(`reporter.profile.proProfile`)}</div> */}
+				<Table>
 					<TableBody>
 						<TableRow>
 							<TableCellLeft>{t(`reporter.profile.occupation`)}</TableCellLeft>
@@ -194,7 +191,6 @@ export default function ReporterProfile({
 						)}
 					</TableBody>
 				</Table>
-				)}
 			</div>
 		</section>
 	);
