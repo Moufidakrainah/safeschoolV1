@@ -76,7 +76,8 @@
       "dateTo": "Date de fin",
       "reset": "Réinitialiser",
       "victimPlaceholder": "Filtrer par victime...",
-      "status": "Statut"
+      "status": "Statut",
+      "dates": "Dates :"
     },
     "status": {
       "pending": "En attente",
