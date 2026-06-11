@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// Chaque question arrive traduite dans toutes les langues supportées ; le client choisit
+// librement laquelle afficher selon la langue active (voir QuizPlaying)
+export type QuizLocale = 'fr' | 'en' | 'de';
+export type LocalizedText = Record<QuizLocale, string>;
+export type LocalizedOptions = Record<QuizLocale, string[]>;
+
 type QuestionPayload = {
   roomId: string;
   question: {
     id: number;
-    text: string;
-    options: string[];
+    text: LocalizedText;
+    options: LocalizedOptions;
   };
   questionNumber: number;
   totalQuestions: number;
