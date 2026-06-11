@@ -205,8 +205,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                         <div
                           key={note.id}
                           onClick={() => isNew && handleConvocationClick(unreadNotif)}
-                          style={{ borderLeft: '3px solid var(--color-warning)' }}
-                          className={`p-3 rounded-sm bg-indigo-50 ${isNew ? 'cursor-pointer hover:bg-indigo-100' : ''} transition-colors`}
+                          style={{ borderLeft: `3px solid ${SEVERITY_COLORS[severity]}` }}
+                          className={`p-3 rounded-sm bg-gray-50 ${isNew ? 'cursor-pointer hover:bg-gray-100' : ''} transition-colors`}
                         >
                           {isPast ? (
                             <p className="text-gray-400 text-sm">
