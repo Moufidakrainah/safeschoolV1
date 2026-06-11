@@ -11,7 +11,7 @@ import { useUsers } from '@/hooks/useUsers';
 import StatsDashboard from '../components/admin/StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
 import { Button } from '../components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   const {
-    users, loadingUsers,
+    loadingUsers,
     usersPage, setUsersPage, usersTotalPages,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,
