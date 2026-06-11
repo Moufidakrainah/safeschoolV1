@@ -327,7 +327,7 @@ export default function AdminDashboard() {
 
   if (view === 'detail' && selected) {
     return (
-      <main className="min-h-screen bg-gray-50 font-sans">
+      <main className="flex-1 bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
         <ReportDetail
@@ -403,7 +403,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="flex-1 bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
