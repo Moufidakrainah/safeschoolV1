@@ -83,10 +83,6 @@ html, body, #root
 }
 
 :root {
-  --critical:     oklch(0.566576 0.25625 20);  
-  --high:         oklch(0.559 0.1672 50); 
-  --medium:       oklch(0.542024 0.129688 100); 
-  --low:          oklch(0.517472 0.198438 150);
   --background:      oklch(1 0 0);
   --foreground:      oklch(0.145 0 0);
   --text-light: 	oklch(0.967 0.0029 264.54);
