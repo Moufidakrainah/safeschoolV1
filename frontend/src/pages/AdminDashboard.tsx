@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
-import Pagination from '../components/Pagination';
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note } from '../types';
@@ -483,7 +483,26 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} />
+            {totalPages > 1 && (
+              <PaginationShadcn className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <PaginationItem key={p}>
+                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
+                        className="cursor-pointer">{p}</PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </PaginationShadcn>
+            )}
           </>
         )}
 
