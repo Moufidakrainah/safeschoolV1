@@ -29,7 +29,7 @@ INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdA
   ('a0b1c2d3-0000-0000-0000-000000000002', 'directeur@safeschool.com', '$2b$10$vg9fprvziK9w//cHhnPCeOR7LAGwXVc8wwVG2M8mK3JqPfwVNSEgq', 'Bernard', 'Dupont',   'director', NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000003', 'prof@safeschool.com',      '$2b$10$owpGkTwnzR/hM0gajfRjaelducq3XEQpxWu72cqDKH6ZqVKtxV.9K', 'Marie',   'Leroy',    'teacher',  NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000004', 'prof2@safeschool.com',     '$2b$10$owpGkTwnzR/hM0gajfRjaelducq3XEQpxWu72cqDKH6ZqVKtxV.9K', 'Pierre',  'Durand',   'teacher',  NOW(), NULL),
-  ('a0b1c2d3-0000-0000-0000-000000000006', 'lotfi@safeschool.com',     '$2b$10$8O9RwNPSyGoWTjDoP1G95.bV0FD8R6cMOxzL3mA9GxQz8CptEkKd2', 'Lotfi',   'Bougrine', 'student',  NOW(), NULL,
+  ('a0b1c2d3-0000-0000-0000-000000000006', 'lotfi@safeschool.com',     '$2b$10$8O9RwNPSyGoWTjDoP1G95.bV0FD8R6cMOxzL3mA9GxQz8CptEkKd2', 'Lotfi',   'Bougrine', 'student',  NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000007', 'danya@safeschool.com',     '$2b$10$8O9RwNPSyGoWTjDoP1G95.bV0FD8R6cMOxzL3mA9GxQz8CptEkKd2', 'Danya',   'Bougrine', 'student',  NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000008', 'lina@safeschool.com',      '$2b$10$8O9RwNPSyGoWTjDoP1G95.bV0FD8R6cMOxzL3mA9GxQz8CptEkKd2', 'Lina',    'Bougrine', 'student',  NOW(), NULL),
   ('a0b1c2d3-0000-0000-0000-000000000009', 'lucas@safeschool.com',     '$2b$10$8O9RwNPSyGoWTjDoP1G95.bV0FD8R6cMOxzL3mA9GxQz8CptEkKd2', 'Lucas',   'Bernard',  'student',  NOW(), NULL),

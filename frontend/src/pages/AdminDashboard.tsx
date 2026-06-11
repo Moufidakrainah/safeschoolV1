@@ -561,7 +561,26 @@ const onFetchReports = async (page: number) => {
 
 
 
-
+{/* // {totalPages > 1 && (
+//               <PaginationShadcn className="mt-4">
+//                 <PaginationContent>
+//                   <PaginationItem>
+//                     <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+//                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+//                   </PaginationItem>
+//                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+//                     <PaginationItem key={p}>
+//                       <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
+//                         className="cursor-pointer">{p}</PaginationLink>
+//                     </PaginationItem>
+//                   ))}
+//                   <PaginationItem>
+//                     <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+//                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+//                   </PaginationItem>
+//                 </PaginationContent>
+//               </PaginationShadcn>
+//             )} */}
 
 
 

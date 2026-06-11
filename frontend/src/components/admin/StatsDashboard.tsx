@@ -183,7 +183,7 @@ export default function StatsDashboard({ reports }: Props) {
             : (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={gradeData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={gradeData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {gradeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip /><Legend />
@@ -199,7 +199,7 @@ export default function StatsDashboard({ reports }: Props) {
             : (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={statusData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={statusData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip /><Legend />

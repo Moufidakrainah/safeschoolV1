@@ -78,23 +78,21 @@ export function useUsers(): UseUsersReturn {
 const navigate = useNavigate();
 const { t } = useTranslation();
 
-  // ── État liste ──
-  const [users, setUsers]               = useState<AdminUser[]>([]);
-  const [allUsers, setAllUsers]         = useState<AdminUser[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [usersPage, setUsersPage]       = useState(1);
-  const [usersTotalPages, setUsersTotalPages] = useState(1);
-  const [usersTotal, setUsersTotal]     = useState(0);
-  const [usersSearch, setUsersSearch]   = useState('');
-  const [usersSort, setUsersSort]       = useState<'asc' | 'desc' | 'date'>('asc');
-  const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>([ 'student',
-  'teacher',
-  'admin',]);
-  const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
-  const [showUserForm, setShowUserForm] = useState(false);
-  const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
-  const [classes, setClasses]           = useState<SchoolClass[]>([]);
-  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+// ── État liste ──
+const [users, setUsers]               = useState<AdminUser[]>([]);
+const [allUsers, setAllUsers]         = useState<AdminUser[]>([]);
+const [loadingUsers, setLoadingUsers] = useState(false);
+const [usersPage, setUsersPage]       = useState(1);
+const [usersTotalPages, setUsersTotalPages] = useState(1);
+const [usersTotal, setUsersTotal]     = useState(0);
+const [usersSearch, setUsersSearch]   = useState('');
+const [usersSort, setUsersSort]       = useState<'asc' | 'desc' | 'date'>('asc');
+const [usersRoleFilter, setUsersRoleFilter] = useState<string[]>(['student', 'teacher', 'admin']);
+const [editingUser, setEditingUser]   = useState<AdminUser | null>(null);
+const [showUserForm, setShowUserForm] = useState(false);
+const [avatarTimestamps, setAvatarTimestamps] = useState<Record<string, number>>({});
+const [classes, setClasses]           = useState<SchoolClass[]>([]);
+const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
 
 // ── Formulaire ──
 const [userForm, setUserForm] = useState({
