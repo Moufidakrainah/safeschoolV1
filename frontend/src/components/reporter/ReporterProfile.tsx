@@ -159,64 +159,36 @@ export default function ReporterProfile({
 
 			{/* Profil professionnel */}
 			<div className="bg-surface shadow-sm px-8 py-4">
-				<TableHeader>{t(`reporter.profile.job`)}</TableHeader>
-				
-				{/* {loadingProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Chargement...
-					</p>
-				) : !staffProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Aucun profil professionnel enregistré
-					</p>
-				) : (
-					<> */}
-						{/* <div className="bg-surface shadow-sm px-8 py-4"> */}
-							<Table>
-								<TableBody>
-									<TableRow className="border-b border-gray-100">
-										<TableCell className="py-2 text-gray-400 font-semibold w-2/5">
-											Profession
-										</TableCell>
-										<TableCell className="py-2 text-gray-700 capitalize">
-											{staffProfile.profession}
-										</TableCell>
-									</TableRow>
-									{staffProfile.subject && (
-										<TableRow className="border-b border-gray-100">
-											<TableCell className="py-2 text-gray-400 font-semibold w-2/5">
-												Matière
-											</TableCell>
-											<TableCell className="py-2 text-gray-700">
-												{staffProfile.subject}
-											</TableCell>
-										</TableRow>
-									)}
-								</TableBody>
-							</Table>
-						{/* </div> */}
-
-						{staffProfile.classes.length > 0 && (
-							<>
-								<p className="text-gray-400 font-semibold text-sm mb-2">
-									Classes
-								</p>
-								<div className="flex flex-wrap gap-2">
-									{staffProfile.classes.map((c) => (
-										<span
-											key={c.id}
-											className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full"
-										>
-											{c.level} {c.section}
-										</span>
-									))}
-								</div>
-							</>
+				<TableHeader>{t(`reporter.profile.proProfile`)}</TableHeader>
+				<Table>
+					<TableBody>
+						<TableRow>
+							<TableCellLeft>{t(`reporter.profile.occupation`)}</TableCellLeft>
+							<TableCell>{staffProfile.profession}</TableCell>
+						</TableRow>
+						{staffProfile.subject && (
+							<TableRow>
+								<TableCellLeft>{t(`reporter.profile.subject`)}</TableCellLeft>
+								<TableCell>{staffProfile.subject}</TableCell>
+							</TableRow>
 						)}
-					{/* </> */}
-				{/* )} */}
+						{staffProfile.classes.length > 0 && (
+							<TableRow>
+								<TableCellLeft>{t(`reporter.profile.classes`)}</TableCellLeft>
+								<TableCell>
+									<div className="space-y-1">
+									{staffProfile.classes.map((c) => (
+										<div key={`${c.level}-${c.section}`}>
+											{c.level} {c.section}
+										</div>
+									))}
+									</div>
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
 			</div>
-			{/* </main> */}
 		</section>
 	);
 }

@@ -226,11 +226,13 @@
       "lastName": "Nom",
       "email": "Email",
       "role": "Rôle",
-      "subject": "Matière",
       "subjectUnknown": "Non renseignée", 
 	  "upload":"En cours de chargement",
 	  "change":"Modifier la photo",
-	  "job":"Profil professionnel"
+	  "proProfile":"Profil professionnel",
+	  "occupation":"Profession",
+	  "subject":"Matière",
+	  "classes":"Classes"
     },
     "workshop": {
       "title": "Ateliers",
