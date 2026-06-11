@@ -58,20 +58,7 @@ export default function AdminUserList({
     const { t } = useTranslation();
     return (
         <section>
-            {/* 1. Titre + tri + bouton ajouter */}
-            <div className="flex justify-between items-center mb-5">
-                <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2>
-                <div className="flex items-center gap-2">
-                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
-                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
-                    <option value="asc">A → Z</option>
-                    <option value="desc">Z → A</option>
-                    <option value="date">Date création</option>
-                    </select>
-                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
-                </div>
-            </div>
-            {/* 2. Barre de recherche */}
+            {/* 1. Barre de recherche */}
             <div className="flex gap-2 mb-3">
                 <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
                     onChange={e => { onSetUsersSearch(e.target.value); onSetUsersPage(1); onFetchUsers(1, e.target.value); }}
@@ -80,8 +67,9 @@ export default function AdminUserList({
                     Réinitialiser
                 </Button>
             </div>
-            {/* 3. Filtres roles */}
-            <div className="flex gap-4 mb-4 flex-wrap items-center">
+            {/* 2. Filtres roles + tri + bouton ajouter */}
+            <div className="flex gap-4 mb-4 flex-wrap justify-between items-center">
+                <div className="flex gap-10">
                 {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
                     <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                     <Checkbox
@@ -97,6 +85,16 @@ export default function AdminUserList({
                     {r.label}
                     </label>
                 ))}
+                </div>
+                <div className="flex items-center gap-2">
+                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
+                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
+                    <option value="asc">A → Z</option>
+                    <option value="desc">Z → A</option>
+                    <option value="date">Date création</option>
+                    </select>
+                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
+                </div>
             </div>
             {/* Formulaire ajout */}
                 {showUserForm && (
