@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -34,7 +33,7 @@ export class ReportsService {
     victims: { freeText: string }[] = [],
     frequency = "",
   ): Promise<Report> {
-    const { finalScore, grade, aiScore, aiReason } =
+    const { finalScore, grade, aiReason } =
       await this.scoringService.calculateScore(
         type, description, frequency,
         (student as any).studentProfile?.schoolClass?.level ?? "",
