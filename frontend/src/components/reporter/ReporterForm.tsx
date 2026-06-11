@@ -64,9 +64,10 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     removeSuspect,
     resetForm,
     descriptionError, setDescriptionError,
-    victimError,
+    victimError, setVictimError,
     suspectError,
     validateDescription,
+    validatePersonName,
   } = useReportForm(user?.role, t);
 
   // Labels des étapes affichés dans la StepBar.
@@ -332,6 +333,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && victimInput.trim()) {
                         e.preventDefault();
+                        const err = validatePersonName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName((prev) =>
                           prev
                             ? prev + "|" + victimInput.trim()
@@ -347,6 +351,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                     variant="outline"
                     onClick={() => {
                       if (victimInput.trim()) {
+                        const err = validatePersonName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName((prev) =>
                           prev
                             ? prev + "|" + victimInput.trim()
