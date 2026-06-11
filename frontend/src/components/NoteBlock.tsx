@@ -16,7 +16,7 @@ export default function NoteBlock({ note, severityColor }: NoteBlockProps) {
   return (
     <div
       style={{ borderLeft: `3px solid ${borderColor}` }}
-      className={`p-3 m-3 ${isConvocation ? 'bg-indigo-50' : 'bg-gray-50'}`}
+      className="p-3 m-3 bg-gray-50"
     >
       <div className="flex justify-between mb-1">
         <span className="text-xs font-semibold" style={{ color: borderColor }}>
