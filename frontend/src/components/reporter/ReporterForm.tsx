@@ -118,21 +118,6 @@ export default function ReporterForm({ user }: ReporterFormProps) {
   // ── Écran de confirmation (step 6) ──────────────────────────────────────
   if (step === 6) {
     return (
-      // <main className="bg-gray-50 font-sans">
-      //   <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
-      //   <StepBar steps={steps} currentStep={step} />
-      //   <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-      //     <Card className="max-w-md w-full mx-5 text-center p-6 shadow-sm">
-      //       <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
-      //       <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
-      //       <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
-      //       <div className="bg-surface rounded-lg p-4 mb-6 text-left">
-      //         <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
-      //       </div>
-      //       <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-      //     </Card>
-      //   </div>
-      // </main>
 
       <section className="page-section">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
