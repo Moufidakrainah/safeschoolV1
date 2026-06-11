@@ -373,7 +373,7 @@ export default function ReportDetail({
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
-            {notes.map(note => <NoteBlock key={note.id} note={note} />)}
+            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} />)}
           </div>
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
