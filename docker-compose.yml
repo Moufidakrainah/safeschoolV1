@@ -110,7 +110,7 @@ services:
     networks:
       - safeschool_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9600 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node > /dev/null || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10

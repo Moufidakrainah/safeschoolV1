@@ -12,7 +12,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import StepBar from "@/components/StepBar";
-import Autocomplete from "@/components/Autocomplete";
+// import Autocomplete from "@/components/Autocomplete";
 import type { AuthUser } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -56,18 +56,21 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     selectedVictim,
     setSelectedVictim,
     setVictimName,
-		fieldErrors,
-clearFieldErrors,
+	// fieldErrors,
+	// clearFieldErrors,
     handleSubmit,
     handleSuspectSearch,
     handleVictimSearch,
-    addSuspect,
-    removeSuspect,
-    resetForm,
-    descriptionError, setDescriptionError,
-    victimError,
-    suspectError,
+	addSuspect,
+	removeSuspect,
+	resetForm,
+    // validateDescription, validateName, 
+	descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, 
+	// setSuspectError,
     validateDescription,
+    validatePersonName,
   } = useReportForm(user?.role, t);
 
 	// Labels des étapes affichés dans la StepBar.
@@ -167,7 +170,6 @@ clearFieldErrors,
 								<legend className="font-bold text-lg mb-2">
 									{t("reporter.step2.title")}
 								</legend>
-
 								<div className="grid grid-cols-2 gap-3 mt-6">
 									{typeOptions.map((opt, index) => (
 										<button
@@ -205,26 +207,28 @@ clearFieldErrors,
 								<Textarea
 									id="description"
 									value={description}
-									onChange={(e) => setDescription(e.target.value)}
-									placeholder={t("reporter.step3.descriptionPlaceholder")}
+                  onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
+				  placeholder={t("reporter.step3.descriptionPlaceholder")}
 									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
 								/>
-								{/* {descriptionError && (
-                  <p role="alert" className="mb-4 text-sm text-red-600">
-                    {descriptionError}
-                  </p>
-                )} */}
-								{showErrors && !description && !fieldErrors.description && (
+								{descriptionError && (
+									<p role="alert" className="mb-4 text-sm text-red-600">
+										{descriptionError}
+									</p>
+									)}
+									{/* && !fieldErrors.description */}
+								{/* {showErrors && !description  && (
 									<p role="alert" className="mt-4 text-sm text-critical">
 										{t("reporter.validation.descriptionRequired")}
 									</p>
-								)}
-								{fieldErrors.description && (
+								)} */}
+								{/* {fieldErrors.description && (
 									<p role="alert" className="mt-4 text-sm text-critical">
 										{fieldErrors.description}
 									</p>
-								)}
+								)} */}
+
 								<label className="block mb-2 mt-4 text-sm font-semibold text-gray-700">
 									{t("reporter.step3.frequencyLabel")}
 								</label>
@@ -257,16 +261,17 @@ clearFieldErrors,
 										</SelectItem>
 									</SelectContent>
 								</Select>
-								{showErrors && !frequency && !fieldErrors.frequency && (
+								 {/* && !fieldErrors.frequency  */}
+								 {showErrors && !frequency && (
 									<p role="alert" className="mt-2 text-sm text-critical">
 										{t("reporter.validation.frequencyRequired")}
 									</p>
 								)}
-								{fieldErrors.frequency && (
+								{/* {fieldErrors.frequency && (
 									<p role="alert" className="mt-2 text-sm text-critical">
 										{fieldErrors.frequency}
 									</p>
-								)}
+								)} */}
 							</div>
 						)}
 
@@ -283,13 +288,17 @@ clearFieldErrors,
 								</div>
 								<div className="flex gap-2 items-center">
 									<input
-										maxLength={50}
+										// maxLength={50}
 										type="text"
 										value={victimInput}
 										onChange={(e) => setVictimInput(e.target.value)}
 										onKeyDown={(e) => {
 											if (e.key === "Enter" && victimInput.trim()) {
 												e.preventDefault();
+
+                        const err = validatePersonName(victimInput.trim());
+						 if (err) { setVictimError(err); return; }
+                        setVictimError('');
 												setVictimName((prev) =>
 													prev
 														? prev + "|" + victimInput.trim()
@@ -313,7 +322,7 @@ clearFieldErrors,
 														: victimInput.trim(),
 												);
 												setVictimInput("");
-												clearFieldErrors();
+												// clearFieldErrors();
 											}
 										}}
 										disabled={victimInput.trim().length < 2}
@@ -322,6 +331,9 @@ clearFieldErrors,
 									</Button>
 								</div>
 								<p className="text-xs mt-4">{t("reporter.step4.add+Victim")}</p>
+								 {victimError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{victimError}</p>
+                )}
 								{victimName && (
 									<div className="mt-4">
 										<div className="flex flex-wrap gap-2">
@@ -348,11 +360,11 @@ clearFieldErrors,
 														x
 													</button>
 												</div>
-													{fieldErrors[`victim_${i}`] && (
+													{/* {fieldErrors[`victim_${i}`] && (
 														<p className="text-xs text-critical pl-2">
 															{fieldErrors[`victim_${i}`]}
 														</p>
-													)}
+													)} */}
 												</div>
 											))}
 										</div>
@@ -404,6 +416,10 @@ clearFieldErrors,
 								<p className="text-xs mt-4">
 									{t("reporter.step4.add+Suspect")}
 								</p>
+								{suspectError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>
+                )}
+
 								{suspects.length > 0 && (
 									<div className="mt-4">
 										<div className="flex flex-wrap gap-2">
@@ -428,11 +444,11 @@ clearFieldErrors,
 														x
 													</button>
 												</div>
-												{fieldErrors[`suspect_${i}`] && (
+												{/* {fieldErrors[`suspect_${i}`] && (
 														<p className="text-xs text-critical pl-2">
 															{fieldErrors[`suspect_${i}`]}
 														</p>
-													)}
+													)} */}
 												</div>
 
 											))}
