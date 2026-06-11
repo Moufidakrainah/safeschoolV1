@@ -65,7 +65,8 @@
       "dateFrom": "Von Datum",
       "dateTo": "Bis Datum",
       "reset": "Zurücksetzen",
-      "victimPlaceholder": "Name des Opfers..."
+      "victimPlaceholder": "Name des Opfers...",
+      "status": "Status"
     },
     "status": {
       "pending": "Ausstehend",
@@ -176,7 +177,8 @@
     "resolved": " Gelöst",
     "false_report": " Falscher Bericht",
     "closed": " Geschlossen",
-    "rejected": " Abgelehnt"
+    "rejected": " Abgelehnt",
+    "total": "Gesamt"
   },
   "noteblock": {
     "note": " Notiz",
@@ -250,7 +252,9 @@
       "role": "Beruf",
       "subject": "Fach",
       "subjectUnknown": "Unbekannt",
-      "job": "Beruf"
+      "job": "Beruf",
+      "change": "Foto ändern",
+      "upload": "Hochladen"
     },
     "roles": {
       "teacher": "Lehrer",
@@ -415,6 +419,13 @@
       "email": "E-Mail",
       "phone": "Telefon",
       "address": "Adresse"
+    },
+    "nav": {
+      "profile": "Mein Profil",
+      "quiz": "Quiz",
+      "report": "Meldung erstellen"
     }
-  }
+  },
+  "all": "Alle",
+  "section": "Abschnitt"
 }

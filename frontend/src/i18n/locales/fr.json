@@ -75,7 +75,8 @@
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
       "reset": "Réinitialiser",
-      "victimPlaceholder": "Filtrer par victime..."
+      "victimPlaceholder": "Filtrer par victime...",
+      "status": "Statut"
     },
     "status": {
       "pending": "En attente",
@@ -184,7 +185,8 @@
     "resolved": "Résolu",
     "false_report": "Faux signalement",
     "closed": "Clôturé",
-    "rejected": "Rejeté"
+    "rejected": "Rejeté",
+    "total": "Total"
   },
   "noteblock": {
     "note": "Note",
@@ -224,7 +226,9 @@
       "role": "Rôle",
       "subject": "Matière",
       "subjectUnknown": "Non renseignée",
-      "job": "Profession"
+      "job": "Profession",
+      "change": "Changer la photo",
+      "upload": "Télécharger"
     },
     "workshop": {
       "title": "Ateliers",
@@ -550,5 +554,7 @@
       "title": "6. Modification des présentes conditions",
       "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions."
     }
-  }
+  },
+  "all": "Tous",
+  "section": "Section"
 }

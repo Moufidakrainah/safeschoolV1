@@ -65,7 +65,8 @@
       "dateFrom": "From date",
       "dateTo": "To date",
       "reset": "Reset",
-      "victimPlaceholder": "Victim name..."
+      "victimPlaceholder": "Victim name...",
+      "status": "Status"
     },
     "status": {
       "pending": "Pending",
@@ -176,7 +177,8 @@
     "resolved": " Resolved",
     "false_report": " False report",
     "closed": " Closed",
-    "rejected": " Rejected"
+    "rejected": " Rejected",
+    "total": "Total"
   },
   "noteblock": {
     "note": " Note",
@@ -216,7 +218,9 @@
       "role": "Occupation",
       "subject": "Subject",
       "subjectUnknown": "Unknown",
-      "job": "Job"
+      "job": "Job",
+      "change": "Change photo",
+      "upload": "Upload"
     },
     "roles": {
       "teacher": "Teacher",
@@ -441,5 +445,7 @@
     "no": "No notifications",
     "report": "Report",
     "read": "Read"
-  }
+  },
+  "all": "All",
+  "section": "Section"
 }
