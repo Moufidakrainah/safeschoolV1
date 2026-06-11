@@ -28,6 +28,21 @@ interface StudentUser {
 	};
 }
 
+
+// ── Validators alignés avec CreateClassDto ─────────────────────────────────
+const validateLevel = (value: string): string => {
+  if (!value.trim()) return 'Le niveau est obligatoire';
+  if (!/^[3-6]eme$/.test(value.trim())) return 'Le niveau doit être 3eme, 4eme, 5eme ou 6eme';
+  return '';
+};
+
+const validateSection = (value: string): string => {
+  if (!value.trim()) return 'La section est obligatoire';
+  if (!/^[A-Z]$/.test(value.trim().toUpperCase())) return 'La section doit être une seule lettre majuscule (A, B, C...)';
+  return '';
+};
+// ───────────────────────────────────────────────────────────────────────────
+
 //Composant principal
 export default function AdminClasses() {
 	//variables d'etat
@@ -38,6 +53,8 @@ export default function AdminClasses() {
 	const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
 	const [classForm, setClassForm] = useState({ level: "", section: "" });
 	const [savingClass, setSavingClass] = useState(false);
+	const [levelError, setLevelError] = useState('');
+	const [sectionError, setSectionError] = useState('');
 	const [classPage, setClassPage] = useState(1);
 	const [deleteModal, setDeleteModal] = useState<{ cls: SchoolClass; blocked: boolean; message: string } | null>(null);
 const CLASSES_PER_PAGE = 7;
@@ -72,7 +89,11 @@ const CLASSES_PER_PAGE = 7;
 		: [];
 
 	const handleSaveClass = async () => {
-		if (!classForm.level.trim() || !classForm.section.trim()) return;
+		const lErr = validateLevel(classForm.level);
+		const sErr = validateSection(classForm.section);
+		setLevelError(lErr);
+		setSectionError(sErr);
+		if (lErr || sErr) return;
 		setSavingClass(true);
 		try {
 			if (editingClass) {
@@ -205,7 +226,12 @@ const CLASSES_PER_PAGE = 7;
 									placeholder="ex: 5eme"
 									className="bg-white mt-1"
 									maxLength={10}
+									onChange={(e) => {
+										setClassForm((p) => ({ ...p, level: e.target.value }));
+										setLevelError(validateLevel(e.target.value));
+									}}
 								/>
+								{levelError && <p className="text-red-300 text-xs mt-1">{levelError}</p>}
 							</div>
 							<div>
 								<Label className="text-white text-sm">Section</Label>
@@ -217,7 +243,12 @@ const CLASSES_PER_PAGE = 7;
 									placeholder="ex: A"
 									className="bg-white mt-1"
 									maxLength={2}
+									onChange={(e) => {
+										setClassForm((p) => ({ ...p, section: e.target.value.toUpperCase() }));
+										setSectionError(validateSection(e.target.value));
+									}}
 								/>
+								{sectionError && <p className="text-red-300 text-xs mt-1">{sectionError}</p>}
 							</div>
 						</div>
 						<div className="flex gap-3 justify-end mt-4">
