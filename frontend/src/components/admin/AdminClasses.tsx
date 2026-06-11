@@ -7,6 +7,7 @@ import {
 	getAllUsers,
 } from "../../services/api";
 import { Button } from "../ui/button";
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
@@ -37,7 +38,9 @@ export default function AdminClasses() {
 	const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
 	const [classForm, setClassForm] = useState({ level: "", section: "" });
 	const [savingClass, setSavingClass] = useState(false);
-	const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
+	const [classPage, setClassPage] = useState(1);
+const CLASSES_PER_PAGE = 7;
+  const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
 
 	const fetchAll = useCallback(async () => {
 		setLoading(true);
@@ -195,7 +198,7 @@ export default function AdminClasses() {
 							Aucune classe
 						</p>
 					)}
-					{classes.map((cls) => {
+					{classes.slice((classPage - 1) * CLASSES_PER_PAGE, classPage * CLASSES_PER_PAGE).map((cls) => {
 						const count = students.filter(
 							(s) => s.studentProfile?.schoolClass?.id === cls.id,
 						).length;
@@ -251,6 +254,26 @@ export default function AdminClasses() {
 						);
 					})}
 				</div>
+				{Math.ceil(classes.length / CLASSES_PER_PAGE) > 1 && (
+				  <PaginationShadcn className="mt-4">
+				    <PaginationContent>
+				      <PaginationItem>
+				        <PaginationPrevious onClick={() => { if (classPage > 1) setClassPage(classPage - 1); }}
+				          className={classPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+				      </PaginationItem>
+				      {Array.from({ length: Math.ceil(classes.length / CLASSES_PER_PAGE) }, (_, i) => i + 1).map(p => (
+				        <PaginationItem key={p}>
+				          <PaginationLink isActive={p === classPage} onClick={() => setClassPage(p)}
+				            className="cursor-pointer">{p}</PaginationLink>
+				        </PaginationItem>
+				      ))}
+				      <PaginationItem>
+				        <PaginationNext onClick={() => { if (classPage < Math.ceil(classes.length / CLASSES_PER_PAGE)) setClassPage(classPage + 1); }}
+				          className={classPage === Math.ceil(classes.length / CLASSES_PER_PAGE) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+				      </PaginationItem>
+				    </PaginationContent>
+				  </PaginationShadcn>
+				)}
 			</div>
 
 			{/* élèves de la classe */}
