@@ -234,10 +234,10 @@ export default function ReportDetail({
                       </div>
                     )}
                     {!v.resolvedUser && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
-                    {isAdmin && (
+                    {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                        🔗 Lier
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
