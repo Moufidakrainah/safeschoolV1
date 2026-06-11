@@ -212,6 +212,11 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
 								/>
+								{showErrors && !description && (
+									<p role="alert" className="mb-4 text-sm text-red-600">
+										{t("reporter.validation.descriptionRequired")}
+									</p>
+									)}
 								{descriptionError && (
 									<p role="alert" className="mb-4 text-sm text-red-600">
 										{descriptionError}
