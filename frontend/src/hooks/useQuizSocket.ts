@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// Chaque question arrive traduite dans toutes les langues supportées ; le client choisit
+// librement laquelle afficher selon la langue active (voir QuizPlaying)
+export type QuizLocale = 'fr' | 'en' | 'de';
+export type LocalizedText = Record<QuizLocale, string>;
+export type LocalizedOptions = Record<QuizLocale, string[]>;
+
 type QuestionPayload = {
   roomId: string;
   question: {
     id: number;
-    text: string;
-    options: string[];
+    text: LocalizedText;
+    options: LocalizedOptions;
   };
   questionNumber: number;
   totalQuestions: number;
@@ -42,6 +48,7 @@ export type Player = {
   clientId: string;
   name: string;
   score: number;
+  connected?: boolean;
 };
 
 type RoomSnapshot = {
@@ -50,6 +57,10 @@ type RoomSnapshot = {
   status: string;
   players: Player[];
 };
+
+// Durée pendant laquelle on continue d'essayer de rejoindre une partie en cours après avoir perdu le socket
+// Reflète la fenêtre de grâce de reconnexion du backend
+const RECONNECT_WINDOW_MS = 60_000;
 
 export type GamePhase = 'lobby' | 'playing' | 'over';
 
@@ -100,9 +111,8 @@ function resetRoomState(
   setIsHost(false);
 }
 
-export function useQuizSocket(playerName: string | undefined) {
+export function useQuizSocket(playerName: string | undefined, selfId: string | undefined) {
   const socketRef = useRef<Socket | null>(null);
-  const [myClientId, setMyClientId] = useState<string | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
@@ -116,14 +126,38 @@ export function useQuizSocket(playerName: string | undefined) {
   const [myStreak, setMyStreak] = useState(0);
   const nextStreakRef = useRef(0);
 
+  // "Moi" est désormais l'id utilisateur stable (correspond à l'identité du joueur côté backend), donc
+  // il survit aux reconnexions du socket où socket.id aurait changé
+  const myClientId = selfId ?? null;
+  const selfIdRef = useRef<string | undefined>(selfId);
+  selfIdRef.current = selfId;
+
+  // Maintenu synchronisé avec l'état pour que les handlers du socket (créés une seule fois) puissent lire la
+  // salle/le nom actuels afin de rejoindre automatiquement après une reconnexion
+  const joinedRoomRef = useRef<string | null>(null);
+  const playerNameRef = useRef<string | undefined>(playerName);
+  playerNameRef.current = playerName;
+
+  useEffect(() => {
+    joinedRoomRef.current = joinedRoom;
+  }, [joinedRoom]);
+
   useEffect(() => {
     let cancelled = false;
+    let giveUpTimer: number | null = null;
+
+    function clearGiveUpTimer() {
+      if (giveUpTimer !== null) {
+        window.clearTimeout(giveUpTimer);
+        giveUpTimer = null;
+      }
+    }
 
     function connectSocket() {
       const socket = io(SOCKET_URL, {
         transports: ['polling', 'websocket'],
         reconnection: true,
-        reconnectionAttempts: 5,
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 5000,
@@ -138,12 +172,37 @@ export function useQuizSocket(playerName: string | undefined) {
       socketRef.current = socket;
 
       socket.on('connect', () => {
+        clearGiveUpTimer();
         setConnected(true);
-        if (socket.id) setMyClientId(socket.id);
+        setReconnecting(false);
         setSocketError('');
+        // Si on était dans une salle, on la rejoint de façon transparente. Le backend nous reconnaît
+        // via notre id stable et restaure la partie en cours (dans sa fenêtre de
+        // grâce) ; sinon c'est simplement un nouveau join sans conséquence
+        if (joinedRoomRef.current) {
+          socket.emit('quiz:join', {
+            roomId: joinedRoomRef.current,
+            playerName: playerNameRef.current || undefined,
+          });
+        }
       });
 
-      socket.on('disconnect', () => setConnected(false));
+      socket.on('disconnect', (reason) => {
+        setConnected(false);
+        // Déconnexion intentionnelle (on quitte / démontage) : pas de fenêtre de reconnexion
+        if (reason === 'io client disconnect') return;
+        // Démarre la fenêtre de reconnexion d'1 minute. Si on n'est toujours pas connecté
+        // à son expiration, on arrête d'essayer et on retire le joueur de la partie
+        if (giveUpTimer === null) {
+          giveUpTimer = window.setTimeout(() => {
+            giveUpTimer = null;
+            socket.disconnect();
+            setReconnecting(false);
+            setSocketError('Reconnexion impossible. Veuillez recharger la page.');
+            resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
+          }, RECONNECT_WINDOW_MS);
+        }
+      });
 
       socket.on('connect_error', () => {
         setConnected(false);
@@ -151,6 +210,7 @@ export function useQuizSocket(playerName: string | undefined) {
       });
 
       socket.on('quiz:unauthorized', () => {
+        clearGiveUpTimer();
         setConnected(false);
         setSocketError('Vous devez être connecté pour accéder au quiz.');
         socket.disconnect();
@@ -161,28 +221,14 @@ export function useQuizSocket(playerName: string | undefined) {
         setReconnecting(true);
       });
 
-      socket.io.on('reconnect', () => {
-        setConnected(true);
-        setReconnecting(false);
-        if (socket.id) setMyClientId(socket.id);
-        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
-        setSocketError('Connexion rétablie. Veuillez rejoindre la salle.');
-      });
-
-      socket.io.on('reconnect_failed', () => {
-        setReconnecting(false);
-        setSocketError('Impossible de se reconnecter. Veuillez recharger la page.');
-        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
-      });
-
       socket.on('quiz:left', () => {
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
 
-      socket.on('quiz:joined', (data: { roomId: string; hostId: string }) => {
+      socket.on('quiz:joined', (data: { roomId: string; hostId: string; selfId?: string }) => {
         setJoinedRoom(data.roomId);
         setSocketError('');
-        setIsHost(data.hostId === socket.id);
+        setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
       });
 
       socket.on('quiz:game:started', () => {
@@ -197,9 +243,13 @@ export function useQuizSocket(playerName: string | undefined) {
 
       socket.on('quiz:question', (data: QuestionPayload) => {
         const endsAt = data.endsAt ?? Date.now() + data.timeLimitMs;
+        // Recevoir une question implique que la partie tourne — ça restaure aussi
+        // la phase de jeu pour un client qui s'est reconnecté en pleine partie
+        setGamePhase('playing');
+        setFinalLeaderboard(null);
         setQuestionState((prev) => {
-          // Commit the streak from the question that just ended, now that we've
-          // moved past its reveal — answered correctly carries it, anything else resets.
+          // Valide la série de la question qui vient de se terminer, maintenant qu'on a
+          // dépassé sa révélation — une bonne réponse la conserve, tout le reste la remet à zéro
           if (prev) setMyStreak(prev.hasAnswered ? nextStreakRef.current : 0);
           return {
             question: data.question,
@@ -238,6 +288,16 @@ export function useQuizSocket(playerName: string | undefined) {
         setGamePhase('over');
       });
 
+      // Envoyé uniquement à un client qui se reconnecte pour restaurer la réponse qu'il avait déjà
+      // envoyée à la question en cours avant de se déconnecter
+      socket.on('quiz:answer:restore', (data: { questionId: number; selectedIndex: number | null; hasAnswered: boolean }) => {
+        setQuestionState((prev) =>
+          prev && prev.question.id === data.questionId
+            ? { ...prev, hasAnswered: data.hasAnswered, selectedIndex: data.selectedIndex }
+            : prev
+        );
+      });
+
       socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
         nextStreakRef.current = data.streak;
         setQuestionState((prev) =>
@@ -257,12 +317,18 @@ export function useQuizSocket(playerName: string | undefined) {
       socket.on('quiz:join:ignored', (data: { reason: string }) => {
         if (data.reason === 'quiz-already-started') setSocketError('Le quiz a déjà commencé.');
         else if (data.reason === 'room-is-full') setSocketError('Cette salle est pleine.');
+        else if (data.reason === 'already-in-room') setSocketError('Vous êtes déjà connecté à une salle dans un autre onglet ou une autre fenêtre. Quittez-la avant d\'en rejoindre une autre.');
         else setSocketError('Impossible de rejoindre la salle.');
       });
 
       socket.on('quiz:room:update', (data: RoomSnapshot) => {
-        if (data?.hostId !== undefined) setIsHost(data.hostId === socket.id);
+        if (data?.hostId !== undefined) setIsHost(data.hostId === selfIdRef.current);
         if (data?.players) setPlayers(data.players);
+      });
+
+      socket.on('quiz:room:closed', () => {
+        setSocketError('La salle a été fermée.');
+        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
     }
 
@@ -270,12 +336,16 @@ export function useQuizSocket(playerName: string | undefined) {
 
     return () => {
       cancelled = true;
+      clearGiveUpTimer();
+      if (joinedRoomRef.current) {
+        socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });
+      }
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
   }, []);
 
-  // Timer countdown
+  // Décompte du minuteur
   const revealEndsAt = questionState?.revealEndsAt ?? null;
   const endsAt = questionState?.endsAt ?? null;
   const activeDeadline = revealEndsAt ?? endsAt;
