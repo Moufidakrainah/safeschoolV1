@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { AuthUser } from "@/types";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { useState } from "react";
 import { formatName } from "@/utils/formatName";
 

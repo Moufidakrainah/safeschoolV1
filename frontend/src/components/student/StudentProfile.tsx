@@ -40,8 +40,6 @@ export default function StudentProfile({
 	const { t } = useTranslation();
 	const { updateUser } = useAuth();
 	const [avatar, setAvatar] = useState<string | null>(user?.avatar ?? null);
-	const [uploading, setUploading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
 	const calcAge = (dateOfBirth: string): number => {
 		const dob = new Date(dateOfBirth);

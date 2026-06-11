@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Badge, type BadgeVariant } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,7 +63,6 @@ export default function ReportDetail({
   const idx = filtered.findIndex(r => r.id === selected.id);
   const severity = severityFromApiGrade(selected.grade);
   const severityColor = SEVERITY_COLORS[severity];
-  const [confirmStatus, setConfirmStatus] = useState<{ status: string; label: string } | null>(null);
 
   // ── Victime principale ──
   // Trier les victims : alerteur (resolvedUser.id === student.id) en premier

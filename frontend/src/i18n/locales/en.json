@@ -178,7 +178,8 @@
     "false_report": " False report",
     "closed": " Closed",
     "rejected": " Rejected",
-    "total": "Total"
+    "total": "Total",
+    "all": "All statuses"
   },
   "noteblock": {
     "note": " Note",

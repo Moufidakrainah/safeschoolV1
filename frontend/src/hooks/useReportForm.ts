@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createReport, searchUsers } from '@/services/api';
 import type { UserSearchResult } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
   step:        number;

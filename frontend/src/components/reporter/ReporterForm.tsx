@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useReportForm } from "../../hooks/useReportForm";
 import { Button } from "../ui/button";
@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import StepBar from "../StepBar";
-import Autocomplete from "../Autocomplete";
 import type { AuthUser } from "../../types";
 import { Checkbox } from '@/components/ui/checkbox';
 
