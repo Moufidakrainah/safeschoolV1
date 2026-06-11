@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '@/services/api';
+import { createReport, isOfflineError, searchUsers } from '@/services/api';
 import type { UserSearchResult } from '@/types';
 import { useTranslation } from 'react-i18next';
 
@@ -97,7 +97,7 @@ export function useReportForm(
       );
       setStep(6);
     } catch (err) {
-      setSubmitError(t('reporter.submitError'));
+      setSubmitError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'reporter.submitError'));
     } finally {
       setLoading(false);
     }

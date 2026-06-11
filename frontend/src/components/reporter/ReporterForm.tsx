@@ -1,6 +1,8 @@
 import { useEffect, useRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { WifiOff } from "lucide-react";
 import { useReportForm } from "../../hooks/useReportForm";
+import { useOnlineStatus } from "../../hooks/useOnlineStatus";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Textarea } from "../ui/textarea";
@@ -27,6 +29,7 @@ interface ReporterFormProps {
 
 export default function ReporterForm({ user }: ReporterFormProps) {
   const { t } = useTranslation();
+  const online = useOnlineStatus();
 
   const {
     step,
@@ -529,6 +532,17 @@ export default function ReporterForm({ user }: ReporterFormProps) {
               </div>
             )}
 
+            {/* Hors ligne : la soumission est bloquée, on l'explique au lieu de laisser échouer */}
+            {!online && step === 5 && (
+              <div
+                role="status"
+                className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg mt-4"
+              >
+                <WifiOff aria-hidden="true" className="h-4 w-4 shrink-0" />
+                {t('offline.actionUnavailable')}
+              </div>
+            )}
+
             {/* Boutons de navigation entre étapes */}
             <div className="flex justify-between mt-8">
               {step > 1 && (
@@ -562,7 +576,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   <Button
                     onClick={handleSubmit}
                     variant="success"
-                    disabled={loading}
+                    disabled={loading || !online}
                   >
                     {loading
                       ? t("reporter.submitting")

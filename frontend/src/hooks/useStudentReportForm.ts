@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '../services/api';
+import { createReport, isOfflineError, searchUsers } from '../services/api';
 import type { UserSearchResult } from '../types';
 
 export interface UseStudentReportFormReturn {
@@ -92,8 +92,7 @@ export function useStudentReportForm(
       );
       setStep(7);
     } catch (err) {
-      console.error('Report submission failed', err);
-      setSubmitError(t('reporter.submitError'));
+      setSubmitError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'reporter.submitError'));
     } finally {
       setLoading(false);
     }

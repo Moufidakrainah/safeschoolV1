@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { WifiOff } from 'lucide-react';
 import { useStudentReportForm } from '../../hooks/useStudentReportForm';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import StepBar from '../StepBar';
@@ -17,6 +19,7 @@ interface StudentFormProps {
 
 export default function StudentForm({ user }: StudentFormProps) {
   const { t } = useTranslation();
+  const online = useOnlineStatus();
 
   const typeOptions = [
     { label: t('reporter.step2.physical'),         value: 'physique',   sub: t('reporter.step2.physicalSub')  },
@@ -366,6 +369,17 @@ export default function StudentForm({ user }: StudentFormProps) {
             </div>
           )}
 
+          {/* Hors ligne : la soumission est bloquée, on l'explique au lieu de laisser échouer */}
+          {!online && step === 6 && (
+            <div
+              role="status"
+              className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg mt-4"
+            >
+              <WifiOff aria-hidden="true" className="h-4 w-4 shrink-0" />
+              {t('offline.actionUnavailable')}
+            </div>
+          )}
+
           {/* Navigation */}
           <div className="flex justify-between mt-8">
 
@@ -389,7 +403,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 {t('common.next')} →
               </Button>
             ) : (
-              <Button variant="success" onClick={handleSubmit} disabled={loading}>
+              <Button variant="success" onClick={handleSubmit} disabled={loading || !online}>
                 {loading ? t('reporter.submitting') : `${t('reporter.submit')}`}
               </Button>
             )}

@@ -1,6 +1,9 @@
 {
   "offline": {
-    "message": "Vous êtes hors ligne"
+    "message": "Vous êtes hors ligne",
+    "actionUnavailable": "Cette action est indisponible hors ligne. Veuillez réessayer une fois reconnecté.",
+    "contentUnavailable": "Ce contenu ne peut pas être chargé hors ligne. Il se chargera automatiquement dès que vous serez reconnecté.",
+    "retry": "Réessayer"
   },
   "login": {
     "labelEmail": "Identifiant",

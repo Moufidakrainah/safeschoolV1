@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { login } from '@/services/api';
+import { login, isOfflineError } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,9 +65,9 @@ export default function Login()
       else
         navigate('/dashboard');
     }
-    catch
+    catch (err)
     {
-      setError(t('login.error'));
+      setError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'login.error'));
     }
     finally
     {

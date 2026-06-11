@@ -21,3 +21,17 @@ export function useOnlineStatus(): boolean {
 
   return online;
 }
+
+/* Compteur incrémenté à chaque retour de connexion — à ajouter aux dépendances
+   d'un useEffect de chargement pour recharger les données à la reconnexion */
+export function useReconnectKey(): number {
+  const [key, setKey] = useState(0);
+
+  useEffect(() => {
+    const onOnline = () => setKey((k) => k + 1);
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, []);
+
+  return key;
+}

@@ -5,7 +5,10 @@ import {
 	updateClass,
 	deleteClass,
 	getAllUsers,
+	isOfflineError,
 } from "../../services/api";
+import OfflineNotice from "../OfflineNotice";
+import { useReconnectKey } from "../../hooks/useOnlineStatus";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -33,6 +36,8 @@ export default function AdminClasses() {
 	const [classes, setClasses] = useState<SchoolClass[]>([]);
 	const [students, setStudents] = useState<StudentUser[]>([]);
 	const [loading, setLoading] = useState(true); //true pendant le chargement ???
+	const [loadFailedOffline, setLoadFailedOffline] = useState(false);
+	const reconnectKey = useReconnectKey();
 	const [showClassForm, setShowClassForm] = useState(false); //affiche/cache le formulaire
 	const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
 	const [classForm, setClassForm] = useState({ level: "", section: "" });
@@ -50,16 +55,18 @@ export default function AdminClasses() {
 					? usr.data
 					: [];
 			setStudents(allUsers.filter((u: any) => u.role === "student"));
+			setLoadFailedOffline(false);
 		} catch (e) {
-			console.error("Erreur chargement", e);
+			setLoadFailedOffline(isOfflineError(e));
 		} finally {
 			setLoading(false);
 		}
 	}, []);
 
+	// Rechargé au montage et à chaque retour de connexion
 	useEffect(() => {
 		fetchAll();
-	}, [fetchAll]);
+	}, [fetchAll, reconnectKey]);
 
 	const studentsInClass = selectedClass
 		? students.filter(
@@ -109,6 +116,10 @@ export default function AdminClasses() {
 
 	if (loading) {
 		return <p className="text-center py-16 text-gray-400">Chargement...</p>;
+	}
+
+	if (loadFailedOffline && classes.length === 0) {
+		return <OfflineNotice />;
 	}
 
 	return (

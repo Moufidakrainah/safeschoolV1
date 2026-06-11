@@ -4,7 +4,10 @@ import {
   markNotificationRead,
   getAllReports,
   getNotes,
+  isOfflineError,
 } from "@/services/api";
+import OfflineNotice from "@/components/OfflineNotice";
+import { useReconnectKey } from "@/hooks/useOnlineStatus";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
 import { useTranslation } from 'react-i18next';
@@ -76,8 +79,10 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
   const { t } = useTranslation();
   const [myReports, setMyReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
+  const [loadFailedOffline, setLoadFailedOffline] = useState(false);
   const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
   const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+  const reconnectKey = useReconnectKey();
 
   useEffect(() => {
     if (!user?.id) return;
@@ -106,10 +111,14 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         const unreadMap: Record<string, any> = {};
         notifs.filter((n: any) => !n.isRead).forEach((n: any) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
+        setLoadFailedOffline(false);
       })
-      .catch(() => setMyReports([]))
+      .catch((err) => {
+        setMyReports([]);
+        setLoadFailedOffline(isOfflineError(err));
+      })
       .finally(() => setLoadingReports(false));
-  }, [user?.id, refreshKey]);
+  }, [user?.id, refreshKey, reconnectKey]);
 
   const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
     return Object.values(unreadNotifs).find((n: any) => {
@@ -140,6 +149,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     <section className="page-section">
       {loadingReports ? (
         <p className="text-center py-10 text-gray-400">Chargement...</p>
+      ) : loadFailedOffline ? (
+        <OfflineNotice />
       ) : myReports.length === 0 ? (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-10 text-center">
           <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
