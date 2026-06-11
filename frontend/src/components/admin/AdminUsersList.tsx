@@ -123,16 +123,16 @@ export default function AdminUserList({
                             const freshU = await getUserById(u.id);
                             if (freshU) onNavigateToUser(freshU);
                             }}>
-                            <div className="flex items-stretch">
-                            <div style={{ width: '96px', height: '96px', flexShrink: 0, overflow: 'hidden', borderRadius: 0 }}>
+                            <div className="flex items-center">
+                              <div className="w-[80px] h-[80px] shrink-0 overflow-hidden rounded-sm m-2">
                                 {u.avatar
                                 ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
-                                    alt={u.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                : <div style={{ width: '96px', height: '96px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold', color: '#9ca3af' }}>
+                                    alt={u.firstName} className="w-full h-full object-cover block"/>
+                                : <div className="w-full h-full bg-gray-200 flex items-center justify-center font-bold text-gray-400">
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
                             </div>
-                            <div className="flex-1 px-6 py-5" style={{ minHeight: '80px' }}>
+                            <div className="flex-1 px-6 py-5" >
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
