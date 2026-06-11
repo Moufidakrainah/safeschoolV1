@@ -29,7 +29,8 @@ interface AdminUsersListProps {
     onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
-    onSaveUser: () => void;                                   // sauvegarder un utilisateur
+    onSaveUser: () => void;
+  onValidateAll: () => boolean;
     renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 
 }
@@ -54,6 +55,7 @@ export default function AdminUserList({
   onNavigateToUser,
   onSetShowUserForm,
   onSaveUser,
+  onValidateAll,
   renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
@@ -112,7 +114,7 @@ export default function AdminUserList({
                     <h3 className="font-bold mb-4">{t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
                     {renderUserForm(false)}
                     <div className="flex gap-3 justify-end mt-4">
-                    <Button disabled={!isFormValid} onClick={onSaveUser}>{t('admin.users.save')}</Button>
+                    <Button onClick={() => { if (onValidateAll()) onSaveUser(); }}>{t('admin.users.save')}</Button>
                     <Button variant="ghost" onClick={() => onSetShowUserForm(false)}>{t('common.cancel')}</Button>
                     </div>
                 </div>

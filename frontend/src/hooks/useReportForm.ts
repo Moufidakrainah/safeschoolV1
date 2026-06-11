@@ -59,23 +59,27 @@ function validateName(name: string): string | null {
 	return null;
 }
 
-function validateDescription(desc: string): string | null {
-	if (desc.length < 20)
-		return "La description doit contenir au moins 20 caractères";
-	if (desc.length > 2000)
-		return "La description ne peut pas dépasser 2000 caractères";
-	if (/(.)\1{9,}/.test(desc))
-		return "La description semble invalide (caractères répétitifs détectés)";
-	const cleaned = desc.replace(/\s/g, "");
-	if (cleaned.length > 10) {
-		const freq: Record<string, number> = {};
-		for (const c of cleaned) freq[c] = (freq[c] ?? 0) + 1;
-		const maxFreq = Math.max(...Object.values(freq));
-		if (maxFreq / cleaned.length > 0.7)
-			return "La description semble invalide (caractères répétitifs détectés)";
-	}
-	return null;
-}
+
+// ── Validators alignés avec CreateReportDto ────────────────────────────────
+const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
+const personRegex = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
+
+const validateDescription = (value: string): string => {
+  if (!value.trim()) return 'La description est obligatoire';
+  if (value.length < 20) return 'La description doit contenir au moins 20 caractères';
+  if (value.length > 2000) return 'La description ne peut pas dépasser 2000 caractères';
+  if (!descriptionRegex.test(value)) return 'La description semble invalide (caractères répétitifs détectés)';
+  return '';
+};
+
+const validatePersonName = (value: string): string => {
+  if (!value.trim()) return 'Le nom est obligatoire';
+  if (value.length < 2) return 'Le nom doit contenir au moins 2 caractères';
+  if (value.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
+  if (!personRegex.test(value)) return 'Le nom contient des caractères invalides ou répétitifs';
+  return '';
+};
+// ───────────────────────────────────────────────────────────────────────────
 
 export function useReportForm(
 	userRole: string | undefined,
@@ -112,193 +116,118 @@ export function useReportForm(
 	const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(
 		null,
 	);
-	const handleNext = () => {
-		const errors: Record<string, string> = {};
+  //some translations to be done
+  const handleSubmit = async () => {
+    if (!type || !description || !frequency) return;
+    setLoading(true);
+    setSubmitError(null);
+    try {
+      const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
+      const suspectsData = suspects.map(s => ({
+        freeText: `${s.firstName} ${s.lastName}`,
+      }));
+      const victimsData = victimName ? [{ freeText: victimName }] : [];
 
-		if (step === 1 && !whoSignals) {
-			setShowErrors(true);
-			return;
-		}
+      await createReport(
+        type,
+        'temoin',
+        fullDescription,
+        isAnonymous,
+        suspectsData,
+        victimsData,
+        frequency,
+      );
+      setStep(6);
+    } catch (err) {
+      setSubmitError(t('reporter.submitError'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-		if (step === 2 && !type) {
-			setShowErrors(true);
-			return;
-		}
+//   attention, certaines fonctions ne sont plus utilisees 
+  const handleSuspectSearch = async (value: string) => {
+    setSuspectInput(value);
+    if (value.length < 2) { setSuspectSuggestions([]); return; }
+    setSearchingUsers(true);
+    try {
+      setSuspectSuggestions(await searchUsers(value));
+    } catch {
+      setSuspectSuggestions([]);
+    } finally {
+      setSearchingUsers(false);
+    }
+  };
 
-		if (step === 3) {
-			if (!description.trim()) {
-				setShowErrors(true);
-				return;
-			}
-			const descError = validateDescription(description.trim());
-			if (descError) errors.description = descError;
-			if (!frequency) errors.frequency = "La fréquence est obligatoire";
-		}
+  const handleVictimSearch = async (value: string) => {
+    setVictimInput(value);
+    setSelectedVictim(null);
+    setVictimName(value);
+    setVictimError(value ? validatePersonName(value) : '');
+    if (value.length < 2) { setVictimSuggestions([]); return; }
+    try {
+      setVictimSuggestions(await searchUsers(value));
+    } catch {
+      setVictimSuggestions([]);
+    }
+  };
 
-		if (step === 4) {
-			if (victimName) {
-				victimName.split("|").forEach((v, i) => {
-					const trimmed = v.trim();
-					if (trimmed.length > 50) {
-						errors[`victim_${i}`] = t("reporter.validation.nameTooLong");
-					} else {
-						const err = validateName(trimmed);
-						if (err) errors[`victim_${i}`] = err;
-					}
-				});
-			}
-			suspects.forEach((s, i) => {
-				const fullName = `${s.firstName} ${s.lastName}`.trim();
-				if (fullName.length > 50) {
-					errors[`suspect_${i}`] = t("reporter.validation.nameTooLong");
-				} else {
-					const err = validateName(fullName);
-					if (err) errors[`suspect_${i}`] = err;
-				}
-			});
-		}
+  const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    const name = `${suspect.firstName} ${suspect.lastName}`.trim();
+    const err = validatePersonName(name);
+    if (err) { setSuspectError(err); return; }
+    setSuspectError('');
+    if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
+      setSuspects([...suspects, suspect as UserSearchResult]);
+    }
+    setSuspectInput('');
+    setSuspectSuggestions([]);
+  };
 
-		if (Object.keys(errors).length > 0) {
-			setFieldErrors(errors);
-			setShowErrors(true);
-			return;
-		}
+  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index)
+);
 
-		setFieldErrors({});
-		setShowErrors(false);
-		setStep((s) => s + 1);
-	};
+  const resetForm = () => {
+    setStep(1);
+    setType('');
+    setDescription('');
+    setFrequency('');
+    setWhoSignals(defaultWho);
+    setVictimName('');
+    setVictimInput('');
+    setSelectedVictim(null);
+    setSuspects([]);
+    setIsAnonymous(false);
+    setSubmitError(null);
+    setShowErrors(false);
+  };
 
-	//some translations to be done
-	const handleSubmit = async () => {
-		if (!type || !description || !frequency) return;
-		setLoading(true);
-		setSubmitError(null);
-		try {
-			const fullDescription = `${description} (${t("reporter.step6.frequency")}: ${frequency})`;
-			const suspectsData = suspects.map((s) => ({
-				freeText: `${s.firstName} ${s.lastName}`,
-			}));
-			const victimsData = victimName ? [{ freeText: victimName }] : [];
-
-			await createReport(
-				type,
-				"temoin",
-				fullDescription,
-				isAnonymous,
-				suspectsData,
-				victimsData,
-				frequency,
-			);
-			setStep(6);
-		} catch (err) {
-			const messages = err?.response?.data?.message ?? err?.message;
-			if (Array.isArray(messages) && messages.length > 0) {
-				setSubmitError(messages.join(" — "));
-			} else if (typeof messages === "string") {
-				setSubmitError(messages);
-			} else {
-				setSubmitError(t("reporter.submitError"));
-			}
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const clearFieldErrors = () => setFieldErrors({});
-
-	const handleSuspectSearch = async (value: string) => {
-		setSuspectInput(value);
-	};
-
-	const addSuspect = (suspect: {
-		id?: string;
-		firstName: string;
-		lastName: string;
-		role?: string;
-	}) => {
-		if (
-			!suspects.find(
-				(s) =>
-					s.firstName === suspect.firstName && s.lastName === suspect.lastName,
-			)
-		) {
-			setSuspects([...suspects, suspect as UserSearchResult]);
-		}
-		setSuspectInput("");
-	};
-
-	const removeSuspect = (index: number) =>
-		setSuspects(suspects.filter((_, i) => i !== index));
-
-	const handleVictimSearch = async (value: string) => {
-		setVictimInput(value);
-		setSelectedVictim(null);
-		setVictimName(value);
-		if (value.length < 2) {
-			setVictimSuggestions([]);
-			return;
-		}
-		try {
-			setVictimSuggestions(await searchUsers(value));
-		} catch {
-			setVictimSuggestions([]);
-		}
-	};
-
-	const resetForm = () => {
-		setStep(1);
-		setType("");
-		setDescription("");
-		setFrequency("");
-		setWhoSignals(defaultWho);
-		setVictimName("");
-		setVictimInput("");
-		setSelectedVictim(null);
-		setSuspects([]);
-		setIsAnonymous(false);
-		setSubmitError(null);
-		setShowErrors(false);
-	};
-
-	return {
-		step,
-		setStep,
-		whoSignals,
-		setWhoSignals,
-		type,
-		setType,
-		description,
-		setDescription,
-		frequency,
-		setFrequency,
-		isAnonymous,
-		setIsAnonymous,
-		loading,
-		submitError,
-		fieldErrors,
-
-		showErrors,
-		setShowErrors,
-		isNextDisabled,
-		suspects,
-		suspectInput,
-		suspectSuggestions,
-		searchingUsers,
-		victimName,
-		setVictimName,
-		victimInput,
-		setVictimInput,
-		victimSuggestions,
-		setVictimSuggestions,
-		selectedVictim,
-		setSelectedVictim,
-		handleSubmit,
-		handleNext,
-		clearFieldErrors,
-		handleSuspectSearch,
-		addSuspect,
-		removeSuspect,
-		resetForm,
-	};
+  return {
+    step, setStep,
+    descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, setSuspectError,
+    validateDescription, validatePersonName,
+    whoSignals, setWhoSignals,
+    type, setType,
+    description, setDescription,
+    frequency, setFrequency,
+    isAnonymous, setIsAnonymous,
+    loading, submitError,
+    showErrors, setShowErrors,
+    isNextDisabled,
+    suspects, suspectInput, 
+	suspectSuggestions, 
+	searchingUsers,
+    victimName, setVictimName,
+    victimInput, setVictimInput,
+    victimSuggestions, 
+	setVictimSuggestions,
+    selectedVictim, setSelectedVictim,
+    handleSubmit,
+	handleSuspectSearch, 
+	handleVictimSearch,
+    addSuspect, removeSuspect, 
+	resetForm,
+  };
 }

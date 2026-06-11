@@ -7,18 +7,18 @@
     "errorRequired": "Veuillez remplir tous les champs.",
     "errorEmailFormat": "Format d'email invalide.",
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-    "error": "Identifiants incorrects.", 
-	"keepEmpty": "(laisser vide pour ne pas changer)"
+    "error": "Identifiant ou mot de passe incorrect.",
+    "keepEmpty": "(laisser vide pour ne pas changer)"
   },
   "nav": {
     "logout": "Se déconnecter"
-	},
+  },
   "notifications": {
     "notifs": "Notifications",
-    "loading": "Chargement", 
-	"no": "Aucune notification", 
-	"report": "Signalement", 
-	"read": "Lu"
+    "loading": "Chargement",
+    "no": "Aucune notification",
+    "report": "Signalement",
+    "read": "Lu"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -143,38 +143,34 @@
       "selectClass": "Sélectionner une classe",
       "roles": {
         "label": "Rôle",
-        "choose": "Choisir un rôle",
+        "choose": "Selectionnez un role",
         "student": "Élève",
         "teacher": "Professeur",
         "staff": "Personnel",
         "admin": "Admin",
-        "director": "Directeur", 
-		"choose": "Selectionnez un role"
+        "director": "Directeur"
       },
       "errorEmailFormat": "Format d'email invalide",
       "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères",
       "deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
       "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements",
       "deleteError": "Une erreur est survenue lors de la suppression",
-      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte", 
-	  "name": "Lettres, apostrophes ou tirets uniquement (max 20 caractères)", 
-	  "tooLong":"Email trop long (max 50 caractères)", 
-	  "atLeast": "Minimum 12 caractères", 
-	  "atLeastOneNumber":"Au moins un chiffre requis", 
-	  "atLeastOneMinus":"Au moins une minuscule requise", 
-	  "atLeastOneMajor":"Au moins une majuscule requise",
-	  "atLeastOneSpecial":"Au moins un caractère spécial requis", 
-	  "noFirstName":"Le mot de passe ne doit pas contenir le prénom", 
-	  "noLastName": "Le mot de passe ne doit pas contenir le nom"
-
+      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+      "errorRequired": "Ce champ est obligatoire",
+      "name": "Lettres, tirets et apostrophes uniquement (2-20 caractères)",
+      "tooLong": "Email trop long (max 50 caractères)",
+      "atLeast": "Minimum 12 caractères",
+      "atLeastOneNumber": "Au moins un chiffre requis",
+      "atLeastOneMinus": "Au moins une minuscule requise",
+      "atLeastOneMajor": "Au moins une majuscule requise",
+      "atLeastOneSpecial": "Au moins un caractère spécial requis",
+      "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
+      "noLastName": "Le mot de passe ne doit pas contenir le nom"
     },
     "title": {
       "oneReport": "Details d'un signalement",
       "allReports": "Tous les signalements"
-    }, 
-	"teacher": {
-		"subjectTeached": "Matière enseignée"
-	}
+    }
   },
   "badge": {
     "all": "Tous les statuts",
@@ -312,7 +308,7 @@
       "subtitle": "",
       "descriptionLabel": "Donne tous les détails que tu as : le jour, l'heure, le lieu, les personnes impliquées, ce qu'elles ont fait",
       "descriptionPlaceholder": "Donne un maximum de détails",
-  	"frequencyLabel": "Combien de fois cela s'est-il passé ?",
+      "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
       "freq1": "1 fois",
       "freq2": "2 fois",

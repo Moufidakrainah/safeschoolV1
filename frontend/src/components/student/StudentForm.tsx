@@ -83,6 +83,10 @@ export default function StudentForm({ user }: StudentFormProps) {
 		handleSubmit,
 		handleSuspectSearch,
 		clearFieldErrors,
+
+    validateDescription, validateName, descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, setSuspectError,
 		addSuspect,
 		removeSuspect,
 		resetForm,
