@@ -38,11 +38,11 @@ export default function StudentForm({ user }: StudentFormProps) {
     isNextDisabled,
     fieldErrors,
     handleNext,
-    suspects, suspectInput, searchingUsers,
+    suspects, suspectInput,
     victimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
-    handleSubmit, handleSuspectSearch, clearFieldErrors,
+    handleSubmit, clearFieldErrors,
     validateDescription, validateName, descriptionError, setDescriptionError,
     victimError, setVictimError,
     suspectError, setSuspectError,
@@ -300,7 +300,7 @@ export default function StudentForm({ user }: StudentFormProps) {
                 <input
                   type="text"
                   value={suspectInput}
-                  onChange={e => { const { setSuspectInput } = {} as any; handleSuspectSearch(e.target.value); }}
+                  onChange={e => setSuspectInput(e.target.value)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && suspectInput.trim()) {
                       e.preventDefault();
