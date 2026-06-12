@@ -45,27 +45,20 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     setShowErrors,
     isNextDisabled,
     suspects,
-    suspectInput,
-    suspectSuggestions,
-    searchingUsers,
+    suspectInput, setSuspectInput,
     victimName,
     victimInput,
     setVictimInput,
-    victimSuggestions,
-    setVictimSuggestions,
     selectedVictim,
     setSelectedVictim,
     setVictimName,
 	// fieldErrors,
 	// clearFieldErrors,
     handleSubmit,
-    handleSuspectSearch,
-    handleVictimSearch,
-	addSuspect,
-	removeSuspect,
-	resetForm,
-    // validateDescription, validateName, 
-	descriptionError, setDescriptionError,
+    addSuspect,
+    removeSuspect,
+    resetForm,
+    descriptionError, setDescriptionError,
     victimError, setVictimError,
     suspectError, 
 	// setSuspectError,
@@ -361,6 +354,14 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 															className="text-critical font-bold cursor-pointer"
 														
 
+
+
+
+
+
+
+
+
 													>
 														x
 													</button>
@@ -422,6 +423,74 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 									{t("reporter.step4.add+Suspect")}
 								</p>
 								{suspectError && (
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                // <label className="block mb-2 text-sm font-semibold text-gray-700">
+                //   {t("reporter.step4.suspectsLabel")}
+                // </label>
+                // <div className="flex gap-2">
+                //   <input
+                //     type="text"
+                //     value={suspectInput}
+                //     onChange={(e) => setSuspectInput(e.target.value)}
+                //     onKeyDown={(e) => {
+                //       if (e.key === "Enter" && suspectInput.trim()) {
+                //         e.preventDefault();
+                //         addSuspect({
+                //           firstName: suspectInput.trim(),
+                //           lastName: "",
+                //         });
+                //       }
+                //     }}
+                //     placeholder="Par exemple : Prénom Nom Classe"
+                //     className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                //   />
+                //   <Button
+                //     variant="outline"
+                //     onClick={() => {
+                //       if (suspectInput.trim())
+                //         addSuspect({
+                //           firstName: suspectInput.trim(),
+                //           lastName: "",
+                //         });
+                //     }}
+                //     disabled={!suspectInput.trim()}
+                //   >
+                //     + Ajoute ce coupable
+                //   </Button>
+                // </div>
+                // <p className="text-xs text-gray-400 mt-1">
+                //   Appuie sur la touche "Entrée" de ton clavier ou clique sur
+                //   "Ajoute ce coupable"
+                // </p>
+                // {suspectError && (
+
+
+
+
+
+
+
+
+
+
+
+
                   <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>
                 )}
 

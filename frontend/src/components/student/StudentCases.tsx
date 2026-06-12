@@ -7,8 +7,8 @@ import {
 } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
-import { useTranslation } from "react-i18next";
-import type { AuthUser } from "@/types";
+import { useTranslation } from 'react-i18next';
+import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
 	const map: Record<string, any> = {
@@ -103,84 +103,75 @@ export default function StudentCases({
 		if (!user?.id) return;
 		setLoadingReports(true);
 
-		Promise.all([getAllReports(), getNotifications()])
-			.then(async ([all, notifs]) => {
-				const mine = all.filter((r: any) => r.reporter === "victime");
-				setMyReports(mine);
+    Promise.all([getAllReports(), getNotifications()])
+      .then(async ([all, notifs]) => {
+        const mine = all.filter((r: Report) => r.reporter === "victime");
+        setMyReports(mine);
 
-				const notesMap: Record<string, any[]> = {};
-				await Promise.all(
-					mine.map(async (r: any) => {
-						try {
-							const notes = await getNotes(r.id);
-							notesMap[r.id] = notes.filter(
-								(n: any) =>
-									n.type === "convocation" || n.type === "status_change",
-							);
-						} catch {
-							notesMap[r.id] = [];
-						}
-					}),
-				);
-				setReportNotes(notesMap);
+        const notesMap: Record<string, any[]> = {};
+        await Promise.all(
+          mine.map(async (r: Report) => {
+            try {
+              const notes = await getNotes(r.id);
+              notesMap[r.id] = notes.filter(
+                (n: Note) => n.type === "convocation" || n.type === "status_change"
+              );
+            } catch {
+              notesMap[r.id] = [];
+            }
+          }),
+        );
+        setReportNotes(notesMap);
 
-				const unreadMap: Record<string, any> = {};
-				notifs
-					.filter((n: any) => !n.isRead)
-					.forEach((n: any) => {
-						unreadMap[n.id] = n;
-					});
-				setUnreadNotifs(unreadMap);
-			})
-			.catch(() => setMyReports([]))
-			.finally(() => setLoadingReports(false));
-	}, [user?.id, refreshKey]);
+        const unreadMap: Record<string, any> = {};
+        notifs.filter((n: Note & { isRead: boolean; report?: { id: string } }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
+        setUnreadNotifs(unreadMap);
+      })
+      .catch(() => setMyReports([]))
+      .finally(() => setLoadingReports(false));
+  }, [user?.id, refreshKey]);
 
-	const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-		return (
-			Object.values(unreadNotifs).find((n: any) => {
-				if (n.report?.id !== reportId) return false;
-				const noteContent = note.content.trim();
-				const notifMsg = n.message.replace("Convocation : ", "").trim();
-				return (
-					notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
-					noteContent.includes(notifMsg.split("\n\n")[0].trim())
-				);
-			}) ?? null
-		);
-	};
+  const findUnreadNotifForNote = (note: Note, reportId: string) => {
+    return Object.values(unreadNotifs).find((n) => {
+      if (n.report?.id !== reportId) return false;
+      const noteContent = note.content.replace("📅 ", "").trim();
+      const notifMsg = n.message.replace("Convocation : ", "").trim();
+      return (
+        notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
+        noteContent.includes(notifMsg.split("\n\n")[0].trim())
+      );
+    }) ?? null;
+  };
 
-	const handleConvocationClick = async (notif: any) => {
-		if (!notif) return;
-		try {
-			await markNotificationRead(notif.id);
-			setUnreadNotifs((prev) => {
-				const updated = { ...prev };
-				delete updated[notif.id];
-				return updated;
-			});
-			onNotifRefresh?.();
-		} catch {}
-	};
+  const handleConvocationClick = async (notif: Note & { id: string; isRead: boolean }) => {
+    if (!notif) return;
+    try {
+      await markNotificationRead(notif.id);
+      setUnreadNotifs((prev) => {
+        const updated = { ...prev };
+        delete updated[notif.id];
+        return updated;
+      });
+      onNotifRefresh?.();
+    } catch {}
+  };
 
-	return (
-		<section className="page-section">
-			{loadingReports ? (
-				<p className="text-center py-10 text-gray-400">
-					{t("student.cases.loading")}
-				</p>
-			) : myReports.length === 0 ? (
-				<div className="bg-surface shadow-sm py-20 text-center">
-					<p className="text-m">{t("student.cases.noReport")}</p>
-				</div>
-			) : (
-				<ul className="flex flex-col gap-3">
-					{myReports.map((report: any) => {
-						const severity = severityFromApiGrade(report.grade);
-						const notes = reportNotes[report.id] ?? [];
-						const reportUnreadCount = Object.values(unreadNotifs).filter(
-							(n: any) => n.report?.id === report.id,
-						).length;
+  return (
+    <section className="page-section">
+      {loadingReports ? (
+        <p className="text-center py-10 text-gray-400">Chargement...</p>
+      ) : myReports.length === 0 ? (
+        <div className="bg-surface shadow-sm rounded-sm px-6 py-10 text-center">
+          <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {myReports.map((report: Report) => {
+            const severity = severityFromApiGrade(report.grade);
+            const notes = reportNotes[report.id] ?? [];
+            const reportUnreadCount = Object.values(unreadNotifs).filter(
+              (n) => (n as Note & { report?: { id: string } }).report?.id === report.id,
+            ).length;
 
 						return (
 							<li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
@@ -221,13 +212,12 @@ export default function StudentCases({
 												);
 											}
 
-											// ── Convocation ──
-											const { isPast, displayDate, message, recipient } =
-												parseConvocation(note.content);
-											const unreadNotif = !isPast
-												? findUnreadNotifForNote(note, report.id)
-												: null;
-											const isNew = !!unreadNotif;
+                {/* Notes : status_change + convocations */}
+                {notes.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
+                ) : (
+                  <div className="flex flex-col gap-2 mt-2">
+                    {notes.map((note: Note) => {
 
 											return (
 												<div

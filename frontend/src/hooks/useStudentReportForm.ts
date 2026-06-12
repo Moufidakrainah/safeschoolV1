@@ -23,7 +23,7 @@ export interface UseStudentReportFormReturn {
   isNextDisabled: boolean;
   suspects: UserSearchResult[];
   suspectInput: string;
-  searchingUsers: boolean;
+  setSuspectInput: React.Dispatch<React.SetStateAction<string>>;
   victimName: string;
   setVictimName: React.Dispatch<React.SetStateAction<string>>;
   victimInput: string;
@@ -32,7 +32,6 @@ export interface UseStudentReportFormReturn {
   setVictimInput: React.Dispatch<React.SetStateAction<string>>;
   handleSubmit: () => Promise<void>;
   handleNext: () => void;
-  handleSuspectSearch: (value: string) => Promise<void>;
   addSuspect: (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect: (index: number) => void;
   resetForm: () => void;
@@ -89,7 +88,6 @@ export function useStudentReportForm(
   const [showErrors, setShowErrors] = useState(false);
   const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
-  const [searchingUsers, setSearchingUsers] = useState(false);
   const [victimName, setVictimName] = useState('');
   const [victimInput, setVictimInput] = useState('');
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
@@ -175,8 +173,6 @@ export function useStudentReportForm(
 
   const clearFieldErrors = () => setFieldErrors({});
 
-  const handleSuspectSearch = async (value: string) => { setSuspectInput(value); };
-
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
     const name = `${suspect.firstName} ${suspect.lastName}`.trim();
     const err = validateName(name);
@@ -216,14 +212,13 @@ export function useStudentReportForm(
     loading, submitError, fieldErrors,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, searchingUsers,
+    suspects, suspectInput, setSuspectInput,
     victimName, setVictimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim,
     handleSubmit, handleNext, clearFieldErrors,
     validateDescription, validateName, descriptionError, setDescriptionError,
     victimError, setVictimError, suspectError, setSuspectError,
-    handleSuspectSearch,
     addSuspect, removeSuspect, resetForm,
   };
 }
