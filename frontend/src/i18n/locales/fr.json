@@ -384,6 +384,7 @@
 	  "address":"Adresse",
       "officialParents":"Responsables légaux",
       "loading":"Chargement", 
+      "noProfile":"Aucun profil professionnel enregistré", 
       "noParent":"Aucun responsable légal"
     },
     "workshop": {

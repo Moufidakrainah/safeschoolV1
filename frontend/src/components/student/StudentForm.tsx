@@ -4,7 +4,7 @@ import { useStudentReportForm } from "@/hooks/useStudentReportForm";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import StepBar from "@/components/StepBar";
-import Autocomplete from "@/components/Autocomplete";
+// import Autocomplete from "@/components/Autocomplete";
 import type { AuthUser } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
 import {

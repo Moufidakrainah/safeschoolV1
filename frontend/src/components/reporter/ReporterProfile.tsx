@@ -159,12 +159,12 @@ export default function ReporterProfile({
 			{/* Profil professionnel */}
 <div className="bg-surface shadow-sm px-8 py-4">
 				{loadingProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Chargement...
+					<p className="text-m text-center py-4">
+						{t("reporter.profile.loading")}
 					</p>
 				) : !staffProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Aucun profil professionnel enregistré
+					<p className="text-m text-center py-4">
+						{t("reporter.profile.noProfile")}
 					</p>
 				) : (
 					<>
