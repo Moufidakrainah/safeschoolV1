@@ -15,7 +15,7 @@ import { SchoolClass } from "../classes/school-class.entity";
 export class StudentProfile {
   @PrimaryGeneratedColumn("uuid") id: string;
 
-  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date;
+  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date | null;
 
   @ManyToOne(() => SchoolClass, { nullable: true, eager: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'classId' })
