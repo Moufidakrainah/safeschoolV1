@@ -211,3 +211,11 @@ test-verify-token: ## Vérifier la signature du token avec le JWT_SECRET
 		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
 	SECRET=$$(grep JWT_SECRET .env | cut -d'=' -f2); \
 	python3 verify_jwt.py "$$TOKEN" "$$SECRET"
+
+test-wrong-role: ## Tester accès GET /users avec token élève (attendu: 403)
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	curl -s http://localhost:5000/users \
+		-H "Authorization: Bearer $$TOKEN" | python3 -m json.tool
