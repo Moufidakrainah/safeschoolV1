@@ -11,3 +11,5 @@ backups/
 .env.local
 backend/uploads/
 *.tsbuildinfo
+nginx/certs/*
+!nginx/certs/.gitkeep

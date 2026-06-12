@@ -1,134 +1,286 @@
 [
   {
     "id": 1,
-    "text": "Quel pourcentage de jeunes est touché par le harcèlement ou cyberharcèlement ?",
-    "options": ["Environ 37%", "Environ 52%"],
+    "text": {
+      "fr": "Quel pourcentage de jeunes est touché par le harcèlement ou cyberharcèlement ?",
+      "en": "What percentage of young people are affected by bullying or cyberbullying?",
+      "de": "Wie viel Prozent der Jugendlichen sind von Mobbing oder Cybermobbing betroffen?"
+    },
+    "options": {
+      "fr": ["Environ 37%", "Environ 52%"],
+      "en": ["About 37%", "About 52%"],
+      "de": ["Etwa 37%", "Etwa 52%"]
+    },
     "correctIndex": 0,
     "score": 2
   },
   {
     "id": 2,
-    "text": "À partir de quel âge les enfants peuvent-ils être concernés par le harcèlement ?",
-    "options": ["À partir de 10 ans", "Dès 6 ans"],
+    "text": {
+      "fr": "À partir de quel âge les enfants peuvent-ils être concernés par le harcèlement ?",
+      "en": "From what age can children be affected by bullying?",
+      "de": "Ab welchem Alter können Kinder von Mobbing betroffen sein?"
+    },
+    "options": {
+      "fr": ["À partir de 10 ans", "Dès 6 ans"],
+      "en": ["From age 10", "As early as age 6"],
+      "de": ["Ab 10 Jahren", "Schon ab 6 Jahren"]
+    },
     "correctIndex": 1,
     "score": 2
   },
   {
     "id": 3,
-    "text": "Où se produit le plus souvent le harcèlement ?",
-    "options": ["Sur les réseaux sociaux", "Dans l'établissement scolaire"],
+    "text": {
+      "fr": "Où se produit le plus souvent le harcèlement ?",
+      "en": "Where does bullying most often happen?",
+      "de": "Wo findet Mobbing am häufigsten statt?"
+    },
+    "options": {
+      "fr": ["Sur les réseaux sociaux", "Dans l'établissement scolaire"],
+      "en": ["On social media", "At school"],
+      "de": ["In den sozialen Medien", "In der Schule"]
+    },
     "correctIndex": 1,
     "score": 1
   },
   {
     "id": 4,
-    "text": "Quel pourcentage des cas de harcèlement a lieu à l'école ?",
-    "options": ["Environ 45%", "Environ 71%"],
+    "text": {
+      "fr": "Quel pourcentage des cas de harcèlement a lieu à l'école ?",
+      "en": "What percentage of bullying cases take place at school?",
+      "de": "Wie viel Prozent der Mobbingfälle finden in der Schule statt?"
+    },
+    "options": {
+      "fr": ["Environ 45%", "Environ 71%"],
+      "en": ["About 45%", "About 71%"],
+      "de": ["Etwa 45%", "Etwa 71%"]
+    },
     "correctIndex": 1,
     "score": 3
   },
   {
     "id": 5,
-    "text": "Quel pourcentage de jeunes a déjà subi du harcèlement (hors cyberharcèlement) ?",
-    "options": ["Environ 35%", "Environ 55%"],
+    "text": {
+      "fr": "Quel pourcentage de jeunes a déjà subi du harcèlement (hors cyberharcèlement) ?",
+      "en": "What percentage of young people have experienced bullying (excluding cyberbullying)?",
+      "de": "Wie viel Prozent der Jugendlichen haben bereits Mobbing erlebt (ohne Cybermobbing)?"
+    },
+    "options": {
+      "fr": ["Environ 35%", "Environ 55%"],
+      "en": ["About 35%", "About 55%"],
+      "de": ["Etwa 35%", "Etwa 55%"]
+    },
     "correctIndex": 0,
     "score": 2
   },
   {
     "id": 6,
-    "text": "Quel pourcentage de victimes a déjà pensé à se faire du mal ou au suicide ?",
-    "options": ["Environ 10%", "Environ 25%"],
+    "text": {
+      "fr": "Quel pourcentage de victimes a déjà pensé à se faire du mal ou au suicide ?",
+      "en": "What percentage of victims have thought about self-harm or suicide?",
+      "de": "Wie viel Prozent der Opfer haben bereits an Selbstverletzung oder Suizid gedacht?"
+    },
+    "options": {
+      "fr": ["Environ 10%", "Environ 25%"],
+      "en": ["About 10%", "About 25%"],
+      "de": ["Etwa 10%", "Etwa 25%"]
+    },
     "correctIndex": 1,
     "score": 3
   },
   {
     "id": 7,
-    "text": "Chez quel groupe le risque de pensées suicidaires liées au harcèlement est-il le plus élevé ?",
-    "options": ["Les filles (39%)", "Les garçons (25%)"],
+    "text": {
+      "fr": "Chez quel groupe le risque de pensées suicidaires liées au harcèlement est-il le plus élevé ?",
+      "en": "In which group is the risk of bullying-related suicidal thoughts highest?",
+      "de": "Bei welcher Gruppe ist das Risiko mobbingbedingter Suizidgedanken am höchsten?"
+    },
+    "options": {
+      "fr": ["Les filles (39%)", "Les garçons (25%)"],
+      "en": ["Girls (39%)", "Boys (25%)"],
+      "de": ["Mädchen (39%)", "Jungen (25%)"]
+    },
     "correctIndex": 0,
     "score": 2
   },
   {
     "id": 8,
-    "text": "Quel pourcentage de jeunes a déjà été confronté au cyberharcèlement ?",
-    "options": ["Environ 50%", "Environ 23%"],
+    "text": {
+      "fr": "Quel pourcentage de jeunes a déjà été confronté au cyberharcèlement ?",
+      "en": "What percentage of young people have faced cyberbullying?",
+      "de": "Wie viel Prozent der Jugendlichen waren bereits mit Cybermobbing konfrontiert?"
+    },
+    "options": {
+      "fr": ["Environ 50%", "Environ 23%"],
+      "en": ["About 50%", "About 23%"],
+      "de": ["Etwa 50%", "Etwa 23%"]
+    },
     "correctIndex": 1,
     "score": 2
   },
   {
     "id": 9,
-    "text": "Sur quelle application le cyberharcèlement est-il le plus fréquent ?",
-    "options": ["WhatsApp", "Instagram"],
+    "text": {
+      "fr": "Sur quelle application le cyberharcèlement est-il le plus fréquent ?",
+      "en": "On which app is cyberbullying most common?",
+      "de": "Auf welcher App kommt Cybermobbing am häufigsten vor?"
+    },
+    "options": {
+      "fr": ["WhatsApp", "Instagram"],
+      "en": ["WhatsApp", "Instagram"],
+      "de": ["WhatsApp", "Instagram"]
+    },
     "correctIndex": 0,
     "score": 1
   },
   {
     "id": 10,
-    "text": "Quel pourcentage des victimes de cyberharcèlement ont été touchées via WhatsApp ?",
-    "options": ["Environ 44%", "Environ 65%"],
+    "text": {
+      "fr": "Quel pourcentage des victimes de cyberharcèlement ont été touchées via WhatsApp ?",
+      "en": "What percentage of cyberbullying victims were targeted via WhatsApp?",
+      "de": "Wie viel Prozent der Cybermobbing-Opfer wurden über WhatsApp belästigt?"
+    },
+    "options": {
+      "fr": ["Environ 44%", "Environ 65%"],
+      "en": ["About 44%", "About 65%"],
+      "de": ["Etwa 44%", "Etwa 65%"]
+    },
     "correctIndex": 0,
     "score": 3
   },
   {
     "id": 11,
-    "text": "Qui est le plus touché par le cyberharcèlement ?",
-    "options": ["Les garçons", "Les filles"],
+    "text": {
+      "fr": "Qui est le plus touché par le cyberharcèlement ?",
+      "en": "Who is most affected by cyberbullying?",
+      "de": "Wer ist am stärksten von Cybermobbing betroffen?"
+    },
+    "options": {
+      "fr": ["Les garçons", "Les filles"],
+      "en": ["Boys", "Girls"],
+      "de": ["Jungen", "Mädchen"]
+    },
     "correctIndex": 1,
     "score": 1
   },
   {
     "id": 12,
-    "text": "Quel impact principal le harcèlement a-t-il sur les jeunes ?",
-    "options": ["Des conséquences graves sur la santé mentale", "Des difficultés financières"],
+    "text": {
+      "fr": "Quel impact principal le harcèlement a-t-il sur les jeunes ?",
+      "en": "What is the main impact of bullying on young people?",
+      "de": "Welche Hauptauswirkung hat Mobbing auf Jugendliche?"
+    },
+    "options": {
+      "fr": ["Des conséquences graves sur la santé mentale", "Des difficultés financières"],
+      "en": ["Serious mental health consequences", "Financial difficulties"],
+      "de": ["Schwere Folgen für die psychische Gesundheit", "Finanzielle Schwierigkeiten"]
+    },
     "correctIndex": 0,
     "score": 1
   },
   {
     "id": 13,
-    "text": "Quel pourcentage de victimes perd confiance en elles à cause du harcèlement ?",
-    "options": ["Environ 58%", "Environ 75%"],
+    "text": {
+      "fr": "Quel pourcentage de victimes perd confiance en elles à cause du harcèlement ?",
+      "en": "What percentage of victims lose self-confidence because of bullying?",
+      "de": "Wie viel Prozent der Opfer verlieren durch Mobbing ihr Selbstvertrauen?"
+    },
+    "options": {
+      "fr": ["Environ 58%", "Environ 75%"],
+      "en": ["About 58%", "About 75%"],
+      "de": ["Etwa 58%", "Etwa 75%"]
+    },
     "correctIndex": 0,
     "score": 3
   },
   {
     "id": 14,
-    "text": "Quel pourcentage de victimes rencontre des difficultés scolaires à cause du harcèlement ?",
-    "options": ["Environ 57%", "Environ 70%"],
+    "text": {
+      "fr": "Quel pourcentage de victimes rencontre des difficultés scolaires à cause du harcèlement ?",
+      "en": "What percentage of victims experience academic difficulties because of bullying?",
+      "de": "Wie viel Prozent der Opfer haben durch Mobbing schulische Schwierigkeiten?"
+    },
+    "options": {
+      "fr": ["Environ 57%", "Environ 70%"],
+      "en": ["About 57%", "About 70%"],
+      "de": ["Etwa 57%", "Etwa 70%"]
+    },
     "correctIndex": 0,
     "score": 3
   },
   {
     "id": 15,
-    "text": "Quel pourcentage de parents souhaite des actions concrètes contre le harcèlement ?",
-    "options": ["Environ 50%", "Près de 90%"],
+    "text": {
+      "fr": "Quel pourcentage de parents souhaite des actions concrètes contre le harcèlement ?",
+      "en": "What percentage of parents want concrete action against bullying?",
+      "de": "Wie viel Prozent der Eltern wünschen sich konkrete Maßnahmen gegen Mobbing?"
+    },
+    "options": {
+      "fr": ["Environ 50%", "Près de 90%"],
+      "en": ["About 50%", "Nearly 90%"],
+      "de": ["Etwa 50%", "Fast 90%"]
+    },
     "correctIndex": 1,
     "score": 2
   },
   {
     "id": 16,
-    "text": "Quel pourcentage des parents ne voit pas clairement ce que fait leur enfant en ligne ?",
-    "options": ["Environ 85%", "Environ 71%"],
+    "text": {
+      "fr": "Quel pourcentage des parents ne voit pas clairement ce que fait leur enfant en ligne ?",
+      "en": "What percentage of parents don't clearly see what their child does online?",
+      "de": "Wie viel Prozent der Eltern sehen nicht klar, was ihr Kind online macht?"
+    },
+    "options": {
+      "fr": ["Environ 85%", "Environ 71%"],
+      "en": ["About 85%", "About 71%"],
+      "de": ["Etwa 85%", "Etwa 71%"]
+    },
     "correctIndex": 1,
     "score": 3
   },
   {
     "id": 17,
-    "text": "Le harcèlement diminue-t-il avec l'âge ?",
-    "options": ["Oui, il diminue après la primaire", "Non, il reste stable de la primaire au lycée"],
+    "text": {
+      "fr": "Le harcèlement diminue-t-il avec l'âge ?",
+      "en": "Does bullying decrease with age?",
+      "de": "Nimmt Mobbing mit dem Alter ab?"
+    },
+    "options": {
+      "fr": ["Oui, il diminue après la primaire", "Non, il reste stable de la primaire au lycée"],
+      "en": ["Yes, it decreases after primary school", "No, it stays steady from primary to high school"],
+      "de": ["Ja, es nimmt nach der Grundschule ab", "Nein, es bleibt von der Grundschule bis zur Oberstufe konstant"]
+    },
     "correctIndex": 1,
     "score": 1
   },
   {
     "id": 18,
-    "text": "Le harcèlement est-il seulement physique ?",
-    "options": ["Non, il peut aussi se produire en ligne", "Oui, le harcèlement est uniquement physique"],
+    "text": {
+      "fr": "Le harcèlement est-il seulement physique ?",
+      "en": "Is bullying only physical?",
+      "de": "Ist Mobbing nur körperlich?"
+    },
+    "options": {
+      "fr": ["Non, il peut aussi se produire en ligne", "Oui, le harcèlement est uniquement physique"],
+      "en": ["No, it can also happen online", "Yes, bullying is only physical"],
+      "de": ["Nein, es kann auch online stattfinden", "Ja, Mobbing ist nur körperlich"]
+    },
     "correctIndex": 0,
     "score": 1
   },
   {
     "id": 19,
-    "text": "Le harcèlement est-il un phénomène rare ?",
-    "options": ["Oui, seul 1 jeune sur 20 est concerné", "Non, il touche près de 2 jeunes sur 5"],
+    "text": {
+      "fr": "Le harcèlement est-il un phénomène rare ?",
+      "en": "Is bullying a rare phenomenon?",
+      "de": "Ist Mobbing ein seltenes Phänomen?"
+    },
+    "options": {
+      "fr": ["Oui, seul 1 jeune sur 20 est concerné", "Non, il touche près de 2 jeunes sur 5"],
+      "en": ["Yes, only 1 in 20 young people is affected", "No, it affects nearly 2 in 5 young people"],
+      "de": ["Ja, nur 1 von 20 Jugendlichen ist betroffen", "Nein, es betrifft fast 2 von 5 Jugendlichen"]
+    },
     "correctIndex": 1,
     "score": 1
   }

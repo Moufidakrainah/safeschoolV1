@@ -1,39 +1,21 @@
-services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: safeschool_frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - safeschool_network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ > /dev/null 2>&1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+# ════════════════════════════════════════════════════════════════════
+#  Base commune (dev + prod).
+#  - dev  : `make dev`  -> base + docker-compose.override.yml (auto)
+#           frontend Vite + backend en watch, pas de nginx.
+#  - prod : `make prod` -> base + docker-compose.prod.yml
+#           backend compilé + nginx (TLS), pas de serveur de dev.
+#  Les parties spécifiques (target de build, ports, montages, nginx)
+#  vivent dans les fichiers d'overlay.
+# ════════════════════════════════════════════════════════════════════
 
+services:
 
 # == BACKEND =================================================
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: safeschool_backend
-    ports:
-      - "5000:3000"
-    volumes:
-      - backend_node_modules:/app/node_modules
-      - ./backend:/app
     env_file:
       - .env
     depends_on:
@@ -52,7 +34,6 @@ services:
 
 
 # == BASE DE DONNÉES =========================================
-
   database:
     image: postgres:15-alpine
     container_name: safeschool_db
@@ -159,7 +140,6 @@ volumes:
 
 
 # == RÉSEAU ==================================================
-
 networks:
   safeschool_network:
     driver: bridge

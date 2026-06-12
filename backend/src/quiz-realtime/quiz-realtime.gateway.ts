@@ -40,7 +40,13 @@ interface SubmitAnswerPayload {
   selectedIndex: number;
 }
 
-@WebSocketGateway({ cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' } })
+@WebSocketGateway({
+  cors: {
+    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+      .split(',')
+      .map((o) => o.trim()),
+  },
+})
 export class QuizRealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {

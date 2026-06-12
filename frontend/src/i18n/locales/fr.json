@@ -7,18 +7,18 @@
     "errorRequired": "Veuillez remplir tous les champs.",
     "errorEmailFormat": "Format d'email invalide.",
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-    "error": "Identifiants incorrects.", 
-	"keepEmpty": "(laisser vide pour ne pas changer)"
+    "error": "Identifiant ou mot de passe incorrect.",
+    "keepEmpty": "(laisser vide pour ne pas changer)"
   },
   "nav": {
     "logout": "Se déconnecter"
-	},
+  },
   "notifications": {
     "notifs": "Notifications",
-    "loading": "Chargement", 
-	"no": "Aucune notification", 
-	"report": "Signalement", 
-	"read": "Lu"
+    "loading": "Chargement",
+    "no": "Aucune notification",
+    "report": "Signalement",
+    "read": "Lu"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -75,7 +75,9 @@
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
       "reset": "Réinitialiser",
-      "victimPlaceholder": "Filtrer par victime..."
+      "victimPlaceholder": "Filtrer par victime...",
+      "status": "Statut",
+      "dates": "Dates :"
     },
     "status": {
       "pending": "En attente",
@@ -143,38 +145,34 @@
       "selectClass": "Sélectionner une classe",
       "roles": {
         "label": "Rôle",
-        "choose": "Choisir un rôle",
+        "choose": "Selectionnez un role",
         "student": "Élève",
         "teacher": "Professeur",
         "staff": "Personnel",
         "admin": "Admin",
-        "director": "Directeur", 
-		"choose": "Selectionnez un role"
+        "director": "Directeur"
       },
       "errorEmailFormat": "Format d'email invalide",
       "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères",
       "deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
       "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements",
       "deleteError": "Une erreur est survenue lors de la suppression",
-      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte", 
-	  "name": "Lettres, apostrophes ou tirets uniquement (max 20 caractères)", 
-	  "tooLong":"Email trop long (max 50 caractères)", 
-	  "atLeast": "Minimum 12 caractères", 
-	  "atLeastOneNumber":"Au moins un chiffre requis", 
-	  "atLeastOneMinus":"Au moins une minuscule requise", 
-	  "atLeastOneMajor":"Au moins une majuscule requise",
-	  "atLeastOneSpecial":"Au moins un caractère spécial requis", 
-	  "noFirstName":"Le mot de passe ne doit pas contenir le prénom", 
-	  "noLastName": "Le mot de passe ne doit pas contenir le nom"
-
+      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+      "errorRequired": "Ce champ est obligatoire",
+      "name": "Lettres, tirets et apostrophes uniquement (2-20 caractères)",
+      "tooLong": "Email trop long (max 50 caractères)",
+      "atLeast": "Minimum 12 caractères",
+      "atLeastOneNumber": "Au moins un chiffre requis",
+      "atLeastOneMinus": "Au moins une minuscule requise",
+      "atLeastOneMajor": "Au moins une majuscule requise",
+      "atLeastOneSpecial": "Au moins un caractère spécial requis",
+      "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
+      "noLastName": "Le mot de passe ne doit pas contenir le nom"
     },
     "title": {
       "oneReport": "Details d'un signalement",
       "allReports": "Tous les signalements"
-    }, 
-	"teacher": {
-		"subjectTeached": "Matière enseignée"
-	}
+    }
   },
   "badge": {
     "all": "Tous les statuts",
@@ -188,7 +186,8 @@
     "resolved": "Résolu",
     "false_report": "Faux signalement",
     "closed": "Clôturé",
-    "rejected": "Rejeté"
+    "rejected": "Rejeté",
+    "total": "Total"
   },
   "noteblock": {
     "note": "Note",
@@ -212,6 +211,49 @@
     "close": "Fermer",
     "back": "Retour"
   },
+  "quiz": {
+    "title": "Quiz",
+    "reconnecting": "Reconnexion en cours…",
+    "roomCodeLabel": "Code de salle",
+    "roomCodePlaceholder": "Entrez le code",
+    "join": "Rejoindre",
+    "howToPlay": "Comment jouer",
+    "joinHelp": "Entrez un code de salle (3 à 10 caractères). Si vous êtes le premier à rejoindre cette salle, vous devenez l'hôte et pourrez lancer la partie quand vous le souhaitez.",
+    "room": "Salle : {{code}}",
+    "you": "(vous)",
+    "disconnected": "(déconnecté)",
+    "rules": {
+      "questions": "15 questions, 2 réponses possibles — une seule est correcte",
+      "time": "Vous avez 30 secondes pour répondre à chaque question",
+      "speed": "Plus vous répondez vite, plus vous marquez : ≤3s = 3 pts, ≤7s = 2 pts, sinon 1 pt",
+      "combo": "Combo : chaque bonne réponse d'affilée augmente le multiplicateur (jusqu'à ×5)",
+      "reset": "Une mauvaise réponse (ou pas de réponse) remet le combo à zéro",
+      "oneTry": "Une seule tentative par question, pas de changement",
+      "winner": "Celui avec le plus de points à la fin gagne !"
+    },
+    "startGame": "Lancer le quiz",
+    "waitingHost": "En attente de l'hôte…",
+    "leaveRoom": "Quitter la salle",
+    "leave": "Quitter",
+    "finalResults": "Résultats finaux",
+    "noScore": "Aucun score disponible.",
+    "points": "{{score}} pts",
+    "connectionLost": "Connexion perdue — reconnexion en cours…",
+    "combo": "Combo",
+    "multiplier": "Multiplicateur",
+    "correctAnswer": "Bonne réponse !",
+    "speed": "Vitesse",
+    "pointsLabel": "Points",
+    "wrongAnswer": "Mauvaise réponse",
+    "comboLost": "Combo perdu",
+    "answerSent": "Réponse envoyée. En attente des autres joueurs…",
+    "timeUp": "Temps écoulé. Prochaine question…",
+    "noAnswer": "Vous n'avez pas répondu.",
+    "nextQuestion": "Prochaine question dans {{seconds}}s",
+    "results": "Résultats",
+    "liveRanking": "Classement en direct",
+    "waitingQuestion": "En attente de la question…"
+  },
   "reporter": {
     "nav": {
       "ariaLabel": "Navigation reporter",
@@ -227,7 +269,10 @@
       "email": "Email",
       "role": "Rôle",
       "subject": "Matière",
-      "subjectUnknown": "Non renseignée"
+      "subjectUnknown": "Non renseignée",
+      "job": "Profession",
+      "change": "Changer la photo",
+      "upload": "Télécharger"
     },
     "workshop": {
       "title": "Ateliers",
@@ -302,7 +347,7 @@
       "subtitle": "",
       "descriptionLabel": "Donne tous les détails que tu as : le jour, l'heure, le lieu, les personnes impliquées, ce qu'elles ont fait",
       "descriptionPlaceholder": "Donne un maximum de détails",
-  	"frequencyLabel": "Combien de fois cela s'est-il passé ?",
+      "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
       "freq1": "1 fois",
       "freq2": "2 fois",
@@ -360,7 +405,14 @@
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Email",
-      "role": "Rôle"
+      "role": "Élève",
+      "class": "Classe",
+      "dob": "Date de naissance",
+      "officialParents": "Parents",
+      "loading": "Chargement...",
+      "noParent": "Aucun responsable légal enregistré",
+      "phone": "Téléphone",
+      "address": "Adresse"
     },
     "workshop": {
       "title": "Ateliers",
@@ -430,8 +482,8 @@
       "title": "Décris ce qui s'est passé",
       "subtitle": "",
       "descriptionLabel": "Donne tous les détails que tu as : le jour, l'heure, le lieu, les personnes impliquées, ce qu'elles ont fait",
-    "descriptionPlaceholder": "Donne un maximum de détails", 
-	"frequencyLabel": "Combien de fois cela s'est-il passé ?",
+      "descriptionPlaceholder": "Donne un maximum de détails",
+      "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
       "freq1": "1 fois",
       "freq2": "2 fois",
@@ -465,7 +517,6 @@
       "victims": "Victime(s)",
       "suspects": "Suspect(s)",
       "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
-
     },
     "submitting": "Envoi...",
     "submit": "Envoyer le signalement",
@@ -547,5 +598,7 @@
       "title": "6. Modification des présentes conditions",
       "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions."
     }
-  }
+  },
+  "all": "Tous",
+  "section": "Section"
 }

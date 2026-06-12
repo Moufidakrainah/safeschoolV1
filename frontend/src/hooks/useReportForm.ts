@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { createReport, searchUsers } from '@/services/api';
 import type { UserSearchResult } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
   step:        number;
@@ -41,6 +40,28 @@ export interface UseReportFormReturn {
   resetForm:          () => void;
 }
 
+
+// ── Validators alignés avec CreateReportDto ────────────────────────────────
+const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
+const personRegex = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
+
+const validateDescription = (value: string): string => {
+  if (!value.trim()) return 'La description est obligatoire';
+  if (value.length < 20) return 'La description doit contenir au moins 20 caractères';
+  if (value.length > 2000) return 'La description ne peut pas dépasser 2000 caractères';
+  if (!descriptionRegex.test(value)) return 'La description semble invalide (caractères répétitifs détectés)';
+  return '';
+};
+
+const validatePersonName = (value: string): string => {
+  if (!value.trim()) return 'Le nom est obligatoire';
+  if (value.length < 2) return 'Le nom doit contenir au moins 2 caractères';
+  if (value.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
+  if (!personRegex.test(value)) return 'Le nom contient des caractères invalides ou répétitifs';
+  return '';
+};
+// ───────────────────────────────────────────────────────────────────────────
+
 export function useReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
@@ -58,10 +79,13 @@ export function useReportForm(
   const [loading, setLoading]         = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showErrors, setShowErrors]   = useState(false);
+  const [descriptionError, setDescriptionError] = useState('');
+  const [victimError, setVictimError]           = useState('');
+  const [suspectError, setSuspectError]         = useState('');
 
     const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description.trim() || !frequency));
+    (step === 2 && (!!validateDescription(description) || !frequency));
 
   const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
   const [suspectInput,       setSuspectInput]       = useState('');
@@ -121,6 +145,7 @@ export function useReportForm(
     setVictimInput(value);
     setSelectedVictim(null);
     setVictimName(value);
+    setVictimError(value ? validatePersonName(value) : '');
     if (value.length < 2) { setVictimSuggestions([]); return; }
     try {
       setVictimSuggestions(await searchUsers(value));
@@ -130,6 +155,10 @@ export function useReportForm(
   };
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    const name = `${suspect.firstName} ${suspect.lastName}`.trim();
+    const err = validatePersonName(name);
+    if (err) { setSuspectError(err); return; }
+    setSuspectError('');
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
@@ -157,6 +186,10 @@ export function useReportForm(
 
   return {
     step, setStep,
+    descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, setSuspectError,
+    validateDescription, validatePersonName,
     whoSignals, setWhoSignals,
     type, setType,
     description, setDescription,

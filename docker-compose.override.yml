@@ -1,0 +1,39 @@
+# ════════════════════════════════════════════════════════════════════
+#  Overlay DEV (chargé automatiquement par `docker compose up` / make dev)
+#  Hot reload, sources montées en volume, ports exposés directement.
+#  Pas de nginx ici : on attaque frontend (5173) et backend (5000) en direct.
+# ════════════════════════════════════════════════════════════════════
+
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: safeschool_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - safeschool_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  backend:
+    build:
+      target: dev
+    ports:
+      - "5000:3000"
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules

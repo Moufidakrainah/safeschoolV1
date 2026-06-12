@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useReportForm } from "../../hooks/useReportForm";
 import { Button } from "../ui/button";
@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import StepBar from "../StepBar";
-import Autocomplete from "../Autocomplete";
 import type { AuthUser } from "../../types";
 import { Checkbox } from '@/components/ui/checkbox';
 
@@ -63,6 +62,11 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     addSuspect,
     removeSuspect,
     resetForm,
+    descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError,
+    validateDescription,
+    validatePersonName,
   } = useReportForm(user?.role, t);
 
   // Labels des étapes affichés dans la StepBar.
@@ -114,21 +118,6 @@ export default function ReporterForm({ user }: ReporterFormProps) {
   // ── Écran de confirmation (step 6) ──────────────────────────────────────
   if (step === 6) {
     return (
-      // <main className="bg-gray-50 font-sans">
-      //   <h1 className="sr-only">{t('reporter.title.reportCreated')}</h1>
-      //   <StepBar steps={steps} currentStep={step} />
-      //   <div className="max-w-xl mx-auto mt-8 px-5 pb-10">
-      //     <Card className="max-w-md w-full mx-5 text-center p-6 shadow-sm">
-      //       <div className="text-5xl mb-4" role="img" aria-label={t('reporter.success.iconLabel')}>✅</div>
-      //       <h2 className="text-gray-800 font-bold text-xl mb-2">{t('reporter.success.title')}</h2>
-      //       <p className="text-gray-500 text-sm mb-6">{t('reporter.success.message')}</p>
-      //       <div className="bg-surface rounded-lg p-4 mb-6 text-left">
-      //         <p className="text-sm text-gray-600">{t('reporter.success.notice')}</p>
-      //       </div>
-      //       <Button onClick={resetForm}>{t('reporter.success.back')}</Button>
-      //     </Card>
-      //   </div>
-      // </main>
 
       <section className="page-section">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
@@ -257,15 +246,15 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                 <Textarea
                   id="description"
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
+                  onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
                   placeholder={t("reporter.step3.descriptionPlaceholder")}
                   rows={5}
                   aria-required="true"
                   className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
                 />
-                {showErrors && !description && (
+                {descriptionError && (
                   <p role="alert" className="mb-4 text-sm text-red-600">
-                    {t("reporter.validation.descriptionRequired")}
+                    {descriptionError}
                   </p>
                 )}
                 <label
@@ -328,6 +317,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && victimInput.trim()) {
                         e.preventDefault();
+                        const err = validatePersonName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName((prev) =>
                           prev
                             ? prev + "|" + victimInput.trim()
@@ -343,6 +335,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                     variant="outline"
                     onClick={() => {
                       if (victimInput.trim()) {
+                        const err = validatePersonName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName((prev) =>
                           prev
                             ? prev + "|" + victimInput.trim()
@@ -360,6 +355,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   Appuie sur la touche "Entrée" de ton clavier ou clique sur
                   "Ajoute cette victime"
                 </p>
+                {victimError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{victimError}</p>
+                )}
                 {victimName && (
                   <div className="mt-4">
                     <div className="flex flex-wrap gap-2">
@@ -428,6 +426,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   Appuie sur la touche "Entrée" de ton clavier ou clique sur
                   "Ajoute ce coupable"
                 </p>
+                {suspectError && (
+                  <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>
+                )}
                 {suspects.length > 0 && (
                   <div className="mt-4">
                     {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}

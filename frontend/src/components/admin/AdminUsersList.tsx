@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getUserById } from '@/services/api';
+import { API_BASE } from '@/config';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
@@ -27,7 +28,8 @@ interface AdminUsersListProps {
     onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
-    onSaveUser: () => void;                                   // sauvegarder un utilisateur
+    onSaveUser: () => void;
+  onValidateAll: () => boolean;
     renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 }
 
@@ -51,25 +53,13 @@ export default function AdminUserList({
   onNavigateToUser,
   onSetShowUserForm,
   onSaveUser,
+  onValidateAll,
   renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
     return (
         <section>
-            {/* 1. Titre + tri + bouton ajouter */}
-            <div className="flex justify-between items-center mb-5">
-                <h2 className="text-2xl font-black text-primary text-center mb-4">{t('admin.users.title')}</h2>
-                <div className="flex items-center gap-2">
-                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
-                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
-                    <option value="asc">A → Z</option>
-                    <option value="desc">Z → A</option>
-                    <option value="date">Date création</option>
-                    </select>
-                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
-                </div>
-            </div>
-            {/* 2. Barre de recherche */}
+            {/* 1. Barre de recherche */}
             <div className="flex gap-2 mb-3">
                 <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
                     onChange={e => { onSetUsersSearch(e.target.value); onSetUsersPage(1); onFetchUsers(1, e.target.value); }}
@@ -78,8 +68,9 @@ export default function AdminUserList({
                     Réinitialiser
                 </Button>
             </div>
-            {/* 3. Filtres roles */}
-            <div className="flex gap-4 mb-4 flex-wrap items-center">
+            {/* 2. Filtres roles + tri + bouton ajouter */}
+            <div className="flex gap-4 mb-4 flex-wrap justify-between items-center">
+                <div className="flex gap-10">
                 {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
                     <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                     <Checkbox
@@ -95,6 +86,16 @@ export default function AdminUserList({
                     {r.label}
                     </label>
                 ))}
+                </div>
+                <div className="flex items-center gap-2">
+                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
+                    className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
+                    <option value="asc">A → Z</option>
+                    <option value="desc">Z → A</option>
+                    <option value="date">Date création</option>
+                    </select>
+                    <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
+                </div>
             </div>
             {/* Formulaire ajout */}
                 {showUserForm && (
@@ -102,7 +103,7 @@ export default function AdminUserList({
                     <h3 className="font-bold mb-4">{t('admin.users.formAdd')} {t('admin.users.formTitle')}</h3>
                     {renderUserForm(false)}
                     <div className="flex gap-3 justify-end mt-4">
-                    <Button disabled={!isFormValid} onClick={onSaveUser}>{t('admin.users.save')}</Button>
+                    <Button onClick={() => { if (onValidateAll()) onSaveUser(); }}>{t('admin.users.save')}</Button>
                     <Button variant="ghost" onClick={() => onSetShowUserForm(false)}>{t('common.cancel')}</Button>
                     </div>
                 </div>
@@ -121,16 +122,16 @@ export default function AdminUserList({
                             const freshU = await getUserById(u.id);
                             if (freshU) onNavigateToUser(freshU);
                             }}>
-                            <div className="flex items-stretch">
-                            <div style={{ width: '96px', height: '96px', flexShrink: 0, overflow: 'hidden', borderRadius: 0 }}>
+                            <div className="flex items-center">
+                              <div className="w-[80px] h-[80px] shrink-0 overflow-hidden rounded-sm m-2">
                                 {u.avatar
-                                ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
-                                    alt={u.firstName} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                : <div style={{ width: '96px', height: '96px', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold', color: '#9ca3af' }}>
+                                ? <img src={`${API_BASE}/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
+                                    alt={u.firstName} className="w-full h-full object-cover block"/>
+                                : <div className="w-full h-full bg-gray-200 flex items-center justify-center font-bold text-gray-400">
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
                             </div>
-                            <div className="flex-1 px-6 py-5" style={{ minHeight: '80px' }}>
+                            <div className="flex-1 px-6 py-5" >
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
