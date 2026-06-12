@@ -4,10 +4,11 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "errorRequired": "Please fill in all fields.",
     "errorEmailFormat": "Invalid email format.",
     "errorPasswordLength": "The password must contain at least 6 characters.",
-    "error": "Incorrect credentials."
+    "error": "Incorrect credentials.",
+    "errorRequired": "Please fill in all fields.",
+    "keepEmpty": "(leave empty to keep unchanged)"
   },
   "nav": {
     "logout": "Log out"
@@ -64,7 +65,9 @@
       "dateFrom": "From date",
       "dateTo": "To date",
       "reset": "Reset",
-      "victimPlaceholder": "Victim name..."
+      "victimPlaceholder": "Victim name...",
+      "status": "Status",
+      "dates": "Dates:"
     },
     "status": {
       "pending": "Pending",
@@ -136,18 +139,32 @@
         "teacher": "Teacher",
         "staff": "Staff",
         "admin": "Admin",
-        "director": "Director"
+        "director": "Director",
+        "choose": "Select a role"
       },
       "errorEmailFormat": "Invalid email format.",
       "errorPasswordLength": "The password must contain at least 6 characters.",
       "deleteConfirm": "Do you really want to delete this user?",
       "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
       "deleteError": "An error occurred during deletion.",
-      "deleteSelf": "You cannot delete your own account"
+      "deleteSelf": "You cannot delete your own account",
+      "name": "Letters, hyphens and apostrophes only (2-20 characters)",
+      "errorRequired": "This field is required",
+      "tooLong": "Too long (max 50 characters)",
+      "atLeast": "Minimum 12 characters",
+      "atLeastOneNumber": "At least one digit required",
+      "atLeastOneMinus": "At least one lowercase letter required",
+      "atLeastOneMajor": "At least one uppercase letter required",
+      "atLeastOneSpecial": "At least one special character required",
+      "noFirstName": "Password must not contain first name",
+      "noLastName": "Password must not contain last name"
     },
     "title": {
       "oneReport": "Details of a report",
       "allReports": "All reports"
+    },
+    "teacher": {
+      "subjectTeached": "Subject taught"
     }
   },
   "badge": {
@@ -161,7 +178,9 @@
     "resolved": " Resolved",
     "false_report": " False report",
     "closed": " Closed",
-    "rejected": " Rejected"
+    "rejected": " Rejected",
+    "total": "Total",
+    "all": "All statuses"
   },
   "noteblock": {
     "note": " Note",
@@ -185,6 +204,49 @@
     "close": "Close",
     "back": "Back"
   },
+  "quiz": {
+    "title": "Quiz",
+    "reconnecting": "Reconnecting…",
+    "roomCodeLabel": "Room code",
+    "roomCodePlaceholder": "Enter the code",
+    "join": "Join",
+    "howToPlay": "How to play",
+    "joinHelp": "Enter a room code (3 to 10 characters). If you are the first to join this room, you become the host and can start the game whenever you want.",
+    "room": "Room: {{code}}",
+    "you": "(you)",
+    "disconnected": "(disconnected)",
+    "rules": {
+      "questions": "15 questions, 2 possible answers — only one is correct",
+      "time": "You have 30 seconds to answer each question",
+      "speed": "The faster you answer, the more you score: ≤3s = 3 pts, ≤7s = 2 pts, otherwise 1 pt",
+      "combo": "Combo: each correct answer in a row increases the multiplier (up to ×5)",
+      "reset": "A wrong answer (or no answer) resets the combo to zero",
+      "oneTry": "Only one try per question, no changes",
+      "winner": "Whoever has the most points at the end wins!"
+    },
+    "startGame": "Start the quiz",
+    "waitingHost": "Waiting for the host…",
+    "leaveRoom": "Leave the room",
+    "leave": "Leave",
+    "finalResults": "Final results",
+    "noScore": "No score available.",
+    "points": "{{score}} pts",
+    "connectionLost": "Connection lost — reconnecting…",
+    "combo": "Combo",
+    "multiplier": "Multiplier",
+    "correctAnswer": "Correct answer!",
+    "speed": "Speed",
+    "pointsLabel": "Points",
+    "wrongAnswer": "Wrong answer",
+    "comboLost": "Combo lost",
+    "answerSent": "Answer sent. Waiting for the other players…",
+    "timeUp": "Time's up. Next question…",
+    "noAnswer": "You didn't answer.",
+    "nextQuestion": "Next question in {{seconds}}s",
+    "results": "Results",
+    "liveRanking": "Live ranking",
+    "waitingQuestion": "Waiting for the question…"
+  },
   "reporter": {
     "nav": {
       "ariaLabel": "Reporter navigation",
@@ -200,7 +262,10 @@
       "email": "Email",
       "role": "Occupation",
       "subject": "Subject",
-      "subjectUnknown": "Unknown"
+      "subjectUnknown": "Unknown",
+      "job": "Job",
+      "change": "Change photo",
+      "upload": "Upload"
     },
     "roles": {
       "teacher": "Teacher",
@@ -297,7 +362,8 @@
       "victim": "Victim",
       "suspects": "Suspects",
       "anonymous": "Anonymous report",
-      "anonymousDesc": "my name will not be visible"
+      "anonymousDesc": "my name will not be visible",
+      "victims": "Victim(s)"
     },
     "submitting": "Sending...",
     "submit": "Submit report",
@@ -333,7 +399,14 @@
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
-      "role": "Role"
+      "role": "Student",
+      "class": "Class",
+      "dob": "Date of birth",
+      "officialParents": "Parents",
+      "loading": "Loading...",
+      "noParent": "No legal guardian registered",
+      "phone": "Phone",
+      "address": "Address"
     },
     "workshop": {
       "title": "Workshops",
@@ -410,5 +483,14 @@
       "title": "6. Amendments to These Terms",
       "body": "These terms of use may be updated at any time by the administration. Users will be notified of any material changes. Continued use of the application after notification constitutes acceptance of the revised terms."
     }
-  }
+  },
+  "notifications": {
+    "notifs": "Notifications",
+    "loading": "Loading",
+    "no": "No notifications",
+    "report": "Report",
+    "read": "Read"
+  },
+  "all": "All",
+  "section": "Section"
 }

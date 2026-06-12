@@ -7,6 +7,7 @@ import {
 	getAllUsers,
 } from "../../services/api";
 import { Button } from "../ui/button";
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { API_BASE } from "@/config";
@@ -28,6 +29,21 @@ interface StudentUser {
 	};
 }
 
+
+// ── Validators alignés avec CreateClassDto ─────────────────────────────────
+const validateLevel = (value: string): string => {
+  if (!value.trim()) return 'Le niveau est obligatoire';
+  if (!/^[3-6]eme$/.test(value.trim())) return 'Le niveau doit être 3eme, 4eme, 5eme ou 6eme';
+  return '';
+};
+
+const validateSection = (value: string): string => {
+  if (!value.trim()) return 'La section est obligatoire';
+  if (!/^[A-Z]$/.test(value.trim().toUpperCase())) return 'La section doit être une seule lettre majuscule (A, B, C...)';
+  return '';
+};
+// ───────────────────────────────────────────────────────────────────────────
+
 //Composant principal
 export default function AdminClasses() {
 	//variables d'etat
@@ -38,7 +54,12 @@ export default function AdminClasses() {
 	const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
 	const [classForm, setClassForm] = useState({ level: "", section: "" });
 	const [savingClass, setSavingClass] = useState(false);
-	const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
+	const [levelError, setLevelError] = useState('');
+	const [sectionError, setSectionError] = useState('');
+	const [classPage, setClassPage] = useState(1);
+	const [deleteModal, setDeleteModal] = useState<{ cls: SchoolClass; blocked: boolean; message: string } | null>(null);
+const CLASSES_PER_PAGE = 7;
+  const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
 
 	const fetchAll = useCallback(async () => {
 		setLoading(true);
@@ -52,7 +73,6 @@ export default function AdminClasses() {
 					: [];
 			setStudents(allUsers.filter((u: any) => u.role === "student"));
 		} catch (e) {
-			console.error("Erreur chargement", e);
 		} finally {
 			setLoading(false);
 		}
@@ -69,7 +89,11 @@ export default function AdminClasses() {
 		: [];
 
 	const handleSaveClass = async () => {
-		if (!classForm.level.trim() || !classForm.section.trim()) return;
+		const lErr = validateLevel(classForm.level);
+		const sErr = validateSection(classForm.section);
+		setLevelError(lErr);
+		setSectionError(sErr);
+		if (lErr || sErr) return;
 		setSavingClass(true);
 		try {
 			if (editingClass) {
@@ -86,19 +110,22 @@ export default function AdminClasses() {
 		}
 	};
 
-	const handleDeleteClass = async (cls: SchoolClass) => {
+	const handleDeleteClass = (cls: SchoolClass) => {
 		const count = students.filter(
 			(s) => s.studentProfile?.schoolClass?.id === cls.id,
 		).length;
 		if (count > 0) {
-			alert(
-				`Impossible de supprimer ${cls.level} ${cls.section} : ${count} élève(s) inscrits. Réassignez-les d'abord.`,
-			);
-			return;
+			setDeleteModal({ cls, blocked: true, message: `Impossible de supprimer ${cls.level} ${cls.section} : ${count} élève(s) inscrits. Réassignez-les d'abord.` });
+		} else {
+			setDeleteModal({ cls, blocked: false, message: `Voulez-vous vraiment supprimer la classe ${cls.level} ${cls.section} ?` });
 		}
-		if (!confirm(`Supprimer la classe ${cls.level} ${cls.section} ?`)) return;
-		await deleteClass(cls.id);
-		if (selectedClass?.id === cls.id) setSelectedClass(null);
+	};
+
+	const confirmDeleteClass = async () => {
+		if (!deleteModal || deleteModal.blocked) return;
+		await deleteClass(deleteModal.cls.id);
+		if (selectedClass?.id === deleteModal.cls.id) setSelectedClass(null);
+		setDeleteModal(null);
 		await fetchAll();
 	};
 
@@ -110,6 +137,58 @@ export default function AdminClasses() {
 
 	if (loading) {
 		return <p className="text-center py-16 text-gray-400">Chargement...</p>;
+	}
+
+	// Si une classe est sélectionnée → afficher le détail à la place
+	if (selectedClass) {
+		return (
+			<section className="flex flex-col gap-4">
+				<div className="flex items-center gap-3 mb-2">
+					<button
+						onClick={() => setSelectedClass(null)}
+						className="text-primary text-sm font-medium flex items-center gap-1 hover:underline"
+					>
+						← Retour aux classes
+					</button>
+				</div>
+				<div className="flex items-center gap-3 mb-5">
+					<h2 className="text-xl font-bold text-gray-800">
+						{selectedClass.level} {selectedClass.section}
+					</h2>
+					<span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+						{studentsInClass.length} élève{studentsInClass.length !== 1 ? "s" : ""}
+					</span>
+				</div>
+				<div className="bg-surface shadow-sm rounded-sm px-6 py-4">
+					<p className="text font-semibold text-gray-700 mb-3">Élèves inscrits</p>
+					{studentsInClass.length === 0 ? (
+						<p className="text-sm text-gray-400 py-6 text-center">
+							Aucun élève dans cette classe.<br />
+							<span className="text-xs">Assignez des élèves depuis la section Utilisateurs.</span>
+						</p>
+					) : (
+						<ul className="flex flex-col divide-y divide-gray-50">
+							{studentsInClass.map((s) => (
+								<li key={s.id} className="flex items-center gap-3 py-3">
+									{avatarUrl(s) ? (
+										<img src={avatarUrl(s)!} alt={s.firstName}
+											className="w-9 h-9 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+									) : (
+										<div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">
+											{initials(s)}
+										</div>
+									)}
+									<div className="min-w-0">
+										<p className="text-sm font-semibold text-gray-800">{s.firstName} {s.lastName}</p>
+										<p className="text text-gray-400 truncate">{s.email}</p>
+									</div>
+								</li>
+							))}
+						</ul>
+					)}
+				</div>
+			</section>
+		);
 	}
 
 	return (
@@ -132,59 +211,59 @@ export default function AdminClasses() {
 
 				{/* Formulaire ajout/modif classe */}
 				{showClassForm && (
-					<div className="mb-4 border-primary border">
-						<h3 className="font-semibold text-sm mb-3">
-							{editingClass ? "Modifier" : "Nouvelle classe"}
+					<div className="bg-surface shadow-sm rounded-sm px-6 py-5 mb-3">
+						<h3 className="font-bold mb-4">
+							{editingClass ? "Modifier la classe" : "Ajouter une classe"}
 						</h3>
-						<div className="flex flex-col gap-2">
+						<div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
 							<div>
-								<Label className="text-xs text-gray-600">Niveau</Label>
+								<Label className="text-white text-sm">Niveau</Label>
 								<Input
 									value={classForm.level}
 									onChange={(e) =>
 										setClassForm((p) => ({ ...p, level: e.target.value }))
 									}
 									placeholder="ex: 5eme"
-									className="mt-1 h-8 text-sm"
+									className="bg-white mt-1"
 									maxLength={10}
+									onChange={(e) => {
+										setClassForm((p) => ({ ...p, level: e.target.value }));
+										setLevelError(validateLevel(e.target.value));
+									}}
 								/>
+								{levelError && <p className="text-red-300 text-xs mt-1">{levelError}</p>}
 							</div>
 							<div>
-								<Label className="text-xs text-gray-600">Section</Label>
+								<Label className="text-white text-sm">Section</Label>
 								<Input
 									value={classForm.section}
 									onChange={(e) =>
 										setClassForm((p) => ({ ...p, section: e.target.value }))
 									}
 									placeholder="ex: A"
-									className="mt-1 h-8 text-sm"
+									className="bg-white mt-1"
 									maxLength={2}
-								/>
-							</div>
-							<div className="flex gap-2 mt-1">
-								<Button
-									size="sm"
-									disabled={
-										!classForm.level.trim() ||
-										!classForm.section.trim() ||
-										savingClass
-									}
-									onClick={handleSaveClass}
-									className="flex-1"
-								>
-									{savingClass ? "..." : "Enregistrer"}
-								</Button>
-								<Button
-									size="sm"
-									variant="ghost"
-									onClick={() => {
-										setShowClassForm(false);
-										setEditingClass(null);
+									onChange={(e) => {
+										setClassForm((p) => ({ ...p, section: e.target.value.toUpperCase() }));
+										setSectionError(validateSection(e.target.value));
 									}}
-								>
-									Annuler
-								</Button>
+								/>
+								{sectionError && <p className="text-red-300 text-xs mt-1">{sectionError}</p>}
 							</div>
+						</div>
+						<div className="flex gap-3 justify-end mt-4">
+							<Button
+								disabled={!classForm.level.trim() || !classForm.section.trim() || savingClass}
+								onClick={handleSaveClass}
+							>
+								{savingClass ? "..." : "Enregistrer"}
+							</Button>
+							<Button
+								variant="ghost"
+								onClick={() => { setShowClassForm(false); setEditingClass(null); }}
+							>
+								Annuler
+							</Button>
 						</div>
 					</div>
 				)}
@@ -196,7 +275,7 @@ export default function AdminClasses() {
 							Aucune classe
 						</p>
 					)}
-					{classes.map((cls) => {
+					{classes.slice((classPage - 1) * CLASSES_PER_PAGE, classPage * CLASSES_PER_PAGE).map((cls) => {
 						const count = students.filter(
 							(s) => s.studentProfile?.schoolClass?.id === cls.id,
 						).length;
@@ -211,12 +290,12 @@ export default function AdminClasses() {
 								<div className="bg-surface shadow-sm px-6 py-4 flex justify-between items-center">
 									<div>
 										<p
-											className={`font-bold text ${isSelected ? "text-white/70" : "text-gray-800"}`}
+											className="font-bold text text-gray-800"
 										>
 											{cls.level} {cls.section}
 										</p>
 										<p
-											className={`text-xs mt-0.5 ${isSelected ? "text-white/70" : "text-gray-400"}`}
+											className="text-xs mt-0.5 text-gray-400"
 										>
 											{count} élève{count !== 1 ? "s" : ""}
 										</p>
@@ -252,69 +331,45 @@ export default function AdminClasses() {
 						);
 					})}
 				</div>
-			</div>
-
-			{/* élèves de la classe */}
-			<div className="flex-1 min-w-0">
-				{!selectedClass ? (
-					<div className="flex flex-col items-center justify-center h-64 text-gray-300">
-						<p className="text-sm">
-							Cliquez sur une classe pour voir ses élèves
-						</p>
-					</div>
-				) : (
-					<>
-						<div className="flex items-center gap-3 mb-5">
-							<h2 className="text-xl font-bold text-gray-800">
-								{selectedClass.level} {selectedClass.section}
-							</h2>
-							<span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-								{studentsInClass.length} élève
-								{studentsInClass.length !== 1 ? "s" : ""}
-							</span>
-						</div>
-
-						<div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-							<p className="text font-semibold text-gray-700 mb-3">
-								Élèves inscrits
-							</p>
-							{studentsInClass.length === 0 ? (
-								<p className="text-sm text-gray-400 py-6 text-center">
-									Aucun élève dans cette classe.
-									<br />
-									<span className="text-xs">
-										Assignez des élèves depuis la section Utilisateurs.
-									</span>
-								</p>
-							) : (
-								<ul className="flex flex-col divide-y divide-gray-50">
-									{studentsInClass.map((s) => (
-										<li key={s.id} className="flex items-center gap-3 py-3">
-											{avatarUrl(s) ? (
-												<img
-													src={avatarUrl(s)!}
-													alt={s.firstName}
-													className="w-9 h-9 rounded-full object-cover border border-gray-200 flex-shrink-0"
-												/>
-											) : (
-												<div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600 flex-shrink-0">
-													{initials(s)}
-												</div>
-											)}
-											<div className="min-w-0">
-												<p className="text-sm font-semibold text-gray-800">
-													{s.firstName} {s.lastName}
-												</p>
-												<p className="text text-gray-400 truncate">{s.email}</p>
-											</div>
-										</li>
-									))}
-								</ul>
-							)}
-						</div>
-					</>
+				{Math.ceil(classes.length / CLASSES_PER_PAGE) > 1 && (
+				  <PaginationShadcn className="mt-4">
+				    <PaginationContent>
+				      <PaginationItem>
+				        <PaginationPrevious onClick={() => { if (classPage > 1) setClassPage(classPage - 1); }}
+				          className={classPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+				      </PaginationItem>
+				      {Array.from({ length: Math.ceil(classes.length / CLASSES_PER_PAGE) }, (_, i) => i + 1).map(p => (
+				        <PaginationItem key={p}>
+				          <PaginationLink isActive={p === classPage} onClick={() => setClassPage(p)}
+				            className="cursor-pointer">{p}</PaginationLink>
+				        </PaginationItem>
+				      ))}
+				      <PaginationItem>
+				        <PaginationNext onClick={() => { if (classPage < Math.ceil(classes.length / CLASSES_PER_PAGE)) setClassPage(classPage + 1); }}
+				          className={classPage === Math.ceil(classes.length / CLASSES_PER_PAGE) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+				      </PaginationItem>
+				    </PaginationContent>
+				  </PaginationShadcn>
 				)}
 			</div>
+
+		{deleteModal && (
+				<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+					<div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
+						<p className="text-sm text-gray-600 mb-4">{deleteModal.message}</p>
+						<div className="flex justify-end gap-3">
+							<button onClick={() => setDeleteModal(null)} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
+								{deleteModal.blocked ? 'Fermer' : 'Annuler'}
+							</button>
+							{!deleteModal.blocked && (
+								<button onClick={confirmDeleteClass} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">
+									Supprimer
+								</button>
+							)}
+						</div>
+					</div>
+				</div>
+			)}
 		</section>
 	);
 }

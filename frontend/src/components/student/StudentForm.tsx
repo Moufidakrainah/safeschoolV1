@@ -2,9 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStudentReportForm } from '../../hooks/useStudentReportForm';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import StepBar from '../StepBar';
-import Autocomplete from '../Autocomplete';
 import type { AuthUser } from '../../types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -38,11 +36,16 @@ export default function StudentForm({ user }: StudentFormProps) {
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
+    fieldErrors,
+    handleNext,
     suspects, suspectInput, searchingUsers,
     victimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
-    handleSubmit, handleSuspectSearch,
+    handleSubmit, handleSuspectSearch, clearFieldErrors,
+    validateDescription, validateName, descriptionError, setDescriptionError,
+    victimError, setVictimError,
+    suspectError, setSuspectError,
     addSuspect, removeSuspect, resetForm,
   } = useStudentReportForm(user?.role, t);
 
@@ -181,13 +184,13 @@ export default function StudentForm({ user }: StudentFormProps) {
               <Textarea
                 id="description"
                 value={description}
-                onChange={e => setDescription(e.target.value)}
+                onChange={e => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
                 placeholder={t('reporter.step3.descriptionPlaceholder')}
                 rows={5}
                 className="bg-white w-full px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-y font-[inherit] box-border mb-1"
               />
-              {showErrors && !description && (
-                <p role="alert" className="mb-4 text-sm text-red-600">{t('reporter.validation.descriptionRequired')}</p>
+              {(descriptionError || fieldErrors.description) && (
+                <p role="alert" className="mb-4 text-sm text-red-600">⚠️ {descriptionError || fieldErrors.description}</p>
               )}
               <label className="block mb-2 mt-4 text-sm font-semibold text-gray-700" htmlFor="frequency">
                 {t('reporter.step3.frequencyLabel')}
@@ -205,6 +208,9 @@ export default function StudentForm({ user }: StudentFormProps) {
               </Select>
               {showErrors && !frequency && (
                 <p role="alert" className="mt-2 text-sm text-red-600">{t('reporter.validation.frequencyRequired')}</p>
+              )}
+              {fieldErrors.frequency && (
+                <p role="alert" className="mt-2 text-sm text-red-600">⚠️ {fieldErrors.frequency}</p>
               )}
             </div>
           )}
@@ -227,6 +233,9 @@ export default function StudentForm({ user }: StudentFormProps) {
                     onKeyDown={e => {
                       if (e.key === 'Enter' && victimInput.trim()) {
                         e.preventDefault();
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
                         setVictimInput('');
                       }
@@ -238,8 +247,12 @@ export default function StudentForm({ user }: StudentFormProps) {
                     variant="outline"
                     onClick={() => {
                       if (victimInput.trim()) {
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
                         setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
                         setVictimInput('');
+                        clearFieldErrors();
                       }
                     }}
                     disabled={!victimInput.trim()}
@@ -248,20 +261,27 @@ export default function StudentForm({ user }: StudentFormProps) {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute cette victime"</p>
+                {victimError && <p role="alert" className="text-sm text-red-600 mt-1">⚠️ {victimError}</p>}
                 {victimName && (
 
                 <div className="mt-4">
                   <div className="flex flex-wrap gap-2">
                     {victimName.split('|').map((v, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
-                        <span>{v}</span>
-                        <button
-                          onClick={() => {
-                            const arr = victimName.split('|').filter((_, idx) => idx !== i);
-                            setVictimName(arr.join('|'));
-                          }}
-                          className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
-                        >×</button>
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+                          <span>{v}</span>
+                          <button
+                            onClick={() => {
+                              const arr = victimName.split('|').filter((_, idx) => idx !== i);
+                              setVictimName(arr.join('|'));
+                              clearFieldErrors();
+                            }}
+                            className="text-red-500 font-bold bg-transparent border-none cursor-pointer"
+                          >×</button>
+                        </div>
+                        {fieldErrors[`victim_${i}`] && (
+                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`victim_${i}`]}</p>
+                        )}
                       </div>
                     ))}
 
@@ -292,21 +312,27 @@ export default function StudentForm({ user }: StudentFormProps) {
                 />
                 <Button
                   variant="outline"
-                  onClick={() => { if (suspectInput.trim()) addSuspect({ firstName: suspectInput.trim(), lastName: '' }); }}
+                  onClick={() => { if (suspectInput.trim()) { addSuspect({ firstName: suspectInput.trim(), lastName: '' }); clearFieldErrors(); } }}
                   disabled={!suspectInput.trim()}
                 >
                   + Ajoute ce coupable
                 </Button>
               </div>
               <p className="text-xs text-gray-400 mt-1">Appuie sur la touche "Entrée" de ton clavier ou clique sur "Ajoute ce coupable"</p>
+                {suspectError && <p role="alert" className="text-sm text-red-600 mt-1">⚠️ {suspectError}</p>}
               {suspects.length > 0 && (
                 <div className="mt-4">
                   {/* <p className="text-sm font-semibold text-gray-700 mb-2">{t('reporter.step4.suspectsAdded')}</p> */}
                   <div className="flex flex-wrap gap-2">
                     {suspects.map((s, i) => (
-                      <div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
-                        <span>{s.firstName} {s.lastName}</span>
-                        <button onClick={() => removeSuspect(i)} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
+                      <div key={i} className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm text-primary">
+                          <span>{s.firstName} {s.lastName}</span>
+                          <button onClick={() => { removeSuspect(i); clearFieldErrors(); }} className="text-red-500 font-bold cursor-pointer bg-transparent border-none">×</button>
+                        </div>
+                        {fieldErrors[`suspect_${i}`] && (
+                          <p className="text-xs text-red-600 pl-2">⚠️ {fieldErrors[`suspect_${i}`]}</p>
+                        )}
                       </div>
                     ))}
 
@@ -382,9 +408,7 @@ export default function StudentForm({ user }: StudentFormProps) {
             {step < 6 ? (
               <Button 
 			  onClick={() => {
-                if (isNextDisabled) { setShowErrors(true); return; }
-                setShowErrors(false);
-                setStep(s => s + 1);
+                handleNext();
               }}>
                 {t('common.next')} →
               </Button>
