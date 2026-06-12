@@ -223,7 +223,7 @@ Signalement : "${description}"`,
         urgency: parsed.urgency ?? false,
         reason: parsed.reason ?? "",
       };
-    } catch (err) {
+    } catch {
       return this.scoreAIFallback(description);
     }
   }
