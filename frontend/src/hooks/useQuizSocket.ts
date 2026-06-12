@@ -137,6 +137,8 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const joinedRoomRef = useRef<string | null>(null);
   const playerNameRef = useRef<string | undefined>(playerName);
   playerNameRef.current = playerName;
+  const gamePhaseRef = useRef<GamePhase>('lobby');
+  gamePhaseRef.current = gamePhase;
 
   useEffect(() => {
     joinedRoomRef.current = joinedRoom;
@@ -225,10 +227,21 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
 
-      socket.on('quiz:joined', (data: { roomId: string; hostId: string; selfId?: string }) => {
+      socket.on('quiz:joined', (data: { roomId: string; hostId: string; status?: string; selfId?: string }) => {
         setJoinedRoom(data.roomId);
         setSocketError('');
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
+        // Si on se croyait en pleine partie mais que la salle rejointe est en attente,
+        // l'ancienne salle a été fermée pendant la coupure (grâce expirée, partie terminée
+        // sans nous…) et le join vient d'en recréer une vierge avec le même code : on
+        // ramène l'UI au lobby au lieu de rester bloqué sur la question fantôme
+        if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
+          setGamePhase('lobby');
+          setQuestionState(null);
+          setTimeLeftMs(0);
+          setFinalLeaderboard(null);
+          setSocketError('La partie a été interrompue pendant la déconnexion.');
+        }
       });
 
       socket.on('quiz:game:started', () => {
@@ -334,8 +347,28 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
     connectSocket();
 
+    // Le navigateur sait immédiatement quand le réseau tombe, alors que socket.io ne le
+    // détecte qu'au timeout de ping (plusieurs dizaines de secondes). On ferme donc le
+    // transport dès l'événement `offline` pour basculer tout de suite en mode reconnexion
+    const handleOffline = () => {
+      setConnected(false);
+      setReconnecting(true);
+      socketRef.current?.io.engine?.close();
+    };
+    // Au retour du réseau, on retente immédiatement plutôt que d'attendre la fin du
+    // backoff de reconnexion. `active` exclut les sockets fermés volontairement
+    // (abandon après la fenêtre de grâce, démontage, non autorisé)
+    const handleOnline = () => {
+      const socket = socketRef.current;
+      if (socket && !socket.connected && socket.active) socket.io.open();
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
       clearGiveUpTimer();
       if (joinedRoomRef.current) {
         socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });
