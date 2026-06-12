@@ -13,6 +13,7 @@ import {
 	TableCellParent,
 } from "@/components/ui/table";
 import React from "react";
+import { API_BASE } from "@/config";
 
 interface Parent {
 	id: string;
@@ -29,8 +30,7 @@ interface StudentProfileProps {
 	loadingParents: boolean;
 }
 
-const AVATAR_BASE = "http://localhost:5000/uploads/avatars/";
-const API_BASE = "http://localhost:5000";
+const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
 
 export default function StudentProfile({
 	user,

@@ -1,5 +1,10 @@
 
 COMPOSE = docker compose
+COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.prod.yml
+CERT_DIR = nginx/certs
+# IP intégrée au certificat (SAN). Auto-détectée ; surchargeable :
+#   make certs CERT_IP=192.168.1.42
+CERT_IP ?= $(shell hostname -I 2>/dev/null | awk '{print $$1}')
 ENV_FILE = .env
 SEED_FILE = database/seed.sql
 SCHEMA_WAIT_RETRIES = 45
@@ -8,7 +13,7 @@ SCHEMA_WAIT_DELAY = 2
 
 # == COMMANDES PRINCIPALES ==
 
-all: up ## Alias de up
+all: prod ## Par défaut : démarrage en mode production (nginx + HTTPS)
 
 help: ## Afficher les cibles disponibles
 	@echo "\nCibles :"
@@ -25,8 +30,41 @@ up: check-env ## Construire, démarrer et injecter les données si base vide
 	end=$$(date +%s); \
 	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
+dev: up ## Mode développement (hot reload, sans nginx) — alias de up
+
 down: ## Arrêter tous les services
 	$(COMPOSE) down
+
+
+# == PRODUCTION (nginx + HTTPS) ==
+
+prod: check-env certs ## Construire et démarrer en mode production (nginx + TLS)
+	@start=$$(date +%s); \
+	$(COMPOSE_PROD) up -d --build; \
+	$(MAKE) seed-if-empty; \
+	end=$$(date +%s); \
+	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"; \
+	echo "Prod démarrée : https://localhost (certificat auto-signé, à accepter dans le navigateur)"
+
+prod-down: ## Arrêter la stack de production
+	$(COMPOSE_PROD) down
+
+prod-logs: ## Suivre les logs de la stack de production
+	$(COMPOSE_PROD) logs -f
+
+certs: ## Générer des certificats TLS auto-signés (SAN: localhost + IP LAN) si absents
+	@test -f $(CERT_DIR)/privkey.pem || $(MAKE) certs-renew
+
+certs-renew: ## (Re)générer les certificats TLS, en écrasant les existants
+	@mkdir -p $(CERT_DIR); \
+	ip="$(CERT_IP)"; [ -z "$$ip" ] && ip="127.0.0.1"; \
+	echo "Génération du certificat (CN=localhost, SAN=localhost,127.0.0.1,$$ip)"; \
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+		-keyout $(CERT_DIR)/privkey.pem \
+		-out $(CERT_DIR)/fullchain.pem \
+		-subj "/CN=localhost" \
+		-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
+	echo "Certificats générés dans $(CERT_DIR)/"
 
 re: ## Remettre à zéro et redémarrer
 	$(MAKE) prune
@@ -144,7 +182,7 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up down re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top
+.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
 
 # === TESTS CURL ===
 
@@ -211,3 +249,11 @@ test-verify-token: ## Vérifier la signature du token avec le JWT_SECRET
 		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
 	SECRET=$$(grep JWT_SECRET .env | cut -d'=' -f2); \
 	python3 verify_jwt.py "$$TOKEN" "$$SECRET"
+
+test-wrong-role: ## Tester accès GET /users avec token élève (attendu: 403)
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	curl -s http://localhost:5000/users \
+		-H "Authorization: Bearer $$TOKEN" | python3 -m json.tool

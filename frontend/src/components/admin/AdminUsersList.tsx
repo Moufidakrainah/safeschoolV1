@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { getUserById } from '@/services/api';
+import { API_BASE } from '@/config';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
@@ -129,10 +130,9 @@ export default function AdminUserList({
                             <div className="flex h-full">
                               <div className="w-[100px] h-full shrink-0">
                                 {u.avatar
-                                ? <img src={`http://localhost:5000/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
-                                    alt={u.firstName}  className="w-full h-full object-cover block"/>
-                                :  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-       
+                                ? <img src={`${API_BASE}/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
+                                    alt={u.firstName} className="w-full h-full object-cover block"/>
+                                : <div className="w-full h-full bg-gray-200 flex items-center justify-center font-bold text-gray-400">
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
                             </div>
