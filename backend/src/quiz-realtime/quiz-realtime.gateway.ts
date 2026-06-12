@@ -41,9 +41,13 @@ interface SubmitAnswerPayload {
 }
 
 @WebSocketGateway({
-	cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' },
-	pingInterval: 10_000,
-	pingTimeout: 5_000,
+  cors: {
+    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+      .split(',')
+      .map((o) => o.trim()),
+  },
+  pingInterval: 10_000,
+  pingTimeout: 5_000,
 })
 export class QuizRealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect

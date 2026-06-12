@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { API_BASE } from "@/config";
 
 //les types
 interface SchoolClass {
@@ -129,7 +130,7 @@ const CLASSES_PER_PAGE = 7;
 	};
 
 	const avatarUrl = (s: StudentUser) =>
-		s.avatar ? `http://localhost:5000/uploads/avatars/${s.avatar}` : null;
+		s.avatar ? `${API_BASE}/uploads/avatars/${s.avatar}` : null;
 
 	const initials = (s: StudentUser) =>
 		`${s.firstName?.[0] ?? ""}${s.lastName?.[0] ?? ""}`.toUpperCase();

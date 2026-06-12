@@ -14,6 +14,7 @@ import {
 	TableHeader,
 } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
+import { API_BASE } from "@/config";
 
 interface StaffClass {
 	id: string;
@@ -33,8 +34,7 @@ interface ReporterProfileProps {
 	loadingProfile: boolean;
 }
 
-const AVATAR_BASE = "http://localhost:5000/uploads/avatars/";
-const API_BASE = "http://localhost:5000";
+const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
 
 export default function ReporterProfile({
 	user,

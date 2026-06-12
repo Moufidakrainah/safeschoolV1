@@ -7,6 +7,7 @@ searchUsers, getClasses, getStaffProfile, createStaffProfile, updateStaffProfile
 createParent,
 } from '@/services/api';
 import type { AdminUser } from '@/types';
+import { API_BASE } from '@/config';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -142,7 +143,7 @@ const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
   try {
     const formData = new FormData();
     formData.append('avatar', file);
-    const res = await fetch(`http://localhost:5000/users/${userId}/avatar`, {
+    const res = await fetch(`${API_BASE}/users/${userId}/avatar`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       body: formData,
