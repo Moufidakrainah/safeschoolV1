@@ -177,13 +177,13 @@ export default function StatsDashboard({ reports }: Props) {
       {/* ── Ligne 1 : Grade + Statut ── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">📊 Répartition par grade</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Répartition par grade</h3>
           {gradeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={gradeData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={gradeData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {gradeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip /><Legend />
@@ -199,7 +199,7 @@ export default function StatsDashboard({ reports }: Props) {
             : (
               <ResponsiveContainer width="100%" height={220}>
                 <PieChart>
-                  <Pie data={statusData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
+                  <Pie data={statusData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip /><Legend />
@@ -233,7 +233,7 @@ export default function StatsDashboard({ reports }: Props) {
       {/* ── Ligne 3 : Type + Évolution ── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">⚠️ Signalements par type</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Signalements par type</h3>
           {typeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -250,7 +250,7 @@ export default function StatsDashboard({ reports }: Props) {
         </div>
 
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">📈 Évolution (7 derniers jours)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Évolution (7 derniers jours)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={last7Days}>
               <CartesianGrid strokeDasharray="3 3" />

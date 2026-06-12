@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ParentFormItem from '@/components/admin/ParentFormItem';
+import { API_BASE } from '@/config';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -111,7 +112,7 @@ export default function AdminUserProfile({
       <div className="bg-surface shadow-sm rounded-sm px-6 py-8 mb-3 flex flex-col items-center gap-3">
         <div className="relative">
           {selectedUser.avatar
-            ? <img src={`http://localhost:5000/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`}
+            ? <img src={`${API_BASE}/uploads/avatars/${selectedUser.avatar}?t=${avatarTimestamps[selectedUser.id] ?? 0}`}
                 alt={selectedUser.firstName}
                 className="w-56 h-56 rounded-full object-cover border-4 border-primary shadow" />
             : <div className="w-56 h-56 rounded-full bg-gray-200 flex items-center justify-center text-6xl font-bold text-gray-400 border-4 border-gray-200">

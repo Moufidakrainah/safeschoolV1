@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
-import Pagination from '../components/Pagination';
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note } from '../types';
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   const {
-    users, loadingUsers,
+    loadingUsers,
     usersPage, setUsersPage, usersTotalPages,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
     deleteTarget, setDeleteTarget, isDeleting, isBlocked, deleteError,
     filteredUsers,
     fetchUsers, fetchClassesList,
-    handleSaveUser, handleDeleteUser, confirmDelete,
+    handleSaveUser, handleDeleteUser, confirmDelete, validateAll,
     handleAvatarUpload, updateField, toggleClassId,
     navigateToUser, calcAge,
   } = useUsers();
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
         <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{errors.email}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
 
   if (view === 'detail' && selected) {
     return (
-      <main className="min-h-screen bg-gray-50 font-sans">
+      <main className="flex-1 bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
         <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
         <ReportDetail
@@ -403,7 +403,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="flex-1 bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -423,13 +423,18 @@ export default function AdminDashboard() {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
-                  <Badge variant={filterStatus as BadgeVariant} />
+                <SelectTrigger aria-label={t('admin.filters.status')}>
+                  <SelectValue>
+                    {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
-                    <SelectItem key={status} value={status}><Badge variant={status as BadgeVariant} /></SelectItem>
-                  ))}
+                  <SelectItem value="all">{t('admin.filters.allStatuses')}</SelectItem>
+                  <SelectItem value="new">{t('badge.new')}</SelectItem>
+                  <SelectItem value="in_progress">{t('badge.in_progress')}</SelectItem>
+                  <SelectItem value="pending">{t('badge.pending')}</SelectItem>
+                  <SelectItem value="resolved">{t('badge.resolved')}</SelectItem>
+                  <SelectItem value="false_report">{t('badge.false_report')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
@@ -440,10 +445,10 @@ export default function AdminDashboard() {
                 <SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger>
                 <SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent>
               </Select>
-              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
+              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
-                <span className="text-gray-600 text-sm">Dates :</span>
+                <span className="text-gray-600 text-sm">{t('admin.filters.dates')}</span>
                 <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
                 <span className="text-gray-400">→</span>
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
@@ -483,7 +488,26 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} />
+            {totalPages > 1 && (
+              <PaginationShadcn className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <PaginationItem key={p}>
+                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
+                        className="cursor-pointer">{p}</PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </PaginationShadcn>
+            )}
           </>
         )}
 
@@ -551,6 +575,7 @@ export default function AdminDashboard() {
               setShowUserForm(v);
             }}
             onSaveUser={handleSaveUser}
+            onValidateAll={validateAll}
             renderUserForm={renderUserForm}
           />
         )}

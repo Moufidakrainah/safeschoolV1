@@ -1,18 +1,24 @@
 import { Injectable } from "@nestjs/common";
 import questionsData from "./questions.json";
 
+// Les questions sont stockées avec leur texte et leurs options traduits dans chaque langue
+// supportée. Le client reçoit toutes les langues et choisit librement laquelle afficher
+type QuizLocale = "fr" | "en" | "de";
+type LocalizedText = Record<QuizLocale, string>;
+type LocalizedOptions = Record<QuizLocale, string[]>;
+
 interface QuestionInternal {
   id: number;
-  text: string;
-  options: string[];
+  text: LocalizedText;
+  options: LocalizedOptions;
   correctIndex: number;
   score: number;
 }
 
 interface QuestionPublic {
   id: number;
-  text: string;
-  options: string[];
+  text: LocalizedText;
+  options: LocalizedOptions;
 }
 
 const ALL_QUESTIONS: QuestionInternal[] = questionsData;
@@ -650,7 +656,7 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        currentQuestion.options.length,
+		this.getSafeOptionCount(room, currentQuestion),
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
@@ -743,7 +749,7 @@ export class QuizRealtimeService {
       correctIndex: currentQuestion.correctIndex,
       answerStatistics: this.getAnswerStatistics(
         room,
-        currentQuestion.options.length,
+		this.getSafeOptionCount(room, currentQuestion),
       ),
       roomSnapshot: this.getRoomSnapshot(room.roomId),
       revealEndsAt: room.revealEndsAt,
@@ -796,6 +802,20 @@ export class QuizRealtimeService {
   private toPublicQuestion(q: QuestionInternal): QuestionPublic {
     return { id: q.id, text: q.text, options: q.options };
   }
+
+	private getSafeOptionCount(room: QuizRoom, question: QuestionInternal): number {
+		const localeLengths = Object.values(question.options).map(
+			(options) => options.length,
+		);
+		const maxLocaleLength = localeLengths.length > 0 ? Math.max(...localeLengths) : 0;	
+		// Sécurise aussi les statistiques si des indices déjà soumis dépassent la taille
+		// d'une locale, ou si correctIndex pointe au-delà
+		const maxSelectedIndex = Array.from(room.selectedAnswerByPlayerId.values()).reduce(
+			(max, selectedIndex) => Math.max(max, selectedIndex),
+			-1,
+		);	
+		return Math.max(maxLocaleLength, question.correctIndex + 1, maxSelectedIndex + 1, 0);
+	}
 
   private getAnswerStatistics(
     room: QuizRoom,
