@@ -1,8 +1,8 @@
-import { useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
-import { Badge, type BadgeVariant } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,7 +63,6 @@ export default function ReportDetail({
   const idx = filtered.findIndex(r => r.id === selected.id);
   const severity = severityFromApiGrade(selected.grade);
   const severityColor = SEVERITY_COLORS[severity];
-  const [confirmStatus, setConfirmStatus] = useState<{ status: string; label: string } | null>(null);
 
   // ── Victime principale ──
   // Trier les victims : alerteur (resolvedUser.id === student.id) en premier
@@ -234,10 +233,10 @@ export default function ReportDetail({
                       </div>
                     )}
                     {!v.resolvedUser && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
-                    {isAdmin && (
+                    {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                        🔗 Lier
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
@@ -373,7 +372,7 @@ export default function ReportDetail({
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
-            {notes.map(note => <NoteBlock key={note.id} note={note} />)}
+            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} />)}
           </div>
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (

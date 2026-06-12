@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   const {
-    users, loadingUsers,
+    loadingUsers,
     usersPage, setUsersPage, usersTotalPages,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,
@@ -446,13 +446,18 @@ const onFetchReports = async (page: number) => {
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
-                  <Badge variant={filterStatus as BadgeVariant} />
+                <SelectTrigger aria-label={t('admin.filters.status')}>
+                  <SelectValue>
+                    {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
-                    <SelectItem key={status} value={status}><Badge variant={status as BadgeVariant} /></SelectItem>
-                  ))}
+                  <SelectItem value="all">{t('admin.filters.allStatuses')}</SelectItem>
+                  <SelectItem value="new">{t('badge.new')}</SelectItem>
+                  <SelectItem value="in_progress">{t('badge.in_progress')}</SelectItem>
+                  <SelectItem value="pending">{t('badge.pending')}</SelectItem>
+                  <SelectItem value="resolved">{t('badge.resolved')}</SelectItem>
+                  <SelectItem value="false_report">{t('badge.false_report')}</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
@@ -463,10 +468,10 @@ const onFetchReports = async (page: number) => {
                 <SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger>
                 <SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent>
               </Select>
-              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
+              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
-                <span className="text-gray-600 text-sm">Dates :</span>
+                <span className="text-gray-600 text-sm">{t('admin.filters.dates')}</span>
                 <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
                 <span className="text-gray-400">→</span>
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />

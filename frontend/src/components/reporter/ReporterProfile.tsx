@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { AuthUser } from "@/types";
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { useState } from "react";
 import { formatName } from "@/utils/formatName";
 
@@ -159,38 +158,46 @@ export default function ReporterProfile({
 
 			{/* Profil professionnel */}
 <div className="bg-surface shadow-sm px-8 py-4">
-				{/* <div className="p-2 font-semibold  w-1/2 text-lg">
-	
-						 */}
-						{/* {t(`reporter.profile.proProfile`)}</div> */}
-				<Table>
-					<TableBody>
-						<TableRow>
-							<TableCellLeft>{t(`reporter.profile.occupation`)}</TableCellLeft>
-							<TableCell>{staffProfile.profession}</TableCell>
-						</TableRow>
-						{staffProfile.subject && (
-							<TableRow>
-								<TableCellLeft>{t(`reporter.profile.subject`)}</TableCellLeft>
-								<TableCell>{staffProfile.subject}</TableCell>
-							</TableRow>
-						)}
-						{staffProfile.classes.length > 0 && (
-							<TableRow>
-								<TableCellLeft>{t(`reporter.profile.classes`)}</TableCellLeft>
-								<TableCell>
-									<div className="space-y-1">
-									{staffProfile.classes.map((c) => (
-										<div key={`${c.level}-${c.section}`}>
-											{c.level} {c.section}
-										</div>
-									))}
-									</div>
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
+				{loadingProfile ? (
+					<p className="text-gray-400 text-sm text-center py-4">
+						Chargement...
+					</p>
+				) : !staffProfile ? (
+					<p className="text-gray-400 text-sm text-center py-4">
+						Aucun profil professionnel enregistré
+					</p>
+				) : (
+					<>
+						<Table>
+							<TableBody>
+								<TableRow>
+									<TableCellLeft>{t(`reporter.profile.occupation`)}</TableCellLeft>
+									<TableCell>{staffProfile.profession}</TableCell>
+								</TableRow>
+								{staffProfile.subject && (
+									<TableRow>
+										<TableCellLeft>{t(`reporter.profile.subject`)}</TableCellLeft>
+										<TableCell>{staffProfile.subject}</TableCell>
+									</TableRow>
+								)}
+								{staffProfile.classes.length > 0 && (
+									<TableRow>
+										<TableCellLeft>{t(`reporter.profile.classes`)}</TableCellLeft>
+										<TableCell>
+											<div className="space-y-1">
+											{staffProfile.classes.map((c) => (
+												<div key={`${c.level}-${c.section}`}>
+													{c.level} {c.section}
+												</div>
+											))}
+											</div>
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					</>
+					)}
 			</div>
 		</section>
 	);

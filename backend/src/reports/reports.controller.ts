@@ -122,7 +122,6 @@ export class ReportsController {
     if (dto.content && dto.content.length > 1500)
       throw new BadRequestException("Le contenu ne peut pas dépasser 1500 caractères");
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
-    console.log('addNote targetRole:', dto.targetRole);
     return this.reportsService.addNote(id, dto.content, dto.type || "note", req.user, dto.targetRole);
   }
 }
