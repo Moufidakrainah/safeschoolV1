@@ -5,9 +5,6 @@ import { join } from "path";
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-// if (!process.env.JWT_SECRET) {
-//     throw new Error("JWT_SECRET manquant dans les variables d'environnement");
-//   }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,             // supprime les champs non définis dans le DTO
@@ -25,4 +22,4 @@ async function bootstrap() {
   });
   await app.listen(process.env.BACKEND_PORT ?? 3000);
 }
-bootstrap();
+bootstrap().catch((err) => { console.error(err); process.exit(1); });
