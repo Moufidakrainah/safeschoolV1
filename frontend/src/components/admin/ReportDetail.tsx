@@ -1,8 +1,8 @@
-import { useState } from 'react';
+
 import { useTranslation } from 'react-i18next';
-import { Badge, type BadgeVariant } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,14 +63,20 @@ export default function ReportDetail({
   const idx = filtered.findIndex(r => r.id === selected.id);
   const severity = severityFromApiGrade(selected.grade);
   const severityColor = SEVERITY_COLORS[severity];
-  const [confirmStatus, setConfirmStatus] = useState<{ status: string; label: string } | null>(null);
 
   // ── Victime principale ──
-  // reporter = 'victime' → le signalant est la victime (r.student)
-  // reporter = 'temoin'  → la victime est dans r.victims[0]
+  // Trier les victims : alerteur (resolvedUser.id === student.id) en premier
+  const sortedVictims = selected.victims
+    ? [...selected.victims].sort((a, b) => {
+        if (a.resolvedUser?.id === selected.student?.id) return -1;
+        if (b.resolvedUser?.id === selected.student?.id) return 1;
+        return 0;
+      })
+    : [];
+
   const mainVictim = selected.reporter === 'victime'
     ? selected.student
-    : selected.victims?.[0]?.resolvedUser ?? null;
+    : sortedVictims?.[0]?.resolvedUser ?? null;
 
   const mainVictimFreeText = selected.reporter === 'temoin'
     ? selected.victims?.[0]?.freeText
@@ -204,9 +210,9 @@ export default function ReportDetail({
         </div>
 
         {/* ── Autres victimes (à partir de l'index 1) ── */}
-        {selected.reporter === 'temoin' && selected.victims && selected.victims.length > 1 && (
+        {sortedVictims && sortedVictims.length > 1 && (
           <div className="mt-3 flex flex-col gap-2">
-            {selected.victims.slice(1).map((v) => (
+            {sortedVictims.slice(1).map((v) => (
               <div key={v.id} className="flex items-start gap-3 text-sm">
                 <div className="flex items-center gap-2 flex-1">
                   {v.resolvedUser?.avatar
@@ -214,7 +220,7 @@ export default function ReportDetail({
                     : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">?</div>
                   }
                   <div className="flex-1">
-                    <span className="text-blue-600 font-medium">{v.freeText}</span>
+                    <span className="text-gray-800 font-medium">{v.freeText}</span>
                     {v.resolvedUser && (
                       <div className="flex items-center gap-1 text-xs text-green-600">
                         → {v.resolvedUser.firstName} {v.resolvedUser.lastName}
@@ -227,10 +233,10 @@ export default function ReportDetail({
                       </div>
                     )}
                     {!v.resolvedUser && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
-                    {isAdmin && (
+                    {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        {v.resolvedUser ? '✏️ Modifier' : '🔗 Lier'}
+                        🔗 Lier
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
@@ -291,7 +297,7 @@ export default function ReportDetail({
                         </div>
                     }
                     <div className="flex-1">
-                      <p className={`text-sm font-medium text-red-500 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
+                      <p className={`text-sm font-medium text-gray-800 ${s.resolvedUser?.id ? 'cursor-pointer hover:underline' : ''}`}
                         onClick={() => s.resolvedUser?.id && onNavigateToUser(s.resolvedUser.id)}>
                         {s.freeText}
                       </p>
@@ -366,7 +372,7 @@ export default function ReportDetail({
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
-            {notes.map(note => <NoteBlock key={note.id} note={note} />)}
+            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} />)}
           </div>
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
@@ -398,8 +404,8 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`}`; })()
-                    : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -432,8 +438,8 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const i = parseInt(personId.split('_')[1]); const v = selected.victims?.filter(v => v.resolvedUser?.id !== selected.student?.id)[i]; return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? `Victime ${i+1}`; })()
-                          : (() => { const i = parseInt(personId.split('_')[1]); const s = selected.suspects?.[i]; return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? `Suspect ${i+1}`; })();
+                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
+                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);

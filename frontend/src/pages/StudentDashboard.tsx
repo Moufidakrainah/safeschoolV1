@@ -40,7 +40,7 @@ export default function StudentDashboard() {
   const handleNotifRefresh = () => setNotifRefreshKey((k) => k + 1);
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="flex-1 bg-gray-50 font-sans">
       <RoleHeader
         user={user}
         logoutUser={logoutUser}
