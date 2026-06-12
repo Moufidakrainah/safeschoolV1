@@ -128,7 +128,7 @@ export default function StatsDashboard({ reports }: Props) {
 		<section className="page-section">
 
       {/* ── Filtres ── */}
-      <div className="flex flex-wrap gap-3 items-center mb-6">
+      <div className="flex flex-wrap gap-3 items-end mb-6">
 
         {/* Filtre période */}
         <Select value={period} onValueChange={setPeriod}>
@@ -169,9 +169,9 @@ export default function StatsDashboard({ reports }: Props) {
         </Select>
 
         {/* Compteur */}
-        <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-2 rounded-lg">
+        <div className="text-sm px-3 py-2 ml-auto">
           {filtered.length} signalement{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
-        </span>
+        </div>
       </div>
 
       {/* ── Ligne 1 : Grade + Statut ── */}
