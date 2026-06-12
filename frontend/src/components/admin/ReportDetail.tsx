@@ -10,8 +10,9 @@ import NoteBlock from '@/components/NoteBlock';
 import ConvocationSelector from '@/components/ConvocationSelector';
 import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
 import type { Report, Note } from '@/types';
+import { API_BASE } from '@/config';
 
-const AVATAR_BASE = 'http://localhost:5000/uploads/avatars';
+const AVATAR_BASE = `${API_BASE}/uploads/avatars`;
 
 interface ReportDetailProps {
   selected: Report;
