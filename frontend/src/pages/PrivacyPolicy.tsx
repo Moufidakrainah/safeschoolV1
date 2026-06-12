@@ -55,12 +55,13 @@ const navigate = useNavigate();
       />
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
-        <Link
+       {!user && ( <Link
           to="/login"
           className="text-primary hover:underline text-sm inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary rounded"
         >
           ← {t('footer.backToApp')}
         </Link>
+		)}
 
         <header className="mb-10">
           <h1 className="text-3xl font-bold text-primary">{t('footer.privacy')}</h1>
