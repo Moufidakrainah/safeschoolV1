@@ -1,7 +1,8 @@
 import axios from 'axios';
 import type { SuspectInput, VictimInput } from '../types';
+import { API_BASE } from '@/config';
 
-const api = axios.create({ baseURL: 'http://localhost:5000' });
+const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
