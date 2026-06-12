@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
 import { useTranslation } from 'react-i18next';
-import type { AuthUser } from "@/types";
+import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
   const map: Record<string, any> = {
@@ -85,16 +85,16 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
 
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
-        const mine = all.filter((r: any) => r.reporter === "victime");
+        const mine = all.filter((r: Report) => r.reporter === "victime");
         setMyReports(mine);
 
         const notesMap: Record<string, any[]> = {};
         await Promise.all(
-          mine.map(async (r: any) => {
+          mine.map(async (r: Report) => {
             try {
               const notes = await getNotes(r.id);
               notesMap[r.id] = notes.filter(
-                (n: any) => n.type === "convocation" || n.type === "status_change"
+                (n: Note) => n.type === "convocation" || n.type === "status_change"
               );
             } catch {
               notesMap[r.id] = [];
@@ -104,15 +104,15 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         setReportNotes(notesMap);
 
         const unreadMap: Record<string, any> = {};
-        notifs.filter((n: any) => !n.isRead).forEach((n: any) => { unreadMap[n.id] = n; });
+        notifs.filter((n: Note & { isRead: boolean; report?: { id: string } }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
       })
       .catch(() => setMyReports([]))
       .finally(() => setLoadingReports(false));
   }, [user?.id, refreshKey]);
 
-  const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-    return Object.values(unreadNotifs).find((n: any) => {
+  const findUnreadNotifForNote = (note: Note, reportId: string) => {
+    return Object.values(unreadNotifs).find((n) => {
       if (n.report?.id !== reportId) return false;
       const noteContent = note.content.replace("📅 ", "").trim();
       const notifMsg = n.message.replace("Convocation : ", "").trim();
@@ -123,7 +123,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     }) ?? null;
   };
 
-  const handleConvocationClick = async (notif: any) => {
+  const handleConvocationClick = async (notif: Note & { id: string; isRead: boolean }) => {
     if (!notif) return;
     try {
       await markNotificationRead(notif.id);
@@ -146,11 +146,11 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
-          {myReports.map((report: any) => {
+          {myReports.map((report: Report) => {
             const severity = severityFromApiGrade(report.grade);
             const notes = reportNotes[report.id] ?? [];
             const reportUnreadCount = Object.values(unreadNotifs).filter(
-              (n: any) => n.report?.id === report.id,
+              (n) => (n as Note & { report?: { id: string } }).report?.id === report.id,
             ).length;
 
             return (
@@ -181,7 +181,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                   <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
-                    {notes.map((note: any) => {
+                    {notes.map((note: Note) => {
 
                       // ── Note de changement de statut ──
                       if (note.type === 'status_change') {
