@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import {
-	getNotifications,
-	markNotificationRead,
-	getAllReports,
-	getNotes,
+  getNotifications,
+  markNotificationRead,
+  getAllReports,
+  getNotes,
 } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
 import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
@@ -11,97 +11,77 @@ import { useTranslation } from 'react-i18next';
 import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
-	const map: Record<string, any> = {
-		new: "new",
-		in_progress: "in_progress",
-		pending: "pending",
-		resolved: "resolved",
-		false_report: "false_report",
-	};
-	return map[status] ?? "new";
+  const map: Record<string, any> = {
+    new: "new",
+    in_progress: "in_progress",
+    pending: "pending",
+    resolved: "resolved",
+    false_report: "false_report",
+  };
+  return map[status] ?? "new";
 };
 
 const MONTHS_FR: Record<string, number> = {
-	janvier: 1,
-	février: 2,
-	mars: 3,
-	avril: 4,
-	mai: 5,
-	juin: 6,
-	juillet: 7,
-	août: 8,
-	septembre: 9,
-	octobre: 10,
-	novembre: 11,
-	décembre: 12,
+  janvier: 1, février: 2, mars: 3, avril: 4, mai: 5, juin: 6,
+  juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
 };
 
 // function anonymizeConvocation(content: string): string {
-// 	return content.replace(/^.+? est convoqué/, "Vous êtes convoqué");
+//   return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
 // }
 
 function parseConvocation(content: string) {
-	const dateMatch = content.match(
-		/(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
-	);
-	// content = anonymizeConvocation(content);
-	const parts = content.split("\n\n");
-	const message = parts.slice(1).join("\n\n").trim();
-	const recipientMatch = content.match(/^(.+?) est convoqué/);
-	const recipient = recipientMatch ? recipientMatch[1].trim() : null;
+  const dateMatch = content.match(
+    /(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
+  );
+//   content = anonymizeConvocation(content);
+  const parts = content.split("\n\n");
+  const message = parts.slice(1).join("\n\n").trim();
+  const recipientMatch = content.match(/^(.+?) est convoqué/);
+  const recipient = recipientMatch ? recipientMatch[1].trim() : null;
 
-	if (!dateMatch) {
-		return {
-			isPast: true,
-			displayDate: content.split("\n")[0].trim(),
-			message,
-			recipient,
-		};
-	}
+  if (!dateMatch) {
+    return {
+      isPast: true,
+      displayDate: content.split("\n")[0].replace("📅", "").trim(),
+      message,
+      recipient,
+    };
+  }
 
-	const [, day, monthStr, year, hours, minutes] = dateMatch;
-	const monthNum = MONTHS_FR[monthStr.toLowerCase()];
-	if (!monthNum) {
-		return {
-			isPast: true,
-			displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`,
-			message,
-			recipient,
-		};
-	}
+  const [, day, monthStr, year, hours, minutes] = dateMatch;
+  const monthNum = MONTHS_FR[monthStr.toLowerCase()];
+  if (!monthNum) {
+    return {
+      isPast: true,
+      displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`,
+      message,
+      recipient,
+    };
+  }
 
-	const rdvDate = new Date(
-		Number(year),
-		monthNum - 1,
-		Number(day),
-		Number(hours),
-		Number(minutes),
-	);
-	const isPast = rdvDate < new Date();
-	const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
-	return { isPast, displayDate, message, recipient };
+  const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
+  const isPast = rdvDate < new Date();
+  const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
+  return { isPast, displayDate, message, recipient };
 }
 
 interface StudentCasesProps {
-	user: AuthUser | null;
-	onNotifRefresh?: () => void;
-	refreshKey?: number;
+  user: AuthUser | null;
+  onNotifRefresh?: () => void;
+  refreshKey?: number;
 }
 
-export default function StudentCases({
-	user,
-	onNotifRefresh,
-	refreshKey = 0,
-}: StudentCasesProps) {
-	const { t } = useTranslation();
-	const [myReports, setMyReports] = useState<any[]>([]);
-	const [loadingReports, setLoadingReports] = useState(false);
-	const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
-	const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
+  const { t } = useTranslation();
+  const [myReports, setMyReports] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
+  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
 
-	useEffect(() => {
-		if (!user?.id) return;
-		setLoadingReports(true);
+  useEffect(() => {
+    if (!user?.id) return;
+    setLoadingReports(true);
 
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
@@ -159,10 +139,10 @@ export default function StudentCases({
   return (
     <section className="page-section">
       {loadingReports ? (
-        <p className="text-center py-10 text-gray-400">Chargement...</p>
+        <p className="text-center py-10 text-gray-400">{t("student.cases.loading")}</p>
       ) : myReports.length === 0 ? (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-10 text-center">
-          <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
+          <p className="text-gray-400 text-sm">{t("student.cases.noReport")}</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
@@ -173,97 +153,96 @@ export default function StudentCases({
               (n) => (n as Note & { report?: { id: string } }).report?.id === report.id,
             ).length;
 
-						return (
-							<li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
-								{/* En-tête du dossier */}
-								<div className="flex  items-start">
-									<div className="flex-1">
-										<span className="card-title">{report.caseNumber}</span>
-										<p className="card-subtitle mt-2 ">
-											{report.type} - {t("student.cases.iAmVictim")}
-										</p>
-										<p className="card-meta mt-2">
-											{new Date(report.createdAt).toLocaleDateString("fr-FR")}
-										</p>
-									</div>
-									<Badge variant={statusToBadgeVariant(report.status)} />
-								</div>
+            return (
+              <li
+                key={report.id}
+                className="bg-surface px-6 py-5 shadow-sm"
+              >
+                {/* En-tête du dossier */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    {/* <div className="flex items-center gap-2 mb-1"> */}
+                      <span className="card-title">{report.caseNumber}</span>
 
-								{/* Notes : status_change + convocations */}
-								{notes.length === 0 ? (
-									<p className="text-sm italic mt-6">
-										{t("student.cases.noUpdate")}
-									</p>
-								) : (
-									<div className="flex flex-col gap-2 mt-2">
-										{notes.map((note: any) => {
-											// ── Note de changement de statut ──
-											if (note.type === "status_change") {
-												return (
-													<div
-														key={note.id}
-														style={{
-															borderLeft: "3px solid var(--color-primary)",
-														}}
-														className="p-3 bg-white"
-													>
-														<p className="text-sm">{note.content}</p>
-													</div>
-												);
-											}
+                    {/* </div> */}
+                    <p className="card-subtitle mt-1 mb-2 capitalize">
+                      {report.type} - {t("student.cases.iAmVictim")}
+                    </p>
+                    <p className="card-meta">
+                      {new Date(report.createdAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <Badge variant={statusToBadgeVariant(report.status)} />
+                </div>
 
                 {/* Notes : status_change + convocations */}
                 {notes.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
+                  <p className="text-xs text-gray-400 italic">
+						{t("student.cases.noUpdate")}
+				</p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
                     {notes.map((note: Note) => {
 
-											return (
-												<div
-													key={note.id}
-													onClick={() =>
-														isNew && handleConvocationClick(unreadNotif)
-													}
-													style={{
-														borderLeft: "3px solid var(--color-warning)",
-													}}
-													className={`p-3 bg-indigo-50`}
-												>
-													{isPast ? (
-														<p className="text-m">
-															{t("student.cases.meeting")}{" "}
-															<strong>{displayDate}</strong>
-														</p>
-													) : (
-														<div>
-															<div className="flex justify-between">
-																<span className="text-xs font-semibold">
-																	{t("noteblock.convocation")}
-																</span>
-																{isNew && (
-																	<Badge variant="new_red" className="ml-4" />
-																)}
-															</div>
-															<p className="text-m font-semibold ">
-																{recipient ? <span>{recipient}</span> : ""}{" "}
-																{t("student.cases.summoned")} {displayDate}
-															</p>
-															{message && (
-																<p className="mt-1 text-xs">{message}</p>
-															)}
-														</div>
-													)}
-												</div>
-											);
-										})}
-									</div>
-								)}
-							</li>
-						);
-					})}
-				</ul>
-			)}
-		</section>
-	);
+                      // ── Note de changement de statut ──
+                      if (note.type === 'status_change') {
+                        return (
+                          <div
+                            key={note.id}
+                            style={{ 
+								borderLeft: '3px solid var(--color-primary)' }}
+                            className="p-3 bg-white"
+                          >
+                            <p className="text-sm">{note.content}</p>
+                          </div>
+                        );
+                      }
+
+                      // ── Convocation ──
+                      const { isPast, displayDate, message, recipient } = parseConvocation(note.content);
+                      const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
+                      const isNew = !!unreadNotif;
+
+                      return (
+                        <div
+                          key={note.id}
+                          onClick={() => isNew && handleConvocationClick(unreadNotif)}
+                          style={{ borderLeft: "3px solid var(--color-warning)",}}
+                          className={`p-3 bg-indigo-50`}
+                        >
+                          {isPast ? (
+                            <p className="text-gray-400 text-sm">
+                            {t("student.cases.meeting")}<strong>{displayDate}</strong>
+                            </p>
+                          ) : (
+                            <div>
+                              <div className="flex justify-between">
+                                <span className="text-xs font-semibold">
+                                  {t('noteblock.convocation')}
+                                </span>
+                                {isNew && (
+                                 <Badge variant="new_red" className="ml-4" />
+                                )}
+                              </div>
+                              <p className="text-sm font-semibold">
+                                {recipient ? <span>{recipient}</span> : ""}{" "}
+                               {t("student.cases.summoned")} {displayDate}
+                              </p>
+                              {message && (
+                                <p className="mt-1 text-xs">{message}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
 }
