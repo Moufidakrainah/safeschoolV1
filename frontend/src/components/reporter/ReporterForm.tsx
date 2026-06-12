@@ -45,11 +45,10 @@ export default function ReporterForm({ user }: ReporterFormProps) {
     setShowErrors,
     isNextDisabled,
     suspects,
-    suspectInput,
+    suspectInput, setSuspectInput,
     victimName,
     victimInput,
     setVictimInput,
-    setVictimSuggestions,
     selectedVictim,
     setSelectedVictim,
     setVictimName,
@@ -387,10 +386,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
                   <input
                     type="text"
                     value={suspectInput}
-                    onChange={(e) => {
-                      const { setSuspectInput } = {} as any;
-                      
-                    }}
+                    onChange={(e) => setSuspectInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && suspectInput.trim()) {
                         e.preventDefault();
