@@ -38,7 +38,7 @@ export default function StudentForm({ user }: StudentFormProps) {
     isNextDisabled,
     fieldErrors,
     handleNext,
-    suspects, suspectInput,
+    suspects, suspectInput, setSuspectInput,
     victimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim, setVictimName,
