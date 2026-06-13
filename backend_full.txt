@@ -1,0 +1,4496 @@
+==========================================
+FILE: backend/src/app.module.ts
+==========================================
+import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ConfigModule } from "@nestjs/config";
+import { AuthModule } from "./auth/auth.module";
+import { UsersModule } from "./users/users.module";
+import { ReportsModule } from "./reports/reports.module";
+import { StudentProfilesModule } from "./student-profiles/student-profiles.module";
+import { NotificationsModule } from "./notifications/notifications.module";
+import { LoggerModule } from "./logger/logger.module";
+import { HttpLoggerMiddleware } from "./logger/http-logger.middleware";
+import { ClassesModule } from "./classes/classes.module";
+import { StaffProfilesModule } from "./staff/staff-profiles.module";
+import { ParentsModule } from "./parents/parents.module";
+import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot({
+      type: "postgres",
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT ?? "5432", 10),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME || "safeschool",
+      entities: [__dirname + "/**/*.entity{.ts,.js}"],
+      synchronize: true,
+    }),
+    LoggerModule,
+    AuthModule,
+    UsersModule,
+    ReportsModule,
+    NotificationsModule,
+    StudentProfilesModule,
+    ClassesModule,
+    StaffProfilesModule,
+    ParentsModule,
+    QuizRealtimeModule,
+  ],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(HttpLoggerMiddleware).forRoutes("*");
+  }
+}
+
+==========================================
+FILE: backend/src/auth/auth.controller.ts
+==========================================
+import { Controller, Post, Body } from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { LoginDto } from "./dto/login.dto";
+import { RegisterDto } from "./dto/register.dto";
+
+@Controller("auth")
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post("login")
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password);
+  }
+
+  @Post("register")
+  async register(@Body() dto: RegisterDto) {
+    return this.authService.register(
+      dto.email,
+      dto.password,
+      dto.firstName,
+      dto.lastName,
+    );
+  }
+}
+
+==========================================
+FILE: backend/src/auth/auth.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { AuthService } from "./auth.service";
+import { AuthController } from "./auth.controller";
+import { UsersModule } from "../users/users.module";
+import { JwtStrategy } from "./jwt.strategy";
+
+@Module({
+  imports: [
+    UsersModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: "24h", algorithm: "HS256" },
+      verifyOptions: { algorithms: ["HS256"] },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
+})
+export class AuthModule {}
+
+==========================================
+FILE: backend/src/auth/auth.service.ts
+==========================================
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { UsersService } from "../users/users.service";
+import * as bcrypt from "bcrypt";
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
+
+  async login(email: string, password: string) {
+    const user = await this.usersService.findByEmailWithProfile(email);
+    if (!user)
+      throw new UnauthorizedException("Email ou mot de passe incorrect");
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      throw new UnauthorizedException("Email ou mot de passe incorrect");
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        avatar: user.avatar || null,
+        studentProfile: user.studentProfile || null,
+      },
+    };
+  }
+
+  async register(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ) {
+    const existing = await this.usersService.findByEmail(email);
+    if (existing) throw new UnauthorizedException("Cet email est déjà utilisé");
+    const user = await this.usersService.create(
+      email,
+      password,
+      firstName,
+      lastName,
+    );
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+        studentProfile: null,
+      },
+    };
+  }
+}
+
+==========================================
+FILE: backend/src/auth/dto/login.dto.ts
+==========================================
+import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+
+export class LoginDto {
+  @IsEmail({}, { message: 'Email invalide' })
+  @IsNotEmpty({ message: 'Email obligatoire' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
+  @MinLength(6, { message: 'Mot de passe trop court' })
+  password: string;
+}
+
+==========================================
+FILE: backend/src/auth/dto/register.dto.ts
+==========================================
+import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class RegisterDto {
+  @IsEmail({}, { message: 'Email invalide' })
+  @IsNotEmpty({ message: 'Email obligatoire' })
+  @MaxLength(50, { message: 'Email trop long' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
+  @MinLength(12, { message: 'Le mot de passe doit contenir au moins 12 caractères' })
+  @MaxLength(20, { message: 'Le mot de passe ne peut pas dépasser 20 caractères' })
+  @Matches(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
+  @Matches(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
+  @Matches(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
+  @Matches(/[^a-zA-Z0-9]/, { message: 'Le mot de passe doit contenir au moins un caractère spécial' })
+  password: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Prénom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets uniquement, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Nom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ-]{2,20}$/, { message: 'Nom invalide (lettres et tirets uniquement, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  lastName: string;
+}
+
+==========================================
+FILE: backend/src/auth/jwt.strategy.ts
+==========================================
+import { Injectable } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { UsersService } from "../users/users.service";
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) { /*creer u strategie qui s appel automatiquemt jwt */
+  constructor(private usersService: UsersService) {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) throw new Error('JWT_SECRET environment variable is not defined');
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: jwtSecret,
+      algorithms: ['HS256'],
+    });
+  }
+
+  async validate(payload: { sub: string; email: string; role: string }) {
+    return this.usersService.findById(payload.sub);
+  }
+}
+
+==========================================
+FILE: backend/src/classes/classes.controller.ts
+==========================================
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { ClassesService } from "./classes.service";
+import { CreateClassDto } from "./dto/create-class.dto";
+import { UpdateClassDto } from "./dto/update-class.dto";
+import { validateUUID } from "../utils/validate-uuid";
+
+@Controller("classes")
+@UseGuards(AuthGuard("jwt"))
+export class ClassesController {
+  constructor(private readonly classesService: ClassesService) {}
+
+  @Post()
+  async create(@Body() dto: CreateClassDto, @Request() req) {
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.classesService.create(dto.level, dto.section);
+  }
+
+  @Get()
+  async findAll() {
+    return this.classesService.findAll();
+  }
+
+  @Get(":id")
+  async findOne(@Param("id") id: string) {
+    validateUUID(id);
+    return this.classesService.findOne(id);
+  }
+
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateClassDto,
+    @Request() req,
+  ) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.classesService.update(id, dto);
+  }
+
+  @Delete(":id")
+  async remove(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.classesService.remove(id);
+  }
+}
+==========================================
+FILE: backend/src/classes/classes.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { SchoolClass } from "./school-class.entity";
+import { ClassesService } from "./classes.service";
+import { ClassesController } from "./classes.controller";
+
+@Module({
+  imports: [TypeOrmModule.forFeature([SchoolClass])],
+  controllers: [ClassesController],
+  providers: [ClassesService],
+  exports: [ClassesService],
+})
+export class ClassesModule {}
+
+==========================================
+FILE: backend/src/classes/classes.service.ts
+==========================================
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { SchoolClass } from "./school-class.entity";
+
+@Injectable()
+export class ClassesService {
+  constructor(
+    @InjectRepository(SchoolClass) private classRepo: Repository<SchoolClass>,
+  ) {}
+
+  // Création d'une nouvelle classe
+  async create(level: string, section: string): Promise<SchoolClass> {
+    const trimmedLevel   = level.trim();
+    const trimmedSection = section.trim().toUpperCase();
+
+    // ── Vérification doublon ──
+    const existing = await this.classRepo.findOne({
+      where: { level: trimmedLevel, section: trimmedSection },
+    });
+    if (existing) {
+      throw new ConflictException('CLASS_ALREADY_EXISTS');
+    }
+
+    const schoolClass = this.classRepo.create({
+      level:   trimmedLevel,
+      section: trimmedSection,
+    });
+    return this.classRepo.save(schoolClass);
+  }
+
+  // Récupération de toutes les classes
+  async findAll(): Promise<SchoolClass[]> {
+    return this.classRepo.find();
+  }
+
+  // Récupération d'une classe par son id
+  async findOne(id: string): Promise<SchoolClass> {
+    const schoolClass = await this.classRepo.findOne({
+      where: { id },
+      relations: ["staff", "staff.user"],
+    });
+    if (!schoolClass) throw new NotFoundException("Classe introuvable");
+    return schoolClass;
+  }
+
+  // Modification d'une classe
+  async update(id: string, dto: { level?: string; section?: string }): Promise<SchoolClass> {
+    const schoolClass = await this.findOne(id);
+
+    const newLevel   = dto.level   ? dto.level.trim()                    : schoolClass.level;
+    const newSection = dto.section ? dto.section.trim().toUpperCase()     : schoolClass.section;
+
+    // ── Vérification doublon (exclure la classe en cours de modification) ──
+    const existing = await this.classRepo.findOne({
+      where: { level: newLevel, section: newSection },
+    });
+    if (existing && existing.id !== id) {
+      throw new ConflictException('CLASS_ALREADY_EXISTS');
+    }
+
+    schoolClass.level   = newLevel;
+    schoolClass.section = newSection;
+    return this.classRepo.save(schoolClass);
+  }
+
+  // Suppression d'une classe (bloquée si des élèves sont inscrits)
+  async remove(id: string): Promise<void> {
+    const schoolClass = await this.findOne(id);
+    const studentCount = await this.classRepo
+      .createQueryBuilder('class')
+      .leftJoin('student_profiles', 'sp', 'sp."classId" = class.id')
+      .where('class.id = :id', { id })
+      .andWhere('sp.id IS NOT NULL')
+      .getCount();
+    if (studentCount > 0) {
+      throw new BadRequestException('CLASS_HAS_STUDENTS');
+    }
+    await this.classRepo.remove(schoolClass);
+  }
+}
+==========================================
+FILE: backend/src/classes/dto/create-class.dto.ts
+==========================================
+import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class CreateClassDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Le niveau est obligatoire' })
+  @Matches(/^[3-6]eme$/, { message: 'Le niveau doit être 3eme, 4eme, 5eme ou 6eme' })
+  @Transform(({ value }) => value?.trim())
+  level: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'La section est obligatoire' })
+  @Matches(/^[A-Z]$/, { message: 'La section doit être une seule lettre majuscule (A, B, C...)' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  section: string;
+}
+
+==========================================
+FILE: backend/src/classes/dto/update-class.dto.ts
+==========================================
+import { IsString, IsOptional, Matches } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class UpdateClassDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^[3-6]eme$/, { message: 'Le niveau doit être 3eme, 4eme, 5eme ou 6eme' })
+  @Transform(({ value }) => value?.trim())
+  level?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[A-Z]$/, { message: 'La section doit être une seule lettre majuscule (A, B, C...)' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
+  section?: string;
+}
+
+==========================================
+FILE: backend/src/classes/school-class.entity.ts
+==========================================
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from "typeorm";
+import { StaffProfile } from "../staff/staff-profile.entity";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+
+@Entity("classes")
+export class SchoolClass {
+  @PrimaryGeneratedColumn("uuid") id: string;
+  @Column() level: string;
+  @Column() section: string;
+
+  @OneToMany(() => StudentProfile, student => student.schoolClass)
+  students: StudentProfile[];
+
+  @ManyToMany(() => StaffProfile, (staff) => staff.classes)
+  staff: StaffProfile[];
+}
+
+==========================================
+FILE: backend/src/logger/http-logger.middleware.ts
+==========================================
+import { Injectable, NestMiddleware } from "@nestjs/common";
+import { Request, Response, NextFunction } from "express";
+import { LoggerService } from "./logger.service";
+
+@Injectable()
+export class HttpLoggerMiddleware implements NestMiddleware {
+  constructor(private readonly logger: LoggerService) {}
+
+  use(req: Request, res: Response, next: NextFunction): void {
+    const { method, originalUrl, ip } = req;
+    const start = Date.now();
+    res.on("finish", () => {
+      const user = (req as any).user;
+      this.logger.http({
+        type: "http_request",
+        method,
+        url: originalUrl,
+        statusCode: res.statusCode,
+        responseTime: `${Date.now() - start}ms`,
+        userId: user?.id || "anonymous",
+        userRole: user?.role || "anonymous",
+        ip: ip || "unknown",
+      });
+    });
+    next();
+  }
+}
+
+==========================================
+FILE: backend/src/logger/logger.module.ts
+==========================================
+import { Global, Module } from "@nestjs/common";
+import { LoggerService } from "./logger.service";
+
+@Global()
+@Module({
+  providers: [LoggerService],
+  exports: [LoggerService],
+})
+export class LoggerModule {}
+
+==========================================
+FILE: backend/src/logger/logger.service.ts
+==========================================
+import { Injectable, LoggerService as NestLoggerService } from "@nestjs/common";
+import * as winston from "winston";
+import { LogstashTransport } from "./logstash.transport";
+
+@Injectable()
+export class LoggerService implements NestLoggerService {
+  private readonly logger: winston.Logger;
+
+  constructor() {
+    const transports: winston.transport[] = [
+      new winston.transports.Console({
+        format: winston.format.combine(
+          winston.format.colorize(),
+          winston.format.timestamp({ format: "HH:mm:ss" }),
+          winston.format.printf(({ timestamp, level, message, type }) => {
+            const tag = type ? `[${type as string}] ` : "";
+            return `${String(timestamp)} ${level}: ${tag}${String(message)}`;
+          }),
+        ),
+      }),
+    ];
+
+    const logstashHost = process.env.LOGSTASH_HOST;
+    const logstashPort = parseInt(process.env.LOGSTASH_PORT || "5044", 10);
+
+    if (logstashHost) {
+      transports.push(
+        new LogstashTransport({ host: logstashHost, port: logstashPort }),
+      );
+      console.log(`[Logger] Logstash activé → ${logstashHost}:${logstashPort}`);
+    } else {
+      console.log("[Logger] Logstash désactivé — logs console uniquement");
+    }
+
+    this.logger = winston.createLogger({
+      level: process.env.LOG_LEVEL || "info",
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json(),
+      ),
+      transports,
+    });
+  }
+
+  log(message: string, context?: string): void {
+    this.logger.info(message, { context });
+  }
+  error(message: string, trace?: string, context?: string): void {
+    this.logger.error(message, { trace, context, type: "error" });
+  }
+  warn(message: string, context?: string): void {
+    this.logger.warn(message, { context });
+  }
+  debug(message: string, context?: string): void {
+    this.logger.debug(message, { context });
+  }
+  verbose(message: string, context?: string): void {
+    this.logger.verbose(message, { context });
+  }
+
+  http(data: {
+    type: "http_request";
+    method: string;
+    url: string;
+    statusCode: number;
+    responseTime: string;
+    userId?: string;
+    userRole?: string;
+    ip?: string;
+  }): void {
+    this.logger.info(
+      `${data.method} ${data.url} → ${data.statusCode} (${data.responseTime})`,
+      data,
+    );
+  }
+
+  auth(data: {
+    type: "auth_event";
+    action: "login_success" | "login_failure" | "register";
+    email: string;
+    userId?: string;
+    userRole?: string;
+    reason?: string;
+  }): void {
+    const level = data.action === "login_failure" ? "warn" : "info";
+    this.logger.log(level, `[Auth] ${data.action} — ${data.email}`, data);
+  }
+
+  report(data: {
+    type: "report_event";
+    action: "created" | "updated" | "note_added" | "convocation_sent";
+    reportId?: string;
+    caseNumber?: string;
+    grade?: string;
+    score?: number;
+    status?: string;
+    userId?: string;
+    userRole?: string;
+  }): void {
+    this.logger.info(
+      `[Report] ${data.action} — ${data.caseNumber || data.reportId}`,
+      data,
+    );
+  }
+
+  scoring(data: {
+    type: "scoring_event";
+    reportId?: string;
+    typeScore: number;
+    frequencyScore: number;
+    classScore: number;
+    recidiveScore: number;
+    suspectRoleScore: number;
+    aiScore: number;
+    finalScore: number;
+    grade: string;
+    aiReason?: string;
+    urgency?: boolean;
+  }): void {
+    this.logger.info(
+      `[Scoring] Score: ${data.finalScore}/100 → ${data.grade} | IA: ${data.aiScore}pts | urgence: ${data.urgency}`,
+      data,
+    );
+  }
+}
+
+==========================================
+FILE: backend/src/logger/logstash.transport.ts
+==========================================
+import * as net from "net";
+import TransportStream, { TransportStreamOptions } from "winston-transport";
+
+interface LogstashTransportOptions extends TransportStreamOptions {
+  host: string;
+  port: number;
+}
+
+export class LogstashTransport extends TransportStream {
+  private readonly host: string;
+  private readonly port: number;
+  private client: net.Socket | null = null;
+  private connected = false;
+  private buffer: string[] = [];
+
+  constructor(opts: LogstashTransportOptions) {
+    super(opts);
+    this.host = opts.host;
+    this.port = opts.port;
+    this.connect();
+  }
+
+  private connect(): void {
+    this.client = new net.Socket();
+    this.client.connect(this.port, this.host, () => {
+      this.connected = true;
+      if (this.buffer.length > 0) {
+        this.buffer.forEach((msg) => this.client!.write(msg));
+        this.buffer = [];
+      }
+    });
+    this.client.on("error", () => {
+      this.connected = false;
+      setTimeout(() => this.connect(), 5000);
+    });
+    this.client.on("close", () => {
+      this.connected = false;
+    });
+  }
+
+  log(info: any, callback: () => void): void {
+    setImmediate(() => this.emit("logged", info));
+    const message =
+      JSON.stringify({
+        ...info,
+        application: "safeschool-backend",
+        environment: process.env.NODE_ENV || "development",
+        timestamp: new Date().toISOString(),
+      }) + "\n";
+
+    if (this.connected && this.client) {
+      this.client.write(message);
+    } else if (this.buffer.length < 100) {
+      this.buffer.push(message);
+    }
+    callback();
+  }
+}
+
+==========================================
+FILE: backend/src/main.ts
+==========================================
+import { NestFactory } from "@nestjs/core";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { AppModule } from "./app.module";
+import { join } from "path";
+import { ValidationPipe } from '@nestjs/common';
+import helmet from "helmet";
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // En-têtes de sécurité HTTP (X-Frame-Options, nosniff, etc.).
+  // hsts: false -> sinon, après un make prod en HTTPS, le navigateur force
+  // HTTPS sur tout localhost (HSTS) et make dev (HTTP) devient inaccessible
+  // sans purge manuelle. Peu utile ici (certificat auto-signé, pas de domaine).
+  // crossOriginResourcePolicy en "cross-origin" : sinon les avatars servis
+  // par le backend seraient bloqués quand le frontend de dev (port 5173)
+  // les charge depuis une autre origine (port 5000).
+  app.use(helmet({
+    hsts: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }));
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,             // supprime les champs non définis dans le DTO
+    forbidNonWhitelisted: true,  // erreur si champs inconnus envoyés
+    transform: true,             // active les transformations (@Transform)
+  }));
+  // Origines autorisées par le CORS. En prod (nginx, même origine) le CORS
+  // n'est pas sollicité ; cette liste sert surtout au mode dev (5173 -> 5000).
+  // FRONTEND_URL peut contenir plusieurs origines séparées par des virgules.
+  app.enableCors({
+    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+      .split(',')
+      .map((o) => o.trim()),
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  });
+  // Servir les fichiers uploadés statiquement
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads',
+  });
+  await app.listen(process.env.BACKEND_PORT ?? 3000);
+}
+bootstrap().catch((err) => { console.error(err); process.exit(1); });
+
+==========================================
+FILE: backend/src/notifications/notification.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { Report } from "../reports/report.entity";
+
+@Entity("notifications")
+export class Notification {
+  @PrimaryGeneratedColumn("uuid") id: string;
+  @ManyToOne(() => User, { onDelete: "CASCADE" }) user: User;
+  @ManyToOne(() => Report, { onDelete: "CASCADE", nullable: true })
+  report: Report;
+  @Column("text") message: string;
+  @Column({ default: false }) isRead: boolean;
+  @CreateDateColumn() createdAt: Date;
+}
+
+==========================================
+FILE: backend/src/notifications/notifications.controller.ts
+==========================================
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Request,
+  UseGuards,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { NotificationsService } from "./notifications.service";
+
+@UseGuards(AuthGuard("jwt"))
+@Controller("notifications")
+export class NotificationsController {
+  constructor(private notificationsService: NotificationsService) {}
+
+  @Get()
+  async getMyNotifications(@Request() req) {
+    return this.notificationsService.getForUser(req.user.id);
+  }
+
+  @Get("unread-count")
+  async getUnreadCount(@Request() req) {
+    return { count: await this.notificationsService.countUnread(req.user.id) };
+  }
+
+  @Patch(":id/read")
+  async markAsRead(@Param("id") id: string) {
+    await this.notificationsService.markAsRead(id);
+    return { success: true };
+  }
+}
+
+==========================================
+FILE: backend/src/notifications/notifications.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Notification } from "./notification.entity";
+import { NotificationsService } from "./notifications.service";
+import { NotificationsController } from "./notifications.controller";
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Notification])],
+  controllers: [NotificationsController],
+  providers: [NotificationsService],
+  exports: [NotificationsService],
+})
+export class NotificationsModule {}
+
+==========================================
+FILE: backend/src/notifications/notifications.service.ts
+==========================================
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Notification } from "./notification.entity";
+
+@Injectable()
+export class NotificationsService {
+  constructor(
+    @InjectRepository(Notification)
+    private notificationsRepository: Repository<Notification>,
+  ) {}
+
+  async create(
+    userId: string,
+    reportId: string,
+    message: string,
+  ): Promise<Notification> {
+    const notification = this.notificationsRepository.create({
+      user: { id: userId },
+      report: { id: reportId },
+      message,
+    });
+    return this.notificationsRepository.save(notification);
+  }
+
+  async getForUser(userId: string): Promise<Notification[]> {
+    return this.notificationsRepository
+      .createQueryBuilder("notification")
+      .leftJoinAndSelect("notification.report", "report")
+      .where('notification."userId" = :userId', { userId })
+      .orderBy('notification."createdAt"', "DESC")
+      .getMany();
+  }
+
+  async countUnread(userId: string): Promise<number> {
+    return this.notificationsRepository
+      .createQueryBuilder("notification")
+      .where('notification."userId" = :userId', { userId })
+      .andWhere('notification."isRead" = false')
+      .getCount();
+  }
+
+  async markAsRead(id: string): Promise<void> {
+    await this.notificationsRepository.update(id, { isRead: true });
+  }
+}
+
+==========================================
+FILE: backend/src/parents/dto/create-parent.dto.ts
+==========================================
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, ArrayNotEmpty, Matches, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class CreateParentDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Prénom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Nom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  lastName: string;
+
+  @IsEmail({}, { message: 'Email invalide' })
+  @IsNotEmpty({ message: 'Email obligatoire' })
+  @MaxLength(50, { message: 'Email trop long' })
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[0-9+\s]{0,15}$/, { message: 'Téléphone invalide (chiffres, + et espaces, max 15 caractères)' })
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80, { message: 'Adresse trop longue (max 80 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  address?: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  studentIds: string[];
+}
+
+==========================================
+FILE: backend/src/parents/dto/update-parent.dto.ts
+==========================================
+import { IsEmail, IsOptional, IsString, IsArray, Matches, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class UpdateParentDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  lastName?: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'Email invalide' })
+  @MaxLength(50, { message: 'Email trop long' })
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[0-9+\s]{0,15}$/, { message: 'Téléphone invalide (chiffres, + et espaces, max 15 caractères)' })
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80, { message: 'Adresse trop longue (max 80 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  address?: string;
+
+  @IsOptional()
+  @IsArray()
+  studentIds?: string[];
+}
+
+==========================================
+FILE: backend/src/parents/parent.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+
+@Entity("parents")
+export class Parent {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @Column() firstName: string;
+
+  @Column() lastName: string;
+
+  @Column() email: string;
+
+  @Column({ nullable: true }) phone: string;
+
+  @Column({ nullable: true }) address: string;
+
+  @ManyToMany(() => StudentProfile, (student) => student.parents)
+  @JoinTable({ name: "student_parents" })
+  students: StudentProfile[];
+}
+
+==========================================
+FILE: backend/src/parents/parents.controller.ts
+==========================================
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { ParentsService } from "./parents.service";
+import { CreateParentDto } from "./dto/create-parent.dto";
+import { UpdateParentDto } from "./dto/update-parent.dto";
+import { validateUUID } from "../utils/validate-uuid";
+
+@Controller("parents")
+@UseGuards(AuthGuard("jwt"))
+export class ParentsController {
+  constructor(private readonly parentsService: ParentsService) {}
+
+  @Post()
+  async create(@Body() dto: CreateParentDto, @Request() req) {
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.parentsService.create(dto);
+  }
+
+  @Get()
+  async findAll(@Request() req) {
+    if (req.user.role !== "admin" && req.user.role !== "director")
+      throw new ForbiddenException("Accès refusé");
+    return this.parentsService.findAll();
+  }
+
+  @Get(":id")
+  async findOne(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== "admin" && req.user.role !== "director")
+      throw new ForbiddenException("Accès refusé");
+    return this.parentsService.findOne(id);
+  }
+
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateParentDto,
+    @Request() req,
+  ) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.parentsService.update(id, dto);
+  }
+
+  @Delete(":id")
+  async remove(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.parentsService.remove(id);
+  }
+}
+
+==========================================
+FILE: backend/src/parents/parents.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { Parent } from "./parent.entity";
+import { ParentsService } from "./parents.service";
+import { ParentsController } from "./parents.controller";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Parent, StudentProfile])],
+  controllers: [ParentsController],
+  providers: [ParentsService],
+  exports: [ParentsService],
+})
+export class ParentsModule {}
+
+==========================================
+FILE: backend/src/parents/parents.service.ts
+==========================================
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { Parent } from "./parent.entity";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+import { CreateParentDto } from "./dto/create-parent.dto";
+import { UpdateParentDto } from "./dto/update-parent.dto";
+
+@Injectable()
+export class ParentsService {
+  constructor(
+    @InjectRepository(Parent) private parentsRepo: Repository<Parent>,
+    @InjectRepository(StudentProfile) private studentRepo: Repository<StudentProfile>,
+  ) {}
+
+  // Création d'un parent
+  async create(dto: CreateParentDto): Promise<Parent> {
+    // Vérifier qu'un élève n'a pas déjà 2 parents
+    if (dto.studentIds?.length) {
+      for (const studentId of dto.studentIds) {
+        const student = await this.studentRepo.findOne({
+          where: { id: studentId },
+          relations: ['parents'],
+        });
+        if (student && student.parents?.length >= 2) {
+          throw new BadRequestException('MAX_PARENTS_REACHED');
+        }
+      }
+    }
+
+    const parent = this.parentsRepo.create({
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      email: dto.email,
+      phone: dto.phone,
+      address: dto.address,
+    });
+
+    if (dto.studentIds?.length) {
+      parent.students = await this.studentRepo.findBy({
+        id: In(dto.studentIds),
+      });
+    }
+
+    return this.parentsRepo.save(parent);
+  }
+
+  // Récupération de tous les parents
+  async findAll(): Promise<Parent[]> {
+    return this.parentsRepo.find({ relations: ['students', 'students.user'] });
+  }
+
+  // Récupération d'un parent par son id
+  async findOne(id: string): Promise<Parent> {
+    const parent = await this.parentsRepo.findOne({
+      where: { id },
+      relations: ['students', 'students.user'],
+    });
+    if (!parent) throw new NotFoundException('Parent introuvable');
+    return parent;
+  }
+
+  // Modification d'un parent
+  async update(id: string, dto: UpdateParentDto): Promise<Parent> {
+    const parent = await this.findOne(id);
+    if (dto.firstName) parent.firstName = dto.firstName;
+    if (dto.lastName) parent.lastName = dto.lastName;
+    if (dto.email) parent.email = dto.email;
+    if (dto.phone !== undefined) parent.phone = dto.phone;
+    if (dto.address !== undefined) parent.address = dto.address;
+    if (dto.studentIds) {
+      parent.students = await this.studentRepo.findBy({
+        id: In(dto.studentIds),
+      });
+    }
+    return this.parentsRepo.save(parent);
+  }
+
+  // Suppression d'un parent
+  async remove(id: string): Promise<void> {
+    const parent = await this.findOne(id);
+    await this.parentsRepo.remove(parent);
+  }
+}
+
+==========================================
+FILE: backend/src/quiz-realtime/quiz-realtime.gateway.ts
+==========================================
+import {
+	ConnectedSocket,
+	MessageBody,
+	OnGatewayInit,
+	OnGatewayConnection,
+	OnGatewayDisconnect,
+	SubscribeMessage,
+	WebSocketGateway,
+	WebSocketServer,
+} from '@nestjs/websockets';
+import { Logger } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
+import { QuizRealtimeService } from './quiz-realtime.service';
+
+function isNonEmptyString(value: unknown): value is string {
+	return typeof value === 'string' && value.length > 0;
+}
+
+function isInteger(value: unknown): value is number {
+	return typeof value === 'number' && Number.isInteger(value);
+}
+
+interface JoinRoomPayload {
+  roomId: string;
+  playerName?: string;
+}
+
+interface LeaveRoomPayload {
+  roomId: string;
+}
+
+interface StartGamePayload {
+  roomId: string;
+}
+
+interface SubmitAnswerPayload {
+  roomId: string;
+  questionId: number;
+  selectedIndex: number;
+}
+
+@WebSocketGateway({
+  cors: {
+    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
+      .split(',')
+      .map((o) => o.trim()),
+  },
+})
+export class QuizRealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
+	constructor(
+		private readonly quizRealtimeService: QuizRealtimeService,
+		private readonly jwtService: JwtService,
+	) {}
+
+	private readonly logger = new Logger(QuizRealtimeGateway.name);
+
+  @WebSocketServer()
+  server: Server;
+
+  afterInit() {
+    this.quizRealtimeService.setOnQuestionRevealed((payload) => {
+      this.server.to(payload.roomId).emit("quiz:question:reveal", payload);
+    });
+
+    this.quizRealtimeService.setOnQuestionTimedOut(
+      ({ roomId, roomSnapshot, nextQuestionSnapshot }) => {
+        this.server.to(roomId).emit("quiz:score:update", roomSnapshot);
+
+        if (nextQuestionSnapshot) {
+          this.server.to(roomId).emit("quiz:question", nextQuestionSnapshot);
+          return;
+        }
+
+        this.server.to(roomId).emit("quiz:game:over", roomSnapshot);
+        void this.server.in(roomId).socketsLeave(roomId);
+      },
+    );
+
+    // La période de grâce d'un joueur déconnecté a expiré et il a été retiré
+    this.quizRealtimeService.setOnPlayerExpired(
+      ({ roomId, result, revealPayload }) => {
+        if (result.status === "room-closed") {
+          this.server.to(roomId).emit("quiz:room:closed", { roomId });
+          return;
+        }
+
+        if (result.snapshot) {
+          this.server.to(roomId).emit("quiz:room:update", result.snapshot);
+        }
+
+        if (revealPayload) {
+          this.server
+            .to(roomId)
+            .emit("quiz:score:update", revealPayload.roomSnapshot);
+          this.server.to(roomId).emit("quiz:question:reveal", revealPayload);
+        }
+      },
+    );
+  }
+
+	handleConnection(client: Socket) {
+		const token = this.extractToken(client);
+
+		if (!token) {
+			client.emit('quiz:unauthorized', { reason: 'missing-token' });
+			client.disconnect(true);
+			return;
+		}
+
+		try {
+			const payload = this.jwtService.verify<{ sub: string; email: string; role: string }>(
+				token,
+				{ algorithms: ['HS256'] },
+			);
+			client.data.user = payload;
+		} catch {
+			client.emit('quiz:unauthorized', { reason: 'invalid-token' });
+			client.disconnect(true);
+			return;
+		}
+
+		this.logger.log(`quiz client connected: ${client.id}`);
+	}
+
+	private extractToken(client: Socket): string | undefined {
+		const authToken = client.handshake.auth?.token;
+		if (typeof authToken === 'string' && authToken.length > 0) {
+			return authToken.replace(/^Bearer\s+/i, '');
+		}
+
+		const header = client.handshake.headers?.authorization;
+		if (typeof header === 'string' && header.length > 0) {
+			return header.replace(/^Bearer\s+/i, '');
+		}
+
+		return undefined;
+	}
+
+	handleDisconnect(client: Socket) {
+		this.logger.log(`quiz client disconnected: ${client.id}`);
+
+		const updates = this.quizRealtimeService.markDisconnected(client.id);
+		for (const update of updates) {
+			if (update.closed) {
+				this.server.to(update.roomId).emit('quiz:room:closed', { roomId: update.roomId });
+				continue;
+			}
+
+			if (update.snapshot) {
+				this.server.to(update.roomId).emit('quiz:room:update', update.snapshot);
+			}
+
+			if (update.revealPayload) {
+				this.server.to(update.roomId).emit('quiz:score:update', update.revealPayload.roomSnapshot);
+				this.server.to(update.roomId).emit('quiz:question:reveal', update.revealPayload);
+			}
+		}
+	}
+
+	private getPlayerId(client: Socket): string | undefined {
+		const user = client.data.user as { sub?: string } | undefined;
+		return user?.sub;
+	}
+
+	// Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
+	// la question en cours, les scores, toute révélation active et sa propre réponse
+	private sendReconnectState(client: Socket, roomId: string, playerId: string) {
+		const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
+		if (!snapshot || snapshot.status !== 'in-progress') return;
+
+		const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(roomId);
+		if (questionSnapshot) {
+			client.emit('quiz:question', questionSnapshot);
+		}
+
+		client.emit('quiz:score:update', snapshot);
+
+		const revealSnapshot = this.quizRealtimeService.getRevealSnapshot(roomId);
+		if (revealSnapshot) {
+			client.emit('quiz:question:reveal', revealSnapshot);
+		}
+
+		const answerState = this.quizRealtimeService.getPlayerAnswerState(roomId, playerId);
+		if (answerState?.hasAnswered && answerState.questionId !== null) {
+			client.emit('quiz:answer:restore', {
+				questionId: answerState.questionId,
+				selectedIndex: answerState.selectedIndex,
+				hasAnswered: true,
+			});
+		}
+	}
+
+  @SubscribeMessage("quiz:ping")
+  handlePing(
+    @MessageBody() payload: string,
+    @ConnectedSocket() client: Socket,
+  ) {
+    return {
+      event: "quiz:pong",
+      data: this.quizRealtimeService.createPongMessage(payload, client.id),
+    };
+  }
+
+	@SubscribeMessage('quiz:join')
+	handleJoin(
+		@MessageBody() payload: JoinRoomPayload,
+		@ConnectedSocket() client: Socket,
+	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: null, reason: 'invalid-payload', snapshot: null },
+			};
+		}
+		if (payload.playerName !== undefined && typeof payload.playerName !== 'string') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'invalid-payload', snapshot: null },
+			};
+		}
+
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized', snapshot: null },
+			};
+		}
+
+		// Une seule salle active par compte : si ce compte est déjà en ligne dans une salle
+		// (un autre onglet, ou une autre salle), on refuse de rejoindre et on laisse cette salle
+		// intacte. Se reconnecter après une vraie coupure n'est pas affecté car la
+		// présence restante n'est plus "connectée"
+		const activeRoomId = this.quizRealtimeService.getActiveRoomId(playerId, client.id);
+		if (activeRoomId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'already-in-room', snapshot: null },
+			};
+		}
+
+		// Nettoie toute présence restante (déconnectée) dans les autres salles pour que le
+		// compte ne soit suivi que dans une seule salle, puis rafraîchit ces salles
+		const evictions = this.quizRealtimeService.evictFromOtherRooms(playerId, payload.roomId);
+		for (const eviction of evictions) {
+			void client.leave(eviction.roomId);
+			if (eviction.result.status === 'room-closed') {
+				this.server.to(eviction.roomId).emit('quiz:room:closed', { roomId: eviction.roomId });
+			} else if (eviction.result.snapshot) {
+				this.server.to(eviction.roomId).emit('quiz:room:update', eviction.result.snapshot);
+			}
+		}
+
+		const result = this.quizRealtimeService.joinRoom({
+			roomId: payload.roomId,
+			playerId,
+			socketId: client.id,
+			playerName: payload.playerName,
+		});
+
+    if (result.status === "roomcode-bad-format") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "code-bad-format",
+          snapshot: result.snapshot,
+        },
+      };
+    }
+
+    if (result.status === "quiz-already-started") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "quiz-already-started",
+          snapshot: result.snapshot,
+        },
+      };
+    }
+
+    if (result.status === "room-is-full") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "room-is-full",
+          snapshot: result.snapshot,
+        },
+      };
+    }
+
+		if (result.status === 'server-at-capacity') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'server-at-capacity', snapshot: result.snapshot },
+			};
+		}
+
+		if (result.status === 'joined' || result.status === 'reconnected') {
+			void client.join(payload.roomId);
+		}
+
+		if (result.snapshot) {
+			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
+		}
+
+		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
+		if (result.status === 'reconnected') {
+			this.sendReconnectState(client, payload.roomId, playerId);
+		}
+
+    return {
+      event: "quiz:joined",
+      data: { ...result.snapshot, selfId: playerId },
+    };
+  }
+
+	@SubscribeMessage('quiz:leave')
+	handleLeave(
+		@MessageBody() payload: LeaveRoomPayload,
+		@ConnectedSocket() client: Socket,
+	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: null, reason: 'invalid-payload' },
+			};
+		}
+
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
+
+		const result = this.quizRealtimeService.leaveRoom(payload.roomId, playerId);
+
+		if (result.status === 'room-not-found') {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'room-not-found' },
+			};
+		}
+
+		if (result.status === 'not-in-room') {
+			return {
+				event: 'quiz:leave:ignored',
+				data: { roomId: payload.roomId, reason: 'not-in-room', snapshot: result.snapshot },
+			};
+		}
+
+		void client.leave(payload.roomId);
+
+    if (result.status === "room-closed") {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:room:closed", { roomId: payload.roomId });
+      return {
+        event: "quiz:left",
+        data: { roomId: payload.roomId, closed: true },
+      };
+    }
+
+    if (result.snapshot) {
+      this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
+    }
+
+    return {
+      event: "quiz:left",
+      data: result.snapshot,
+    };
+  }
+
+	@SubscribeMessage('quiz:start')
+	handleStart(
+		@MessageBody() payload: StartGamePayload,
+		@ConnectedSocket() client: Socket,
+	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: null, reason: 'invalid-payload' },
+			};
+		}
+
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized' },
+			};
+		}
+
+		const result = this.quizRealtimeService.startGame(payload.roomId, playerId);
+
+		if (result.status !== 'started') {
+			return {
+				event: 'quiz:start:ignored',
+				data: { roomId: payload.roomId, reason: result.status },
+			};
+		}
+
+    this.server.to(payload.roomId).emit("quiz:game:started", result.snapshot);
+
+    const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(
+      payload.roomId,
+    );
+    if (questionSnapshot) {
+      this.server.to(payload.roomId).emit("quiz:question", questionSnapshot);
+    }
+
+    return {
+      event: "quiz:started",
+      data: result.snapshot,
+    };
+  }
+
+	@SubscribeMessage('quiz:answer')
+	handleAnswer(
+		@MessageBody() payload: SubmitAnswerPayload,
+		@ConnectedSocket() client: Socket,
+	) {
+		const playerId = this.getPlayerId(client);
+		if (
+			!playerId ||
+			!payload ||
+			!isNonEmptyString(payload.roomId) ||
+			!isInteger(payload.questionId) ||
+			!isInteger(payload.selectedIndex) ||
+			payload.selectedIndex < 0
+		) {
+			return {
+				event: 'quiz:answer:ignored',
+				data: {
+					roomId: payload?.roomId ?? null,
+					playerId: playerId ?? null,
+					questionId: payload?.questionId ?? null,
+					reason: playerId ? 'invalid-payload' : 'unauthorized',
+					snapshot: null,
+				},
+			};
+		}
+
+		const result = this.quizRealtimeService.submitAnswer({
+			roomId: payload.roomId,
+			playerId,
+			questionId: payload.questionId,
+			selectedIndex: payload.selectedIndex,
+		});
+
+		if (result.status !== 'accepted') {
+			return {
+				event: 'quiz:answer:ignored',
+				data: {
+					roomId: payload.roomId,
+					playerId,
+					questionId: payload.questionId,
+					reason: result.status,
+					snapshot: result.roomSnapshot,
+				},
+			};
+		}
+
+    client.emit("quiz:answer:result", result.answerResult);
+
+    if (result.roomSnapshot) {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:score:update", result.roomSnapshot);
+    }
+
+    if (result.revealPayload) {
+      this.server
+        .to(payload.roomId)
+        .emit("quiz:question:reveal", result.revealPayload);
+    }
+
+		return {
+			event: 'quiz:answer:accepted',
+			data: {
+				roomId: payload.roomId,
+				playerId,
+				questionId: payload.questionId,
+			},
+		};
+	}
+}
+
+==========================================
+FILE: backend/src/quiz-realtime/quiz-realtime.module.ts
+==========================================
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { QuizRealtimeGateway } from './quiz-realtime.gateway';
+import { QuizRealtimeService } from './quiz-realtime.service';
+
+@Module({
+	imports: [
+		JwtModule.register({
+			secret: process.env.JWT_SECRET,
+			verifyOptions: { algorithms: ['HS256'] },
+		}),
+	],
+	providers: [QuizRealtimeGateway, QuizRealtimeService],
+})
+export class QuizRealtimeModule {}
+
+==========================================
+FILE: backend/src/quiz-realtime/quiz-realtime.service.ts
+==========================================
+import { Injectable } from "@nestjs/common";
+import questionsData from "./questions.json";
+
+// Les questions sont stockées avec leur texte et leurs options traduits dans chaque langue
+// supportée. Le client reçoit toutes les langues et choisit librement laquelle afficher
+type QuizLocale = "fr" | "en" | "de";
+type LocalizedText = Record<QuizLocale, string>;
+type LocalizedOptions = Record<QuizLocale, string[]>;
+
+interface QuestionInternal {
+  id: number;
+  text: LocalizedText;
+  options: LocalizedOptions;
+  correctIndex: number;
+  score: number;
+}
+
+interface QuestionPublic {
+  id: number;
+  text: LocalizedText;
+  options: LocalizedOptions;
+}
+
+const ALL_QUESTIONS: QuestionInternal[] = questionsData;
+const QUESTIONS_PER_GAME = 15;
+const QUESTION_TIME_LIMIT_MS = 30_000;
+// Limite stricte du nombre de salles simultanées pour empêcher un client de
+// saturer la mémoire en inondant `quiz:join` de codes de salle uniques
+const MAX_CONCURRENT_ROOMS = 500;
+
+const REVEAL_TIME_MS = 5_000;
+// Durée de conservation de l'état d'un joueur déconnecté pour qu'il puisse se reconnecter et
+// reprendre une partie en cours. Passé ce délai, son état est supprimé de la salle
+const RECONNECT_GRACE_MS = 60_000;
+
+// Paliers de vitesse : répondre correctement plus vite rapporte plus de points de base
+const SPEED_TIERS: { withinMs: number; points: number }[] = [
+	{ withinMs: 3_000, points: 3 },
+	{ withinMs: 7_000, points: 2 },
+];
+// Si la réponse prend plus de 7 secondes, 1 point est attribué
+const SPEED_SLOW_POINTS = 1;
+// Série de combo maximale possible
+const MAX_STREAK_MULTIPLIER = 5;
+
+function speedBasePoints(elapsedMs: number): number {
+	for (const tier of SPEED_TIERS) {
+		if (elapsedMs <= tier.withinMs) return tier.points;
+	}
+	return SPEED_SLOW_POINTS;
+}
+
+function streakMultiplier(streak: number): number {
+	return Math.min(Math.max(streak, 1), MAX_STREAK_MULTIPLIER);
+}
+
+function pickRandomQuestions(
+  questions: QuestionInternal[],
+  count: number,
+): QuestionInternal[] {
+  const shuffled = [...questions].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
+type GameStatus = "waiting" | "in-progress" | "finished";
+
+interface QuizPlayer {
+	// Identité stable (JWT `sub`) qui survit aux reconnexions du socket
+	playerId: string;
+	// Id du socket actif actuel, ou null tant que le joueur est déconnecté
+	socketId: string | null;
+	name: string;
+	score: number;
+	streak: number;
+	connected: boolean;
+	disconnectTimer: NodeJS.Timeout | null;
+	graceEndsAt: number | null;
+}
+
+interface QuizRoom {
+	roomId: string;
+	// Identité de l'hôte (playerId stable, pas un id de socket)
+	hostId: string;
+	status: GameStatus;
+	// Indexé par playerId stable
+	players: Map<string, QuizPlayer>;
+	questions: QuestionInternal[];
+	currentQuestionIndex: number;
+	answeredPlayerIds: Set<string>;
+	selectedAnswerByPlayerId: Map<string, number>;
+	startedAt: number | null;
+	questionEndsAt: number | null;
+	questionTimer: NodeJS.Timeout | null;
+	revealEndsAt: number | null;
+	revealTimer: NodeJS.Timeout | null;
+}
+
+interface AnswerStatistic {
+  index: number;
+  count: number;
+  percentage: number;
+}
+
+interface TimeoutAdvancePayload {
+  roomId: string;
+  roomSnapshot: RoomSnapshot;
+  nextQuestionSnapshot: ReturnType<QuizRealtimeService["getQuestionSnapshot"]>;
+}
+
+interface QuestionRevealPayload {
+  roomId: string;
+  questionId: number;
+  correctIndex: number;
+  answerStatistics: AnswerStatistic[];
+  roomSnapshot: RoomSnapshot;
+  revealEndsAt: number;
+  revealDurationMs: number;
+}
+
+interface JoinRoomInput {
+	roomId: string;
+	playerId: string;
+	socketId: string;
+	playerName?: string;
+}
+
+interface SubmitAnswerInput {
+	roomId: string;
+	playerId: string;
+	questionId: number;
+	selectedIndex: number;
+}
+
+// Une entrée par salle dont le socket en déconnexion faisait partie
+interface DisconnectUpdate {
+	roomId: string;
+	// La salle a été vidée et supprimée suite à la déconnexion
+	closed: boolean;
+	snapshot: RoomSnapshot | null;
+	// Défini quand la déconnexion fait que tous les joueurs connectés restants ont "répondu",
+	// pour que la question soit révélée immédiatement
+	revealPayload: QuestionRevealPayload | null;
+}
+
+interface PlayerExpiredPayload {
+	roomId: string;
+	result: LeaveRoomResult;
+	revealPayload: QuestionRevealPayload | null;
+}
+
+type RoomSnapshot = ReturnType<QuizRealtimeService['getRoomSnapshot']>;
+
+type StartGameResult =
+	| { status: 'started'; snapshot: RoomSnapshot }
+	| { status: 'room-not-found' | 'not-host' | 'already-in-progress'; snapshot: null };
+
+type SubmitAnswerResult =
+	| {
+			status: 'accepted';
+			roomSnapshot: RoomSnapshot;
+			answerResult: {
+				roomId: string;
+				playerId: string;
+				questionId: number;
+				isCorrect: boolean;
+				basePoints: number;
+				multiplier: number;
+				pointsEarned: number;
+				streak: number;
+			};
+			revealPayload: QuestionRevealPayload | null;
+	  }
+	| {
+			status:
+				| 'room-not-found'
+				| 'player-not-in-room'
+				| 'no-active-question'
+				| 'question-mismatch'
+				| 'already-answered';
+			roomSnapshot: RoomSnapshot | null;
+			answerResult: null;
+	  };
+
+type JoinRoomResult = {
+	status:
+		| 'joined'
+		| 'reconnected'
+		| 'quiz-already-started'
+		| 'roomcode-bad-format'
+		| 'room-is-full'
+		| 'server-at-capacity';
+	snapshot: RoomSnapshot;
+};
+
+type LeaveRoomResult =
+  | { status: "left"; snapshot: RoomSnapshot }
+  | { status: "room-closed"; snapshot: null }
+  | { status: "room-not-found" | "not-in-room"; snapshot: RoomSnapshot | null };
+
+@Injectable()
+export class QuizRealtimeService {
+  private readonly rooms = new Map<string, QuizRoom>();
+  private onQuestionTimedOut?: (payload: TimeoutAdvancePayload) => void;
+  private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
+  private onPlayerExpired?: (payload: PlayerExpiredPayload) => void;
+
+  createPongMessage(payload: string | undefined, clientId: string) {
+    return {
+      message: payload || "pong",
+      clientId,
+    };
+  }
+
+	joinRoom({ roomId, playerId, socketId, playerName }: JoinRoomInput): JoinRoomResult {
+		if (roomId.length < 3 || roomId.length > 10) {
+			return {
+				status : "roomcode-bad-format",
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+		let room = this.rooms.get(roomId);
+
+		// Reconnexion : le joueur est déjà membre (peut-être en pleine partie). On rattache
+		// le nouveau socket et on annule toute suppression de période de grâce en attente
+		if (room && room.players.has(playerId)) {
+			const player = room.players.get(playerId)!;
+			if (player.disconnectTimer) {
+				clearTimeout(player.disconnectTimer);
+				player.disconnectTimer = null;
+			}
+			player.socketId = socketId;
+			player.connected = true;
+			player.graceEndsAt = null;
+			if (playerName?.trim()) {
+				player.name = playerName.trim();
+			}
+			return {
+				status: 'reconnected',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+		if (!room && this.rooms.size >= MAX_CONCURRENT_ROOMS) {
+			return {
+				status: 'server-at-capacity',
+				snapshot: null,
+			};
+		}
+
+		if (!room) {
+			room = {
+				roomId,
+				hostId: playerId,
+				status: 'waiting',
+				players: new Map<string, QuizPlayer>(),
+				questions: [],
+				currentQuestionIndex: 0,
+				answeredPlayerIds: new Set<string>(),
+				selectedAnswerByPlayerId: new Map<string, number>(),
+				startedAt: null,
+				questionEndsAt: null,
+				questionTimer: null,
+				revealEndsAt: null,
+				revealTimer: null,
+			};
+			this.rooms.set(roomId, room);
+		} else if (room.status === 'in-progress') {
+			return {
+				status: 'quiz-already-started',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+    if (room.players.size >= 32) {
+      return {
+        status: "room-is-full",
+        snapshot: this.getRoomSnapshot(roomId),
+      };
+    }
+
+		room.players.set(playerId, {
+			playerId,
+			socketId,
+			name: playerName?.trim() || `Player-${playerId.slice(0, 5)}`,
+			score: 0,
+			streak: 0,
+			connected: true,
+			disconnectTimer: null,
+			graceEndsAt: null,
+		});
+
+    return {
+      status: "joined",
+      snapshot: this.getRoomSnapshot(roomId),
+    };
+  }
+
+	leaveRoom(roomId: string, playerId: string): LeaveRoomResult {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			return { status: 'room-not-found', snapshot: null };
+		}
+
+		const player = room.players.get(playerId);
+		if (!player) {
+			return {
+				status: 'not-in-room',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
+
+		if (player.disconnectTimer) {
+			clearTimeout(player.disconnectTimer);
+			player.disconnectTimer = null;
+		}
+		room.players.delete(playerId);
+		room.answeredPlayerIds.delete(playerId);
+		room.selectedAnswerByPlayerId.delete(playerId);
+
+    if (room.players.size === 0) {
+      this.clearQuestionTimer(room);
+      this.clearRevealTimer(room);
+      this.clearAllDisconnectTimers(room);
+      this.rooms.delete(roomId);
+      return { status: "room-closed", snapshot: null };
+    }
+
+		if (room.hostId === playerId) {
+			// On préfère un joueur encore connecté comme nouvel hôte
+			const nextHost =
+				[...room.players.values()].find((candidate) => candidate.connected) ??
+				(room.players.values().next().value as QuizPlayer | undefined);
+			if (nextHost) {
+				room.hostId = nextHost.playerId;
+			}
+		}
+
+    return {
+      status: "left",
+      snapshot: this.getRoomSnapshot(roomId),
+    };
+  }
+
+	// Renvoie la salle dans laquelle ce compte est actuellement EN LIGNE (connecté sur un
+	// socket autre que `exceptSocketId`), ou null. Sert à refuser un deuxième onglet ou une
+	// deuxième salle tant que le compte est encore activement dans une. Une présence laissée
+	// dans un état de grâce "déconnecté" ne compte pas, donc se reconnecter
+	// après une vraie coupure reste autorisé
+	getActiveRoomId(playerId: string, exceptSocketId: string): string | null {
+		for (const room of this.rooms.values()) {
+			const player = room.players.get(playerId);
+			if (player && player.connected && player.socketId !== exceptSocketId) {
+				return room.roomId;
+			}
+		}
+		return null;
+	}
+
+	// Impose une seule salle par compte : retire complètement ce joueur de toutes les salles
+	// sauf `keepRoomId`. Renvoie les résultats de sortie pour que la gateway puisse rafraîchir
+	// les salles dont le joueur a été retiré
+	evictFromOtherRooms(
+		playerId: string,
+		keepRoomId: string,
+	): Array<{ roomId: string; result: LeaveRoomResult }> {
+		const evictions: Array<{ roomId: string; result: LeaveRoomResult }> = [];
+
+		for (const otherRoomId of [...this.rooms.keys()]) {
+			if (otherRoomId === keepRoomId) continue;
+			const room = this.rooms.get(otherRoomId);
+			if (!room || !room.players.has(playerId)) continue;
+
+			const result = this.leaveRoom(otherRoomId, playerId);
+			evictions.push({ roomId: otherRoomId, result });
+		}
+
+		return evictions;
+	}
+
+	startGame(roomId: string, playerId: string): StartGameResult {
+		const room = this.rooms.get(roomId);
+		if (!room) return { status: 'room-not-found', snapshot: null };
+		if (room.hostId !== playerId) return { status: 'not-host', snapshot: null };
+
+		// Empêche un hôte de relancer une partie en pleine partie
+		if (room.status !== 'waiting') return { status: 'already-in-progress', snapshot: null };
+
+		this.clearQuestionTimer(room);
+		this.clearRevealTimer(room);
+		room.status = 'in-progress';
+		room.questions = pickRandomQuestions(ALL_QUESTIONS, QUESTIONS_PER_GAME);
+		room.currentQuestionIndex = 0;
+		room.answeredPlayerIds.clear();
+		room.selectedAnswerByPlayerId.clear();
+		room.startedAt = Date.now();
+		this.scheduleQuestionTimer(room);
+
+    return { status: "started", snapshot: this.getRoomSnapshot(roomId) };
+  }
+
+	submitAnswer({ roomId, playerId, questionId, selectedIndex }: SubmitAnswerInput): SubmitAnswerResult {
+		const room = this.rooms.get(roomId);
+		if (!room) {
+			return { status: 'room-not-found', roomSnapshot: null, answerResult: null };
+		}
+
+		const player = room.players.get(playerId);
+		if (!player) {
+			return { status: 'player-not-in-room', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
+		}
+
+    if (room.status !== "in-progress") {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
+
+    if (room.revealEndsAt !== null) {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion) {
+      return {
+        status: "no-active-question",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
+
+    if (currentQuestion.id !== questionId) {
+      return {
+        status: "question-mismatch",
+        roomSnapshot: this.getRoomSnapshot(roomId),
+        answerResult: null,
+      };
+    }
+
+		if (room.answeredPlayerIds.has(playerId)) {
+			return { status: 'already-answered', roomSnapshot: this.getRoomSnapshot(roomId), answerResult: null };
+		}
+
+		const isCorrect = selectedIndex === currentQuestion.correctIndex;
+
+		let basePoints = 0;
+		let multiplier = 0;
+		let pointsEarned = 0;
+		if (isCorrect) {
+			const now = Date.now();
+			const elapsedMs = room.questionEndsAt !== null
+				? Math.max(0, Math.min(QUESTION_TIME_LIMIT_MS, QUESTION_TIME_LIMIT_MS - (room.questionEndsAt - now)))
+				: QUESTION_TIME_LIMIT_MS;
+			player.streak += 1;
+			basePoints = speedBasePoints(elapsedMs);
+			multiplier = streakMultiplier(player.streak);
+			pointsEarned = basePoints * multiplier;
+			player.score += pointsEarned;
+		} else {
+			player.streak = 0;
+		}
+
+		room.selectedAnswerByPlayerId.set(playerId, selectedIndex);
+		room.answeredPlayerIds.add(playerId);
+
+    // Les joueurs déconnectés sont ignorés : seuls les joueurs connectés ont besoin
+    // d'avoir répondu pour que la question avance
+    let revealPayload: QuestionRevealPayload | null = null;
+    if (this.allConnectedAnswered(room)) {
+      revealPayload = this.enterRevealPhase(room);
+    }
+
+		return {
+			status: 'accepted',
+			roomSnapshot: this.getRoomSnapshot(roomId),
+			answerResult: { roomId, playerId, questionId, isCorrect, basePoints, multiplier, pointsEarned, streak: player.streak },
+			revealPayload,
+		};
+	}
+
+	private allConnectedAnswered(room: QuizRoom): boolean {
+		const connected = [...room.players.values()].filter((player) => player.connected);
+		if (connected.length === 0) return false;
+		return connected.every((player) => room.answeredPlayerIds.has(player.playerId));
+	}
+
+  setOnQuestionTimedOut(
+    handler: ((payload: TimeoutAdvancePayload) => void) | undefined,
+  ) {
+    this.onQuestionTimedOut = handler;
+  }
+
+  setOnQuestionRevealed(
+    handler: ((payload: QuestionRevealPayload) => void) | undefined,
+  ) {
+    this.onQuestionRevealed = handler;
+  }
+
+  setOnPlayerExpired(
+    handler: ((payload: PlayerExpiredPayload) => void) | undefined,
+  ) {
+    this.onPlayerExpired = handler;
+  }
+
+	// Appelé quand un socket se déconnecte. Pendant une partie en cours, le joueur est gardé
+	// dans un état "déconnecté" pendant une période de grâce pour qu'il puisse se reconnecter et
+	// reprendre ; en dehors d'une partie en cours, il est retiré immédiatement
+	markDisconnected(socketId: string): DisconnectUpdate[] {
+		const updates: DisconnectUpdate[] = [];
+
+		for (const room of this.rooms.values()) {
+			const player = [...room.players.values()].find((candidate) => candidate.socketId === socketId);
+			if (!player) continue;
+
+			const roomId = room.roomId;
+
+			// Aucune partie en cours à reprendre — on retire le joueur tout de suite
+			if (room.status !== 'in-progress') {
+				const result = this.leaveRoom(roomId, player.playerId);
+				updates.push({
+					roomId,
+					closed: result.status === 'room-closed',
+					snapshot: result.snapshot,
+					revealPayload: null,
+				});
+				continue;
+			}
+
+			// Si personne d'autre n'est encore connecté (ex : une partie solo), il n'y a aucune
+			// partie en cours à garder en vie pour une reconnexion — on détruit toute la salle pour
+			// que le joueur ne puisse pas revenir dans une salle fantôme vide
+			const otherConnected = [...room.players.values()].some(
+				(candidate) => candidate.playerId !== player.playerId && candidate.connected,
+			);
+			if (!otherConnected) {
+				this.clearQuestionTimer(room);
+				this.clearRevealTimer(room);
+				this.clearAllDisconnectTimers(room);
+				room.players.clear();
+				this.rooms.delete(roomId);
+				updates.push({ roomId, closed: true, snapshot: null, revealPayload: null });
+				continue;
+			}
+
+			player.connected = false;
+			player.socketId = null;
+			player.graceEndsAt = Date.now() + RECONNECT_GRACE_MS;
+			if (player.disconnectTimer) clearTimeout(player.disconnectTimer);
+			const playerId = player.playerId;
+			player.disconnectTimer = setTimeout(
+				() => this.expirePlayer(roomId, playerId),
+				RECONNECT_GRACE_MS,
+			);
+
+			// Maintenant que ce joueur ne compte plus, les joueurs connectés restants
+			// ont peut-être déjà tous répondu — on révèle immédiatement pour que personne n'attende
+			let revealPayload: QuestionRevealPayload | null = null;
+			if (room.revealEndsAt === null && this.allConnectedAnswered(room)) {
+				revealPayload = this.enterRevealPhase(room);
+			}
+
+			updates.push({
+				roomId,
+				closed: false,
+				snapshot: this.getRoomSnapshot(roomId),
+				revealPayload,
+			});
+		}
+
+		return updates;
+	}
+
+	// La période de grâce s'est écoulée sans reconnexion : on retire le joueur définitivement
+	private expirePlayer(roomId: string, playerId: string) {
+		const room = this.rooms.get(roomId);
+		if (!room) return;
+
+		const player = room.players.get(playerId);
+		if (!player || player.connected) return; // reconnecté entre-temps
+
+		const result = this.leaveRoom(roomId, playerId);
+
+		// Les retirer peut compléter la question en cours pour tous ceux encore présents
+		let revealPayload: QuestionRevealPayload | null = null;
+		const remaining = this.rooms.get(roomId);
+		if (
+			remaining &&
+			remaining.status === 'in-progress' &&
+			remaining.revealEndsAt === null &&
+			this.allConnectedAnswered(remaining)
+		) {
+			revealPayload = this.enterRevealPhase(remaining);
+		}
+
+		this.onPlayerExpired?.({ roomId, result, revealPayload });
+	}
+
+	private clearAllDisconnectTimers(room: QuizRoom) {
+		for (const player of room.players.values()) {
+			if (player.disconnectTimer) {
+				clearTimeout(player.disconnectTimer);
+				player.disconnectTimer = null;
+			}
+		}
+	}
+
+  getRoomSnapshot(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+
+		return {
+			roomId: room.roomId,
+			hostId: room.hostId,
+			status: room.status,
+			players: Array.from(room.players.values()).map((player) => ({
+				clientId: player.playerId,
+				name: player.name,
+				score: player.score,
+				connected: player.connected,
+			})),
+		};
+	}
+
+  // Vue par joueur de la question en cours, utilisée pour restaurer l'état d'UI
+  // "déjà répondu" d'un joueur qui se reconnecte
+  getPlayerAnswerState(roomId: string, playerId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    return {
+      questionId: currentQuestion?.id ?? null,
+      hasAnswered: room.answeredPlayerIds.has(playerId),
+      selectedIndex: room.selectedAnswerByPlayerId.get(playerId) ?? null,
+    };
+  }
+
+  // Données de révélation de la question en cours de révélation, le cas échéant. Sert à
+  // mettre à jour un joueur qui se reconnecte jusqu'à la phase de révélation
+  getRevealSnapshot(roomId: string): QuestionRevealPayload | null {
+    const room = this.rooms.get(roomId);
+    if (!room || room.revealEndsAt === null) return null;
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion) return null;
+
+    return {
+      roomId: room.roomId,
+      questionId: currentQuestion.id,
+      correctIndex: currentQuestion.correctIndex,
+      answerStatistics: this.getAnswerStatistics(
+        room,
+		this.getSafeOptionCount(room, currentQuestion),
+      ),
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      revealEndsAt: room.revealEndsAt,
+      revealDurationMs: REVEAL_TIME_MS,
+    };
+  }
+
+  getQuestionSnapshot(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+
+    const question = room.questions[room.currentQuestionIndex];
+    if (!question) return null;
+
+    return {
+      roomId: room.roomId,
+      question: this.toPublicQuestion(question),
+      questionNumber: room.currentQuestionIndex + 1,
+      totalQuestions: room.questions.length,
+      timeLimitMs: QUESTION_TIME_LIMIT_MS,
+      endsAt: room.questionEndsAt,
+    };
+  }
+
+  private clearQuestionTimer(room: QuizRoom) {
+    if (room.questionTimer) {
+      clearTimeout(room.questionTimer);
+      room.questionTimer = null;
+    }
+    room.questionEndsAt = null;
+  }
+
+  private scheduleQuestionTimer(room: QuizRoom) {
+    this.clearQuestionTimer(room);
+
+    const currentQuestion = room.questions[room.currentQuestionIndex];
+    if (!currentQuestion || room.status !== "in-progress") {
+      return;
+    }
+
+    room.questionEndsAt = Date.now() + QUESTION_TIME_LIMIT_MS;
+    room.questionTimer = setTimeout(() => {
+      const targetRoom = this.rooms.get(room.roomId);
+      if (!targetRoom || targetRoom.status !== "in-progress") {
+        return;
+      }
+
+      const revealPayload = this.enterRevealPhase(targetRoom);
+      if (revealPayload && this.onQuestionRevealed) {
+        this.onQuestionRevealed(revealPayload);
+      }
+    }, QUESTION_TIME_LIMIT_MS);
+  }
+
+  private enterRevealPhase(room: QuizRoom): QuestionRevealPayload | null {
+    if (room.status !== "in-progress") return null;
+
+		if (room.revealEndsAt !== null) return null;
+
+		const currentQuestion = room.questions[room.currentQuestionIndex];
+		if (!currentQuestion) return null;
+
+		// Les joueurs qui n'ont jamais répondu à cette question perdent leur série
+		for (const player of room.players.values()) {
+			if (!room.answeredPlayerIds.has(player.playerId)) {
+				player.streak = 0;
+			}
+		}
+
+		this.clearQuestionTimer(room);
+		this.clearRevealTimer(room);
+
+    room.revealEndsAt = Date.now() + REVEAL_TIME_MS;
+    room.revealTimer = setTimeout(() => {
+      const advanceResult = this.advanceFromReveal(room.roomId);
+      if (!advanceResult || !this.onQuestionTimedOut) {
+        return;
+      }
+
+      this.onQuestionTimedOut({
+        roomId: room.roomId,
+        roomSnapshot: advanceResult.roomSnapshot,
+        nextQuestionSnapshot: advanceResult.nextQuestionSnapshot,
+      });
+    }, REVEAL_TIME_MS);
+
+    return {
+      roomId: room.roomId,
+      questionId: currentQuestion.id,
+      correctIndex: currentQuestion.correctIndex,
+      answerStatistics: this.getAnswerStatistics(
+        room,
+		this.getSafeOptionCount(room, currentQuestion),
+      ),
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      revealEndsAt: room.revealEndsAt,
+      revealDurationMs: REVEAL_TIME_MS,
+    };
+  }
+
+  private advanceFromReveal(roomId: string) {
+    const room = this.rooms.get(roomId);
+    if (!room) return null;
+    this.clearRevealTimer(room);
+    return this.advanceToNextQuestion(room);
+  }
+
+  private clearRevealTimer(room: QuizRoom) {
+    if (room.revealTimer) {
+      clearTimeout(room.revealTimer);
+      room.revealTimer = null;
+    }
+    room.revealEndsAt = null;
+  }
+
+  private advanceToNextQuestion(room: QuizRoom) {
+    this.clearQuestionTimer(room);
+    this.clearRevealTimer(room);
+    room.currentQuestionIndex += 1;
+    room.answeredPlayerIds.clear();
+    room.selectedAnswerByPlayerId.clear();
+
+    const hasMoreQuestions = room.currentQuestionIndex < room.questions.length;
+    if (!hasMoreQuestions) {
+      const roomSnapshot = this.getRoomSnapshot(room.roomId);
+      room.status = "finished";
+      this.clearAllDisconnectTimers(room);
+      room.players.clear();
+      this.rooms.delete(room.roomId);
+      return {
+        roomSnapshot,
+        nextQuestionSnapshot: null,
+      };
+    }
+
+    this.scheduleQuestionTimer(room);
+    return {
+      roomSnapshot: this.getRoomSnapshot(room.roomId),
+      nextQuestionSnapshot: this.getQuestionSnapshot(room.roomId),
+    };
+  }
+
+  private toPublicQuestion(q: QuestionInternal): QuestionPublic {
+    return { id: q.id, text: q.text, options: q.options };
+  }
+
+	private getSafeOptionCount(room: QuizRoom, question: QuestionInternal): number {
+		const localeLengths = Object.values(question.options).map(
+			(options) => options.length,
+		);
+		const maxLocaleLength = localeLengths.length > 0 ? Math.max(...localeLengths) : 0;	
+		// Sécurise aussi les statistiques si des indices déjà soumis dépassent la taille
+		// d'une locale, ou si correctIndex pointe au-delà
+		const maxSelectedIndex = Array.from(room.selectedAnswerByPlayerId.values()).reduce(
+			(max, selectedIndex) => Math.max(max, selectedIndex),
+			-1,
+		);	
+		return Math.max(maxLocaleLength, question.correctIndex + 1, maxSelectedIndex + 1, 0);
+	}
+
+  private getAnswerStatistics(
+    room: QuizRoom,
+    optionCount: number,
+  ): AnswerStatistic[] {
+    const counts = Array.from({ length: optionCount }, () => 0);
+
+    for (const selectedIndex of room.selectedAnswerByPlayerId.values()) {
+      if (selectedIndex >= 0 && selectedIndex < optionCount) {
+        counts[selectedIndex] += 1;
+      }
+    }
+
+    const totalAnswers = counts.reduce((total, count) => total + count, 0);
+
+    return counts.map((count, index) => ({
+      index,
+      count,
+      percentage:
+        totalAnswers > 0 ? Math.round((count / totalAnswers) * 100) : 0,
+    }));
+  }
+}
+
+==========================================
+FILE: backend/src/reports/dto/add-note.dto.ts
+==========================================
+import { IsString, IsOptional } from 'class-validator';
+
+export class AddNoteDto {
+  @IsString()
+  content: string;
+
+  @IsString()
+  type: string;
+
+  @IsOptional()
+  @IsString()
+  targetRole?: string;
+
+  @IsOptional()
+  @IsString()
+  personId?: string;
+  
+}
+
+==========================================
+FILE: backend/src/reports/dto/create-report.dto.ts
+==========================================
+import { IsString, IsBoolean, IsOptional, IsArray, ValidateNested, MaxLength, MinLength, IsIn, Matches } from 'class-validator';
+import { Type } from 'class-transformer';
+
+class PersonDto {
+  @IsString()
+  @MinLength(2, { message: 'Le nom doit contenir au moins 2 caractères' })
+  @MaxLength(50, { message: 'Le nom ne peut pas dépasser 50 caractères' })
+  @Matches(/^(?!(.)\1{4,})[\p{L}\s\-']+$/u, {
+    message: 'Le nom contient des caractères invalides ou répétitifs',
+  })
+  freeText: string;
+}
+
+export class CreateReportDto {
+  @IsString()
+  @IsIn(['physique', 'verbal', 'cyber', 'exclusion', 'sexuel'], {
+    message: 'Type de signalement invalide', 
+  })
+  type: string;
+
+  @IsString()
+  @IsIn(['victime', 'temoin'], { message: 'Reporter invalide' })
+  reporter: string;
+
+  @IsString()
+  @MinLength(20, { message: 'La description doit contenir au moins 20 caractères' })
+  @MaxLength(2000, { message: 'La description ne peut pas dépasser 2000 caractères' })
+  @Matches(/^(?!(.)\1{9,})[\s\S]+$/u, {
+    message: 'La description semble invalide (caractères répétitifs détectés)',
+  })
+  description: string;
+
+  @IsBoolean()
+  isAnonymous: boolean;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PersonDto)
+  suspects?: PersonDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PersonDto)
+  victims?: PersonDto[];
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['Une fois', 'Deux fois', 'Trois fois ou plus','Tous les jours'], { message: 'Fréquence invalide',
+  })
+  frequency?: string;
+}
+
+==========================================
+FILE: backend/src/reports/dto/resolve-user.dto.ts
+==========================================
+import { IsOptional, IsString } from 'class-validator';
+
+export class ResolveUserDto {
+  @IsOptional()
+  @IsString()
+  resolvedUserId: string | null;
+}
+
+==========================================
+FILE: backend/src/reports/dto/update-report.dto.ts
+==========================================
+import { IsOptional, IsEnum } from 'class-validator';
+import { ReportGrade, ReportStatus } from '../report.entity';
+
+export class UpdateReportDto {
+  @IsOptional()
+  @IsEnum(ReportStatus)
+  status?: ReportStatus;
+
+  @IsOptional()
+  @IsEnum(ReportGrade)
+  grade?: ReportGrade;
+}
+
+==========================================
+FILE: backend/src/reports/report.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  OneToMany,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { ReportSuspect } from "./report-suspect.entity";
+import { ReportVictim } from "./report-victim.entity";
+
+export enum ReportGrade {
+  CRITICAL = "critical",
+  HIGH     = "high",
+  MEDIUM   = "medium",
+  LOW      = "low",
+}
+
+export enum ReportStatus {
+  NEW          = "new",
+  IN_PROGRESS  = "in_progress",
+  PENDING      = "pending",
+  RESOLVED     = "resolved",
+  FALSE_REPORT = "false_report",
+}
+
+export enum ReportType {
+  PHYSIQUE  = "physique",
+  VERBAL    = "verbal",
+  CYBER     = "cyber",
+  SEXUEL    = "sexuel",
+  EXCLUSION = "exclusion",
+}
+
+export enum ReportReporter {
+  VICTIME = "victime",
+  TEMOIN  = "temoin",
+}
+
+@Entity("reports")
+export class Report {
+  @PrimaryGeneratedColumn("uuid") id: string;
+  @Column({ unique: true, nullable: true }) caseNumber: string;
+  @Column({ nullable: true }) type: string;
+  @Column({ nullable: true }) reporter: string;
+  @Column("text") description: string;
+  @Column({ type: "enum", enum: ReportGrade }) grade: ReportGrade;
+  @Column({ type: "enum", enum: ReportStatus, default: ReportStatus.NEW }) status: ReportStatus;
+  @Column({ nullable: true }) aiScore: number;
+  @Column({ nullable: true, type: "text" }) aiReason: string;
+  @Column({ default: false }) isAnonymous: boolean;
+  @ManyToOne(() => User, (user) => user.reports) student: User;
+  @CreateDateColumn() createdAt: Date;
+  @OneToMany(() => ReportSuspect, (suspect) => suspect.report, { cascade: true }) suspects: ReportSuspect[];
+  @OneToMany(() => ReportVictim, (victim) => victim.report, { cascade: true }) victims: ReportVictim[];
+}
+
+==========================================
+FILE: backend/src/reports/report-note.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+} from "typeorm";
+import { Report } from "./report.entity";
+import { User } from "../users/user.entity";
+
+@Entity("report_notes")
+export class ReportNote {
+  @PrimaryGeneratedColumn("uuid") id: string;
+  @ManyToOne(() => Report, { onDelete: "CASCADE" }) report: Report;
+  @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true }) author: User;
+  @Column("text") content: string;
+  @Column({ default: "note" }) type: string;
+  @CreateDateColumn() createdAt: Date;
+}
+
+==========================================
+FILE: backend/src/reports/reports.controller.ts
+==========================================
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  Request,
+  UseGuards,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { ReportsService } from "./reports.service";
+import { validateUUID } from "../utils/validate-uuid";
+import { CreateReportDto } from "./dto/create-report.dto";
+import { UpdateReportDto } from "./dto/update-report.dto";
+import { ResolveUserDto } from "./dto/resolve-user.dto";
+import { AddNoteDto } from "./dto/add-note.dto";
+
+@Controller("reports")
+@UseGuards(AuthGuard("jwt"))
+export class ReportsController {
+  constructor(private readonly reportsService: ReportsService) {}
+
+  @Post()
+  async create(@Body() dto: CreateReportDto, @Request() req) {
+    const allowedRoles = ["student", "teacher"];
+    if (!allowedRoles.includes(req.user.role))
+      throw new ForbiddenException("Only student, teacher and staff can create a report");
+    return this.reportsService.create(
+      dto.type, dto.reporter, dto.description, dto.isAnonymous,
+      req.user, dto.suspects || [], dto.victims || [], dto.frequency || "",
+    );
+  }
+
+  @Get()
+  async findAll(@Request() req) {
+    if (req.user.role === "student") return this.reportsService.findByStudent(req.user.id);
+    return this.reportsService.findAll();
+  }
+
+  @Get("victims/search")
+  async searchByVictim(@Query("name") name: string, @Request() req) {
+    if (req.user.role !== "admin" && req.user.role !== "director")
+      throw new ForbiddenException("Access denied");
+    if (!name || name.trim().length < 2) return [];
+    return this.reportsService.findByVictimName(name.trim());
+  }
+
+  @Get("victims/stats")
+  async victimStats(@Request() req) {
+    if (req.user.role !== "admin" && req.user.role !== "director")
+      throw new ForbiddenException("Access denied");
+    return this.reportsService.countByVictim();
+  }
+
+  @Patch("suspects/:suspectId/resolve")
+  async resolveSuspect(
+    @Param("suspectId") suspectId: string,
+    @Body() dto: ResolveUserDto,
+    @Request() req,
+  ) {
+    if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
+    return this.reportsService.resolveSuspect(suspectId, dto.resolvedUserId);
+  }
+
+  @Patch("victims/:victimId/resolve")
+  async resolveVictim(
+    @Param("victimId") victimId: string,
+    @Body() dto: ResolveUserDto,
+    @Request() req,
+  ) {
+    if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
+    return this.reportsService.resolveVictim(victimId, dto.resolvedUserId);
+  }
+
+  @Get(":id")
+  async findOne(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    const report = await this.reportsService.findOne(id);
+    if (req.user.role === "student" && report.student.id !== req.user.id)
+      throw new ForbiddenException("Access denied");
+    return report;
+  }
+
+  @Patch(":id")
+  async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === "student") throw new ForbiddenException("Access denied");
+    return this.reportsService.update(id, dto);
+  }
+
+  @Get(":id/notes")
+  async getNotes(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role === "student") {
+      const report = await this.reportsService.findOne(id);
+      if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
+      const notes = await this.reportsService.getNotes(id);
+      const user = req.user;
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return notes.filter((n: any) => {
+        if (n.type === "status_change") return true;
+        if (n.type === "convocation") {
+          return n.content.toLowerCase().includes(fullName);
+        }
+        return false;
+      });
+    }
+    return this.reportsService.getNotes(id);
+  }
+
+  @Post(":id/notes")
+  async addNote(
+    @Param("id") id: string,
+    @Body() dto: AddNoteDto,
+    @Request() req,
+  ) {
+    validateUUID(id);
+    if (dto.content && dto.content.length > 1500)
+      throw new BadRequestException("Le contenu ne peut pas dépasser 1500 caractères");
+    if (req.user.role === "student") throw new ForbiddenException("Access denied");
+    return this.reportsService.addNote(id, dto.content, dto.type || "note", req.user, dto.targetRole);
+  }
+}
+
+==========================================
+FILE: backend/src/reports/reports.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ReportsService } from "./reports.service";
+import { ReportsController } from "./reports.controller";
+import { Report } from "./report.entity";
+import { ReportSuspect } from "./report-suspect.entity";
+import { ReportNote } from "./report-note.entity";
+import { ReportVictim } from "./report-victim.entity";
+import { ScoringService } from "./scoring.service";
+import { NotificationsModule } from "../notifications/notifications.module";
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Report, ReportSuspect, ReportNote, ReportVictim]),
+    NotificationsModule,
+  ],
+  controllers: [ReportsController],
+  providers: [ReportsService, ScoringService],
+  exports: [ReportsService],
+})
+export class ReportsModule {}
+==========================================
+FILE: backend/src/reports/reports.service.ts
+==========================================
+import {
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Report, ReportGrade, ReportStatus } from "./report.entity";
+import { User } from "../users/user.entity";
+import { ReportSuspect } from "./report-suspect.entity";
+import { ReportVictim } from "./report-victim.entity";
+import { ScoringService } from "./scoring.service";
+import { ReportNote } from "./report-note.entity";
+import { NotificationsService } from "../notifications/notifications.service";
+
+@Injectable()
+export class ReportsService {
+  constructor(
+    @InjectRepository(Report) private reportsRepository: Repository<Report>,
+    @InjectRepository(ReportSuspect) private suspectsRepository: Repository<ReportSuspect>,
+    @InjectRepository(ReportVictim) private victimsRepository: Repository<ReportVictim>,
+    private scoringService: ScoringService,
+    @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
+    private notificationsService: NotificationsService,
+  ) {}
+
+  async create(
+    type: string,
+    reporter: string,
+    description: string,
+    isAnonymous: boolean,
+    student: User,
+    suspects: { freeText: string }[] = [],
+    victims: { freeText: string }[] = [],
+    frequency = "",
+  ): Promise<Report> {
+    const { finalScore, grade, aiReason } =
+      await this.scoringService.calculateScore(
+        type, description, frequency,
+        (student as any).studentProfile?.schoolClass?.level ?? "",
+        suspects,
+      );
+    const year = new Date().getFullYear();
+    const lastReport = await this.reportsRepository
+      .createQueryBuilder("report")
+      .where("report.caseNumber LIKE :pattern", { pattern: `#${year}-%` })
+      .orderBy("report.caseNumber", "DESC")
+      .getOne();
+    let nextNumber = 1;
+    if (lastReport?.caseNumber) {
+      nextNumber = parseInt(lastReport.caseNumber.split("-")[1]) + 1;
+    }
+    const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
+    const report = this.reportsRepository.create({
+      type, reporter, description, grade,
+      aiScore: finalScore, aiReason,
+      caseNumber, isAnonymous, student,
+      status: ReportStatus.PENDING,
+    });
+    const savedReport = await this.reportsRepository.save(report);
+    for (const suspect of suspects) {
+      await this.suspectsRepository.save(
+        this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
+      );
+    }
+    if (reporter === 'victime') {
+      await this.victimsRepository.save(
+        this.victimsRepository.create({
+          report: savedReport,
+          freeText: `${student.firstName} ${student.lastName}`,
+          resolvedUser: student,
+        })
+      );
+    }
+    for (const victim of victims) {
+      await this.victimsRepository.save(
+        this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })
+      );
+    }
+    return this.reportsRepository.findOne({
+      where: { id: savedReport.id },
+      relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
+    }) as Promise<Report>;
+  }
+
+  async findAll(): Promise<Report[]> {
+    return this.reportsRepository.find({
+      relations: [
+        "student", "student.studentProfile", "student.studentProfile.schoolClass",
+        "suspects", "suspects.resolvedUser",
+        "victims", "victims.resolvedUser",
+        "victims.resolvedUser.studentProfile", "victims.resolvedUser.studentProfile.schoolClass",
+      ],
+    });
+  }
+
+  async findByStudent(studentId: string): Promise<Report[]> {
+    return this.reportsRepository.find({
+      where: { student: { id: studentId } },
+      relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
+    });
+  }
+
+  async findOne(id: string): Promise<Report> {
+    const report = await this.reportsRepository.findOne({
+      where: { id },
+      relations: [
+        "student", "student.studentProfile", "student.studentProfile.schoolClass",
+        "suspects", "suspects.resolvedUser",
+        "victims", "victims.resolvedUser",
+        "victims.resolvedUser.studentProfile", "victims.resolvedUser.studentProfile.schoolClass",
+      ],
+    });
+    if (!report) throw new NotFoundException("Signalement introuvable");
+    return report;
+  }
+
+  async update(
+    id: string,
+    updates: { status?: ReportStatus; grade?: ReportGrade },
+  ): Promise<Report> {
+    const report = await this.findOne(id);
+    if (updates.grade) report.grade = updates.grade;
+    if (updates.status && updates.status !== report.status) {
+      report.status = updates.status;
+      const date = new Date().toLocaleDateString('fr-FR');
+      const statusLabels: Record<string, string> = {
+        pending: 'En attente',
+        in_progress: 'En cours',
+        resolved: 'Résolu',
+        closed: 'Clôturé',
+        rejected: 'Rejeté',
+      };
+      const label = statusLabels[updates.status] ?? updates.status;
+      await this.notesRepository.save(
+        this.notesRepository.create({
+          report,
+          content: `Statut mis à jour : ${label} — ${date}`,
+          type: 'status_change',
+        })
+      );
+      // Notifier l'élève uniquement si l'élève est victime
+      if (report.student?.id && report.reporter === 'victime') {
+        await this.notificationsService.create(
+          report.student.id,
+          id,
+          `Statut de votre dossier ${report.caseNumber} mis à jour : ${label}`,
+        );
+      }
+    }
+    return this.reportsRepository.save(report);
+  }
+
+  async addNote(
+    reportId: string,
+    content: string,
+    type: string,
+    author: any,
+    targetRole?: string,
+  ): Promise<ReportNote> {
+    const report = await this.findOne(reportId);
+    const note = this.notesRepository.create({ report, content, type, author });
+    const saved = await this.notesRepository.save(note);
+
+    if (type === "convocation") {
+      if (targetRole === "alerteur" || targetRole === "victime" || targetRole === "temoin") {
+        if (report.student?.id) {
+          await this.notificationsService.create(
+            report.student.id, reportId, `Convocation : ${content}`,
+          );
+        }
+      } else if (targetRole?.startsWith("suspect_")) {
+        const userId = targetRole.slice("suspect_".length);
+        const suspect = report.suspects?.find(s => s.resolvedUser?.id === userId);
+        if (suspect?.resolvedUser?.id) {
+          await this.notificationsService.create(
+            suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
+          );
+        }
+      } else if (targetRole?.startsWith("victim_")) {
+        const userId = targetRole.slice("victim_".length);
+        const victim = report.victims?.find(v => v.resolvedUser?.id === userId);
+        if (victim?.resolvedUser?.id) {
+          await this.notificationsService.create(
+            victim.resolvedUser.id, reportId, `Convocation : ${content}`,
+          );
+        }
+      }
+    }
+
+    return saved;
+  }
+
+  async getNotes(reportId: string): Promise<ReportNote[]> {
+    return this.notesRepository.find({
+      where: { report: { id: reportId } },
+      relations: ["author"],
+      order: { createdAt: "DESC" },
+    });
+  }
+
+  async resolveSuspect(suspectId: string, resolvedUserId: string | null): Promise<ReportSuspect> {
+    const suspect = await this.suspectsRepository.findOne({ where: { id: suspectId } });
+    if (!suspect) throw new NotFoundException("Suspect introuvable");
+    suspect.resolvedUser = resolvedUserId ? { id: resolvedUserId } as any : null;
+    return this.suspectsRepository.save(suspect);
+  }
+
+  async resolveVictim(victimId: string, resolvedUserId: string | null): Promise<ReportVictim> {
+    const victim = await this.victimsRepository.findOne({ where: { id: victimId } });
+    if (!victim) throw new NotFoundException("Victime introuvable");
+    victim.resolvedUser = resolvedUserId ? { id: resolvedUserId } as any : null;
+    return this.victimsRepository.save(victim);
+  }
+
+  async findByVictimName(name: string): Promise<any[]> {
+    const all = await this.reportsRepository
+      .createQueryBuilder("report")
+      .leftJoinAndSelect("report.student", "student")
+      .leftJoinAndSelect("report.victims", "victims")
+      .leftJoinAndSelect("victims.resolvedUser", "resolvedUser")
+      .getMany();
+
+    return all
+      .filter((report) => {
+        if (report.reporter === "victime" && report.student) {
+          const fullName = `${report.student.firstName} ${report.student.lastName}`.toLowerCase();
+          return fullName.includes(name.toLowerCase());
+        }
+        if (report.reporter === "temoin" && report.victims) {
+          return report.victims.some(v =>
+            v.freeText.toLowerCase().includes(name.toLowerCase()) ||
+            (v.resolvedUser && `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`.toLowerCase().includes(name.toLowerCase()))
+          );
+        }
+        return false;
+      })
+      .map((report) => ({
+        id:         report.id,
+        caseNumber: report.caseNumber,
+        type:       report.type,
+        reporter:   report.reporter,
+        grade:      report.grade,
+        status:     report.status,
+        createdAt:  report.createdAt,
+        signalePar: report.student
+          ? `${report.student.firstName} ${report.student.lastName}`
+          : "Anonyme",
+        victimes: report.reporter === "victime"
+          ? [report.student ? `${report.student.firstName} ${report.student.lastName}` : "Anonyme"]
+          : report.victims.map(v => v.freeText),
+      }));
+  }
+
+  async countByVictim(): Promise<any[]> {
+    const all = await this.reportsRepository
+      .createQueryBuilder("report")
+      .leftJoinAndSelect("report.student", "student")
+      .leftJoinAndSelect("report.victims", "victims")
+      .getMany();
+
+    const counts: Record<string, number> = {};
+    for (const report of all) {
+      if (report.reporter === "victime" && report.student) {
+        const name = `${report.student.firstName} ${report.student.lastName}`;
+        counts[name] = (counts[name] || 0) + 1;
+      } else if (report.reporter === "temoin") {
+        for (const victim of report.victims ?? []) {
+          counts[victim.freeText] = (counts[victim.freeText] || 0) + 1;
+        }
+      }
+    }
+    return Object.entries(counts)
+      .map(([victim, count]) => ({ victim, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+}
+==========================================
+FILE: backend/src/reports/report-suspect.entity.ts
+==========================================
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, } from "typeorm";
+import { Report } from "./report.entity";
+import { User } from "../users/user.entity";
+
+@Entity("report_suspects")
+export class ReportSuspect {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @ManyToOne(() => Report, (report) => report.suspects, { onDelete: "CASCADE" })
+  report: Report;
+
+  @Column() 
+  freeText: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "resolvedUserId" })
+  resolvedUser: User;
+  
+}
+
+==========================================
+FILE: backend/src/reports/report-victim.entity.ts
+==========================================
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
+import { Report } from "./report.entity";
+import { User } from "../users/user.entity";
+
+@Entity("report_victims")
+export class ReportVictim {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @ManyToOne(() => Report, (report) => report.victims, { onDelete: "CASCADE" })
+  report: Report;
+
+  @Column()
+  freeText: string;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "resolvedUserId" })
+  resolvedUser: User | null;
+}
+
+==========================================
+FILE: backend/src/reports/scoring.service.ts
+==========================================
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Report, ReportGrade } from "./report.entity";
+import { ReportSuspect } from "./report-suspect.entity";
+
+@Injectable()
+export class ScoringService {
+  constructor(
+    @InjectRepository(Report) private reportsRepository: Repository<Report>,
+    @InjectRepository(ReportSuspect)
+    private suspectsRepository: Repository<ReportSuspect>,
+  ) {}
+
+  private scoreType(type: string): number {
+    const t = type.toLowerCase();
+    if (t.includes("physique") || t.includes("sexuel")) return 25;
+    if (t.includes("cyber")) return 15;
+    if (t.includes("verbal")) return 10;
+    if (t.includes("exclusion")) return 5;
+    return 5;
+  }
+
+  private scoreFrequency(frequency: string): number {
+    const f = frequency.toLowerCase();
+    if (f.includes("tous les jours")) return 20;
+    if (f.includes("trois fois ou plus")) return 12;
+    if (f.includes("deux fois")) return 6;
+    if (f.includes("une fois")) return 2;
+    return 2;
+  }
+
+  private scoreClass(schoolClass: string): number {
+    if (!schoolClass) return 5;
+    const c = schoolClass.toLowerCase();
+    if (c.includes("6")) return 8;
+    if (c.includes("5")) return 7;
+    if (c.includes("4")) return 6;
+    if (c.includes("3")) return 5;
+    return 5;
+  }
+
+  private async scoreRecidive(
+    suspects: { freeText: string }[],
+  ): Promise<number> {
+    if (!suspects || suspects.length === 0) return 0;
+    let maxCount = 0;
+    for (const suspect of suspects) {
+      let count = 0;
+      if (suspect.freeText) {
+        count = await this.suspectsRepository.count({
+          where: { freeText: suspect.freeText },
+        });
+      }
+      if (count > maxCount) maxCount = count;
+    }
+    if (maxCount >= 3) return 20;
+    if (maxCount === 2) return 12;
+    if (maxCount === 1) return 6;
+    return 0;
+  }
+
+  private scoreAIFallback(description: string): {
+    score: number;
+    urgency: boolean;
+    reason: string;
+  } {
+    const text = description.toLowerCase();
+    const match = (patterns: RegExp[]) => patterns.some(p => p.test(text));
+
+    // ── Urgence : violence physique ou idées suicidaires ──────────────────
+    const urgencePatterns = [
+      // Idées suicidaires
+      /suicid/,
+      /me tuer|envie de mourir|veux mourir|veut mourir/,
+      /mourir|la mort|en finir/,
+      /plus vivre|plus envie de vivre/,
+
+      // Violence physique
+      /frapp/,            // frappe, frapper, frappé, frappée, frappent
+      /cogn/,             // cogner, cogné
+      /coup[s ]|coup$/,   // coup, coups
+      /battre|me bat |me batt/,
+      /bless/,            // blesser, blessé
+      /agress/,           // agresser, agression
+      /violen/,           // violence, violent
+      /attaqu/,           // attaquer, attaque
+      /pouss/,            // pousser, poussé, pousse
+      /gifle|giffl/,      // gifle, giflé
+      /étrangl/,          // étrangler
+      /crach/,            // cracher, craché
+
+      // Menaces graves
+      /menaç|je vais te/,
+      /te tuer|te frapper|te casser/,
+      /si tu parles|si tu le dis/,
+
+      // Harcèlement sexuel
+      /touch.*corps|corps.*touch/,
+      /geste déplacé|remarque.*corps/,
+      /harcèlement sexuel|agression sexuelle/,
+    ];
+
+    // ── Détresse émotionnelle ─────────────────────────────────────────────
+    const detressePatterns = [
+      // Peur et anxiété
+      /\bpeur\b|apeur/,
+      /anxieu|angoiss/,
+      /stressé|stress/,
+      /tremble|trembl/,
+
+      // Tristesse et isolement
+      /pleur/,            // pleurer, pleure, pleuré
+      /triste|tristesse/,
+      /déprim|dépress/,
+      /malheur/,
+      /souffr/,
+      /\bseul[e ]?\b|isolé|mis à l.écart/,
+      /personne ne m.aime|personne ne me parle/,
+
+      // Mal-être scolaire
+      /plus envie d.aller|peur d.aller|j.ose pas aller/,
+      /mal à l.aise|pas bien|très mal/,
+      /honte/,
+      /plus dormir|ne dors plus|cauchemar/,
+      /ne mange plus|ne mange pas/,
+
+      // Demande d.aide
+      /aidez.moi|besoin d.aide|au secours/,
+      /\baide\b/,
+    ];
+
+    // ── Menace verbale ────────────────────────────────────────────────────
+    const verbalePatterns = [
+      // Insultes
+      /insult/,
+      /traite.*nom|noms|tous les noms/,
+      /gros mot|grossièreté/,
+      /racis|racist|discrimin/,
+      /moque|rigoler de moi|rient de moi/,
+
+      // Humiliation
+      /humili/,
+      /ridiculis|se fout de moi/,
+      /surnom|appell.*méchant/,
+      /imit/,             // imiter, imitation
+
+      // Menace verbale
+      /menace verbal|crier|hurler/,
+      /réputation|répand.*rumeur|rumeur/,
+      /dit.*mensonge|ment sur moi/,
+    ];
+
+    // ── Exclusion sociale ─────────────────────────────────────────────────
+    const exclusionPatterns = [
+      /refuse.*s.asseoir|ne veut pas.*asseoir/,
+      /exclure|exclu[e ]|mis à l.écart/,
+      /personne ne me parle|plus personne/,
+      /seul.*cantine|mange seul/,
+      /groupe.*travail|refus.*groupe/,
+      /ignor/,            // ignorer, ignoré
+      /ostracis/,
+    ];
+
+    if (match(urgencePatterns)) {
+      return { score: 20, urgency: true,  reason: "Menace physique / idées suicidaires détectées" };
+    }
+    if (match(detressePatterns)) {
+      return { score: 10, urgency: false, reason: "Détresse émotionnelle détectée" };
+    }
+    if (match(verbalePatterns)) {
+      return { score: 5,  urgency: false, reason: "Menace verbale détectée" };
+    }
+    if (match(exclusionPatterns)) {
+      return { score: 3,  urgency: false, reason: "Exclusion sociale détectée" };
+    }
+    return { score: 0, urgency: false, reason: "Situation banale" };
+  }
+
+  private async scoreAIGroq(
+    description: string,
+  ): Promise<{ score: number; urgency: boolean; reason: string }> {
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey || process.env.AI_ENABLED !== "true") {
+      return this.scoreAIFallback(description);
+    }
+    try {
+      const response = await fetch(
+        "https://api.groq.com/openai/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            max_tokens: 100,
+            messages: [
+              {
+                role: "user",
+                content: `Analyse ce signalement de harcèlement scolaire et réponds UNIQUEMENT avec un JSON :
+{"score": 0|5|10|20, "urgency": true|false, "reason": "courte explication"}
+
+Règles :
+- score 20 + urgency true = menace physique ou idées suicidaires
+- score 10 = détresse émotionnelle
+- score 5 = menace verbale
+- score 0 = situation banale
+
+Signalement : "${description}"`,
+              },
+            ],
+          }),
+        },
+      );
+      const data = await response.json();
+      const text = data.choices[0].message.content.trim();
+      const jsonMatch = text.match(/{[\s\S]*?}/);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+      return {
+        score: parsed.score ?? 0,
+        urgency: parsed.urgency ?? false,
+        reason: parsed.reason ?? "",
+      };
+    } catch {
+      return this.scoreAIFallback(description);
+    }
+  }
+
+  async calculateScore(
+    title: string,
+    description: string,
+    frequency: string,
+    schoolClass: string,
+    suspects: { freeText: string }[],
+  ): Promise<{
+    finalScore: number;
+    grade: ReportGrade;
+    aiScore: number;
+    aiReason: string;
+  }> {
+    const typeScore = this.scoreType(title);
+    const frequencyScore = this.scoreFrequency(frequency);
+    const classScore = this.scoreClass(schoolClass);
+    const recidiveScore = await this.scoreRecidive(suspects);
+    const baseScore = typeScore + frequencyScore + classScore + recidiveScore;
+
+    const {
+      score: aiScore,
+      urgency,
+      reason: aiReason,
+    } = await this.scoreAIGroq(description);
+    let finalScore = Math.min(baseScore + aiScore, 100);
+    if (urgency) finalScore = Math.max(finalScore, 60);
+
+    let grade: ReportGrade;
+    if (finalScore >= 60) grade = ReportGrade.CRITICAL;
+    else if (finalScore >= 40) grade = ReportGrade.HIGH;
+    else if (finalScore >= 20) grade = ReportGrade.MEDIUM;
+    else grade = ReportGrade.LOW;
+
+    return { finalScore, grade, aiScore, aiReason };
+  }
+}
+
+==========================================
+FILE: backend/src/staff/dto/create-staff-profile.dto.ts
+==========================================
+import { IsString, IsOptional, IsArray } from 'class-validator';
+
+export class CreateStaffProfileDto {
+  @IsString()
+  userId: string;
+
+  @IsString()
+  profession: string;
+
+  @IsOptional()
+  @IsString()
+  subject?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  classIds?: string[];
+}
+
+==========================================
+FILE: backend/src/staff/dto/update-staff-profile.dto.ts
+==========================================
+import { IsString, IsOptional, IsArray } from 'class-validator';
+
+export class UpdateStaffProfileDto {
+  @IsOptional()
+  @IsString()
+  profession?: string;
+
+  @IsOptional()
+  @IsString()
+  subject?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  classIds?: string[];
+}
+
+==========================================
+FILE: backend/src/staff/staff-profile.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  JoinTable,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Entity("staff_profiles")
+export class StaffProfile {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @Column({ type: "varchar" }) profession: string;
+
+  @Column({ type: "varchar", nullable: true, default: null }) subject:
+    | string
+    | null;
+
+  @OneToOne(() => User, { onDelete: "CASCADE" })
+  @JoinColumn()
+  user: User;
+
+  @ManyToMany(() => SchoolClass, (schoolClass) => schoolClass.staff)
+  @JoinTable({ name: "staff_classes" })
+  classes: SchoolClass[];
+}
+
+==========================================
+FILE: backend/src/staff/staff-profiles.controller.ts
+==========================================
+
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Request,
+  ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { StaffProfilesService } from "./staff-profiles.service";
+import { CreateStaffProfileDto } from "./dto/create-staff-profile.dto";
+import { UpdateStaffProfileDto } from "./dto/update-staff-profile.dto";
+import { validateUUID } from "../utils/validate-uuid";
+
+@Controller("staff-profiles")
+@UseGuards(AuthGuard("jwt"))
+export class StaffProfilesController {
+  constructor(private readonly staffProfilesService: StaffProfilesService) {}
+
+  @Post()
+  async create(@Body() dto: CreateStaffProfileDto, @Request() req) {
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.staffProfilesService.create(dto);
+  }
+
+  @Get()
+  async findAll(@Request() req) {
+    if (req.user.role !== "admin" && req.user.role !== "director")
+      throw new ForbiddenException("Accès refusé");
+    return this.staffProfilesService.findAll();
+  }
+
+  @Get("by-user/:userId")
+  async findByUserId(@Param("userId") userId: string, @Request() req) {
+    validateUUID(userId);
+    if (req.user.role !== "admin" && req.user.role !== "director" && req.user.id !== userId)
+      throw new ForbiddenException("Accès refusé");
+    return this.staffProfilesService.findByUserId(userId);
+  }
+
+  @Get(":id")
+  async findOne(@Param("id") id: string) {
+    validateUUID(id);
+    return this.staffProfilesService.findOne(id);
+  }
+
+  @Patch(":id")
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateStaffProfileDto,
+    @Request() req,
+  ) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.staffProfilesService.update(id, dto);
+  }
+
+  @Delete(":id")
+  async remove(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Accès réservé à l'admin");
+    return this.staffProfilesService.remove(id);
+  }
+}
+
+==========================================
+FILE: backend/src/staff/staff-profiles.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { StaffProfile } from "./staff-profile.entity";
+import { StaffProfilesService } from "./staff-profiles.service";
+import { StaffProfilesController } from "./staff-profiles.controller";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Module({
+  imports: [TypeOrmModule.forFeature([StaffProfile, SchoolClass])],
+  controllers: [StaffProfilesController],
+  providers: [StaffProfilesService],
+  exports: [StaffProfilesService],
+})
+export class StaffProfilesModule {}
+
+==========================================
+FILE: backend/src/staff/staff-profiles.service.ts
+==========================================
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository, In } from "typeorm";
+import { StaffProfile } from "./staff-profile.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Injectable()
+export class StaffProfilesService {
+  constructor(
+    @InjectRepository(StaffProfile) private staffRepo: Repository<StaffProfile>,
+    @InjectRepository(SchoolClass) private classRepo: Repository<SchoolClass>,
+  ) {}
+
+  async create(dto: {
+    userId: string;
+    profession: string;
+    subject?: string;
+    classIds?: string[];
+  }): Promise<StaffProfile> {
+    const profile = new StaffProfile();
+    profile.profession = dto.profession;
+    profile.subject = dto.subject ?? null;
+    profile.user = { id: dto.userId } as any;
+
+    if (dto.classIds?.length) {
+      profile.classes = await this.classRepo.findBy({ id: In(dto.classIds) });
+    } else {
+      profile.classes = [];
+    }
+
+    return this.staffRepo.save(profile);
+  }
+
+  async findAll(): Promise<StaffProfile[]> {
+    return this.staffRepo.find({ relations: ["user", "classes"] });
+  }
+
+  async findOne(id: string): Promise<StaffProfile> {
+    const profile = await this.staffRepo.findOne({
+      where: { id },
+      relations: ["user", "classes"],
+    });
+    if (!profile) throw new NotFoundException("Profil introuvable");
+    return profile;
+  }
+
+  async update(
+    id: string,
+    dto: { profession?: string; subject?: string; classIds?: string[] },
+  ): Promise<StaffProfile> {
+    const profile = await this.findOne(id);
+    if (dto.profession) profile.profession = dto.profession;
+    if (dto.subject !== undefined) profile.subject = dto.subject ?? null;
+    if (dto.classIds) {
+      profile.classes = await this.classRepo.findBy({ id: In(dto.classIds) });
+    }
+    return this.staffRepo.save(profile);
+  }
+
+  async remove(id: string): Promise<void> {
+    const profile = await this.findOne(id);
+    await this.staffRepo.remove(profile);
+  }
+
+  async findByUserId(userId: string): Promise<StaffProfile> {
+    const profile = await this.staffRepo.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'classes'],
+    });
+    if (!profile) throw new NotFoundException('Profil introuvable');
+    return profile;
+  }
+}
+
+==========================================
+FILE: backend/src/student-profiles/dto/create-profile.dto.ts
+==========================================
+import { IsString, IsOptional } from 'class-validator';
+
+export class CreateProfileDto {
+  @IsString()
+  userId: string;
+
+  @IsOptional()
+  @IsString()
+  classId?: string;
+
+  @IsOptional()
+  @IsString()
+  dateOfBirth?: string;
+}
+
+==========================================
+FILE: backend/src/student-profiles/dto/update-profile.dto.ts
+==========================================
+import { IsString, IsOptional } from 'class-validator';
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  classId?: string;
+
+  @IsOptional()
+  @IsString()
+  dateOfBirth?: string;
+}
+
+==========================================
+FILE: backend/src/student-profiles/student-profile.entity.ts
+==========================================
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  ManyToMany,
+  ManyToOne,
+} from "typeorm";
+import { User } from "../users/user.entity";
+import { Parent } from "../parents/parent.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Entity("student_profiles")
+export class StudentProfile {
+  @PrimaryGeneratedColumn("uuid") id: string;
+
+  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date | null;
+
+  @ManyToOne(() => SchoolClass, { nullable: true, eager: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'classId' })
+  schoolClass: SchoolClass | null;
+
+  @OneToOne(() => User, (user) => user.studentProfile)
+  @JoinColumn()
+  user: User;
+
+  @ManyToMany(() => Parent, (parent) => parent.students)
+  parents: Parent[];
+}
+
+==========================================
+FILE: backend/src/student-profiles/student-profiles.controller.ts
+==========================================
+import {
+  Controller, Get, Post, Patch, Param, Body,
+  UseGuards, Request, ForbiddenException,
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { StudentProfilesService } from "./student-profiles.service";
+import { CreateProfileDto } from "./dto/create-profile.dto";
+import { UpdateProfileDto } from "./dto/update-profile.dto";
+import { validateUUID } from "../utils/validate-uuid";
+
+@Controller("student-profiles")
+@UseGuards(AuthGuard("jwt"))
+export class StudentProfilesController {
+  constructor(private readonly studentProfilesService: StudentProfilesService) {}
+
+  @Post()
+  async create(@Body() dto: CreateProfileDto, @Request() req) {
+    if (req.user.role !== 'admin') throw new ForbiddenException('Accès réservé à l\'admin');
+    return this.studentProfilesService.create(dto.classId ?? null, dto.dateOfBirth ?? '', dto.userId);
+  }
+
+  @Get()
+  async findAll(@Request() req) {
+    if (req.user.role !== 'admin' && req.user.role !== 'director')
+      throw new ForbiddenException('Accès refusé');
+    return this.studentProfilesService.findAll();
+  }
+
+  @Get('parents/:userId')
+  async getParents(@Param('userId') userId: string, @Request() req) {
+    validateUUID(userId);
+    if (req.user.role === 'student' && req.user.id !== userId)
+      throw new ForbiddenException('Accès refusé');
+    return this.studentProfilesService.getParents(userId);
+  }
+
+  @Get(':userId')
+  async findOne(@Param('userId') userId: string, @Request() req) {
+    validateUUID(userId);
+    if (req.user.role === 'student' && req.user.id !== userId)
+      throw new ForbiddenException('Accès refusé');
+    return this.studentProfilesService.findByUserId(userId);
+  }
+
+  @Patch(':userId')
+  async update(@Param('userId') userId: string, @Body() dto: UpdateProfileDto, @Request() req) {
+    validateUUID(userId);
+    if (req.user.role === 'student' && req.user.id !== userId)
+      throw new ForbiddenException('Accès refusé');
+    return this.studentProfilesService.update(userId, dto);
+  }
+}
+
+==========================================
+FILE: backend/src/student-profiles/student-profiles.module.ts
+==========================================
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { StudentProfilesController } from "./student-profiles.controller";
+import { StudentProfilesService } from "./student-profiles.service";
+import { StudentProfile } from "./student-profile.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Module({
+  imports: [TypeOrmModule.forFeature([StudentProfile, SchoolClass])],
+  controllers: [StudentProfilesController],
+  providers: [StudentProfilesService],
+  exports: [StudentProfilesService],
+})
+export class StudentProfilesModule {}
+
+==========================================
+FILE: backend/src/student-profiles/student-profiles.service.ts
+==========================================
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { StudentProfile } from "./student-profile.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+
+@Injectable()
+export class StudentProfilesService {
+  constructor(
+    @InjectRepository(StudentProfile)
+    private studentProfilesRepository: Repository<StudentProfile>,
+    @InjectRepository(SchoolClass)
+    private classesRepository: Repository<SchoolClass>,
+  ) {}
+
+  async create(classId: string | null, dateOfBirth: string, userId: string): Promise<StudentProfile> {
+    const schoolClass = classId
+      ? await this.classesRepository.findOne({ where: { id: classId } })
+      : null;
+    const profile = this.studentProfilesRepository.create({
+      schoolClass,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
+      user: { id: userId },
+    });
+    return this.studentProfilesRepository.save(profile);
+  }
+
+  async findAll(): Promise<StudentProfile[]> {
+    return this.studentProfilesRepository.find({ relations: ["user", "schoolClass"] });
+  }
+
+  async findByUserId(userId: string): Promise<StudentProfile> {
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user', 'parents', 'schoolClass'],
+    });
+    if (!profile) throw new NotFoundException('Profil introuvable');
+    return profile;
+  }
+
+  async update(
+    userId: string,
+    updates: { classId?: string; dateOfBirth?: string },
+  ): Promise<StudentProfile> {
+    const profile = await this.findByUserId(userId);
+    if (updates.classId) {
+      const schoolClass = await this.classesRepository.findOne({ where: { id: updates.classId } });
+      if (schoolClass) profile.schoolClass = schoolClass;
+    }
+    if (updates.dateOfBirth) profile.dateOfBirth = new Date(updates.dateOfBirth);
+    return this.studentProfilesRepository.save(profile);
+  }
+
+  async getParents(userId: string): Promise<any[]> {
+    const profile = await this.studentProfilesRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['parents'],
+    });
+    if (!profile) throw new NotFoundException('Profil introuvable');
+    return profile.parents ?? [];
+  }
+}
+
+==========================================
+FILE: backend/src/users/dto/change-password.dto.ts
+==========================================
+import { IsString, IsNotEmpty, MinLength, MaxLength, Matches } from 'class-validator';
+
+export class ChangePasswordDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
+  @MinLength(12, { message: 'Le mot de passe doit contenir au moins 12 caractères' })
+  @MaxLength(20, { message: 'Le mot de passe ne peut pas dépasser 20 caractères' })
+  @Matches(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
+  @Matches(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
+  @Matches(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
+  @Matches(/[^a-zA-Z0-9]/, { message: 'Le mot de passe doit contenir au moins un caractère spécial' })
+  password: string;
+}
+
+==========================================
+FILE: backend/src/users/dto/create-user.dto.ts
+==========================================
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Matches, IsDateString } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class CreateUserDto {
+  @IsString()
+  @IsNotEmpty({ message: 'Prénom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  firstName: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Nom obligatoire' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  lastName: string;
+
+  @IsEmail({}, { message: 'Email invalide' })
+  @IsNotEmpty({ message: 'Email obligatoire' })
+  @MaxLength(50, { message: 'Email trop long (max 50 caractères)' })
+  email: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Mot de passe obligatoire' })
+  @MinLength(12, { message: 'Le mot de passe doit contenir au moins 12 caractères' })
+  @MaxLength(20, { message: 'Le mot de passe ne peut pas dépasser 20 caractères' })
+  @Matches(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
+  @Matches(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
+  @Matches(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
+  @Matches(/[^a-zA-Z0-9]/, { message: 'Le mot de passe doit contenir au moins un caractère spécial' })
+  password: string;
+
+  @IsString()
+  @IsNotEmpty({ message: 'Rôle obligatoire' })
+  role: string;
+
+  @IsOptional()
+  @IsString()
+  classId?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'Date de naissance invalide (format: YYYY-MM-DD)' })
+  dateOfBirth?: string;
+}
+
+==========================================
+FILE: backend/src/users/dto/update-user.dto.ts
+==========================================
+import { IsEmail, IsOptional, IsString, MinLength, MaxLength, Matches, IsDateString } from 'class-validator';
+import { Transform } from 'class-transformer';
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
+  @Transform(({ value }) => value?.trim())
+  lastName?: string;
+
+  @IsOptional()
+  @IsEmail({}, { message: 'Email invalide' })
+  @MaxLength(50, { message: 'Email trop long (max 50 caractères)' })
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(12, { message: 'Le mot de passe doit contenir au moins 12 caractères' })
+  @MaxLength(20, { message: 'Le mot de passe ne peut pas dépasser 20 caractères' })
+  @Matches(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
+  @Matches(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
+  @Matches(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
+  @Matches(/[^a-zA-Z0-9]/, { message: 'Le mot de passe doit contenir au moins un caractère spécial' })
+  password?: string;
+
+  @IsOptional()
+  @IsString()
+  role?: string;
+
+  @IsOptional()
+  @IsString()
+  classId?: string;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'Date de naissance invalide (format: YYYY-MM-DD)' })
+  dateOfBirth?: string;
+}
+
+==========================================
+FILE: backend/src/users/user.entity.ts
+==========================================
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany, OneToOne } from 'typeorm';
+import { Report } from '../reports/report.entity';
+import { StudentProfile } from '../student-profiles/student-profile.entity';
+import { StaffProfile } from '../staff/staff-profile.entity';
+
+export enum UserRole {
+  STUDENT = "student",
+  ADMIN = "admin",
+  DIRECTOR = "director",
+  TEACHER = "teacher",
+}
+
+@Entity("users")
+export class User {
+  @PrimaryGeneratedColumn("uuid")
+  id: string; /*le typeORM genère automatiquement
+                                                un UUID à chaque nouvel utilisateur  */
+  @Column({ unique: true }) email: string;
+  @Column({ select: false })
+  password: string; /*meme si on fait un select * on voit 
+                                                pas le password */
+  @Column({ type: "enum", enum: UserRole, default: UserRole.STUDENT })
+  role: UserRole;
+  @Column() firstName: string;
+  @Column() lastName: string;
+  @CreateDateColumn() createdAt: Date;
+  @Column({ nullable: true }) avatar: string;
+  @OneToMany(() => Report, (report) => report.student) reports: Report[];
+  @OneToOne(() => StudentProfile, profile => profile.user) studentProfile: StudentProfile;
+  @OneToOne(() => StaffProfile, staffProfile => staffProfile.user) staffProfile: StaffProfile;
+}
+
+==========================================
+FILE: backend/src/users/users.controller.ts
+==========================================
+
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  ForbiddenException,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import * as path from "path";
+import * as fs from "fs";
+import { AuthGuard } from "@nestjs/passport";
+import { UsersService } from "./users.service";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { validateUUID } from "../utils/validate-uuid";
+import { ChangePasswordDto } from './dto/change-password.dto';
+
+@Controller("users")
+@UseGuards(AuthGuard("jwt"))
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get("search")
+  async search(@Query("q") q: string) {
+    if (!q || q.length < 2) return [];
+    return this.usersService.search(q);
+  }
+
+  @Get()
+  async findAll(
+    @Request() req,
+    @Query("role") role?: string,
+    @Query("page") page?: string,
+    @Query("limit") limit?: string,
+  ) {
+    if (req.user.role !== "admin" && req.user.role !== "director") {
+      throw new ForbiddenException("Accès refusé");
+    }
+    const pageNum = page ? parseInt(page) : 1;
+    const limitNum = limit ? parseInt(limit) : 10;
+    return this.usersService.findAll(role, pageNum, limitNum);
+  }
+
+  @Get(":id")
+  async findOne(@Param("id") id: string, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== "admin" && req.user.role !== "director" && req.user.id !== id) {
+      throw new ForbiddenException("Accès refusé");
+    }
+    return this.usersService.findById(id);
+  }
+
+  @Post()
+  async createUser(@Request() req, @Body() dto: CreateUserDto) {
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("Seul l'admin peut créer des utilisateurs");
+    }
+    return this.usersService.createByAdmin(dto);
+  }
+
+  @Patch(":id")
+  async updateUser(@Request() req, @Param("id") id: string, @Body() dto: UpdateUserDto) {
+    validateUUID(id);
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("Seul l'admin peut modifier des utilisateurs");
+    }
+    return this.usersService.updateByAdmin(id, dto);
+  }
+
+  @Patch(":id/password")
+  async changePassword(@Request() req, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
+    validateUUID(id);
+    if (req.user.role !== "admin" && req.user.id !== id) {
+      throw new ForbiddenException("Accès refusé");
+    }
+    return this.usersService.changePassword(id, dto.password);
+  }
+
+  @Get(':id/can-delete')
+  async canDelete(@Request() req, @Param('id') id: string) {
+    validateUUID(id);
+    if (req.user.role !== 'admin') throw new ForbiddenException();
+    return this.usersService.canDelete(id);
+  }
+
+  @Delete(":id")
+  async deleteUser(@Request() req, @Param("id") id: string) {
+    validateUUID(id);
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("Seul l'admin peut supprimer des utilisateurs");
+    }
+    return this.usersService.deleteByAdmin(id, req.user.id);
+  }
+
+  @Post(':id/avatar')
+  @UseInterceptors(FileInterceptor('avatar', {
+    storage: diskStorage({
+      destination: './uploads/avatars',
+      filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+        cb(null, `${String(req.params.id)}${ext}`);
+      },
+    }),
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        return cb(new BadRequestException('Seules les images jpg/png/webp sont acceptées'), false);
+      }
+      cb(null, true);
+    },
+    limits: { fileSize: 2 * 1024 * 1024 },
+  }))
+  async uploadAvatar(@Param('id') id: string, @UploadedFile() file: any, @Request() req) {
+    validateUUID(id);
+    if (req.user.role !== 'admin' && req.user.id !== id) {
+      throw new ForbiddenException('Accès refusé');
+    }
+    if (!file) throw new BadRequestException('Aucun fichier envoyé');
+    const user = await this.usersService.findById(id);
+    const ext = path.extname(file.filename);
+    let newFilename = file.filename;
+    if (user) {
+      const nom = user.lastName.toLowerCase().replace(/\s+/g, '-');
+      const prenom = user.firstName.toLowerCase().replace(/\s+/g, '-');
+      newFilename = `${nom}.${prenom}${ext}`;
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', file.filename);
+      const newPath = path.join(process.cwd(), 'uploads', 'avatars', newFilename);
+      fs.renameSync(oldPath, newPath);
+    }
+    return this.usersService.updateAvatar(id, newFilename);
+  }
+}
+==========================================
+FILE: backend/src/users/users.module.ts
+==========================================
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { User } from './user.entity';
+import { StudentProfile } from '../student-profiles/student-profile.entity';
+import { Report } from '../reports/report.entity';
+import { SchoolClass } from '../classes/school-class.entity';
+import { StaffProfile } from '../staff/staff-profile.entity';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User, StudentProfile, Report, SchoolClass, StaffProfile])],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],
+})
+export class UsersModule {}
+
+==========================================
+FILE: backend/src/users/users.service.ts
+==========================================
+import * as path from 'path';
+import * as fs from 'fs';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User, UserRole } from './user.entity';
+import { StudentProfile } from '../student-profiles/student-profile.entity';
+import * as bcrypt from 'bcrypt';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Report } from '../reports/report.entity';
+import { SchoolClass } from '../classes/school-class.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+
+@Injectable()
+export class UsersService {
+
+  constructor(
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
+    @InjectRepository(StudentProfile)
+    private studentProfileRepository: Repository<StudentProfile>,
+    @InjectRepository(Report)
+    private reportRepository: Repository<Report>,
+    @InjectRepository(SchoolClass)
+    private classesRepository: Repository<SchoolClass>,
+  ) {}
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
+    });
+  }
+
+  async findByEmailWithProfile(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { email },
+      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
+      relations: ['studentProfile', 'studentProfile.schoolClass', 'staffProfile'],
+    });
+  }
+
+  async findById(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { id },
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile", "staffProfile.classes"],
+    });
+  }
+
+  async findAll(
+    role?: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{ data: User[]; total: number; page: number; totalPages: number }> {
+    const query = this.usersRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.studentProfile", "studentProfile")
+      .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
+      .leftJoinAndSelect("user.staffProfile", "staffProfile")
+      .leftJoinAndSelect("staffProfile.classes", "staffClasses");
+
+    if (role) query.where("user.role = :role", { role });
+
+    const total = await query.getCount();
+    const data = await query.skip((page - 1) * limit).take(limit).getMany();
+    return { data, total, page, totalPages: Math.ceil(total / limit) };
+  }
+
+  async search(query: string): Promise<User[]> {
+    return this.usersRepository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.studentProfile", "studentProfile")
+      .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
+      .leftJoinAndSelect("user.staffProfile", "staffProfile")
+      .leftJoinAndSelect("staffProfile.classes", "staffClasses")
+      .where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` })
+      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", { query: `%${query}%` })
+      .limit(100)
+      .getMany();
+  }
+
+  async create(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    role: UserRole = UserRole.STUDENT,
+  ): Promise<User> {
+    const hashed = await bcrypt.hash(password, 10);
+    const user = this.usersRepository.create({ email, password: hashed, firstName, lastName, role });
+    return this.usersRepository.save(user);
+  }
+
+  async createByAdmin(dto: CreateUserDto): Promise<User> {
+    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+    if (existing) throw new ConflictException("Cet email est déjà utilisé");
+
+    if (dto.role === 'student' && dto.dateOfBirth) {
+      const dob = new Date(dto.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 9 || age > 16)
+        throw new BadRequestException("L'élève doit avoir entre 9 et 16 ans");
+    }
+
+    const hashed = await bcrypt.hash(dto.password, 10);
+    const user = this.usersRepository.create({
+      email: dto.email,
+      password: hashed,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      role: dto.role as UserRole,
+    });
+    const saved = await this.usersRepository.save(user);
+
+    if (dto.role === 'student') {
+      const schoolClass = dto.classId
+        ? await this.classesRepository.findOne({ where: { id: dto.classId } })
+        : null;
+      const profile = this.studentProfileRepository.create({
+        user: saved,
+        schoolClass,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
+      });
+      const savedProfile = await this.studentProfileRepository.save(profile);
+      saved.studentProfile = savedProfile;
+    }
+
+    return saved;
+  }
+
+  async updateByAdmin(id: string, dto: UpdateUserDto): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
+    });
+    if (!user) throw new NotFoundException("Utilisateur introuvable");
+
+    // Vérifier l'âge si date de naissance fournie
+    if (dto.dateOfBirth) {
+      const dob = new Date(dto.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 9 || age > 16)
+        throw new BadRequestException("L'élève doit avoir entre 9 et 16 ans");
+    }
+
+    // Si on change l'email, vérifier qu'il n'est pas déjà pris
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+      if (existing) throw new ConflictException("Cet email est déjà utilisé");
+      user.email = dto.email;
+    }
+
+    if (dto.firstName) user.firstName = dto.firstName;
+    if (dto.lastName) user.lastName = dto.lastName;
+    // ❌ Le rôle ne peut pas être modifié après la création
+    // if (dto.role) user.role = dto.role as UserRole;
+
+    if (dto.password) {
+      user.password = await bcrypt.hash(dto.password, 10);
+    }
+
+    const saved = await this.usersRepository.save(user);
+
+    // Mettre à jour ou créer le profil élève si classe ou date de naissance fournie
+    if (dto.classId !== undefined || dto.dateOfBirth !== undefined) {
+      const schoolClass = dto.classId !== undefined
+        ? dto.classId ? await this.classesRepository.findOne({ where: { id: dto.classId } }) : null
+        : user.studentProfile?.schoolClass ?? null;
+
+      if (user.studentProfile) {
+        user.studentProfile.schoolClass = schoolClass;
+        if (dto.dateOfBirth !== undefined)
+          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
+        await this.studentProfileRepository.save(user.studentProfile);
+      } else {
+        const profile = this.studentProfileRepository.create({
+          user: saved,
+          schoolClass,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
+        });
+        await this.studentProfileRepository.save(profile);
+      }
+    }
+
+    return saved;
+  }
+
+  async changePassword(id: string, newPassword: string): Promise<void> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new NotFoundException("Utilisateur introuvable");
+
+    if (newPassword.length < 6)
+      throw new ForbiddenException("Le mot de passe doit faire au moins 6 caractères");
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.usersRepository.query(
+      `UPDATE users SET password = $1 WHERE id = $2`,
+      [hashed, id],
+    );
+  }
+
+  async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
+    if (id === currentUserId)
+      throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
+
+    const user = await this.usersRepository.findOne({
+      where: { id },
+      relations: ['studentProfile'],
+    });
+    if (!user) throw new NotFoundException('Utilisateur introuvable');
+
+    const hasReports = await this.reportRepository.count({
+      where: [
+        { student: { id } },
+        { suspects: { resolvedUser: { id } } },
+      ]
+    });
+
+    if (hasReports > 0) throw new BadRequestException('USER_HAS_REPORTS');
+
+    if (user.studentProfile) {
+      await this.studentProfileRepository.remove(user.studentProfile);
+    }
+
+    await this.usersRepository.remove(user);
+  }
+
+  async canDelete(id: string): Promise<{ deletable: boolean }> {
+    const hasReports = await this.reportRepository.count({
+      where: [
+        { student: { id } },
+        { suspects: { resolvedUser: { id } } },
+      ]
+    });
+    return { deletable: hasReports === 0 };
+  }
+
+  async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (user?.avatar && user.avatar !== filename) {
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', user.avatar);
+      try { fs.unlinkSync(oldPath); } catch { /* fichier déjà supprimé ou inaccessible */ }
+    }
+    await this.usersRepository.update(id, { avatar: filename });
+    return { avatar: filename };
+  }
+}
+==========================================
+FILE: backend/src/utils/validate-uuid.ts
+==========================================
+import { BadRequestException } from "@nestjs/common";
+
+export function validateUUID(id: string): void {
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(id)) throw new BadRequestException("Invalid ID format");
+}
+
