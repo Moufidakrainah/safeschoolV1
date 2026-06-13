@@ -16,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
-import Pagination from '../components/Pagination';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
 import AdminClasses from '../components/admin/AdminClasses';
@@ -176,17 +175,6 @@ export default function AdminDashboard() {
   const totalPages = useMemo(() => Math.ceil(filtered.length / itemsPerPage), [filtered]);
   const paginated  = useMemo(() => filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage), [filtered, currentPage]);
 
-
-const reportsPerPage = 7;
-
-// const reportsTotalPages = Math.ceil(filtered.length / reportsPerPage);
-
-// const onSetReportsPage = (p: number) => setReportsPage(p);
-
-const onFetchReports = async (page: number) => {
-  await fetchReports(page)
-};
-
   const stats = useMemo(() => ({
     total: reports.length,
     critical: reports.filter(r => severityFromApiGrade(r.grade) === 'critical').length,
@@ -210,14 +198,7 @@ const onFetchReports = async (page: number) => {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
-  const renderUserForm = (
-	 isEdit = false,
-  reportsPage: number,
-  reportsTotalPages: number,
-  onSetReportsPage: (p: number) => void,
-  onFetchReports: (p: number) => void
-) => (
-  <>
+const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -345,7 +326,6 @@ const onFetchReports = async (page: number) => {
         </>
       )}
     </div>
-	</>
   );
 
   if (view === 'detail' && selected) {
@@ -563,33 +543,6 @@ const onFetchReports = async (page: number) => {
     </PaginationContent>
   </PaginationShadcn>
 )}
-
-
-
-{/* // {totalPages > 1 && (
-//               <PaginationShadcn className="mt-4">
-//                 <PaginationContent>
-//                   <PaginationItem>
-//                     <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
-//                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-//                   </PaginationItem>
-//                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-//                     <PaginationItem key={p}>
-//                       <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
-//                         className="cursor-pointer">{p}</PaginationLink>
-//                     </PaginationItem>
-//                   ))}
-//                   <PaginationItem>
-//                     <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
-//                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-//                   </PaginationItem>
-//                 </PaginationContent>
-//               </PaginationShadcn>
-//             )} */}
-
-
-
-
 
           </>
         )}
