@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { useQuizSocket } from '@/hooks/useQuizSocket';
-import QuizJoinScreen from './quiz/QuizJoinScreen';
-import QuizLobby from './quiz/QuizLobby';
-import QuizLeaderboard from './quiz/QuizLeaderboard';
-import QuizPlaying from './quiz/QuizPlaying';
+import QuizJoinScreen from '@/components/quiz/QuizJoinScreen';
+import QuizLobby from '@/components/quiz/QuizLobby';
+import QuizLeaderboard from '@/components/quiz/QuizLeaderboard';
+import QuizPlaying from '@/components/quiz/QuizPlaying';
+
 
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
@@ -39,9 +40,6 @@ export default function Quiz() {
     submitAnswer,
   } = useQuizSocket(user?.firstName, user?.id);
 
-  // Le header reporter ne connaît pas la section 'cases' (réservée aux élèves) ; on la
-  // ramène sur 'quiz' pour garder un type aligné sans cast. Le setter, lui, accepte un
-  // sur-ensemble de valeurs, donc il est directement assignable
   const headerProps = useMemo(() => ({
     user,
     logoutUser,
