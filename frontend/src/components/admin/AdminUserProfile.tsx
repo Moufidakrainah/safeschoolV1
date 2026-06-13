@@ -50,7 +50,7 @@ export default function AdminUserProfile({
   const [showParentForm, setShowParentForm] = useState(false);
   const [editingParent, setEditingParent] = useState<any | null>(null);
   const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
-  const [profileParents, setProfileParents] = useState<any[]>([]);
+  const [profileParents, setProfileParents] = useState<Parent[]>([]);
   const [profileStaff, setProfileStaff] = useState<any | null>(null);
 
   useEffect(() => {

@@ -114,10 +114,10 @@ export const updateParent = async (id: string, dto: { firstName?: string; lastNa
 export const deleteParent = async (id: string) =>
   (await api.delete(`/parents/${id}`)).data;
 
-export const createStaffProfile = async (dto: Record<string, any>) =>
+export const createStaffProfile = async (dto: Record<string, string | string[]>) =>
   (await api.post('/staff-profiles', dto)).data;
 
-export const updateStaffProfile = async (id: string, dto: Record<string, any>) =>
+export const updateStaffProfile = async (id: string, dto: Record<string, string | string[]>) =>
   (await api.patch(`/staff-profiles/${id}`, dto)).data;
 
 export default api;

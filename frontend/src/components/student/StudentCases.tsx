@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
-  const map: Record<string, any> = {
+  const map: Record<string, string> = {
     new: "new",
     in_progress: "in_progress",
     pending: "pending",
@@ -74,10 +74,10 @@ interface StudentCasesProps {
 
 export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
   const { t } = useTranslation();
-  const [myReports, setMyReports] = useState<any[]>([]);
+  const [myReports, setMyReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
-  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
-  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+  const [reportNotes, setReportNotes] = useState<Record<string, Note[]>>({});
+  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }>>({});
 
   useEffect(() => {
     if (!user?.id) return;
@@ -88,7 +88,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         const mine = all.filter((r: Report) => r.reporter === "victime");
         setMyReports(mine.sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 
-        const notesMap: Record<string, any[]> = {};
+        const notesMap: Record<string, Note[]> = {};
         await Promise.all(
           mine.map(async (r: Report) => {
             try {
@@ -103,7 +103,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         );
         setReportNotes(notesMap);
 
-        const unreadMap: Record<string, any> = {};
+        const unreadMap: Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }> = {};
         notifs.filter((n: Note & { isRead: boolean; report?: { id: string } }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
       })

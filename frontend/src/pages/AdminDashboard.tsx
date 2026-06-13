@@ -105,7 +105,7 @@ export default function AdminDashboard() {
   const selectedUserId = searchParams.get('userId');
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
   const [suspectSearch, setSuspectSearch] = useState('');
-  const [suspectResults, setSuspectResults] = useState<any[]>([]);
+  const [suspectResults, setSuspectResults] = useState<AdminUser[]>([]);
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
@@ -280,39 +280,7 @@ const renderUserForm = (isEdit = false) => (
                 : null
             )}
           </div>
-          <div className="mt-2">
-            <div className="flex justify-between items-center mb-2">
-              <Label className="text-white text-sm">Responsables légaux</Label>
-              {(userForm.parents.length + existingParentsCount) < 2 && (
-                <button
-                  type="button"
-                  className="text-xs text-white/80 hover:text-white underline"
-                  onClick={() => setUserForm(prev => ({
-                    ...prev,
-                    parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
-                  }))}
-                >
-                  {existingParentsCount > 0 ? '+ Modifier un parent' : '+ Ajouter un parent'}
-                </button>
-              )}
-            </div>
-            {userForm.parents.map((parent, idx) => (
-              <ParentFormItem
-                key={idx}
-                parent={parent}
-                idx={idx}
-                dark={true}
-                onChange={(updated) => setUserForm(prev => ({
-                  ...prev,
-                  parents: prev.parents.map((p, i) => i === idx ? updated : p)
-                }))}
-                onRemove={() => setUserForm(prev => ({
-                  ...prev,
-                  parents: prev.parents.filter((_, i) => i !== idx)
-                }))}
-              />
-            ))}
-          </div>
+
         </>
       )}
       {userForm.role === 'teacher' && (
