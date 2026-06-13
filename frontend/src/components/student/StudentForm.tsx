@@ -353,7 +353,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 
 
 									<Button
-                    variant="outline"
+                    variant={victimInput.trim().length >= 2 ? "primary" : "outline"}
                     onClick={() => {
                       if (victimInput.trim()) {
                         const err = validateName(victimInput.trim());
