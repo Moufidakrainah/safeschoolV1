@@ -7,6 +7,7 @@ import {
 	getAllUsers,
 } from "../../services/api";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -105,6 +106,7 @@ const CLASSES_PER_PAGE = 7;
 			setShowClassForm(false);
 			setEditingClass(null);
 			setClassForm({ level: "", section: "" });
+			toast.success(editingClass ? "Classe modifiée avec succès" : "Classe créée avec succès");
 		} finally {
 			setSavingClass(false);
 		}
@@ -127,6 +129,7 @@ const CLASSES_PER_PAGE = 7;
 		if (selectedClass?.id === deleteModal.cls.id) setSelectedClass(null);
 		setDeleteModal(null);
 		await fetchAll();
+		toast.success("Classe supprimée avec succès");
 	};
 
 	const avatarUrl = (s: StudentUser) =>
@@ -219,9 +222,6 @@ const CLASSES_PER_PAGE = 7;
 								<Label className="text-white text-sm">Niveau</Label>
 								<Input
 									value={classForm.level}
-									onChange={(e) =>
-										setClassForm((p) => ({ ...p, level: e.target.value }))
-									}
 									placeholder="ex: 5eme"
 									className="bg-white mt-1"
 									maxLength={10}
@@ -236,9 +236,6 @@ const CLASSES_PER_PAGE = 7;
 								<Label className="text-white text-sm">Section</Label>
 								<Input
 									value={classForm.section}
-									onChange={(e) =>
-										setClassForm((p) => ({ ...p, section: e.target.value }))
-									}
 									placeholder="ex: A"
 									className="bg-white mt-1"
 									maxLength={2}

@@ -292,7 +292,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 									{t("reporter.step4.victimLabel")}
 								</div>
 								<div className="flex gap-2 items-center">
-									<input
+									{/* <input
 										maxLength={50}
 										type="text"
 										value={victimInput}
@@ -310,8 +310,25 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}}
 										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2"
-									/>
-									<Button
+									/> */}
+                  <input
+                    type="text"
+                    value={victimInput}
+                    onChange={e => setVictimInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && victimInput.trim()) {
+                        e.preventDefault();
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
+                        setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
+                        setVictimInput('');
+                      }
+                    }}
+                    placeholder="Par exemple : Prénom Nom Classe"
+                    className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
+									{/* <Button
 										variant={
 											victimInput.trim().length >= 2 ? "primary" : "outline"
 										}
@@ -327,12 +344,37 @@ export default function StudentForm({ user }: StudentFormProps) {
 											}
 										}}
 										disabled={victimInput.trim().length < 2}
-									>
+									> */}
+
+
+									<Button
+                    variant="outline"
+                    onClick={() => {
+                      if (victimInput.trim()) {
+                        const err = validateName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
+                        setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
+                        setVictimInput('');
+                        clearFieldErrors();
+                      }
+                    }}
+                    disabled={!victimInput.trim()}
+                  >
+
+
+
 										{t("reporter.step4.addVictim")}
 									</Button>
 								</div>
 								<p className="text-xs mt-4">{t("reporter.step4.add+Victim")}</p>
-								{victimName && (
+								
+								
+								 {victimError && <p role="alert" className="text-sm text-red-600 mt-1">{victimError}</p>}
+              
+			  
+			  
+			  {victimName && (
 									<div className="mt-4">
 										<div className="flex flex-wrap gap-2">
 											{victimName.split("|").map((v, i) => (
@@ -368,7 +410,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 									{t("reporter.step4.suspectsLabel")}
 								</label>
 								<div className="flex gap-2 items-center">
-									<input
+									{/* <input
 										maxLength={50}
 										type="text"
 										value={suspectInput}
@@ -387,7 +429,22 @@ export default function StudentForm({ user }: StudentFormProps) {
 										}}
 										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-									/>
+									/> */}
+
+
+									<input
+                  type="text"
+                  value={suspectInput}
+                  onChange={e => setSuspectInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && suspectInput.trim()) {
+                      e.preventDefault();
+                      addSuspect({ firstName: suspectInput.trim(), lastName: '' });
+                    }
+                  }}
+                  placeholder="Par exemple : Prénom Nom Classe"
+                  className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                />
 									<Button
 										variant={
 											suspectInput.trim().length >= 2 ? "primary" : "outline"
@@ -409,6 +466,9 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<p className="text-xs mt-4">
 									{t("reporter.step4.add+Suspect")}
 								</p>
+
+								{suspectError && <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>}
+             
 								{suspects.length > 0 && (
 									<div className="mt-4">
 										<div className="flex flex-wrap gap-2">

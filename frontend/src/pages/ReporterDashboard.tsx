@@ -57,7 +57,6 @@ export default function ReporterDashboard() {
     if (viewSection === 'quiz') navigate('/quiz');
   }, [viewSection, navigate]);
 
-  const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   return (
     <>

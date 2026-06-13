@@ -154,11 +154,11 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 			<div className="bg-surface shadow-sm px-6 py-8">
 				<h1 className="sr-only">{t("reporter.title.createAReport")}</h1>
 
-				<StepBar steps={steps} currentStep={step} />
-				<div className="mt-8">
-					<div>
-						{/* Étape 1 : Type de harcèlement */}
-						{step === 1 && (
+        <StepBar steps={steps} currentStep={step} />
+        <div className="w-full mt-8">
+          <div>
+            {/* Étape 1 : Type de harcèlement */}
+           {step === 1 && (
 							<fieldset>
 								<legend className="font-bold text-lg mb-2">
 									{t("reporter.step2.title")}
@@ -187,6 +187,8 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 								)}
 							</fieldset>
 						)}
+
+
 
 						{/* Étape 2 : Description des faits + fréquence */}
 						{step === 2 && (
@@ -227,7 +229,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 									</p>
 								)} */}
 
-								<label className="block mb-2 mt-4 text-sm font-semibold text-gray-700">
+								<label className="block mb-2 mt-4 text-m font-semibold ">
 									{t("reporter.step3.frequencyLabel")}
 								</label>
 								<Select
@@ -308,7 +310,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 									/>
-									<Button
+									{/* <Button
 										variant={
 											victimInput.trim().length >= 2 ? "primary" : "outline"
 										}
@@ -324,7 +326,26 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 											}
 										}}
 										disabled={victimInput.trim().length < 2}
-									>
+									> */}
+									 <Button
+                   variant={
+											victimInput.trim().length >= 2 ? "primary" : "outline"
+										}
+                    onClick={() => {
+                      if (victimInput.trim()) {
+                        const err = validatePersonName(victimInput.trim());
+                        if (err) { setVictimError(err); return; }
+                        setVictimError('');
+                        setVictimName((prev) =>
+                          prev
+                            ? prev + "|" + victimInput.trim()
+                            : victimInput.trim(),
+                        );
+                        setVictimInput("");
+                      }
+                    }}
+                    disabled={!victimInput.trim()}
+                  >
 										{t("reporter.step4.addVictim")}
 									</Button>
 								</div>
@@ -348,7 +369,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 																.split("|")
 																.filter((_, idx) => idx !== i);
 															setVictimName(arr.join("|"));
-																clearFieldErrors();
+																// clearFieldErrors();
 														}}
 														
 															className="text-critical font-bold cursor-pointer"
@@ -382,7 +403,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 									{t("reporter.step4.suspectsLabel")}
 								</label>
 								<div className="flex gap-2 items-center">
-									<input
+									{/* <input
 										maxLength={50}
 										type="text"
 										value={suspectInput}
@@ -401,7 +422,24 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 										}}
 										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-									/>
+									/> */}
+
+									<input
+                    type="text"
+                    value={suspectInput}
+                    onChange={(e) => setSuspectInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && suspectInput.trim()) {
+                        e.preventDefault();
+                        addSuspect({
+                          firstName: suspectInput.trim(),
+                          lastName: "",
+                        });
+                      }
+                    }}
+                    placeholder="Par exemple : Prénom Nom Classe"
+                    className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  />
 									<Button
 										variant={
 											suspectInput.trim().length >= 2 ? "primary" : "outline"
@@ -412,7 +450,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 													firstName: suspectInput.trim(),
 													lastName: "",
 												});
-												clearFieldErrors();
+												// clearFieldErrors();
 										}}
 										disabled={suspectInput.trim().length < 2}
 									>
