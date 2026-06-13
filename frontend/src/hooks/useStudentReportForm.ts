@@ -45,33 +45,33 @@ export interface UseStudentReportFormReturn {
   setDescriptionError: React.Dispatch<React.SetStateAction<string>>;
 }
 
-function validateName(name: string): string | null {
-  if (name.length < 2) return 'Le nom doit contenir au moins 2 caractères';
-  if (name.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
-  if (!/^(?!(.)\1{4,})[\p{L}\s\-']+$/u.test(name)) return 'Le nom contient des caractères invalides ou répétitifs';
-  return null;
-}
-
-function validateDescription(desc: string): string | null {
-  if (!desc.trim()) return 'La description est obligatoire';
-  if (desc.length < 20) return 'La description doit contenir au moins 20 caractères';
-  if (desc.length > 2000) return 'La description ne peut pas dépasser 2000 caractères';
-  if (/(.)\1{9,}/.test(desc)) return 'La description semble invalide (caractères répétitifs détectés)';
-  const cleaned = desc.replace(/\s/g, '');
-  if (cleaned.length > 10) {
-    const freq: Record<string, number> = {};
-    for (const c of cleaned) freq[c] = (freq[c] ?? 0) + 1;
-    const maxFreq = Math.max(...Object.values(freq));
-    if (maxFreq / cleaned.length > 0.7) return 'La description semble invalide (caractères répétitifs détectés)';
-  }
-  return null;
-}
-
 export function useStudentReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
   const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
+
+  const validateName = (name: string): string | null => {
+    if (name.length < 2) return t('validation.nameMin');
+    if (name.length > 50) return t('validation.nameMax');
+    if (!/^(?!(.)\1{4,})[\p{L}\s\-']+$/u.test(name)) return t('validation.nameInvalid');
+    return null;
+  };
+
+  const validateDescription = (desc: string): string | null => {
+    if (!desc.trim()) return t('validation.descRequired');
+    if (desc.length < 20) return t('validation.descMin');
+    if (desc.length > 2000) return t('validation.descMax');
+    if (/(.){9,}/.test(desc)) return t('validation.descInvalid');
+    const cleaned = desc.replace(/\s/g, '');
+    if (cleaned.length > 10) {
+      const freq: Record<string, number> = {};
+      for (const c of cleaned) freq[c] = (freq[c] ?? 0) + 1;
+      const maxFreq = Math.max(...Object.values(freq));
+      if (maxFreq / cleaned.length > 0.7) return t('validation.descInvalid');
+    }
+    return null;
+  };
 
   const [step, setStep] = useState(1);
   const [whoSignals, setWhoSignals] = useState(null);
@@ -117,7 +117,7 @@ export function useStudentReportForm(
       }
       const descError = validateDescription(description.trim());
       if (descError) errors.description = descError;
-      if (!frequency) errors.frequency = 'La fréquence est obligatoire';
+      if (!frequency) errors.frequency = t('validation.freqRequired');
     }
 
     if (step === 4) {

@@ -7,22 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-// ── Validators alignés avec LoginDto ──────────────────────────────────────
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const validateEmail = (value: string): string => {
-  if (!value) return 'Email obligatoire';
-  if (value.length > 50) return 'Email trop long (50 caractères max)';
-  if (!emailRegex.test(value)) return "Format d'email invalide";
-  return '';
-};
-
-const validatePassword = (value: string): string => {
-  if (!value) return 'Mot de passe obligatoire';
-  if (value.length < 6) return 'Mot de passe trop court';
-  return '';
-};
-// ──────────────────────────────────────────────────────────────────────────
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -35,6 +20,21 @@ export default function Login() {
   const { loginUser } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  // ── Validators ici pour avoir accès à t() ──
+  const validateEmail = (value: string): string => {
+    if (!value) return t('validation.emailRequired');
+    if (value.length > 50) return t('validation.emailTooLong');
+    if (!emailRegex.test(value)) return t('validation.emailInvalid');
+    return '';
+  };
+
+  const validatePassword = (value: string): string => {
+    if (!value) return t('validation.passwordRequired');
+    if (value.length < 6) return t('validation.passwordMin');
+    return '';
+  };
+  // ───────────────────────────────────────────
 
   const isFormValid = () => !validateEmail(email) && !validatePassword(password);
 

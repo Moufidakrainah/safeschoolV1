@@ -20,7 +20,7 @@ export default function AdminHeader({
   const navItems: { key: 'reports' | 'users' | 'stats' | 'classes'; label: string; onClick: () => void }[] = [
     { key: 'reports', label: t('admin.nav.reports'), onClick: () => { setViewSection('reports'); setSelected(null); setView('list'); } },
     { key: 'users',   label: t('admin.nav.users'),   onClick: () => { setView('list'); setSelected(null); setViewSection('users'); fetchUsers(); } },
-    { key: 'classes', label: 'Classes',               onClick: () => { setViewSection('classes'); setSelected(null); setView('list'); } },
+    { key: 'classes', label: t('admin.nav.classes'),               onClick: () => { setViewSection('classes'); setSelected(null); setView('list'); } },
     { key: 'stats',   label: t('admin.nav.stats'),   onClick: () => { setViewSection('stats'); setSelected(null); setView('list'); } },
     
   ];

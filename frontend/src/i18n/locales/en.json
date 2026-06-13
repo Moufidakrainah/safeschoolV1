@@ -37,7 +37,8 @@
       "ariaLabel": "Main navigation",
       "reports": "Reports",
       "users": "Users",
-      "stats": "Statistics"
+      "stats": "Statistics",
+      "classes": "Classes"
     },
     "topbar": {
       "role": "{{role}} space"
@@ -82,7 +83,8 @@
       "class": "Class",
       "aiScore": "AI Score",
       "aiReason": "AI Analysis",
-      "anonymous": "Anonymous",
+      "aiAnalysis": "AI Analysis",
+      "anonymous": "Anonymous report (identity visible to admin)",
       "yes": "Yes",
       "no": "No",
       "people": "People involved",
@@ -93,12 +95,22 @@
       "noSuspect": "No suspect indicated",
       "suspectsCount": "suspect(s)",
       "type": "Type",
-      "reporter": "Reported as",
+      "reporter": "Reporter",
+      "involved": "People involved",
+      "report": "Report",
+      "status": "Status",
       "victims": "Victim(s)",
       "noVictim": "No victim indicated",
       "victimLinked": "Linked to",
       "reporterVictime": "Victim",
-      "reporterTemoin": "Witness"
+      "reporterTemoin": "Witness",
+      "unidentified": "Unidentified",
+      "unlinked": "Identity not linked",
+      "unlink": "Unlink",
+      "link": "Link",
+      "searchStudent": "Search for a student...",
+      "title": "Report {{caseNumber}}",
+      "back": "Back to all reports"
     },
     "actions": {
       "groupLabel": "Report actions",
@@ -116,8 +128,14 @@
     "convocation": {
       "title": "Summon people involved",
       "dateLabel": "Date and time",
+      "dateTime": "Date and time",
       "placeholder": "Summons message...",
-      "send": "Send summons"
+      "messagePlaceholder": "Summons message...",
+      "send": "📤 Send {{count}} summons",
+      "sending": "Sending...",
+      "success": "Summons sent successfully!",
+      "hint": "Select the people to summon and set a date and message for each.",
+      "dateError": "The date must be in the future"
     },
     "users": {
       "title": "User management",
@@ -133,6 +151,11 @@
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
+      "searchPlaceholder": "Search by first or last name...",
+      "roleStudent": "Students",
+      "roleTeacher": "Teachers",
+      "roleAdmin": "Admins",
+      "sortDate": "Creation date",
       "roles": {
         "label": "Role",
         "student": "Student",
@@ -202,7 +225,16 @@
     "next": "Next",
     "error": "An error occurred",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "reset": "Reset",
+    "limitReached": "Limit reached",
+    "optional": "optional"
+  },
+  "report": {
+    "reporter": {
+      "victime": "Victim",
+      "temoin": "Witness"
+    }
   },
   "quiz": {
     "title": "Quiz",
@@ -265,7 +297,11 @@
       "subjectUnknown": "Unknown",
       "job": "Job",
       "change": "Change photo",
-      "upload": "Upload"
+      "upload": "Upload",
+      "loading": "Loading...",
+      "noProfile": "No professional profile registered",
+      "classes": "Classes",
+      "occupation": "Occupation"
     },
     "roles": {
       "teacher": "Teacher",
@@ -321,7 +357,12 @@
       "sexual": "Sexual",
       "sexualSub": "Gestures, remarks",
       "other": "Other",
-      "otherSub": "Describe below"
+      "otherSub": "Describe below",
+      "iAmTheVictim": "I am a victim",
+      "iAmTheWitness": "I am a witness",
+      "iWasHarassed": "I was bullied",
+      "iSawHarassed": "I saw someone being bullied",
+      "chooseOne": "Please select your situation"
     },
     "step3": {
       "title": "Describe the facts",
@@ -345,7 +386,12 @@
       "addFreeText": "Add",
       "suspectsAdded": "Suspects added",
       "removeSuspect": "Remove",
-      "noSuspect": "No suspect added — you can skip this step"
+      "noSuspect": "No suspect added — you can skip this step",
+      "peoplePlaceholder": "E.g. First name + Last name",
+      "add+Victim": "Press `Enter` or click `Add this victim`",
+      "add+Suspect": "Press `Enter` or click `Add this bully`",
+      "addVictim": "Add this victim",
+      "addSuspect": "Add this bully"
     },
     "step5": {
       "title": "Evidence",
@@ -363,7 +409,8 @@
       "suspects": "Suspects",
       "anonymous": "Anonymous report",
       "anonymousDesc": "my name will not be visible",
-      "victims": "Victim(s)"
+      "victims": "Victim(s)",
+      "suspect": "I am a witness"
     },
     "submitting": "Sending...",
     "submit": "Submit report",
@@ -392,7 +439,8 @@
       "profile": "My profile",
       "report": "Make a report",
       "workshop": "Workshops",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "cases": "My cases"
     },
     "profile": {
       "title": "My profile",
@@ -415,6 +463,14 @@
     "quiz": {
       "title": "Quiz",
       "soon": "This section will be available soon."
+    },
+    "cases": {
+      "summoned": "is summoned on ",
+      "iAmVictim": "I am a victim",
+      "noUpdate": "No updates for this case",
+      "loading": "Loading...",
+      "noReport": "No reports found",
+      "meeting": "A meeting took place on "
     }
   },
   "privacy": {
@@ -492,5 +548,109 @@
     "read": "Read"
   },
   "all": "All",
-  "section": "Section"
+  "section": "Section",
+  "stats": {
+    "allPeriod": "All time",
+    "last7": "Last 7 days",
+    "last30": "Last 30 days",
+    "last90": "Last 3 months",
+    "last365": "1 year",
+    "allClasses": "All classes",
+    "allGrades": "All grades",
+    "reportsFound": "{{count}} report(s) found",
+    "byGrade": "By grade",
+    "byStatus": "By status",
+    "byClass": "Reports by class (victim)",
+    "byType": "Reports by type",
+    "evolution": "Evolution (last 7 days)",
+    "statusNew": "New",
+    "statusInProgress": "In progress",
+    "statusResolved": "Resolved",
+    "statusPending": "Pending",
+    "statusFalseReport": "False report"
+  },
+  "classes": {
+    "loading": "Loading...",
+    "backToClasses": "← Back to classes",
+    "studentsEnrolled": "Enrolled students",
+    "noStudentInClass": "No students in this class.",
+    "assignStudents": "Assign students from the Users section.",
+    "addClass": "+ Add a class",
+    "editClass": "Edit class",
+    "addClassTitle": "Add a class",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noClass": "No classes",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "student": "student",
+    "students": "students",
+    "deleteBlocked": "Cannot delete {{level}} {{section}}: {{count}} student(s) enrolled. Reassign them first.",
+    "deleteConfirm": "Are you sure you want to delete class {{level}} {{section}}?",
+    "level": "Level",
+    "section": "Section",
+    "levelRequired": "Level is required",
+    "levelInvalid": "Level must be 3eme, 4eme, 5eme or 6eme",
+    "sectionRequired": "Section is required",
+    "sectionInvalid": "Section must be a single uppercase letter (A, B, C...)",
+    "alreadyExists": "This class already exists"
+  },
+  "userProfile": {
+    "backToReport": "Back to report",
+    "backToList": "Back to list",
+    "prev": "← Previous",
+    "next": "Next →",
+    "changePhoto": "Change photo",
+    "uploading": "Uploading...",
+    "class": "Class",
+    "dob": "Date of birth",
+    "age": "years",
+    "profession": "Profession",
+    "subject": "Subject",
+    "classes": "Classes",
+    "guardians": "Legal guardians",
+    "addGuardian": "+ Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editGuardian": "Edit",
+    "deleteGuardian": "Delete",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "confirmTitle": "Confirm changes",
+    "confirmBtn": "Confirm",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "role": "Role",
+    "password": "Password",
+    "passwordChanged": "changed"
+  },
+  "validation": {
+    "descRequired": "Description is required",
+    "descMin": "Description must contain at least 20 characters",
+    "descMax": "Description cannot exceed 2000 characters",
+    "descInvalid": "Description seems invalid (repetitive characters detected)",
+    "nameRequired": "Name is required",
+    "nameMin": "Name must contain at least 2 characters",
+    "nameMax": "Name cannot exceed 50 characters",
+    "nameInvalid": "Name contains invalid or repetitive characters",
+    "freqRequired": "Frequency is required",
+    "emailRequired": "Email required",
+    "emailTooLong": "Email too long (50 characters max)",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password required",
+    "passwordMin": "Password too short"
+  },
+  "toast": {
+    "avatarUpdated": "Photo updated successfully",
+    "avatarError": "Error updating photo",
+    "parentAdded": "Legal guardian added successfully",
+    "parentUpdated": "Legal guardian updated successfully",
+    "parentDeleted": "Legal guardian deleted successfully",
+    "parentError": "An error occurred",
+    "classCreated": "Class created successfully",
+    "classUpdated": "Class updated successfully",
+    "classDeleted": "Class deleted successfully"
+  }
 }
