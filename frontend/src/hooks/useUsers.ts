@@ -113,7 +113,7 @@ const [isBlocked, setIsBlocked]       = useState(false);
 
 // ── Chargement classes ──
 const fetchClassesList = useCallback(async () => {
-  try { setClasses(await getClasses()); } catch {}
+  try { setClasses(await getClasses()); } catch { /* erreur réseau silencieuse volontaire */ }
 }, []);
 
 // ── Chargement utilisateurs ──
@@ -156,7 +156,7 @@ const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
       setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev);
       toast.success('Photo mise à jour avec succès');
     }
-  } catch {}
+  } catch { /* erreur réseau silencieuse volontaire */ }
 }, [fetchUsers]);
 
 // ── Sauvegarde utilisateur ──
