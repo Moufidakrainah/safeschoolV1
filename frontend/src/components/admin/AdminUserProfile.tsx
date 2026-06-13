@@ -8,6 +8,7 @@ import { updateParent, createParent, deleteParent, getStudentParents, getStaffPr
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import ParentFormItem from '@/components/admin/ParentFormItem';
 import { API_BASE } from '@/config';
+import { toast } from 'sonner';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -69,14 +70,30 @@ export default function AdminUserProfile({
     }
   }, [selectedUser?.id, selectedUser?.staffProfile]);
 
+  // ── Avatar avec toasts ──
+  const handleAvatarChange = async (file: File) => {
+    setUploadingAvatarId(selectedUser.id);
+    try {
+      await onHandleAvatarUpload(selectedUser.id, file);
+      toast.success(t('toast.avatarUpdated'));
+    } catch {
+      toast.error(t('toast.avatarError'));
+    } finally {
+      setUploadingAvatarId(null);
+    }
+  };
+
+  // ── Parents avec toasts ──
   const handleSaveParent = async () => {
     const studentProfileId = selectedUser?.studentProfile?.id;
     try {
       if (editingParent) {
         await updateParent(editingParent.id, parentForm);
+        toast.success(t('toast.parentUpdated'));
       } else {
         if (studentProfileId) {
           await createParent({ ...parentForm, studentIds: [studentProfileId] });
+          toast.success(t('toast.parentAdded'));
         } else {
           return;
         }
@@ -85,13 +102,20 @@ export default function AdminUserProfile({
       setProfileParents(updated);
       setShowParentForm(false);
       setEditingParent(null);
-    } catch { /* erreur réseau silencieuse volontaire */ }
+    } catch {
+      toast.error(t('toast.parentError'));
+    }
   };
 
   const handleDeleteParent = async (id: string) => {
-    await deleteParent(id);
-    const updated = await getStudentParents(selectedUser.id);
-    setProfileParents(updated);
+    try {
+      await deleteParent(id);
+      const updated = await getStudentParents(selectedUser.id);
+      setProfileParents(updated);
+      toast.success(t('toast.parentDeleted'));
+    } catch {
+      toast.error(t('toast.parentError'));
+    }
   };
 
   const staffData = profileStaff ?? selectedUser.staffProfile;
@@ -136,7 +160,7 @@ export default function AdminUserProfile({
             <label className={`cursor-pointer inline-flex items-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity ${uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}`}>
               {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                onChange={async e => { const f = e.target.files?.[0]; if (f) await onHandleAvatarUpload(selectedUser.id, f); }} />
+                onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
             </label>
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}

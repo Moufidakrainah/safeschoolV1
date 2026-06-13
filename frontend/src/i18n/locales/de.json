@@ -614,5 +614,13 @@
     "emailInvalid": "Ungültiges E-Mail-Format",
     "passwordRequired": "Passwort erforderlich",
     "passwordMin": "Passwort zu kurz"
+  },
+  "toast": {
+    "avatarUpdated": "Foto erfolgreich aktualisiert",
+    "avatarError": "Fehler beim Aktualisieren des Fotos",
+    "parentAdded": "Erziehungsberechtigter erfolgreich hinzugefügt",
+    "parentUpdated": "Erziehungsberechtigter erfolgreich geändert",
+    "parentDeleted": "Erziehungsberechtigter erfolgreich gelöscht",
+    "parentError": "Ein Fehler ist aufgetreten"
   }
 }

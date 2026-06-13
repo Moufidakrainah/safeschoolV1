@@ -634,5 +634,13 @@
     "emailInvalid": "Invalid email format",
     "passwordRequired": "Password required",
     "passwordMin": "Password too short"
+  },
+  "toast": {
+    "avatarUpdated": "Photo updated successfully",
+    "avatarError": "Error updating photo",
+    "parentAdded": "Legal guardian added successfully",
+    "parentUpdated": "Legal guardian updated successfully",
+    "parentDeleted": "Legal guardian deleted successfully",
+    "parentError": "An error occurred"
   }
 }
