@@ -19,7 +19,6 @@ interface AdminUsersListProps {
     usersTotalPages: number;              // nombre total de pages
     showUserForm: boolean;                // afficher le formulaire d'ajout ?
     isFormValid: boolean;                 // le formulaire est-il valide ?
-
     // ── Fonctions du parent ──
     onSetUsersSearch: (s: string) => void;                    // changer le texte de recherche
     onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;    // changer le tri
@@ -32,7 +31,6 @@ interface AdminUsersListProps {
   onValidateAll: () => boolean;
     renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 }
-
 
 export default function AdminUserList({
   filteredUsers,
@@ -88,7 +86,7 @@ export default function AdminUserList({
                 ))}
                 </div>
                 <div className="flex items-center gap-2">
-                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
+                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as 'asc' | 'desc' | 'date')}
                     className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
                     <option value="asc">A → Z</option>
                     <option value="desc">Z → A</option>
@@ -116,14 +114,14 @@ export default function AdminUserList({
                     {filteredUsers.slice((usersPage - 1) * 7, usersPage * 7).map(u => {
                     const { first, last } = formatName(u.firstName, u.lastName);
                     return (
-                        <li key={u.id} className="shadow-sm rounded-sm">
-                        <div className="card-list-item"
+                        <li key={u.id}>
+                        <div className="card-list-item h-[100px]"
                             onClick={async () => {
                             const freshU = await getUserById(u.id);
                             if (freshU) onNavigateToUser(freshU);
                             }}>
-                            <div className="flex items-center">
-                              <div className="w-[80px] h-[80px] shrink-0 overflow-hidden rounded-sm m-2">
+                            <div className="flex h-full">
+                              <div className="w-[100px] h-full shrink-0">
                                 {u.avatar
                                 ? <img src={`${API_BASE}/uploads/avatars/${u.avatar}?t=${avatarTimestamps[u.id] ?? 0}`}
                                     alt={u.firstName} className="w-full h-full object-cover block"/>
@@ -131,7 +129,7 @@ export default function AdminUserList({
                                     {u.firstName?.[0]}{u.lastName?.[0]}
                                     </div>}
                             </div>
-                            <div className="flex-1 px-6 py-5" >
+                            <div className="flex-1 px-5 py-5" style={{ minHeight: '80px' }}>
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
                                 <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
@@ -145,7 +143,7 @@ export default function AdminUserList({
                                     {u.role === 'teacher' && (
                                     <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-400">
                                         {u.staffProfile?.subject && <span>{u.staffProfile.subject}</span>}
-                                        {(u as any).staffProfile?.classes?.map((c: any) => (
+                                        {u.staffProfile?.classes?.map((c: SchoolClass) => (
                                         <span key={c.id}>{c.level} {c.section}</span>
                                         ))}
                                     </div>

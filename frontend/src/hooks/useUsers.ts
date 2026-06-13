@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -45,8 +46,13 @@ selectedUser: AdminUser | null;
 setSelectedUser: React.Dispatch<React.SetStateAction<AdminUser | null>>;
 
 // ── Formulaire ──
-userForm: any;
-setUserForm: React.Dispatch<React.SetStateAction<any>>;
+userForm: {
+  firstName: string; lastName: string; email: string; password: string;
+  role: string; classId: string; subject: string; classIds: string[];
+  parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
+  dateOfBirth: string;
+};
+setUserForm: React.Dispatch<React.SetStateAction<{ firstName: string; lastName: string; email: string; password: string; role: string; classId: string; subject: string; classIds: string[]; parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[]; dateOfBirth: string; }>>;
 errors: { firstName: string; lastName: string; email: string; password: string };
 isFormValid: boolean;
 
@@ -112,7 +118,7 @@ const [isBlocked, setIsBlocked]       = useState(false);
 
 // ── Chargement classes ──
 const fetchClassesList = useCallback(async () => {
-  try { setClasses(await getClasses()); } catch {}
+  try { setClasses(await getClasses()); } catch { /* erreur réseau silencieuse volontaire */ }
 }, []);
 
 // ── Chargement utilisateurs ──
@@ -153,8 +159,9 @@ const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
       setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
       await fetchUsers();
       setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev);
+      toast.success('Photo mise à jour avec succès');
     }
-  } catch {}
+  } catch { /* erreur réseau silencieuse volontaire */ }
 }, [fetchUsers]);
 
 // ── Sauvegarde utilisateur ──
@@ -189,7 +196,8 @@ const handleSaveUser = useCallback(async () => {
     await fetchUsers();
     setShowUserForm(false); setEditingUser(null);
     setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
-  } catch {}
+    toast.success(editingUser ? 'Utilisateur modifié avec succès' : 'Utilisateur créé avec succès');
+  } catch { toast.error('Une erreur est survenue'); }
 }, [editingUser, userForm, fetchUsers]);
 
 // ── Suppression utilisateur ──
@@ -207,7 +215,8 @@ const confirmDelete = useCallback(async () => {
     setDeleteTarget(null);
     setSelectedUser(null);
     navigate('/dashboard?section=users', { replace: true });
-  } catch (err: any) {
+    toast.success('Utilisateur supprimé avec succès');
+  } catch (err: unknown) {
     const msg = err?.response?.data?.message ?? err?.message ?? '';
     if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
     else setDeleteError(t('admin.users.deleteError'));
@@ -282,7 +291,7 @@ const calcAge = useCallback((dateOfBirth: string) => {
 const navigateToUser = useCallback((u: AdminUser) => {
   setSelectedUser(u);
   navigate(`/dashboard?section=users&userId=${u.id}`, { replace: true });
-  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: u.staffProfile?.subject || '', classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
+  setUserForm({ firstName: u.firstName, lastName: u.lastName, email: u.email, password: '', role: u.role, classId: u.studentProfile?.schoolClass?.id || '', subject: u.staffProfile?.subject || '', classIds: u.staffProfile?.classes?.map((c: SchoolClass) => c.id) || [], parents: [], dateOfBirth: u.studentProfile?.dateOfBirth ?? '' });
 }, [navigate]);
 
 // ── Valeurs calculées ──

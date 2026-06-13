@@ -2,7 +2,7 @@ import type { AdminUser } from '@/types';
 import { formatName } from '@/utils/formatName';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableCellLeft, TableCellParent, TableRow } from '@/components/ui/table';
 import { useState, useEffect } from 'react';
 import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -16,8 +16,13 @@ interface AdminUserProfileProps {
   filteredUsers: AdminUser[];
   avatarTimestamps: Record<string, number>;
   classes: SchoolClass[];
-  userForm: any;
-  errors: any;
+  userForm: {
+  firstName: string; lastName: string; email: string; password: string;
+  role: string; classId: string; subject: string; classIds: string[];
+  parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
+  dateOfBirth: string;
+};
+  _errors: { firstName: string; lastName: string; email: string; password: string };
   isFormValid: boolean;
   originReportId: string | null;
   onBack: () => void;
@@ -32,7 +37,7 @@ interface AdminUserProfileProps {
 
 export default function AdminUserProfile({
   selectedUser, filteredUsers,
-  avatarTimestamps, classes, userForm, errors,
+  avatarTimestamps, classes, userForm, _errors,
   isFormValid, originReportId,
   onBack, onPrev, onNextUser, onHandleAvatarUpload,
   onHandleDeleteUser, onSaveUser,
@@ -70,15 +75,24 @@ export default function AdminUserProfile({
 
   const handleSaveParent = async () => {
     const studentProfileId = selectedUser?.studentProfile?.id;
-    if (editingParent) {
-      await updateParent(editingParent.id, parentForm);
-    } else {
-      if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+    try {
+      if (editingParent) {
+        await updateParent(editingParent.id, parentForm);
+      } else {
+        if (studentProfileId) {
+          await createParent({ ...parentForm, studentIds: [studentProfileId] });
+        } else {
+          console.error("studentProfileId manquant", selectedUser?.studentProfile);
+          return;
+        }
+      }
+      const updated = await getStudentParents(selectedUser.id);
+      setProfileParents(updated);
+      setShowParentForm(false);
+      setEditingParent(null);
+    } catch (err) {
+      console.error("Erreur handleSaveParent:", err);
     }
-    const updated = await getStudentParents(selectedUser.id);
-    setProfileParents(updated);
-    setShowParentForm(false);
-    setEditingParent(null);
   };
 
   const handleDeleteParent = async (id: string) => {
@@ -148,7 +162,7 @@ export default function AdminUserProfile({
             {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
             {staffData?.profession && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{staffData.profession}</TableCell></TableRow>}
             {staffData?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{staffData.subject}</TableCell></TableRow>}
-            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
+            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: SchoolClass) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
           </TableBody></Table>
         </div>
       )}
@@ -189,10 +203,10 @@ export default function AdminUserProfile({
             </div>
           )}
           <div className="flex flex-col gap-2">
-            {profileParents.map((p: any) => {
+            {profileParents.map((p: Parent) => {
               const { first, last } = formatName(p.firstName, p.lastName);
               return (
-                <div key={p.id} className="bg-surface rounded-lg px-4 py-2">
+                <div key={p.id} className="bg-surface rounded-lg py-2">
                   <div className="flex justify-between items-center mb-2">
                     <p className="font-semibold text-gray-800">{first} {last}</p>
                     <div className="flex gap-2">
@@ -204,14 +218,14 @@ export default function AdminUserProfile({
                       <Button size="sm" variant="default" onClick={() => handleDeleteParent(p.id)}>Supprimer</Button>
                     </div>
                   </div>
-                  <table className="w-full table-fixed text-sm [&_tr]:border-0"><tbody>
+                  <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
                     {[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => (
-                      <tr key={row.label} className="border-b border-gray-100">
-                        <td className="py-1.5 text-gray-400 font-semibold w-2/5">{row.label}</td>
-                        <td className="py-1.5 text-gray-700">{row.value}</td>
-                      </tr>
+                      <TableRow key={row.label}>
+                        <TableCellLeft>{row.label}</TableCellLeft>
+                        <TableCell>{row.value}</TableCell>
+                      </TableRow>
                     ))}
-                  </tbody></table>
+                  </TableBody></Table>
                 </div>
               );
             })}

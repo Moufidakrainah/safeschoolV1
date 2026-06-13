@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import Header from '../Header/Header';
-import type { AuthUser } from '../../../types';
+import Header from '@/components/layout/Header/Header';
+import type { AuthUser } from '@/types';
 
 interface AdminHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
   viewSection: 'reports' | 'users' | 'stats' | 'classes';
   setViewSection: (s: 'reports' | 'users' | 'stats' | 'classes') => void;
-  setSelected: (r: any) => void;
+  setSelected: (r: Report | null) => void;
   setView: (v: 'list' | 'detail') => void;
   fetchUsers: () => void;
 }

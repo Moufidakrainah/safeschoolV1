@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react';
-import Header from '../Header/Header';
-import { getNotifications, getUnreadCount, markNotificationRead } from '../../../services/api';
-import type { AuthUser } from '../../../types';
+import Header from '@/components/layout/Header/Header';
+import { getNotifications, getUnreadCount, markNotificationRead } from '@/services/api';
+import type { AuthUser } from '@/types';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 
@@ -22,7 +22,8 @@ interface StudentHeaderProps {
   onNotifRefresh?: () => void;
 }
 
-export default function StudentHeader({ user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
+export default function StudentHeader({ 
+	user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
   const { t } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);

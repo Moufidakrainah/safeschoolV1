@@ -137,6 +137,8 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const joinedRoomRef = useRef<string | null>(null);
   const playerNameRef = useRef<string | undefined>(playerName);
   playerNameRef.current = playerName;
+  const gamePhaseRef = useRef<GamePhase>('lobby');
+  gamePhaseRef.current = gamePhase;
 
   useEffect(() => {
     joinedRoomRef.current = joinedRoom;
@@ -225,10 +227,18 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
 
-      socket.on('quiz:joined', (data: { roomId: string; hostId: string; selfId?: string }) => {
+      socket.on('quiz:joined', (data: { roomId: string; hostId: string; status?: string; selfId?: string }) => {
         setJoinedRoom(data.roomId);
         setSocketError('');
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
+
+        if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
+          setGamePhase('lobby');
+          setQuestionState(null);
+          setTimeLeftMs(0);
+          setFinalLeaderboard(null);
+          setSocketError('La partie a été interrompue pendant la déconnexion.');
+        }
       });
 
       socket.on('quiz:game:started', () => {
@@ -334,8 +344,23 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
     connectSocket();
 
+    const handleOffline = () => {
+      setConnected(false);
+      setReconnecting(true);
+      socketRef.current?.io.engine?.close();
+    };
+
+    const handleOnline = () => {
+      const socket = socketRef.current;
+      if (socket && !socket.connected && socket.active) socket.io.open();
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
       clearGiveUpTimer();
       if (joinedRoomRef.current) {
         socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });

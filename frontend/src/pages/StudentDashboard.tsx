@@ -49,7 +49,7 @@ export default function StudentDashboard() {
         studentNotifRefreshKey={notifRefreshKey}
         studentOnNotifRefresh={handleNotifRefresh}
       />
-      <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+      <div className="max-w-5xl mx-auto mt-2 px-5 pb-0">
         {viewSection === "profile" && (
           <StudentProfile
             user={user}

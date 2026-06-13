@@ -5,21 +5,22 @@ import { useAuth } from '@/context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getUserById, searchUsers, resolveSuspect, resolveVictim,
-  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser,
-} from '../services/api';
+  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser, createParent,
+} from '@/services/api';
 import { useUsers } from '@/hooks/useUsers';
-import StatsDashboard from '../components/admin/StatsDashboard';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import { Button } from '../components/ui/button';
+import StatsDashboard from '@/components/admin/StatsDashboard';
+import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
+import { Button } from '@/components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import StatCard from '../components/StatCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import StatCard from '@/components/StatCard';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import AdminClasses from '../components/admin/AdminClasses';
-import ReportDetail from '../components/admin/ReportDetail';
-import type { Report, Note } from '../types';
+
+import AdminClasses from '@/components/admin/AdminClasses';
+import ReportDetail from '@/components/admin/ReportDetail';
+import type { Report, Note } from '@/types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
@@ -28,7 +29,7 @@ import ParentFormItem from '@/components/admin/ParentFormItem';
 interface SchoolClass { id: string; level: string; section: string; }
 
 // Helper pour construire le userForm depuis un utilisateur
-const buildUserForm = (u: any) => ({
+const buildUserForm = (u: AdminUser) => ({
   firstName: u.firstName,
   lastName: u.lastName,
   email: u.email,
@@ -36,7 +37,7 @@ const buildUserForm = (u: any) => ({
   role: u.role,
   classId: u.studentProfile?.schoolClass?.id || '',
   subject: u.staffProfile?.subject || '',
-  classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [],
+  classIds: u.staffProfile?.classes?.map((c: SchoolClass) => c.id) || [],
   parents: [],
   dateOfBirth: u.studentProfile?.dateOfBirth ?? '',
 });
@@ -108,8 +109,11 @@ export default function AdminDashboard() {
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
+  const [existingParentsCount, setExistingParentsCount] = useState(0);
 
   const itemsPerPage = 5;
+
+
 
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
@@ -126,20 +130,28 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
+  useEffect(() => {
+    if (selectedUser?.role === 'student' && selectedUser?.id) {
+      import('../services/api').then(({ getStudentParents }) => {
+        getStudentParents(selectedUser.id).then(p => setExistingParentsCount(p.length)).catch(() => setExistingParentsCount(0));
+      });
+    } else { setExistingParentsCount(0); }
+  }, [selectedUser?.id]);
+
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
+    try { setReports(await getAllReports()); } catch { /* erreur réseau silencieuse volontaire */ } finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); await loadNotes(id); }
     catch {} finally { setSaving(false); }
   };
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
     if (query.length < 2) { setSuspectResults([]); return; }
-    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: any) => u.role === 'student')); }
+    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: AdminUser) => u.role === 'student')); }
     catch { setSuspectResults([]); }
   };
 
@@ -149,7 +161,7 @@ export default function AdminDashboard() {
       await resolveSuspect(suspectId, userId);
       const updated = await getAllReports();
       setReports(updated);
-      setSelected(updated.find((r: any) => r.id === selected?.id) ?? null);
+      setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
     } finally { setResolving(false); }
   };
@@ -184,7 +196,7 @@ export default function AdminDashboard() {
 
   const handleReset = () => { setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all'); setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1); setResetKey(k => k + 1); };
 
-  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch {} };
+  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { /* erreur réseau silencieuse volontaire */ } };
   const goTo = (report: typeof selected) => { setSelected(report); if (report) { loadNotes(report.id); setCheckedConvocIds([]); } };
 
   const handleAddNote = async (type = 'note') => {
@@ -192,10 +204,10 @@ export default function AdminDashboard() {
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
-    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
+    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
-  const renderUserForm = (isEdit = false) => (
+const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -271,7 +283,7 @@ export default function AdminDashboard() {
           <div className="mt-2">
             <div className="flex justify-between items-center mb-2">
               <Label className="text-white text-sm">Responsables légaux</Label>
-              {userForm.parents.length < 2 && (
+              {(userForm.parents.length + existingParentsCount) < 2 && (
                 <button
                   type="button"
                   className="text-xs text-white/80 hover:text-white underline"
@@ -280,7 +292,7 @@ export default function AdminDashboard() {
                     parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
                   }))}
                 >
-                  + Ajouter un parent
+                  {existingParentsCount > 0 ? '+ Modifier un parent' : '+ Ajouter un parent'}
                 </button>
               )}
             </div>
@@ -403,7 +415,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="flex-1 bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -488,7 +500,10 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            {totalPages > 1 && (
+           
+
+
+{totalPages > 1 && (
               <PaginationShadcn className="mt-4">
                 <PaginationContent>
                   <PaginationItem>
@@ -508,6 +523,7 @@ export default function AdminDashboard() {
                 </PaginationContent>
               </PaginationShadcn>
             )}
+
           </>
         )}
 
@@ -525,9 +541,9 @@ export default function AdminDashboard() {
               setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
-                const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                const goToReport = (r: Report) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
                 if (report) { goToReport(report); }
-                else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                else { getAllReports().then(all => { const r = all.find((r: Report) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
                 setViewSection('reports');
               } else {
                 navigate('/dashboard?section=users', { replace: true });
@@ -540,10 +556,25 @@ export default function AdminDashboard() {
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
+              // Créer les parents si élève et parents dans le formulaire
+              if (userForm.role === 'student' && userForm.parents.length > 0) {
+                const freshU = await getUserById(selectedUser.id);
+                const studentProfileId = freshU?.studentProfile?.id;
+                if (studentProfileId) {
+                  for (const parent of userForm.parents) {
+                    if (parent.firstName && parent.lastName && parent.email) {
+                      await createParent({ ...parent, studentIds: [studentProfileId] });
+                    }
+                  }
+                }
+              }
               const u = await getUserById(selectedUser.id);
               if (u) {
-                setSelectedUser(u);
-                setUserForm(buildUserForm(u));
+                setSelectedUser(null);
+                setTimeout(() => {
+                  setSelectedUser(u);
+                  setUserForm(buildUserForm(u));
+                }, 50);
               }
               await fetchUsers();
             }}

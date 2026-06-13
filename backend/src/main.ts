@@ -7,9 +7,6 @@ import helmet from "helmet";
 import { LoggerService } from "./logger/logger.service";
 
 async function bootstrap() {
-  if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET manquant dans les variables d'environnement");
-  }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   // Remplace le logger interne de Nest par le nôtre : les erreurs non gérées
   // (500) partent ainsi vers Logstash avec le niveau ERROR (tag "error").
@@ -46,4 +43,4 @@ async function bootstrap() {
   });
   await app.listen(process.env.BACKEND_PORT ?? 3000);
 }
-bootstrap();
+bootstrap().catch((err) => { console.error(err); process.exit(1); });
