@@ -17,7 +17,7 @@ interface AdminUserProfileProps {
   avatarTimestamps: Record<string, number>;
   classes: SchoolClass[];
   userForm: any;
-  errors: any;
+  _errors: any;
   isFormValid: boolean;
   originReportId: string | null;
   onBack: () => void;
@@ -32,7 +32,7 @@ interface AdminUserProfileProps {
 
 export default function AdminUserProfile({
   selectedUser, filteredUsers,
-  avatarTimestamps, classes, userForm, errors,
+  avatarTimestamps, classes, userForm, _errors,
   isFormValid, originReportId,
   onBack, onPrev, onNextUser, onHandleAvatarUpload,
   onHandleDeleteUser, onSaveUser,

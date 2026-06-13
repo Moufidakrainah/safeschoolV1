@@ -10,6 +10,7 @@ import ReporterDashboard from '@/pages/ReporterDashboard';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import { Footer } from '@/components/layout/Footer/Footer';
+import { Toaster } from '@/components/ui/sonner';
 import UiKit from '@/pages/UiKit';
 import Quiz from '@/pages/Quiz';
 
@@ -71,6 +72,7 @@ export default function App() {
         </Routes>
       </div>
       <Footer />
+      <Toaster position="top-right" richColors />
     </div>
   );
 }

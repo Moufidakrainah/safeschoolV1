@@ -133,7 +133,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         return updated;
       });
       onNotifRefresh?.();
-    } catch {}
+    } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
   return (

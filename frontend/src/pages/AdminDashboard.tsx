@@ -127,7 +127,7 @@ export default function AdminDashboard() {
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
+    try { setReports(await getAllReports()); } catch { /* erreur réseau silencieuse volontaire */ } finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
 
   const handleReset = () => { setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all'); setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1); setResetKey(k => k + 1); };
 
-  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch {} };
+  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { /* erreur réseau silencieuse volontaire */ } };
   const goTo = (report: typeof selected) => { setSelected(report); if (report) { loadNotes(report.id); setCheckedConvocIds([]); } };
 
   const handleAddNote = async (type = 'note') => {
@@ -192,7 +192,7 @@ export default function AdminDashboard() {
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
-    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
+    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
   const renderUserForm = (isEdit = false) => (

@@ -1,6 +1,7 @@
+import type { Report } from '@/types';
 import { Checkbox } from "./ui/checkbox";
 interface ConvocationSelectorProps {
-  selected: any;
+  selected: Report;
   checkedIds: string[];
   onToggle: (id: string) => void;
 }
@@ -19,8 +20,8 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
 
   // Victimes liées — exclure l'alerteur lui-même
   const extraVictims = selected.victims
-    ?.filter((v: any) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
-  extraVictims.forEach((v: any, i: number) => {
+    ?.filter((v) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
+  extraVictims.forEach((v, i: number) => {
     people.push({
       id: `victim_${v.resolvedUser.id}`,
       role: extraVictims.length > 1 ? `Victime ${i + 1}` : 'Victime',
@@ -29,8 +30,8 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
   });
 
   // Suspects liés uniquement — utilise l'userId comme identifiant
-  const linkedSuspects = selected.suspects?.filter((s: any) => s.resolvedUser) ?? [];
-  linkedSuspects.forEach((s: any, i: number) => {
+  const linkedSuspects = selected.suspects?.filter((s) => s.resolvedUser) ?? [];
+  linkedSuspects.forEach((s, i: number) => {
     people.push({
       id: `suspect_${s.resolvedUser.id}`,
       role: linkedSuspects.length > 1 ? `Suspect ${i + 1}` : 'Suspect',
