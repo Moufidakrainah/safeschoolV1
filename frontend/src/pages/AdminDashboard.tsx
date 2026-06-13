@@ -135,7 +135,7 @@ export default function AdminDashboard() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); await loadNotes(id); }
     catch {} finally { setSaving(false); }
   };
 

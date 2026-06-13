@@ -110,13 +110,9 @@ export default function ReportDetail({
       {/* ── Statut + modifier ── */}
       <div className="bg-surface shadow-sm flex items-center justify-between mb-3 px-5 py-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 font-semibold">Statut du signalement :</span>
-          <Badge variant={selected.status as BadgeVariant} />
-        </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 font-semibold">Modifier le statut :</span>
+            <span className="text-sm text-gray-500 font-semibold">Statut :</span>
             <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
