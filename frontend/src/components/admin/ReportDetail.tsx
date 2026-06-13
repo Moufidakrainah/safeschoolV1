@@ -28,7 +28,7 @@ interface ReportDetailProps {
   newNote: string;
   activeSuspect: string | null;
   suspectSearch: string;
-  suspectResults: any[];
+  suspectResults: AdminUser[];
   onBack: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -41,11 +41,11 @@ interface ReportDetailProps {
   onSuspectSearch: (q: string) => void;
   onSetNewNote: (v: string) => void;
   onToggleConvoc: (id: string) => void;
-  onSetConvocDetails: (fn: (prev: any) => any) => void;
+  onSetConvocDetails: (fn: (prev: Record<string, { date: string; message: string }>) => Record<string, { date: string; message: string }>) => void;
   onSetSendingConvoc: (v: boolean) => void;
   onSetConvocSuccess: (v: boolean) => void;
   onSetSuspectSearch: (v: string) => void;
-  onSetSuspectResults: (v: any[]) => void;
+  onSetSuspectResults: (v: AdminUser[]) => void;
   onAddNoteRaw: (reportId: string, content: string, type: string, personId?: string) => Promise<void>;
   onLoadNotes: (reportId: string) => void;
   onNavigateToUser: (userId: string) => void;
@@ -197,7 +197,7 @@ export default function ReportDetail({
                     <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
                       placeholder="Rechercher un élève..." autoFocus
                       className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
-                    {suspectResults.map((u: any) => (
+                    {suspectResults.map((u: AdminUser) => (
                       <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
                         onClick={() => onResolveVictim(mainVictimId, u.id)} disabled={resolving}>
                         {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
@@ -245,7 +245,7 @@ export default function ReportDetail({
                         <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
                           placeholder="Rechercher un élève..." autoFocus
                           className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
-                        {suspectResults.map((u: any) => (
+                        {suspectResults.map((u: AdminUser) => (
                           <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
                             onClick={() => onResolveVictim(v.id, u.id)} disabled={resolving}>
                             {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
@@ -324,7 +324,7 @@ export default function ReportDetail({
                           <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
                             placeholder="Rechercher un élève..." autoFocus
                             className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
-                          {suspectResults.map((u: any) => (
+                          {suspectResults.map((u: AdminUser) => (
                             <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
                               onClick={() => onResolveSuspect(s.id, u.id)} disabled={resolving}>
                               {u.firstName} {u.lastName} <span className="text-gray-400">({u.role})</span>
@@ -395,7 +395,7 @@ export default function ReportDetail({
           <ConvocationSelector selected={selected} checkedIds={checkedConvocIds}
             onToggle={id => {
               onToggleConvoc(id);
-              onSetConvocDetails((prev: any) => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } }));
+              onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [id]: prev[id] ?? { date: '', message: '' } }));
             }}
           />
           {checkedConvocIds.length > 0 && (
@@ -405,8 +405,8 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -414,13 +414,13 @@ export default function ReportDetail({
                       <Label className="text-xs text-gray-500 mb-1 block">Date et heure</Label>
                       <Input type="datetime-local" value={details.date} className="max-w-[220px]"
                         min={new Date().toISOString().slice(0,16)}
-                        onChange={e => onSetConvocDetails((prev: any) => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
+                        onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
                       {details.date && new Date(details.date) <= new Date() && (
                         <p className="text-red-500 text-xs mt-1">La date doit être dans le futur</p>
                       )}
                     </div>
                     <Textarea rows={2} placeholder="Message de convocation..." value={details.message}
-                      onChange={e => onSetConvocDetails((prev: any) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1500) } }))}
+                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1500) } }))}
                       className="resize-y" maxLength={1500} />
                     <p className="text-xs text-gray-400 text-right">{details.message.length}/1500 {details.message.length >= 1500 && <span className="text-red-500">Limite atteinte</span>}</p>
                   </div>
@@ -439,8 +439,8 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: any) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
-                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: any) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
+                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
+                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);
