@@ -17,6 +17,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note } from '../types';
@@ -28,7 +29,7 @@ import ParentFormItem from '@/components/admin/ParentFormItem';
 interface SchoolClass { id: string; level: string; section: string; }
 
 // Helper pour construire le userForm depuis un utilisateur
-const buildUserForm = (u: any) => ({
+const buildUserForm = (u: AdminUser) => ({
   firstName: u.firstName,
   lastName: u.lastName,
   email: u.email,
@@ -36,7 +37,7 @@ const buildUserForm = (u: any) => ({
   role: u.role,
   classId: u.studentProfile?.schoolClass?.id || '',
   subject: u.staffProfile?.subject || '',
-  classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [],
+  classIds: u.staffProfile?.classes?.map((c: SchoolClass) => c.id) || [],
   parents: [],
   dateOfBirth: u.studentProfile?.dateOfBirth ?? '',
 });
@@ -111,6 +112,8 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
+
+
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -127,19 +130,19 @@ export default function AdminDashboard() {
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
+    try { setReports(await getAllReports()); } catch { /* erreur réseau silencieuse volontaire */ } finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); }
     catch {} finally { setSaving(false); }
   };
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
     if (query.length < 2) { setSuspectResults([]); return; }
-    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: any) => u.role === 'student')); }
+    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: AdminUser) => u.role === 'student')); }
     catch { setSuspectResults([]); }
   };
 
@@ -149,7 +152,7 @@ export default function AdminDashboard() {
       await resolveSuspect(suspectId, userId);
       const updated = await getAllReports();
       setReports(updated);
-      setSelected(updated.find((r: any) => r.id === selected?.id) ?? null);
+      setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
     } finally { setResolving(false); }
   };
@@ -184,7 +187,7 @@ export default function AdminDashboard() {
 
   const handleReset = () => { setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all'); setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1); setResetKey(k => k + 1); };
 
-  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch {} };
+  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { /* erreur réseau silencieuse volontaire */ } };
   const goTo = (report: typeof selected) => { setSelected(report); if (report) { loadNotes(report.id); setCheckedConvocIds([]); } };
 
   const handleAddNote = async (type = 'note') => {
@@ -192,10 +195,10 @@ export default function AdminDashboard() {
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
-    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
+    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
-  const renderUserForm = (isEdit = false) => (
+const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -403,7 +406,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="flex-1 bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -488,26 +491,59 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            {totalPages > 1 && (
-              <PaginationShadcn className="mt-4">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
-                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <PaginationItem key={p}>
-                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
-                        className="cursor-pointer">{p}</PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
-                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                </PaginationContent>
-              </PaginationShadcn>
-            )}
+           
+
+
+{totalPages > 1 && (
+  <PaginationShadcn className="mt-4">
+    <PaginationContent>
+
+      {/* Précédent */}
+      <PaginationItem>
+        <PaginationPrevious
+          onClick={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1)
+              onFetchReports(currentPage - 1)
+            }
+          }}
+          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+      {/* Numéros */}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+        <PaginationItem key={p}>
+          <PaginationLink
+            isActive={p === currentPage}
+            onClick={() => {
+              setCurrentPage(p)
+              onFetchReports(p)
+            }}
+            className="cursor-pointer"
+          >
+            {p}
+          </PaginationLink>
+        </PaginationItem>
+      ))}
+
+      {/* Suivant */}
+      <PaginationItem>
+        <PaginationNext
+          onClick={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1)
+              onFetchReports(currentPage + 1)
+            }
+          }}
+          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+    </PaginationContent>
+  </PaginationShadcn>
+)}
+
           </>
         )}
 
@@ -525,9 +561,9 @@ export default function AdminDashboard() {
               setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
-                const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                const goToReport = (r: Report) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
                 if (report) { goToReport(report); }
-                else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                else { getAllReports().then(all => { const r = all.find((r: Report) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
                 setViewSection('reports');
               } else {
                 navigate('/dashboard?section=users', { replace: true });

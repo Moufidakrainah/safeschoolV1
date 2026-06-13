@@ -16,8 +16,13 @@ interface AdminUserProfileProps {
   filteredUsers: AdminUser[];
   avatarTimestamps: Record<string, number>;
   classes: SchoolClass[];
-  userForm: any;
-  errors: any;
+  userForm: {
+  firstName: string; lastName: string; email: string; password: string;
+  role: string; classId: string; subject: string; classIds: string[];
+  parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
+  dateOfBirth: string;
+};
+  _errors: { firstName: string; lastName: string; email: string; password: string };
   isFormValid: boolean;
   originReportId: string | null;
   onBack: () => void;
@@ -32,7 +37,7 @@ interface AdminUserProfileProps {
 
 export default function AdminUserProfile({
   selectedUser, filteredUsers,
-  avatarTimestamps, classes, userForm, errors,
+  avatarTimestamps, classes, userForm, _errors,
   isFormValid, originReportId,
   onBack, onPrev, onNextUser, onHandleAvatarUpload,
   onHandleDeleteUser, onSaveUser,
@@ -148,7 +153,7 @@ export default function AdminUserProfile({
             {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
             {staffData?.profession && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{staffData.profession}</TableCell></TableRow>}
             {staffData?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{staffData.subject}</TableCell></TableRow>}
-            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: any) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
+            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: SchoolClass) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
           </TableBody></Table>
         </div>
       )}
@@ -189,7 +194,7 @@ export default function AdminUserProfile({
             </div>
           )}
           <div className="flex flex-col gap-2">
-            {profileParents.map((p: any) => {
+            {profileParents.map((p: Parent) => {
               const { first, last } = formatName(p.firstName, p.lastName);
               return (
                 <div key={p.id} className="bg-surface rounded-lg px-4 py-2">

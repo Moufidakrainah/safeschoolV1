@@ -1,3 +1,5 @@
+import * as path from 'path';
+import * as fs from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
@@ -118,7 +120,7 @@ export class UsersService {
       const profile = this.studentProfileRepository.create({
         user: saved,
         schoolClass,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
       });
       const savedProfile = await this.studentProfileRepository.save(profile);
       saved.studentProfile = savedProfile;
@@ -166,13 +168,13 @@ export class UsersService {
       if (user.studentProfile) {
         user.studentProfile.schoolClass = schoolClass;
         if (dto.dateOfBirth !== undefined)
-          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null;
+          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
         await this.studentProfileRepository.save(user.studentProfile);
       } else {
         const profile = this.studentProfileRepository.create({
           user: saved,
           schoolClass,
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
         });
         await this.studentProfileRepository.save(profile);
       }
@@ -234,8 +236,8 @@ export class UsersService {
   async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user?.avatar && user.avatar !== filename) {
-      const oldPath = require('path').join(process.cwd(), 'uploads', 'avatars', user.avatar);
-      try { require('fs').unlinkSync(oldPath); } catch {}
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', user.avatar);
+      try { fs.unlinkSync(oldPath); } catch { /* fichier déjà supprimé ou inaccessible */ }
     }
     await this.usersRepository.update(id, { avatar: filename });
     return { avatar: filename };

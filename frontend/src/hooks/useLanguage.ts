@@ -1,5 +1,4 @@
 import { useTranslation } from 'react-i18next';
-import { useCallback } from 'react';
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();

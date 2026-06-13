@@ -3,7 +3,6 @@ import type { AuthUser } from "@/types";
 import { Avatar } from "@/components/ui/avatar";
 import { useState } from "react";
 import { formatName } from "@/utils/formatName";
-
 import {
 	Table,
 	TableBody,
@@ -15,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/context/AuthContext";
 import { API_BASE } from "@/config";
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface StaffClass {
 	id: string;
@@ -35,6 +36,8 @@ interface ReporterProfileProps {
 }
 
 const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
+
+// ─── Composant ──────────────────────────────────────────────────────────────
 
 export default function ReporterProfile({
 	user,
@@ -110,7 +113,7 @@ export default function ReporterProfile({
 					</div>
 
 					<label
-						className={`cursor-pointer inline-flex items-center gap-1 h-8 px-4 py-2 rounded-md text-sm bg-primary text-white hover:opacity-90`}
+						className={`cursor-pointer inline-flex items-center gap-1 h-8 px-4 py-2 rounded-md text-sm  bg-primary text-white hover:opacity-90 `}
 					>
 						{uploading
 							? t(`reporter.profile.upload`)
@@ -154,60 +157,46 @@ export default function ReporterProfile({
 
 			{/* Profil professionnel */}
 			<div className="bg-surface shadow-sm px-8 py-4">
-				<TableHeader>{t(`reporter.profile.job`)}</TableHeader>
-
 				{loadingProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Chargement...
+					<p className="text-m text-center py-4">
+						{t("reporter.profile.loading")}
 					</p>
 				) : !staffProfile ? (
-					<p className="text-gray-400 text-sm text-center py-4">
-						Aucun profil professionnel enregistré
+					<p className="text-m text-center py-4">
+						{t("reporter.profile.noProfile")}
 					</p>
 				) : (
 					<>
 						<Table>
 							<TableBody>
-								<TableRow className="border-b border-gray-100">
-									<TableCell className="py-2 text-gray-400 font-semibold w-2/5">
-										Profession
-									</TableCell>
-									<TableCell className="py-2 text-gray-700 capitalize">
-										{staffProfile.profession}
-									</TableCell>
+								<TableRow>
+									<TableCellLeft>{t(`reporter.profile.occupation`)}</TableCellLeft>
+									<TableCell>{staffProfile.profession}</TableCell>
 								</TableRow>
 								{staffProfile.subject && (
-									<TableRow className="border-b border-gray-100">
-										<TableCell className="py-2 text-gray-400 font-semibold w-2/5">
-											Matière
-										</TableCell>
-										<TableCell className="py-2 text-gray-700">
-											{staffProfile.subject}
+									<TableRow>
+										<TableCellLeft>{t(`reporter.profile.subject`)}</TableCellLeft>
+										<TableCell>{staffProfile.subject}</TableCell>
+									</TableRow>
+								)}
+								{staffProfile.classes.length > 0 && (
+									<TableRow>
+										<TableCellLeft>{t(`reporter.profile.classes`)}</TableCellLeft>
+										<TableCell>
+											<div className="space-y-1">
+											{staffProfile.classes.map((c) => (
+												<div key={`${c.level}-${c.section}`}>
+													{c.level} {c.section}
+												</div>
+											))}
+											</div>
 										</TableCell>
 									</TableRow>
 								)}
 							</TableBody>
 						</Table>
-
-						{staffProfile.classes && staffProfile.classes.length > 0 && (
-							<>
-								<p className="text-gray-400 font-semibold text-sm mb-2">
-									Classes
-								</p>
-								<div className="flex flex-wrap gap-2">
-									{staffProfile.classes.map((c) => (
-										<span
-											key={c.id}
-											className="bg-surface text-primary text-xs font-bold px-3 py-1 rounded-full"
-										>
-											{c.level} {c.section}
-										</span>
-									))}
-								</div>
-							</>
-						)}
 					</>
-				)}
+					)}
 			</div>
 		</section>
 	);

@@ -57,12 +57,11 @@ export default function ReporterDashboard() {
     if (viewSection === 'quiz') navigate('/quiz');
   }, [viewSection, navigate]);
 
-  const headerProps = { user, logoutUser, viewSection, setViewSection };
 
   return (
     <>
       {/* <ReporterHeader {...headerProps} /> */}
-    <main className="flex-1 bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
 
 		<RoleHeader
 			user={user}
