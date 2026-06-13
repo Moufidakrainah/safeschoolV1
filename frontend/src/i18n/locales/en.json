@@ -37,7 +37,8 @@
       "ariaLabel": "Main navigation",
       "reports": "Reports",
       "users": "Users",
-      "stats": "Statistics"
+      "stats": "Statistics",
+      "classes": "Classes"
     },
     "topbar": {
       "role": "{{role}} space"
@@ -265,7 +266,9 @@
       "subjectUnknown": "Unknown",
       "job": "Job",
       "change": "Change photo",
-      "upload": "Upload"
+      "upload": "Upload",
+      "loading": "Loading...",
+      "noProfile": "No professional profile registered"
     },
     "roles": {
       "teacher": "Teacher",
@@ -492,5 +495,75 @@
     "read": "Read"
   },
   "all": "All",
-  "section": "Section"
+  "section": "Section",
+  "stats": {
+    "allPeriod": "All time",
+    "last7": "Last 7 days",
+    "last30": "Last 30 days",
+    "last90": "Last 3 months",
+    "last365": "1 year",
+    "allClasses": "All classes",
+    "allGrades": "All grades",
+    "reportsFound": "{{count}} report(s) found",
+    "byGrade": "By grade",
+    "byStatus": "By status",
+    "byClass": "Reports by class (victim)",
+    "byType": "Reports by type",
+    "evolution": "Evolution (last 7 days)",
+    "statusNew": "New",
+    "statusInProgress": "In progress",
+    "statusResolved": "Resolved",
+    "statusPending": "Pending",
+    "statusFalseReport": "False report"
+  },
+  "classes": {
+    "loading": "Loading...",
+    "backToClasses": "← Back to classes",
+    "studentsEnrolled": "Enrolled students",
+    "noStudentInClass": "No students in this class.",
+    "assignStudents": "Assign students from the Users section.",
+    "addClass": "+ Add a class",
+    "editClass": "Edit class",
+    "addClassTitle": "Add a class",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noClass": "No classes",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "student": "student",
+    "students": "students",
+    "deleteBlocked": "Cannot delete {{level}} {{section}}: {{count}} student(s) enrolled. Reassign them first.",
+    "deleteConfirm": "Are you sure you want to delete class {{level}} {{section}}?"
+  },
+  "userProfile": {
+    "backToReport": "Back to report",
+    "backToList": "Back to list",
+    "prev": "← Previous",
+    "next": "Next →",
+    "changePhoto": "Change photo",
+    "uploading": "Uploading...",
+    "class": "Class",
+    "dob": "Date of birth",
+    "age": "years",
+    "profession": "Profession",
+    "subject": "Subject",
+    "classes": "Classes",
+    "guardians": "Legal guardians",
+    "addGuardian": "+ Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editGuardian": "Edit",
+    "deleteGuardian": "Delete",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "confirmTitle": "Confirm changes",
+    "confirmBtn": "Confirm",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "role": "Role",
+    "password": "Password",
+    "passwordChanged": "changed"
+  }
 }

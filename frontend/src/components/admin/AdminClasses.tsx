@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	getClasses,
 	createClass,
@@ -48,6 +49,7 @@ const validateSection = (value: string): string => {
 //Composant principal
 export default function AdminClasses() {
 	//variables d'etat
+	const { t } = useTranslation();
 	const [classes, setClasses] = useState<SchoolClass[]>([]);
 	const [students, setStudents] = useState<StudentUser[]>([]);
 	const [loading, setLoading] = useState(true); //true pendant le chargement ???
@@ -117,9 +119,9 @@ const CLASSES_PER_PAGE = 7;
 			(s) => s.studentProfile?.schoolClass?.id === cls.id,
 		).length;
 		if (count > 0) {
-			setDeleteModal({ cls, blocked: true, message: `Impossible de supprimer ${cls.level} ${cls.section} : ${count} élève(s) inscrits. Réassignez-les d'abord.` });
+			setDeleteModal({ cls, blocked: true, message: t('classes.deleteBlocked', { level: cls.level, section: cls.section, count }) });
 		} else {
-			setDeleteModal({ cls, blocked: false, message: `Voulez-vous vraiment supprimer la classe ${cls.level} ${cls.section} ?` });
+			setDeleteModal({ cls, blocked: false, message: t('classes.deleteConfirm', { level: cls.level, section: cls.section }) });
 		}
 	};
 
@@ -139,7 +141,7 @@ const CLASSES_PER_PAGE = 7;
 		`${s.firstName?.[0] ?? ""}${s.lastName?.[0] ?? ""}`.toUpperCase();
 
 	if (loading) {
-		return <p className="text-center py-16 text-gray-400">Chargement...</p>;
+		return <p className="text-center py-16 text-gray-400">{t('classes.loading')}</p>;
 	}
 
 	// Si une classe est sélectionnée → afficher le détail à la place
@@ -151,7 +153,7 @@ const CLASSES_PER_PAGE = 7;
 						onClick={() => setSelectedClass(null)}
 						className="text-primary text-sm font-medium flex items-center gap-1 hover:underline"
 					>
-						← Retour aux classes
+						{t('classes.backToClasses')}
 					</button>
 				</div>
 				<div className="flex items-center gap-3 mb-5">
@@ -159,15 +161,15 @@ const CLASSES_PER_PAGE = 7;
 						{selectedClass.level} {selectedClass.section}
 					</h2>
 					<span className="text-sm text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
-						{studentsInClass.length} élève{studentsInClass.length !== 1 ? "s" : ""}
+						{studentsInClass.length} {studentsInClass.length !== 1 ? t('classes.students') : t('classes.student')}
 					</span>
 				</div>
 				<div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-					<p className="text font-semibold text-gray-700 mb-3">Élèves inscrits</p>
+					<p className="text font-semibold text-gray-700 mb-3">{t('classes.studentsEnrolled')}</p>
 					{studentsInClass.length === 0 ? (
 						<p className="text-sm text-gray-400 py-6 text-center">
-							Aucun élève dans cette classe.<br />
-							<span className="text-xs">Assignez des élèves depuis la section Utilisateurs.</span>
+							{t('classes.noStudentInClass')}<br />
+							<span className="text-xs">{t('classes.assignStudents')}</span>
 						</p>
 					) : (
 						<ul className="flex flex-col divide-y divide-gray-50">
@@ -207,7 +209,7 @@ const CLASSES_PER_PAGE = 7;
 							setClassForm({ level: "", section: "" });
 						}}
 					>
-						+ Ajouter une classe
+						{t('classes.addClass')}
 					</Button>
 				</div>
 
@@ -215,7 +217,7 @@ const CLASSES_PER_PAGE = 7;
 				{showClassForm && (
 					<div className="bg-surface shadow-sm rounded-sm px-6 py-5 mb-3">
 						<h3 className="font-bold mb-4">
-							{editingClass ? "Modifier la classe" : "Ajouter une classe"}
+							{editingClass ? t('classes.editClass') : t('classes.addClassTitle')}
 						</h3>
 						<div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
 							<div>
@@ -252,13 +254,13 @@ const CLASSES_PER_PAGE = 7;
 								disabled={!classForm.level.trim() || !classForm.section.trim() || savingClass}
 								onClick={handleSaveClass}
 							>
-								{savingClass ? "..." : "Enregistrer"}
+								{savingClass ? "..." : t('classes.save')}
 							</Button>
 							<Button
 								variant="ghost"
 								onClick={() => { setShowClassForm(false); setEditingClass(null); }}
 							>
-								Annuler
+{t('classes.cancel')}
 							</Button>
 						</div>
 					</div>
@@ -268,7 +270,7 @@ const CLASSES_PER_PAGE = 7;
 				<div className="flex flex-col gap-3">
 					{classes.length === 0 && (
 						<p className="text-sm text-gray-400 text-center py-6">
-							Aucune classe
+{t('classes.noClass')}
 						</p>
 					)}
 					{classes.slice((classPage - 1) * CLASSES_PER_PAGE, classPage * CLASSES_PER_PAGE).map((cls) => {
@@ -293,7 +295,7 @@ const CLASSES_PER_PAGE = 7;
 										<p
 											className="text-xs mt-0.5 text-gray-400"
 										>
-											{count} élève{count !== 1 ? "s" : ""}
+											{count} {count !== 1 ? t('classes.students') : t('classes.student')}
 										</p>
 									</div>
 									<div
@@ -312,14 +314,14 @@ const CLASSES_PER_PAGE = 7;
 												setShowClassForm(true);
 											}}
 										>
-											Modifier
+													{t('classes.edit')}
 										</Button>
 										<Button
 											size="sm"
 											variant="default"
 											onClick={() => handleDeleteClass(cls)}
 										>
-											Supprimer{" "}
+											{t('classes.delete')}{" "}
 										</Button>
 									</div>
 								</div>
@@ -355,7 +357,7 @@ const CLASSES_PER_PAGE = 7;
 						<p className="text-sm text-gray-600 mb-4">{deleteModal.message}</p>
 						<div className="flex justify-end gap-3">
 							<button onClick={() => setDeleteModal(null)} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
-								{deleteModal.blocked ? 'Fermer' : 'Annuler'}
+								{deleteModal.blocked ? t('classes.close') : t('classes.cancel')}
 							</button>
 							{!deleteModal.blocked && (
 								<button onClick={confirmDeleteClass} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700">

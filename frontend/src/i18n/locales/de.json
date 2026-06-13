@@ -37,7 +37,8 @@
       "ariaLabel": "Hauptnavigation",
       "reports": "Meldungen",
       "users": "Benutzer",
-      "stats": "Statistiken"
+      "stats": "Statistiken",
+      "classes": "Klassen"
     },
     "topbar": {
       "role": "{{role}}-Bereich"
@@ -299,7 +300,9 @@
       "subjectUnknown": "Unbekannt",
       "job": "Beruf",
       "change": "Foto ändern",
-      "upload": "Hochladen"
+      "upload": "Hochladen",
+      "loading": "Laden...",
+      "noProfile": "Kein Berufsprofil registriert"
     },
     "roles": {
       "teacher": "Lehrer",
@@ -472,5 +475,75 @@
     }
   },
   "all": "Alle",
-  "section": "Abschnitt"
+  "section": "Abschnitt",
+  "stats": {
+    "allPeriod": "Gesamter Zeitraum",
+    "last7": "Letzte 7 Tage",
+    "last30": "Letzte 30 Tage",
+    "last90": "Letzte 3 Monate",
+    "last365": "1 Jahr",
+    "allClasses": "Alle Klassen",
+    "allGrades": "Alle Schweregrade",
+    "reportsFound": "{{count}} Meldung(en) gefunden",
+    "byGrade": "Nach Schweregrad",
+    "byStatus": "Nach Status",
+    "byClass": "Meldungen nach Klasse (Opfer)",
+    "byType": "Meldungen nach Typ",
+    "evolution": "Entwicklung (letzte 7 Tage)",
+    "statusNew": "Neu",
+    "statusInProgress": "In Bearbeitung",
+    "statusResolved": "Geschlossen",
+    "statusPending": "Ausstehend",
+    "statusFalseReport": "Falscher Bericht"
+  },
+  "classes": {
+    "loading": "Laden...",
+    "backToClasses": "← Zurück zu den Klassen",
+    "studentsEnrolled": "Eingeschriebene Schüler",
+    "noStudentInClass": "Keine Schüler in dieser Klasse.",
+    "assignStudents": "Schüler im Benutzerbereich zuweisen.",
+    "addClass": "+ Klasse hinzufügen",
+    "editClass": "Klasse bearbeiten",
+    "addClassTitle": "Klasse hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "noClass": "Keine Klassen",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "student": "Schüler",
+    "students": "Schüler",
+    "deleteBlocked": "{{level}} {{section}} kann nicht gelöscht werden: {{count}} Schüler eingeschrieben.",
+    "deleteConfirm": "Möchten Sie die Klasse {{level}} {{section}} wirklich löschen?"
+  },
+  "userProfile": {
+    "backToReport": "Zurück zur Meldung",
+    "backToList": "Zurück zur Liste",
+    "prev": "← Vorherige",
+    "next": "Nächste →",
+    "changePhoto": "Foto ändern",
+    "uploading": "Hochladen...",
+    "class": "Klasse",
+    "dob": "Geburtsdatum",
+    "age": "Jahre",
+    "profession": "Beruf",
+    "subject": "Fach",
+    "classes": "Klassen",
+    "guardians": "Erziehungsberechtigte",
+    "addGuardian": "+ Hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "editGuardian": "Bearbeiten",
+    "deleteGuardian": "Löschen",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "address": "Adresse",
+    "confirmTitle": "Änderungen bestätigen",
+    "confirmBtn": "Bestätigen",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "role": "Rolle",
+    "password": "Passwort",
+    "passwordChanged": "geändert"
+  }
 }

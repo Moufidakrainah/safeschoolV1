@@ -110,15 +110,15 @@ export default function AdminUserProfile({
       {/* 1. Navigation */}
       <div className="flex justify-between items-center mb-4">
         <Button variant="ghost" onClick={onBack}>
-          ← {originReportId ? 'Retour au signalement' : 'Retour à la liste'}
+          {originReportId ? t('userProfile.backToReport') : t('userProfile.backToList')}
         </Button>
         <div className="flex gap-2">
           <Button variant="ghost"
             disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === 0}
-            onClick={onPrev}>← Précédent</Button>
+            onClick={onPrev}>{t('userProfile.prev')}</Button>
           <Button variant="ghost"
             disabled={filteredUsers.findIndex(u => u.id === selectedUser.id) === filteredUsers.length - 1}
-            onClick={onNextUser}>Suivant →</Button>
+            onClick={onNextUser}>{t('userProfile.next')}</Button>
         </div>
       </div>
 
@@ -143,7 +143,7 @@ export default function AdminUserProfile({
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
             <label className={`cursor-pointer inline-flex items-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity ${uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}`}>
-              {uploadingAvatarId === selectedUser.id ? 'Upload...' : 'Changer la photo'}
+              {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
               <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                 onChange={async e => { const f = e.target.files?.[0]; if (f) await onHandleAvatarUpload(selectedUser.id, f); }} />
             </label>
@@ -171,13 +171,13 @@ export default function AdminUserProfile({
       {!editMode && selectedUser.role === 'student' && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <div className="flex justify-between items-center mb-2">
-            <p className="text-sm font-semibold text-muted-foreground">Responsables légaux</p>
+            <p className="text-sm font-semibold text-muted-foreground">{t('userProfile.guardians')}</p>
             {profileParents.length < 2 && !showParentForm && (
               <Button size="sm" variant="default" onClick={() => {
                 setShowParentForm(true);
                 setEditingParent(null);
                 setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
-              }}>+ Ajouter</Button>
+              }}>{t('userProfile.addGuardian')}</Button>
             )}
           </div>
           {showParentForm && (
@@ -195,11 +195,11 @@ export default function AdminUserProfile({
           )}
           {showParentForm && (
             <div className="flex gap-2 justify-end mt-1">
-              <Button size="sm" onClick={handleSaveParent}>Enregistrer</Button>
+              <Button size="sm" onClick={handleSaveParent}>{t('userProfile.save')}</Button>
               <Button size="sm" variant="ghost" onClick={() => {
                 setShowParentForm(false);
                 setEditingParent(null);
-              }}>Annuler</Button>
+              }}>{t('userProfile.cancel')}</Button>
             </div>
           )}
           <div className="flex flex-col gap-2">
@@ -214,8 +214,8 @@ export default function AdminUserProfile({
                         setEditingParent(p);
                         setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' });
                         setShowParentForm(true);
-                      }}>Modifier</Button>
-                      <Button size="sm" variant="default" onClick={() => handleDeleteParent(p.id)}>Supprimer</Button>
+                      }}>{t('userProfile.editGuardian')}</Button>
+                      <Button size="sm" variant="default" onClick={() => handleDeleteParent(p.id)}>{t('userProfile.deleteGuardian')}</Button>
                     </div>
                   </div>
                   <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
