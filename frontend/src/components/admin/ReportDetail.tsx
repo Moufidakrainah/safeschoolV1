@@ -179,11 +179,11 @@ export default function ReportDetail({
                   <p className="text-xs text-gray-400 italic">Identité non liée</p>
                 )}
 
-                {/* Bouton Lier / Modifier */}
-                {isAdmin && (
+                {/* Bouton Lier uniquement si pas encore liée */}
+                {isAdmin && !selected.victims?.[0]?.resolvedUser && (
                   <button className="text-xs text-blue-500 hover:underline mt-1"
                     onClick={() => { onSetActiveSuspect(activeSuspect === mainVictimId ? null : mainVictimId); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                    {selected.victims?.[0]?.resolvedUser ? 'Modifier' : ' Lier'}
+                    Lier
                   </button>
                 )}
 
@@ -309,10 +309,10 @@ export default function ReportDetail({
                           {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}
                         </div>
                       )}
-                      {isAdmin && (
+                      {isAdmin && !s.resolvedUser && (
                         <button className="text-xs text-blue-500 hover:underline mt-1"
                           onClick={() => { onSetActiveSuspect(activeSuspect === s.id ? null : s.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                          {s.resolvedUser ? 'Modifier' : 'Lier'}
+                          Lier
                         </button>
                       )}
                       {isAdmin && activeSuspect === s.id && (
