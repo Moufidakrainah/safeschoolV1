@@ -19,7 +19,7 @@ interface ReportDetailProps {
   filtered: Report[];
   notes: Note[];
   isAdmin: boolean;
-  saving: boolean;
+  _saving: boolean;
   resolving: boolean;
   checkedConvocIds: string[];
   convocDetails: Record<string, { date: string; message: string }>;
@@ -52,7 +52,7 @@ interface ReportDetailProps {
 }
 
 export default function ReportDetail({
-  selected, filtered, notes, isAdmin, saving, resolving,
+  selected, filtered, notes, isAdmin, _saving, resolving,
   checkedConvocIds, convocDetails, sendingConvoc, convocSuccess,
   newNote, activeSuspect, suspectSearch, suspectResults,
   onBack, onPrev, onNext, onUpdateStatus, onAddNote, onResolveSuspect, onResolveVictim,

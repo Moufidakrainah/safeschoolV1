@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -112,7 +113,7 @@ const [isBlocked, setIsBlocked]       = useState(false);
 
 // ── Chargement classes ──
 const fetchClassesList = useCallback(async () => {
-  try { setClasses(await getClasses()); } catch {}
+  try { setClasses(await getClasses()); } catch { /* erreur réseau silencieuse volontaire */ }
 }, []);
 
 // ── Chargement utilisateurs ──
@@ -153,8 +154,9 @@ const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
       setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
       await fetchUsers();
       setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev);
+      toast.success('Photo mise à jour avec succès');
     }
-  } catch {}
+  } catch { /* erreur réseau silencieuse volontaire */ }
 }, [fetchUsers]);
 
 // ── Sauvegarde utilisateur ──
@@ -189,7 +191,8 @@ const handleSaveUser = useCallback(async () => {
     await fetchUsers();
     setShowUserForm(false); setEditingUser(null);
     setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
-  } catch {}
+    toast.success(editingUser ? 'Utilisateur modifié avec succès' : 'Utilisateur créé avec succès');
+  } catch { toast.error('Une erreur est survenue'); }
 }, [editingUser, userForm, fetchUsers]);
 
 // ── Suppression utilisateur ──
@@ -207,6 +210,7 @@ const confirmDelete = useCallback(async () => {
     setDeleteTarget(null);
     setSelectedUser(null);
     navigate('/dashboard?section=users', { replace: true });
+    toast.success('Utilisateur supprimé avec succès');
   } catch (err: any) {
     const msg = err?.response?.data?.message ?? err?.message ?? '';
     if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);

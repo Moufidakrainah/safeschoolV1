@@ -71,8 +71,8 @@ export const updateUser = async (id: string, dto: Record<string, string>) =>
 export const deleteUser = async (id: string) => {
   try {
     return (await api.delete(`/users/${id}`)).data;
-  } catch (err: any) {
-    const message = err.response?.data?.message || 'DELETE_FAILED';
+  } catch (err: unknown) {
+    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'DELETE_FAILED';
     throw new Error(message);
   }
 };
