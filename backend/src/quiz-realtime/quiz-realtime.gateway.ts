@@ -46,6 +46,8 @@ interface SubmitAnswerPayload {
       .split(',')
       .map((o) => o.trim()),
   },
+  pingInterval: 10_000,
+  pingTimeout: 5_000,
 })
 export class QuizRealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect

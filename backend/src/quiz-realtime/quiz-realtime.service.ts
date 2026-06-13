@@ -532,22 +532,6 @@ export class QuizRealtimeService {
 				continue;
 			}
 
-			// Si personne d'autre n'est encore connecté (ex : une partie solo), il n'y a aucune
-			// partie en cours à garder en vie pour une reconnexion — on détruit toute la salle pour
-			// que le joueur ne puisse pas revenir dans une salle fantôme vide
-			const otherConnected = [...room.players.values()].some(
-				(candidate) => candidate.playerId !== player.playerId && candidate.connected,
-			);
-			if (!otherConnected) {
-				this.clearQuestionTimer(room);
-				this.clearRevealTimer(room);
-				this.clearAllDisconnectTimers(room);
-				room.players.clear();
-				this.rooms.delete(roomId);
-				updates.push({ roomId, closed: true, snapshot: null, revealPayload: null });
-				continue;
-			}
-
 			player.connected = false;
 			player.socketId = null;
 			player.graceEndsAt = Date.now() + RECONNECT_GRACE_MS;
