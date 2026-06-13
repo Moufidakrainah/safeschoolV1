@@ -4,12 +4,16 @@ import { AppModule } from "./app.module";
 import { join } from "path";
 import { ValidationPipe } from '@nestjs/common';
 import helmet from "helmet";
+import { LoggerService } from "./logger/logger.service";
 
 async function bootstrap() {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET manquant dans les variables d'environnement");
   }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Remplace le logger interne de Nest par le nôtre : les erreurs non gérées
+  // (500) partent ainsi vers Logstash avec le niveau ERROR (tag "error").
+  app.useLogger(app.get(LoggerService));
   // En-têtes de sécurité HTTP (X-Frame-Options, nosniff, etc.).
   // hsts: false -> sinon, après un make prod en HTTPS, le navigateur force
   // HTTPS sur tout localhost (HSTS) et make dev (HTTP) devient inaccessible
