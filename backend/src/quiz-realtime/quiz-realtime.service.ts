@@ -532,10 +532,6 @@ export class QuizRealtimeService {
 				continue;
 			}
 
-			// Même si plus personne n'est connecté (ex : une partie solo), on garde la salle en
-			// vie pendant la fenêtre de grâce : une brève coupure réseau permet alors de reprendre
-			// la partie là où elle en était. Si personne ne revient, l'expiration de la grâce
-			// videra la salle et la supprimera
 			player.connected = false;
 			player.socketId = null;
 			player.graceEndsAt = Date.now() + RECONNECT_GRACE_MS;

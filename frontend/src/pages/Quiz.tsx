@@ -39,9 +39,6 @@ export default function Quiz() {
     submitAnswer,
   } = useQuizSocket(user?.firstName, user?.id);
 
-  // Le header reporter ne connaît pas la section 'cases' (réservée aux élèves) ; on la
-  // ramène sur 'quiz' pour garder un type aligné sans cast. Le setter, lui, accepte un
-  // sur-ensemble de valeurs, donc il est directement assignable
   const headerProps = useMemo(() => ({
     user,
     logoutUser,

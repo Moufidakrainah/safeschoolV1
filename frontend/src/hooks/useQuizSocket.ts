@@ -231,10 +231,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setJoinedRoom(data.roomId);
         setSocketError('');
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
-        // Si on se croyait en pleine partie mais que la salle rejointe est en attente,
-        // l'ancienne salle a été fermée pendant la coupure (grâce expirée, partie terminée
-        // sans nous…) et le join vient d'en recréer une vierge avec le même code : on
-        // ramène l'UI au lobby au lieu de rester bloqué sur la question fantôme
+
         if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
           setGamePhase('lobby');
           setQuestionState(null);
@@ -347,17 +344,12 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
     connectSocket();
 
-    // Le navigateur sait immédiatement quand le réseau tombe, alors que socket.io ne le
-    // détecte qu'au timeout de ping (plusieurs dizaines de secondes). On ferme donc le
-    // transport dès l'événement `offline` pour basculer tout de suite en mode reconnexion
     const handleOffline = () => {
       setConnected(false);
       setReconnecting(true);
       socketRef.current?.io.engine?.close();
     };
-    // Au retour du réseau, on retente immédiatement plutôt que d'attendre la fin du
-    // backoff de reconnexion. `active` exclut les sockets fermés volontairement
-    // (abandon après la fenêtre de grâce, démontage, non autorisé)
+
     const handleOnline = () => {
       const socket = socketRef.current;
       if (socket && !socket.connected && socket.active) socket.io.open();
