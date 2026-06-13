@@ -157,6 +157,10 @@ export class UsersService {
     // ❌ Le rôle ne peut pas être modifié après la création
     // if (dto.role) user.role = dto.role as UserRole;
 
+    if (dto.password) {
+      user.password = await bcrypt.hash(dto.password, 10);
+    }
+
     const saved = await this.usersRepository.save(user);
 
     // Mettre à jour ou créer le profil élève si classe ou date de naissance fournie

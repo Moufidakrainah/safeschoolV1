@@ -5,22 +5,22 @@ import { useAuth } from '@/context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getUserById, searchUsers, resolveSuspect, resolveVictim,
-  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser,
-} from '../services/api';
+  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser, createParent,
+} from '@/services/api';
 import { useUsers } from '@/hooks/useUsers';
-import StatsDashboard from '../components/admin/StatsDashboard';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import { Button } from '../components/ui/button';
+import StatsDashboard from '@/components/admin/StatsDashboard';
+import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
+import { Button } from '@/components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import StatCard from '../components/StatCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import StatCard from '@/components/StatCard';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
-import AdminClasses from '../components/admin/AdminClasses';
-import ReportDetail from '../components/admin/ReportDetail';
-import type { Report, Note } from '../types';
+import AdminClasses from '@/components/admin/AdminClasses';
+import ReportDetail from '@/components/admin/ReportDetail';
+import type { Report, Note } from '@/types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
@@ -109,6 +109,7 @@ export default function AdminDashboard() {
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
+  const [existingParentsCount, setExistingParentsCount] = useState(0);
 
   const itemsPerPage = 5;
 
@@ -129,13 +130,21 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
 
+  useEffect(() => {
+    if (selectedUser?.role === 'student' && selectedUser?.id) {
+      import('../services/api').then(({ getStudentParents }) => {
+        getStudentParents(selectedUser.id).then(p => setExistingParentsCount(p.length)).catch(() => setExistingParentsCount(0));
+      });
+    } else { setExistingParentsCount(0); }
+  }, [selectedUser?.id]);
+
   const fetchReports = async () => {
     try { setReports(await getAllReports()); } catch { /* erreur réseau silencieuse volontaire */ } finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); await loadNotes(id); }
     catch {} finally { setSaving(false); }
   };
 
@@ -274,7 +283,7 @@ const renderUserForm = (isEdit = false) => (
           <div className="mt-2">
             <div className="flex justify-between items-center mb-2">
               <Label className="text-white text-sm">Responsables légaux</Label>
-              {userForm.parents.length < 2 && (
+              {(userForm.parents.length + existingParentsCount) < 2 && (
                 <button
                   type="button"
                   className="text-xs text-white/80 hover:text-white underline"
@@ -283,7 +292,7 @@ const renderUserForm = (isEdit = false) => (
                     parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
                   }))}
                 >
-                  + Ajouter un parent
+                  {existingParentsCount > 0 ? '+ Modifier un parent' : '+ Ajouter un parent'}
                 </button>
               )}
             </div>
@@ -495,54 +504,25 @@ const renderUserForm = (isEdit = false) => (
 
 
 {totalPages > 1 && (
-  <PaginationShadcn className="mt-4">
-    <PaginationContent>
-
-      {/* Précédent */}
-      <PaginationItem>
-        <PaginationPrevious
-          onClick={() => {
-            if (currentPage > 1) {
-              setCurrentPage(currentPage - 1)
-              onFetchReports(currentPage - 1)
-            }
-          }}
-          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-        />
-      </PaginationItem>
-
-      {/* Numéros */}
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-        <PaginationItem key={p}>
-          <PaginationLink
-            isActive={p === currentPage}
-            onClick={() => {
-              setCurrentPage(p)
-              onFetchReports(p)
-            }}
-            className="cursor-pointer"
-          >
-            {p}
-          </PaginationLink>
-        </PaginationItem>
-      ))}
-
-      {/* Suivant */}
-      <PaginationItem>
-        <PaginationNext
-          onClick={() => {
-            if (currentPage < totalPages) {
-              setCurrentPage(currentPage + 1)
-              onFetchReports(currentPage + 1)
-            }
-          }}
-          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-        />
-      </PaginationItem>
-
-    </PaginationContent>
-  </PaginationShadcn>
-)}
+              <PaginationShadcn className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <PaginationItem key={p}>
+                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
+                        className="cursor-pointer">{p}</PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </PaginationShadcn>
+            )}
 
           </>
         )}
@@ -576,10 +556,25 @@ const renderUserForm = (isEdit = false) => (
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
+              // Créer les parents si élève et parents dans le formulaire
+              if (userForm.role === 'student' && userForm.parents.length > 0) {
+                const freshU = await getUserById(selectedUser.id);
+                const studentProfileId = freshU?.studentProfile?.id;
+                if (studentProfileId) {
+                  for (const parent of userForm.parents) {
+                    if (parent.firstName && parent.lastName && parent.email) {
+                      await createParent({ ...parent, studentIds: [studentProfileId] });
+                    }
+                  }
+                }
+              }
               const u = await getUserById(selectedUser.id);
               if (u) {
-                setSelectedUser(u);
-                setUserForm(buildUserForm(u));
+                setSelectedUser(null);
+                setTimeout(() => {
+                  setSelectedUser(u);
+                  setUserForm(buildUserForm(u));
+                }, 50);
               }
               await fetchUsers();
             }}

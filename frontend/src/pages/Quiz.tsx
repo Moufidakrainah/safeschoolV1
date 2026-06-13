@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
-import { useQuizSocket } from '../hooks/useQuizSocket';
+import { useQuizSocket } from '@/hooks/useQuizSocket';
 import QuizJoinScreen from '@/components/quiz/QuizJoinScreen';
 import QuizLobby from '@/components/quiz/QuizLobby';
 import QuizLeaderboard from '@/components/quiz/QuizLeaderboard';
 import QuizPlaying from '@/components/quiz/QuizPlaying';
+
 
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
