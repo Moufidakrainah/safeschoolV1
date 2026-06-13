@@ -567,7 +567,13 @@
     "student": "Schüler",
     "students": "Schüler",
     "deleteBlocked": "{{level}} {{section}} kann nicht gelöscht werden: {{count}} Schüler eingeschrieben.",
-    "deleteConfirm": "Möchten Sie die Klasse {{level}} {{section}} wirklich löschen?"
+    "deleteConfirm": "Möchten Sie die Klasse {{level}} {{section}} wirklich löschen?",
+    "level": "Stufe",
+    "section": "Abschnitt",
+    "levelRequired": "Stufe ist erforderlich",
+    "levelInvalid": "Stufe muss 3eme, 4eme, 5eme oder 6eme sein",
+    "sectionRequired": "Abschnitt ist erforderlich",
+    "sectionInvalid": "Abschnitt muss ein einzelner Großbuchstabe sein (A, B, C...)"
   },
   "userProfile": {
     "backToReport": "Zurück zur Meldung",
@@ -621,6 +627,9 @@
     "parentAdded": "Erziehungsberechtigter erfolgreich hinzugefügt",
     "parentUpdated": "Erziehungsberechtigter erfolgreich geändert",
     "parentDeleted": "Erziehungsberechtigter erfolgreich gelöscht",
-    "parentError": "Ein Fehler ist aufgetreten"
+    "parentError": "Ein Fehler ist aufgetreten",
+    "classCreated": "Klasse erfolgreich erstellt",
+    "classUpdated": "Klasse erfolgreich geändert",
+    "classDeleted": "Klasse erfolgreich gelöscht"
   }
 }

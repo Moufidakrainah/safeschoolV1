@@ -625,7 +625,13 @@
     "student": "élève",
     "students": "élèves",
     "deleteBlocked": "Impossible de supprimer {{level}} {{section}} : {{count}} élève(s) inscrits. Réassignez-les d'abord.",
-    "deleteConfirm": "Voulez-vous vraiment supprimer la classe {{level}} {{section}} ?"
+    "deleteConfirm": "Voulez-vous vraiment supprimer la classe {{level}} {{section}} ?",
+    "level": "Niveau",
+    "section": "Section",
+    "levelRequired": "Le niveau est obligatoire",
+    "levelInvalid": "Le niveau doit être 3eme, 4eme, 5eme ou 6eme",
+    "sectionRequired": "La section est obligatoire",
+    "sectionInvalid": "La section doit être une seule lettre majuscule (A, B, C...)"
   },
   "userProfile": {
     "backToReport": "Retour au signalement",
@@ -679,6 +685,9 @@
     "parentAdded": "Responsable légal ajouté avec succès",
     "parentUpdated": "Responsable légal modifié avec succès",
     "parentDeleted": "Responsable légal supprimé avec succès",
-    "parentError": "Une erreur est survenue"
+    "parentError": "Une erreur est survenue",
+    "classCreated": "Classe créée avec succès",
+    "classUpdated": "Classe modifiée avec succès",
+    "classDeleted": "Classe supprimée avec succès"
   }
 }

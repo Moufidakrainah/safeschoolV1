@@ -587,7 +587,13 @@
     "student": "student",
     "students": "students",
     "deleteBlocked": "Cannot delete {{level}} {{section}}: {{count}} student(s) enrolled. Reassign them first.",
-    "deleteConfirm": "Are you sure you want to delete class {{level}} {{section}}?"
+    "deleteConfirm": "Are you sure you want to delete class {{level}} {{section}}?",
+    "level": "Level",
+    "section": "Section",
+    "levelRequired": "Level is required",
+    "levelInvalid": "Level must be 3eme, 4eme, 5eme or 6eme",
+    "sectionRequired": "Section is required",
+    "sectionInvalid": "Section must be a single uppercase letter (A, B, C...)"
   },
   "userProfile": {
     "backToReport": "Back to report",
@@ -641,6 +647,9 @@
     "parentAdded": "Legal guardian added successfully",
     "parentUpdated": "Legal guardian updated successfully",
     "parentDeleted": "Legal guardian deleted successfully",
-    "parentError": "An error occurred"
+    "parentError": "An error occurred",
+    "classCreated": "Class created successfully",
+    "classUpdated": "Class updated successfully",
+    "classDeleted": "Class deleted successfully"
   }
 }
