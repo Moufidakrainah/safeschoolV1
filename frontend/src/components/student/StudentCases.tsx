@@ -26,15 +26,15 @@ const MONTHS_FR: Record<string, number> = {
   juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
 };
 
-// function anonymizeConvocation(content: string): string {
-//   return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
-// }
+function anonymizeConvocation(content: string): string {
+  return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
+}
 
 function parseConvocation(content: string) {
   const dateMatch = content.match(
     /(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
   );
-//   content = anonymizeConvocation(content);
+  content = anonymizeConvocation(content);
   const parts = content.split("\n\n");
   const message = parts.slice(1).join("\n\n").trim();
   const recipientMatch = content.match(/^(.+?) est convoqué/);

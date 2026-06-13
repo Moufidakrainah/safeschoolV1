@@ -3,7 +3,6 @@ import type { AuthUser } from "@/types";
 import { Avatar } from "@/components/ui/avatar";
 import { useState } from "react";
 import { formatName } from "@/utils/formatName";
-
 import {
 	Table,
 	TableBody,
@@ -68,7 +67,7 @@ export default function ReporterProfile({
 			const data = await res.json();
 			if (data.avatar) {
 				setAvatar(data.avatar);
-				updateUser({ avatar: data.avatar }); // ← met à jour le contexte + localStorage
+				updateUser({ avatar: data.avatar });
 			} else {
 				setError("Erreur lors de l'upload");
 			}
@@ -157,7 +156,7 @@ export default function ReporterProfile({
 			</div>
 
 			{/* Profil professionnel */}
-<div className="bg-surface shadow-sm px-8 py-4">
+			<div className="bg-surface shadow-sm px-8 py-4">
 				{loadingProfile ? (
 					<p className="text-m text-center py-4">
 						{t("reporter.profile.loading")}
