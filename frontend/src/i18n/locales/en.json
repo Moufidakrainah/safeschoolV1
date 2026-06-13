@@ -83,7 +83,8 @@
       "class": "Class",
       "aiScore": "AI Score",
       "aiReason": "AI Analysis",
-      "anonymous": "Anonymous",
+      "aiAnalysis": "AI Analysis",
+      "anonymous": "Anonymous report (identity visible to admin)",
       "yes": "Yes",
       "no": "No",
       "people": "People involved",
@@ -94,12 +95,22 @@
       "noSuspect": "No suspect indicated",
       "suspectsCount": "suspect(s)",
       "type": "Type",
-      "reporter": "Reported as",
+      "reporter": "Reporter",
+      "involved": "People involved",
+      "report": "Report",
+      "status": "Status",
       "victims": "Victim(s)",
       "noVictim": "No victim indicated",
       "victimLinked": "Linked to",
       "reporterVictime": "Victim",
-      "reporterTemoin": "Witness"
+      "reporterTemoin": "Witness",
+      "unidentified": "Unidentified",
+      "unlinked": "Identity not linked",
+      "unlink": "Unlink",
+      "link": "Link",
+      "searchStudent": "Search for a student...",
+      "title": "Report {{caseNumber}}",
+      "back": "Back to all reports"
     },
     "actions": {
       "groupLabel": "Report actions",
@@ -117,8 +128,14 @@
     "convocation": {
       "title": "Summon people involved",
       "dateLabel": "Date and time",
+      "dateTime": "Date and time",
       "placeholder": "Summons message...",
-      "send": "Send summons"
+      "messagePlaceholder": "Summons message...",
+      "send": "📤 Send {{count}} summons",
+      "sending": "Sending...",
+      "success": "Summons sent successfully!",
+      "hint": "Select the people to summon and set a date and message for each.",
+      "dateError": "The date must be in the future"
     },
     "users": {
       "title": "User management",
@@ -134,6 +151,11 @@
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
+      "searchPlaceholder": "Search by first or last name...",
+      "roleStudent": "Students",
+      "roleTeacher": "Teachers",
+      "roleAdmin": "Admins",
+      "sortDate": "Creation date",
       "roles": {
         "label": "Role",
         "student": "Student",
@@ -203,7 +225,16 @@
     "next": "Next",
     "error": "An error occurred",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "reset": "Reset",
+    "limitReached": "Limit reached",
+    "optional": "optional"
+  },
+  "report": {
+    "reporter": {
+      "victime": "Victim",
+      "temoin": "Witness"
+    }
   },
   "quiz": {
     "title": "Quiz",
@@ -268,7 +299,9 @@
       "change": "Change photo",
       "upload": "Upload",
       "loading": "Loading...",
-      "noProfile": "No professional profile registered"
+      "noProfile": "No professional profile registered",
+      "classes": "Classes",
+      "occupation": "Occupation"
     },
     "roles": {
       "teacher": "Teacher",
@@ -324,7 +357,12 @@
       "sexual": "Sexual",
       "sexualSub": "Gestures, remarks",
       "other": "Other",
-      "otherSub": "Describe below"
+      "otherSub": "Describe below",
+      "iAmTheVictim": "I am a victim",
+      "iAmTheWitness": "I am a witness",
+      "iWasHarassed": "I was bullied",
+      "iSawHarassed": "I saw someone being bullied",
+      "chooseOne": "Please select your situation"
     },
     "step3": {
       "title": "Describe the facts",
@@ -348,7 +386,12 @@
       "addFreeText": "Add",
       "suspectsAdded": "Suspects added",
       "removeSuspect": "Remove",
-      "noSuspect": "No suspect added — you can skip this step"
+      "noSuspect": "No suspect added — you can skip this step",
+      "peoplePlaceholder": "E.g. First name + Last name",
+      "add+Victim": "Press `Enter` or click `Add this victim`",
+      "add+Suspect": "Press `Enter` or click `Add this bully`",
+      "addVictim": "Add this victim",
+      "addSuspect": "Add this bully"
     },
     "step5": {
       "title": "Evidence",
@@ -366,7 +409,8 @@
       "suspects": "Suspects",
       "anonymous": "Anonymous report",
       "anonymousDesc": "my name will not be visible",
-      "victims": "Victim(s)"
+      "victims": "Victim(s)",
+      "suspect": "I am a witness"
     },
     "submitting": "Sending...",
     "submit": "Submit report",
@@ -395,7 +439,8 @@
       "profile": "My profile",
       "report": "Make a report",
       "workshop": "Workshops",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "cases": "My cases"
     },
     "profile": {
       "title": "My profile",
@@ -418,6 +463,14 @@
     "quiz": {
       "title": "Quiz",
       "soon": "This section will be available soon."
+    },
+    "cases": {
+      "summoned": "is summoned on ",
+      "iAmVictim": "I am a victim",
+      "noUpdate": "No updates for this case",
+      "loading": "Loading...",
+      "noReport": "No reports found",
+      "meeting": "A meeting took place on "
     }
   },
   "privacy": {

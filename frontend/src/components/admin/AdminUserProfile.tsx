@@ -2,7 +2,7 @@ import type { AdminUser } from '@/types';
 import { formatName } from '@/utils/formatName';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableCellLeft, TableCellParent, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableCellLeft, TableRow } from '@/components/ui/table';
 import { useState, useEffect } from 'react';
 import { updateParent, createParent, deleteParent, getStudentParents, getStaffProfile } from '@/services/api';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -17,11 +17,11 @@ interface AdminUserProfileProps {
   avatarTimestamps: Record<string, number>;
   classes: SchoolClass[];
   userForm: {
-  firstName: string; lastName: string; email: string; password: string;
-  role: string; classId: string; subject: string; classIds: string[];
-  parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
-  dateOfBirth: string;
-};
+    firstName: string; lastName: string; email: string; password: string;
+    role: string; classId: string; subject: string; classIds: string[];
+    parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
+    dateOfBirth: string;
+  };
   _errors: { firstName: string; lastName: string; email: string; password: string };
   isFormValid: boolean;
   originReportId: string | null;
@@ -50,7 +50,7 @@ export default function AdminUserProfile({
   const [showParentForm, setShowParentForm] = useState(false);
   const [editingParent, setEditingParent] = useState<any | null>(null);
   const [parentForm, setParentForm] = useState({ firstName: '', lastName: '', email: '', phone: '', address: '' });
-  const [profileParents, setProfileParents] = useState<Parent[]>([]);
+  const [profileParents, setProfileParents] = useState<any[]>([]);
   const [profileStaff, setProfileStaff] = useState<any | null>(null);
 
   useEffect(() => {
@@ -58,16 +58,12 @@ export default function AdminUserProfile({
     setEditingParent(null);
     setParentForm({ firstName: '', lastName: '', email: '', phone: '', address: '' });
     if (selectedUser?.role === 'student' && selectedUser?.id) {
-      getStudentParents(selectedUser.id)
-        .then(setProfileParents)
-        .catch(() => setProfileParents([]));
+      getStudentParents(selectedUser.id).then(setProfileParents).catch(() => setProfileParents([]));
     } else {
       setProfileParents([]);
     }
     if (selectedUser?.role === 'teacher' && selectedUser?.id) {
-      getStaffProfile(selectedUser.id)
-        .then(setProfileStaff)
-        .catch(() => setProfileStaff(null));
+      getStaffProfile(selectedUser.id).then(setProfileStaff).catch(() => setProfileStaff(null));
     } else {
       setProfileStaff(null);
     }
@@ -82,7 +78,6 @@ export default function AdminUserProfile({
         if (studentProfileId) {
           await createParent({ ...parentForm, studentIds: [studentProfileId] });
         } else {
-          console.error("studentProfileId manquant", selectedUser?.studentProfile);
           return;
         }
       }
@@ -90,9 +85,7 @@ export default function AdminUserProfile({
       setProfileParents(updated);
       setShowParentForm(false);
       setEditingParent(null);
-    } catch (err) {
-      console.error("Erreur handleSaveParent:", err);
-    }
+    } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
   const handleDeleteParent = async (id: string) => {
@@ -101,7 +94,6 @@ export default function AdminUserProfile({
     setProfileParents(updated);
   };
 
-  // Données staff : priorité à profileStaff (local), sinon selectedUser.staffProfile
   const staffData = profileStaff ?? selectedUser.staffProfile;
 
   return (
@@ -133,7 +125,6 @@ export default function AdminUserProfile({
                 {selectedUser.firstName?.[0]}{selectedUser.lastName?.[0]}
               </div>}
         </div>
-
         <div className="text-center">
           {(() => { const { first, last } = formatName(selectedUser.firstName, selectedUser.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
           <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>
@@ -158,16 +149,41 @@ export default function AdminUserProfile({
       {!editMode && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
-            {selectedUser.studentProfile?.schoolClass && <TableRow><TableCell className="font-semibold text-muted-foreground">Classe</TableCell><TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell></TableRow>}
-            {selectedUser.studentProfile?.dateOfBirth && <TableRow><TableCell className="font-semibold text-muted-foreground">Date de naissance</TableCell><TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} ans)</TableCell></TableRow>}
-            {staffData?.profession && <TableRow><TableCell className="font-semibold text-muted-foreground">Profession</TableCell><TableCell>{staffData.profession}</TableCell></TableRow>}
-            {staffData?.subject && <TableRow><TableCell className="font-semibold text-muted-foreground">Matière</TableCell><TableCell>{staffData.subject}</TableCell></TableRow>}
-            {staffData?.classes?.length > 0 && <TableRow><TableCell className="font-semibold text-muted-foreground">Classes</TableCell><TableCell>{staffData.classes.map((c: SchoolClass) => `${c.level} ${c.section}`).join(', ')}</TableCell></TableRow>}
+            {selectedUser.studentProfile?.schoolClass && (
+              <TableRow>
+                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.class')}</TableCell>
+                <TableCell>{selectedUser.studentProfile.schoolClass.level} {selectedUser.studentProfile.schoolClass.section}</TableCell>
+              </TableRow>
+            )}
+            {selectedUser.studentProfile?.dateOfBirth && (
+              <TableRow>
+                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.dob')}</TableCell>
+                <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} {t('userProfile.age')})</TableCell>
+              </TableRow>
+            )}
+            {staffData?.profession && (
+              <TableRow>
+                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.profession')}</TableCell>
+                <TableCell>{staffData.profession}</TableCell>
+              </TableRow>
+            )}
+            {staffData?.subject && (
+              <TableRow>
+                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.subject')}</TableCell>
+                <TableCell>{staffData.subject}</TableCell>
+              </TableRow>
+            )}
+            {staffData?.classes?.length > 0 && (
+              <TableRow>
+                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.classes')}</TableCell>
+                <TableCell>{staffData.classes.map((c: SchoolClass) => `${c.level} ${c.section}`).join(', ')}</TableCell>
+              </TableRow>
+            )}
           </TableBody></Table>
         </div>
       )}
 
-      {/* 4. Responsables légaux — uniquement pour les élèves */}
+      {/* 4. Responsables légaux */}
       {!editMode && selectedUser.role === 'student' && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <div className="flex justify-between items-center mb-2">
@@ -187,23 +203,17 @@ export default function AdminUserProfile({
               idx={editingParent ? profileParents.findIndex(p => p.id === editingParent.id) : profileParents.length}
               dark={false}
               onChange={(updated) => setParentForm(updated)}
-              onRemove={() => {
-                setShowParentForm(false);
-                setEditingParent(null);
-              }}
+              onRemove={() => { setShowParentForm(false); setEditingParent(null); }}
             />
           )}
           {showParentForm && (
             <div className="flex gap-2 justify-end mt-1">
               <Button size="sm" onClick={handleSaveParent}>{t('userProfile.save')}</Button>
-              <Button size="sm" variant="ghost" onClick={() => {
-                setShowParentForm(false);
-                setEditingParent(null);
-              }}>{t('userProfile.cancel')}</Button>
+              <Button size="sm" variant="ghost" onClick={() => { setShowParentForm(false); setEditingParent(null); }}>{t('userProfile.cancel')}</Button>
             </div>
           )}
           <div className="flex flex-col gap-2">
-            {profileParents.map((p: Parent) => {
+            {profileParents.map((p: any) => {
               const { first, last } = formatName(p.firstName, p.lastName);
               return (
                 <div key={p.id} className="bg-surface rounded-lg py-2">
@@ -219,7 +229,11 @@ export default function AdminUserProfile({
                     </div>
                   </div>
                   <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
-                    {[{ label: 'Email', value: p.email }, { label: 'Téléphone', value: p.phone ?? '—' }, { label: 'Adresse', value: p.address ?? '—' }].map(row => (
+                    {[
+                      { label: t('userProfile.email'),   value: p.email },
+                      { label: t('userProfile.phone'),   value: p.phone ?? '—' },
+                      { label: t('userProfile.address'), value: p.address ?? '—' },
+                    ].map(row => (
                       <TableRow key={row.label}>
                         <TableCellLeft>{row.label}</TableCellLeft>
                         <TableCell>{row.value}</TableCell>
@@ -245,22 +259,30 @@ export default function AdminUserProfile({
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmer les modifications</AlertDialogTitle>
+                    <AlertDialogTitle>{t('userProfile.confirmTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
                       <span className="text-sm text-gray-700 space-y-1 mt-2 flex flex-col gap-1">
-                        <span><strong>Prénom :</strong> {userForm.firstName}</span>
-                        <span><strong>Nom :</strong> {userForm.lastName}</span>
-                        <span><strong>Email :</strong> {userForm.email}</span>
-                        <span><strong>Rôle :</strong> {userForm.role}</span>
-                        {userForm.role === 'student' && userForm.classId && <span><strong>Classe :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</span>}
-                        {userForm.role === 'teacher' && userForm.subject && <span><strong>Matière :</strong> {userForm.subject}</span>}
-                        {userForm.password && <span><strong>Mot de passe :</strong> modifié</span>}
+                        <span><strong>{t('userProfile.firstName')} :</strong> {userForm.firstName}</span>
+                        <span><strong>{t('userProfile.lastName')} :</strong> {userForm.lastName}</span>
+                        <span><strong>{t('userProfile.email')} :</strong> {userForm.email}</span>
+                        <span><strong>{t('userProfile.role')} :</strong> {userForm.role}</span>
+                        {userForm.role === 'student' && userForm.classId && (
+                          <span><strong>{t('userProfile.class')} :</strong> {classes.find((c: SchoolClass) => c.id === userForm.classId)?.level} {classes.find((c: SchoolClass) => c.id === userForm.classId)?.section}</span>
+                        )}
+                        {userForm.role === 'teacher' && userForm.subject && (
+                          <span><strong>{t('userProfile.subject')} :</strong> {userForm.subject}</span>
+                        )}
+                        {userForm.password && (
+                          <span><strong>{t('userProfile.password')} :</strong> {t('userProfile.passwordChanged')}</span>
+                        )}
                       </span>
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={async () => { await onSaveUser(); setEditMode(false); }}>Confirmer</AlertDialogAction>
+                    <AlertDialogAction onClick={async () => { await onSaveUser(); setEditMode(false); }}>
+                      {t('userProfile.confirmBtn')}
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

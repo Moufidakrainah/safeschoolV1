@@ -93,7 +93,8 @@
       "class": "Classe",
       "aiScore": "Score IA",
       "aiReason": "Analyse IA",
-      "anonymous": "Anonyme",
+      "aiAnalysis": "Analyse IA",
+      "anonymous": "Signalement anonyme (identité visible admin)",
       "yes": "Oui",
       "no": "Non",
       "people": "Qui est concerné par ce signalement ?",
@@ -104,12 +105,22 @@
       "noSuspect": "Aucun suspect indiqué",
       "suspectsCount": "coupable(s)",
       "type": "Type",
-      "reporter": "Signalé en tant que",
+      "reporter": "Alerteur",
+      "involved": "Personnes impliquées",
+      "report": "Signalement",
+      "status": "Statut",
       "victims": "Victime(s)",
       "noVictim": "Aucune victime indiquée",
       "victimLinked": "Lié à",
       "reporterVictime": "Victime",
-      "reporterTemoin": "Témoin"
+      "reporterTemoin": "Témoin",
+      "unidentified": "Non identifié",
+      "unlinked": "Identité non liée",
+      "unlink": "Délier",
+      "link": "Lier",
+      "searchStudent": "Rechercher un élève...",
+      "title": "Signalement {{caseNumber}}",
+      "back": "Revenir à tous les signalements"
     },
     "actions": {
       "groupLabel": "Actions sur le signalement",
@@ -127,8 +138,14 @@
     "convocation": {
       "title": "Convoquer les personnes impliquées",
       "dateLabel": "Date et heure",
+      "dateTime": "Date et heure",
       "placeholder": "Message de convocation...",
-      "send": "Envoyer la convocation"
+      "messagePlaceholder": "Message de convocation...",
+      "send": "📤 Envoyer {{count}} convocation(s)",
+      "sending": "Envoi...",
+      "success": "Convocations envoyées avec succès !",
+      "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",
+      "dateError": "La date doit être dans le futur"
     },
     "users": {
       "title": "Gestion des utilisateurs",
@@ -144,6 +161,11 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "selectClass": "Sélectionner une classe",
+      "searchPlaceholder": "Rechercher par nom ou prénom...",
+      "roleStudent": "Élèves",
+      "roleTeacher": "Profs",
+      "roleAdmin": "Admins",
+      "sortDate": "Date création",
       "roles": {
         "label": "Rôle",
         "choose": "Selectionnez un role",
@@ -210,7 +232,16 @@
     "next": "Suivant",
     "error": "Une erreur est survenue",
     "close": "Fermer",
-    "back": "Retour"
+    "back": "Retour",
+    "reset": "Réinitialiser",
+    "limitReached": "Limite atteinte",
+    "optional": "optionnel"
+  },
+  "report": {
+    "reporter": {
+      "victime": "Victime",
+      "temoin": "Témoin"
+    }
   },
   "quiz": {
     "title": "Quiz",
@@ -415,7 +446,8 @@
       "profile": "Mon profil",
       "report": "Faire un signalement",
       "workshop": "Ateliers",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "cases": "Mes dossiers"
     },
     "profile": {
       "title": "Mon profil",
@@ -483,7 +515,7 @@
       "iAmVictim": "Je suis une victime",
       "noUpdate": "Aucune mise à jour pour ce dossier",
       "meeting": "Un rendez-vous a eu lieu le",
-      "summoned": " est convoqué(e) le "
+      "summoned": "est convoqué(e) le "
     }
   },
   "privacy": {
