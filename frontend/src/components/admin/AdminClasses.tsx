@@ -72,7 +72,7 @@ const CLASSES_PER_PAGE = 7;
 				: Array.isArray(usr?.data)
 					? usr.data
 					: [];
-			setStudents(allUsers.filter((u: any) => u.role === "student"));
+			setStudents(allUsers.filter((u: StudentUser) => u.role === "student"));
 		} catch (e) {
 		} finally {
 			setLoading(false);

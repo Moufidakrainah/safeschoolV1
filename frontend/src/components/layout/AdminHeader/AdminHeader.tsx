@@ -7,7 +7,7 @@ interface AdminHeaderProps {
   logoutUser: () => void;
   viewSection: 'reports' | 'users' | 'stats' | 'classes';
   setViewSection: (s: 'reports' | 'users' | 'stats' | 'classes') => void;
-  setSelected: (r: any) => void;
+  setSelected: (r: Report | null) => void;
   setView: (v: 'list' | 'detail') => void;
   fetchUsers: () => void;
 }

@@ -30,7 +30,7 @@ import ParentFormItem from '@/components/admin/ParentFormItem';
 interface SchoolClass { id: string; level: string; section: string; }
 
 // Helper pour construire le userForm depuis un utilisateur
-const buildUserForm = (u: any) => ({
+const buildUserForm = (u: AdminUser) => ({
   firstName: u.firstName,
   lastName: u.lastName,
   email: u.email,
@@ -38,7 +38,7 @@ const buildUserForm = (u: any) => ({
   role: u.role,
   classId: u.studentProfile?.schoolClass?.id || '',
   subject: u.staffProfile?.subject || '',
-  classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [],
+  classIds: u.staffProfile?.classes?.map((c: SchoolClass) => c.id) || [],
   parents: [],
   dateOfBirth: u.studentProfile?.dateOfBirth ?? '',
 });
@@ -136,14 +136,14 @@ export default function AdminDashboard() {
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); }
     catch {} finally { setSaving(false); }
   };
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
     if (query.length < 2) { setSuspectResults([]); return; }
-    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: any) => u.role === 'student')); }
+    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: AdminUser) => u.role === 'student')); }
     catch { setSuspectResults([]); }
   };
 
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
       await resolveSuspect(suspectId, userId);
       const updated = await getAllReports();
       setReports(updated);
-      setSelected(updated.find((r: any) => r.id === selected?.id) ?? null);
+      setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
     } finally { setResolving(false); }
   };
@@ -608,9 +608,9 @@ const onFetchReports = async (page: number) => {
               setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
-                const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                const goToReport = (r: Report) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
                 if (report) { goToReport(report); }
-                else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                else { getAllReports().then(all => { const r = all.find((r: Report) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
                 setViewSection('reports');
               } else {
                 navigate('/dashboard?section=users', { replace: true });
