@@ -545,5 +545,21 @@
     "role": "Rolle",
     "password": "Passwort",
     "passwordChanged": "geändert"
+  },
+  "validation": {
+    "descRequired": "Beschreibung ist erforderlich",
+    "descMin": "Beschreibung muss mindestens 20 Zeichen enthalten",
+    "descMax": "Beschreibung darf 2000 Zeichen nicht überschreiten",
+    "descInvalid": "Beschreibung scheint ungültig (wiederholende Zeichen erkannt)",
+    "nameRequired": "Name ist erforderlich",
+    "nameMin": "Name muss mindestens 2 Zeichen enthalten",
+    "nameMax": "Name darf 50 Zeichen nicht überschreiten",
+    "nameInvalid": "Name enthält ungültige oder wiederholende Zeichen",
+    "freqRequired": "Häufigkeit ist erforderlich",
+    "emailRequired": "E-Mail erforderlich",
+    "emailTooLong": "E-Mail zu lang (max. 50 Zeichen)",
+    "emailInvalid": "Ungültiges E-Mail-Format",
+    "passwordRequired": "Passwort erforderlich",
+    "passwordMin": "Passwort zu kurz"
   }
 }

@@ -11,15 +11,15 @@ import { Label } from '@/components/ui/label';
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const validateEmail = (value: string): string => {
-  if (!value) return 'Email obligatoire';
-  if (value.length > 50) return 'Email trop long (50 caractères max)';
-  if (!emailRegex.test(value)) return "Format d'email invalide";
+  if (!value) return t('validation.emailRequired');
+  if (value.length > 50) return t('validation.emailTooLong');
+  if (!emailRegex.test(value)) return t('validation.emailInvalid');
   return '';
 };
 
 const validatePassword = (value: string): string => {
-  if (!value) return 'Mot de passe obligatoire';
-  if (value.length < 6) return 'Mot de passe trop court';
+  if (!value) return t('validation.passwordRequired');
+  if (value.length < 6) return t('validation.passwordMin');
   return '';
 };
 // ──────────────────────────────────────────────────────────────────────────

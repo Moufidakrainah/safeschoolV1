@@ -624,5 +624,21 @@
     "role": "Rôle",
     "password": "Mot de passe",
     "passwordChanged": "modifié"
+  },
+  "validation": {
+    "descRequired": "La description est obligatoire",
+    "descMin": "La description doit contenir au moins 20 caractères",
+    "descMax": "La description ne peut pas dépasser 2000 caractères",
+    "descInvalid": "La description semble invalide (caractères répétitifs détectés)",
+    "nameRequired": "Le nom est obligatoire",
+    "nameMin": "Le nom doit contenir au moins 2 caractères",
+    "nameMax": "Le nom ne peut pas dépasser 50 caractères",
+    "nameInvalid": "Le nom contient des caractères invalides ou répétitifs",
+    "freqRequired": "La fréquence est obligatoire",
+    "emailRequired": "Email obligatoire",
+    "emailTooLong": "Email trop long (50 caractères max)",
+    "emailInvalid": "Format d'email invalide",
+    "passwordRequired": "Mot de passe obligatoire",
+    "passwordMin": "Mot de passe trop court"
   }
 }

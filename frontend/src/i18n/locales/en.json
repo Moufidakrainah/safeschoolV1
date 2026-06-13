@@ -565,5 +565,21 @@
     "role": "Role",
     "password": "Password",
     "passwordChanged": "changed"
+  },
+  "validation": {
+    "descRequired": "Description is required",
+    "descMin": "Description must contain at least 20 characters",
+    "descMax": "Description cannot exceed 2000 characters",
+    "descInvalid": "Description seems invalid (repetitive characters detected)",
+    "nameRequired": "Name is required",
+    "nameMin": "Name must contain at least 2 characters",
+    "nameMax": "Name cannot exceed 50 characters",
+    "nameInvalid": "Name contains invalid or repetitive characters",
+    "freqRequired": "Frequency is required",
+    "emailRequired": "Email required",
+    "emailTooLong": "Email too long (50 characters max)",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password required",
+    "passwordMin": "Password too short"
   }
 }
