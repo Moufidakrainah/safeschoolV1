@@ -17,9 +17,9 @@ export default function StatsDashboard({ reports }: Props) {
   // ── Helper : récupère la classe de la victime d'un signalement ──
   // Si reporter = 'victime' → le signalant est la victime (r.student)
   // Sinon → cherche parmi les victimes résolues celle qui a une classe
-  const getVictimClass = (r: any) => {
+  const getVictimClass = (r: Report) => {
     if (r.reporter === 'victime') return r.student?.studentProfile?.schoolClass ?? null;
-    const resolved = r.victims?.find((v: any) => v.resolvedUser?.studentProfile?.schoolClass);
+    const resolved = r.victims?.find((v: ReportVictim) => v.resolvedUser?.studentProfile?.schoolClass);
     return resolved?.resolvedUser?.studentProfile?.schoolClass ?? null;
   };
 

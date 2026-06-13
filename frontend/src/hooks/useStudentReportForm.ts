@@ -157,7 +157,7 @@ export function useStudentReportForm(
         : [];
       await createReport(type, whoSignals, fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(7);
-    } catch (err: any) {
+    } catch (err: unknown) {
       const messages = err?.response?.data?.message ?? err?.message;
       if (Array.isArray(messages) && messages.length > 0) {
         setSubmitError(messages.join(' — '));

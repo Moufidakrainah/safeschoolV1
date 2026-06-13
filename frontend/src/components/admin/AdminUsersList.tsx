@@ -88,7 +88,7 @@ export default function AdminUserList({
                 ))}
                 </div>
                 <div className="flex items-center gap-2">
-                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as any)}
+                    <select value={usersSort} onChange={e => onSetUsersSort(e.target.value as 'asc' | 'desc' | 'date')}
                     className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
                     <option value="asc">A → Z</option>
                     <option value="desc">Z → A</option>
@@ -145,7 +145,7 @@ export default function AdminUserList({
                                     {u.role === 'teacher' && (
                                     <div className="mt-1 flex flex-wrap gap-2 text-xs text-gray-400">
                                         {u.staffProfile?.subject && <span>{u.staffProfile.subject}</span>}
-                                        {(u as any).staffProfile?.classes?.map((c: any) => (
+                                        {u.staffProfile?.classes?.map((c: SchoolClass) => (
                                         <span key={c.id}>{c.level} {c.section}</span>
                                         ))}
                                     </div>
