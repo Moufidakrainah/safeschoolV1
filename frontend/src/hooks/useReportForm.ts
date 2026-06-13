@@ -54,14 +54,6 @@ const validateDescription = (value: string): string => {
   return '';
 };
 
-// function validateName(name: string): string | null {
-// 	if (name.length < 2) return "Le nom doit contenir au moins 2 caractères";
-// 	if (name.length > 100) return "Le nom ne peut pas dépasser 100 caractères";
-// 	if (/(.)\1{4,}/.test(name))
-// 		return "Le nom contient des caractères répétitifs invalides";
-// 	return null;
-// }
-
 const validatePersonName = (value: string): string => {
   if (!value.trim()) return 'Le nom est obligatoire';
   if (value.length < 2) return 'Le nom doit contenir au moins 2 caractères';
@@ -71,25 +63,22 @@ const validatePersonName = (value: string): string => {
 };
 
 export function useReportForm(
-	userRole: string | undefined,
-	t: (key: string) => string,
+  userRole: string | undefined,
+  t: (key: string) => string,
 ): UseReportFormReturn {
-	//il faut enlever les suggestions de noms d'eleves
-	const defaultWho = "temoin";
 
-	const [step, setStep] = useState(1);
-	const [whoSignals, setWhoSignals] = useState(defaultWho);
-	const [type, setType] = useState("");
-	const [description, setDescription] = useState("");
-	const [frequency, setFrequency] = useState("");
-	const [isAnonymous, setIsAnonymous] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const [submitError, setSubmitError] = useState<string | null>(null);
-	// const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-	const [showErrors, setShowErrors] = useState(false);
+  const defaultWho = 'temoin';
 
+  const [step, setStep]               = useState(1);
+  const [whoSignals, setWhoSignals]   = useState(defaultWho);
+  const [type, setType]               = useState('');
+  const [description, setDescription] = useState('');
+  const [frequency, setFrequency]     = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showErrors, setShowErrors]   = useState(false);
   const [descriptionError, setDescriptionError] = useState('');
-
   const [victimError, setVictimError]           = useState('');
   const [suspectError, setSuspectError]         = useState('');
 
@@ -133,42 +122,24 @@ export function useReportForm(
 
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
-	// const handleVictimSearch = async (value: string) => {
-	// 	setVictimInput(value);
-	// 	setSelectedVictim(null);
-	// 	setVictimName(value);
-	// 	if (value.length < 2) {
-	// 		setVictimSuggestions([]);
-	// 		return;
-	// 	}
-	// 	try {
-	// 		setVictimSuggestions(await searchUsers(value));
-	// 	} catch {
-	// 		setVictimSuggestions([]);
-	// 	}
-	// };
+  const resetForm = () => {
+    setStep(1);
+    setType('');
+    setDescription('');
+    setFrequency('');
+    setWhoSignals(defaultWho);
+    setVictimName('');
+    setVictimInput('');
+    setSelectedVictim(null);
+    setSuspects([]);
+    setIsAnonymous(false);
+    setSubmitError(null);
+    setShowErrors(false);
+  };
 
-	const resetForm = () => {
-		setStep(1);
-		setType("");
-		setDescription("");
-		setFrequency("");
-		setWhoSignals(defaultWho);
-		setVictimName("");
-		setVictimInput("");
-		setSelectedVictim(null);
-		setSuspects([]);
-		setIsAnonymous(false);
-		setSubmitError(null);
-		setShowErrors(false);
-	};
-
-	return {
-		step,
-		setStep,
-
+  return {
+    step, setStep,
     descriptionError, setDescriptionError,
-
     victimError, setVictimError,
     suspectError, setSuspectError,
     validateDescription, validatePersonName,
