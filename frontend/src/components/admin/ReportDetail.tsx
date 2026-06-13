@@ -338,8 +338,8 @@ export default function ReportDetail({
           {/* Alerteur */}
           <div>
             <p className="text-xs text-muted-foreground font-semibold mb-3">Alerteur</p>
-            <div className={`flex items-center gap-3 ${selected.isAnonymous ? 'opacity-50' : ''} ${!selected.isAnonymous && selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
-              onClick={() => !selected.isAnonymous && selected.student?.id && onNavigateToUser(selected.student.id)}>
+            <div className={`flex items-center gap-3 ${selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={() => selected.student?.id && onNavigateToUser(selected.student.id)}>
               {selected.student?.avatar
                 ? <img src={`${AVATAR_BASE}/${selected.student.avatar}`} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" />
                 : <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
@@ -348,7 +348,7 @@ export default function ReportDetail({
               }
               <div>
                 <p className="text-sm font-semibold text-gray-800">
-                  {selected.isAnonymous ? t('admin.detail.anonymousLabel') : `${selected.student?.firstName} ${selected.student?.lastName}`}
+                  {`${selected.student?.firstName} ${selected.student?.lastName}`}
                 </p>
                 {selected.student?.studentProfile?.schoolClass && (
                   <p className="text-xs text-primary">
@@ -356,7 +356,7 @@ export default function ReportDetail({
                   </p>
                 )}
                 <p className="text-xs text-gray-400 capitalize">{selected.reporter === 'victime' ? 'Victime' : 'Témoin'}</p>
-                {selected.isAnonymous && <p className="text-xs text-gray-400 italic">Signalement anonyme</p>}
+                {selected.isAnonymous && <p className="text-xs text-gray-400 italic">Signalement anonyme (identité visible admin)</p>}
               </div>
             </div>
           </div>
