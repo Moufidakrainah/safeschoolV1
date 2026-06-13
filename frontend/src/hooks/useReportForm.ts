@@ -22,6 +22,7 @@ export interface UseReportFormReturn {
   isNextDisabled: boolean;
   suspects:           UserSearchResult[];
   suspectInput:       string;
+  setSuspectInput:    React.Dispatch<React.SetStateAction<string>>;
   victimName:         string;
   setVictimName:      React.Dispatch<React.SetStateAction<string>>;
   victimInput:        string;
@@ -150,7 +151,7 @@ export function useReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput,
+    suspects, suspectInput, setSuspectInput,
     victimName, setVictimName,
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim,

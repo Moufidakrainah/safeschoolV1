@@ -153,7 +153,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
             {/* Étape 1 : Type de harcèlement */}
             {step === 1 && (
               <fieldset>
-                <legend className="text-gray-800 font-bold text-lg mb-2">
+                <legend className="text-primary font-bold text-lg mb-2">
                   {t("reporter.step2.title")}
                 </legend>
                 <p className="text-gray-500 text-sm mb-6">
