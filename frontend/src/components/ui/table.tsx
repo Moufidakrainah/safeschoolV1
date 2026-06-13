@@ -71,7 +71,7 @@ function TableCellLeft({ className, ...props }: React.ComponentProps<"td">) {
 	return (
 		<td
 			data-slot="table-cell"
-			className={cn("p-2 font-semibold text-muted-foreground w-1/2", className)}
+			className={cn("p-2 font-semibold text-muted-foreground w-1/2 align-top", className)}
 			{...props}
 		/>
 	);

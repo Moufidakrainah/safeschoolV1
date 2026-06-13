@@ -195,11 +195,10 @@ const CLASSES_PER_PAGE = 7;
 	}
 
 	return (
-		<section className="flex flex-col gap-4">
+		<section className="page-section">
 			{/*liste des classes */}
 			<div className=" flex-shrink-0">
-				<div className="flex justify-between items-center mb-4">
-					<h2 className="text-lg font-bold text-gray-800">Classes</h2>
+				<div className="flex justify-end items-center mb-4">
 					<Button
 						size="sm"
 						onClick={() => {
@@ -208,7 +207,7 @@ const CLASSES_PER_PAGE = 7;
 							setClassForm({ level: "", section: "" });
 						}}
 					>
-						+ Ajouter
+						+ Ajouter une classe
 					</Button>
 				</div>
 
@@ -266,7 +265,7 @@ const CLASSES_PER_PAGE = 7;
 				)}
 
 				{/* Liste des classes */}
-				<div className="flex flex-col gap-2">
+				<div className="flex flex-col gap-3">
 					{classes.length === 0 && (
 						<p className="text-sm text-gray-400 text-center py-6">
 							Aucune classe

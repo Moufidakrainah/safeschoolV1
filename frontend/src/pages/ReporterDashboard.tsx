@@ -61,7 +61,7 @@ export default function ReporterDashboard() {
   return (
     <>
       {/* <ReporterHeader {...headerProps} /> */}
-    <main className="flex-1 bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
 
 		<RoleHeader
 			user={user}

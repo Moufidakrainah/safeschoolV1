@@ -17,6 +17,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import StatCard from '../components/StatCard';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
 import AdminClasses from '../components/admin/AdminClasses';
 import ReportDetail from '../components/admin/ReportDetail';
 import type { Report, Note } from '../types';
@@ -111,6 +112,8 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
+
+
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
@@ -195,7 +198,7 @@ export default function AdminDashboard() {
     try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
-  const renderUserForm = (isEdit = false) => (
+const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
@@ -403,7 +406,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="flex-1 bg-gray-50 font-sans">
+    <main className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -488,26 +491,59 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            {totalPages > 1 && (
-              <PaginationShadcn className="mt-4">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
-                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <PaginationItem key={p}>
-                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
-                        className="cursor-pointer">{p}</PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
-                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-                  </PaginationItem>
-                </PaginationContent>
-              </PaginationShadcn>
-            )}
+           
+
+
+{totalPages > 1 && (
+  <PaginationShadcn className="mt-4">
+    <PaginationContent>
+
+      {/* Précédent */}
+      <PaginationItem>
+        <PaginationPrevious
+          onClick={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1)
+              onFetchReports(currentPage - 1)
+            }
+          }}
+          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+      {/* Numéros */}
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+        <PaginationItem key={p}>
+          <PaginationLink
+            isActive={p === currentPage}
+            onClick={() => {
+              setCurrentPage(p)
+              onFetchReports(p)
+            }}
+            className="cursor-pointer"
+          >
+            {p}
+          </PaginationLink>
+        </PaginationItem>
+      ))}
+
+      {/* Suivant */}
+      <PaginationItem>
+        <PaginationNext
+          onClick={() => {
+            if (currentPage < totalPages) {
+              setCurrentPage(currentPage + 1)
+              onFetchReports(currentPage + 1)
+            }
+          }}
+          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+        />
+      </PaginationItem>
+
+    </PaginationContent>
+  </PaginationShadcn>
+)}
+
           </>
         )}
 

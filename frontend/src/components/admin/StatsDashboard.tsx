@@ -125,10 +125,10 @@ export default function StatsDashboard({ reports }: Props) {
   };
 
   return (
-    <section className="flex flex-col gap-4">
+		<section className="page-section">
 
       {/* ── Filtres ── */}
-      <div className="flex flex-wrap gap-3 items-center">
+      <div className="flex flex-wrap gap-3 items-end mb-6">
 
         {/* Filtre période */}
         <Select value={period} onValueChange={setPeriod}>
@@ -169,15 +169,15 @@ export default function StatsDashboard({ reports }: Props) {
         </Select>
 
         {/* Compteur */}
-        <span className="text-sm font-semibold text-primary bg-primary/10 px-3 py-2 rounded-lg">
+        <div className="text-sm px-3 py-2 ml-auto">
           {filtered.length} signalement{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
-        </span>
+        </div>
       </div>
 
       {/* ── Ligne 1 : Grade + Statut ── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Répartition par grade</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Répartition par grade</h3>
           {gradeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -210,7 +210,7 @@ export default function StatsDashboard({ reports }: Props) {
       </div>
 
       {/* ── Ligne 2 : Signalements par classe de la victime ── */}
-      <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
+      <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-6">
         <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par classe (victime)</h3>
         {classData.length === 0
           ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
@@ -233,7 +233,7 @@ export default function StatsDashboard({ reports }: Props) {
       {/* ── Ligne 3 : Type + Évolution ── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Signalements par type</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par type</h3>
           {typeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -250,7 +250,7 @@ export default function StatsDashboard({ reports }: Props) {
         </div>
 
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4"> Évolution (7 derniers jours)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">Évolution (7 derniers jours)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={last7Days}>
               <CartesianGrid strokeDasharray="3 3" />
