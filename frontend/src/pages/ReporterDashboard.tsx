@@ -16,16 +16,16 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 // Contexts & hooks
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 
 // API services
-import { getStaffProfile } from '../services/api';
-import type { StaffProfile } from '../types';
+import { getStaffProfile } from '@/services/api';
+import type { StaffProfile } from '@/types';
 
 // UI components
-// import ReporterHeader from '../components/layout/ReporterHeader/ReporterHeader';
-import ReporterProfile from '../components/reporter/ReporterProfile';
-import ReporterForm from '../components/reporter/ReporterForm';
+// import ReporterHeader from '@/components/layout/ReporterHeader/ReporterHeader';
+import ReporterProfile from '@/components/reporter/ReporterProfile';
+import ReporterForm from '@/components/reporter/ReporterForm';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 export default function ReporterDashboard() {

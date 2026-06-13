@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../components/ui/button';
-import type { Player, QuestionState, QuizLocale } from '../../hooks/useQuizSocket';
+import { Button } from '@/components/ui/button';
+import type { Player, QuestionState, QuizLocale } from '@/hooks/useQuizSocket';
 
 const STREAK_CAP = 5;
 const QUIZ_LOCALES: QuizLocale[] = ['fr', 'en', 'de'];

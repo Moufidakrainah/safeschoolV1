@@ -75,15 +75,24 @@ export default function AdminUserProfile({
 
   const handleSaveParent = async () => {
     const studentProfileId = selectedUser?.studentProfile?.id;
-    if (editingParent) {
-      await updateParent(editingParent.id, parentForm);
-    } else {
-      if (studentProfileId) await createParent({ ...parentForm, studentIds: [studentProfileId] });
+    try {
+      if (editingParent) {
+        await updateParent(editingParent.id, parentForm);
+      } else {
+        if (studentProfileId) {
+          await createParent({ ...parentForm, studentIds: [studentProfileId] });
+        } else {
+          console.error("studentProfileId manquant", selectedUser?.studentProfile);
+          return;
+        }
+      }
+      const updated = await getStudentParents(selectedUser.id);
+      setProfileParents(updated);
+      setShowParentForm(false);
+      setEditingParent(null);
+    } catch (err) {
+      console.error("Erreur handleSaveParent:", err);
     }
-    const updated = await getStudentParents(selectedUser.id);
-    setProfileParents(updated);
-    setShowParentForm(false);
-    setEditingParent(null);
   };
 
   const handleDeleteParent = async (id: string) => {

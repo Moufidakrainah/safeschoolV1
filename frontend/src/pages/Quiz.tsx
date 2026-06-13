@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
-import { useQuizSocket } from '../hooks/useQuizSocket';
+import { useQuizSocket } from '@/hooks/useQuizSocket';
 import QuizJoinScreen from './quiz/QuizJoinScreen';
 import QuizLobby from './quiz/QuizLobby';
 import QuizLeaderboard from './quiz/QuizLeaderboard';

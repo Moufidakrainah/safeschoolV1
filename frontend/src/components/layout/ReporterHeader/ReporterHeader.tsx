@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import Header from '../Header/Header';
-import type { AuthUser } from '../../../types';
+import Header from '@/components/layout/Header/Header';
+import type { AuthUser } from '@/types';
 
 type ReporterSection = 'profile' | 'report' | 'quiz';
 

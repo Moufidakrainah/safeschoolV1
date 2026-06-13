@@ -6,21 +6,21 @@ import {
   getAllReports, updateReport, getNotes, addNote,
   getUserById, searchUsers, resolveSuspect, resolveVictim,
   getStaffProfile, createStaffProfile, updateStaffProfile, updateUser, createParent,
-} from '../services/api';
+} from '@/services/api';
 import { useUsers } from '@/hooks/useUsers';
-import StatsDashboard from '../components/admin/StatsDashboard';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import { Button } from '../components/ui/button';
+import StatsDashboard from '@/components/admin/StatsDashboard';
+import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
+import { Button } from '@/components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import StatCard from '../components/StatCard';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import StatCard from '@/components/StatCard';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 
-import AdminClasses from '../components/admin/AdminClasses';
-import ReportDetail from '../components/admin/ReportDetail';
-import type { Report, Note } from '../types';
+import AdminClasses from '@/components/admin/AdminClasses';
+import ReportDetail from '@/components/admin/ReportDetail';
+import type { Report, Note } from '@/types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';

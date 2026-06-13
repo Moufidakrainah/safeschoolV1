@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { createReport } from '../services/api';
-import type { UserSearchResult } from '../types';
+import { createReport } from '@/services/api';
+import type { UserSearchResult } from '@/types';
 
 export interface UseStudentReportFormReturn {
   step: number;
