@@ -573,7 +573,8 @@
     "levelRequired": "Stufe ist erforderlich",
     "levelInvalid": "Stufe muss 3eme, 4eme, 5eme oder 6eme sein",
     "sectionRequired": "Abschnitt ist erforderlich",
-    "sectionInvalid": "Abschnitt muss ein einzelner Großbuchstabe sein (A, B, C...)"
+    "sectionInvalid": "Abschnitt muss ein einzelner Großbuchstabe sein (A, B, C...)",
+    "alreadyExists": "Diese Klasse existiert bereits"
   },
   "userProfile": {
     "backToReport": "Zurück zur Meldung",

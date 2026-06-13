@@ -593,7 +593,8 @@
     "levelRequired": "Level is required",
     "levelInvalid": "Level must be 3eme, 4eme, 5eme or 6eme",
     "sectionRequired": "Section is required",
-    "sectionInvalid": "Section must be a single uppercase letter (A, B, C...)"
+    "sectionInvalid": "Section must be a single uppercase letter (A, B, C...)",
+    "alreadyExists": "This class already exists"
   },
   "userProfile": {
     "backToReport": "Back to report",

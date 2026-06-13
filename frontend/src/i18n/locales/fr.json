@@ -631,7 +631,8 @@
     "levelRequired": "Le niveau est obligatoire",
     "levelInvalid": "Le niveau doit être 3eme, 4eme, 5eme ou 6eme",
     "sectionRequired": "La section est obligatoire",
-    "sectionInvalid": "La section doit être une seule lettre majuscule (A, B, C...)"
+    "sectionInvalid": "La section doit être une seule lettre majuscule (A, B, C...)",
+    "alreadyExists": "Cette classe existe déjà"
   },
   "userProfile": {
     "backToReport": "Retour au signalement",

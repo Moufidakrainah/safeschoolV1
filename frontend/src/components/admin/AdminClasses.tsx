@@ -81,9 +81,14 @@ export default function AdminClasses() {
       setShowClassForm(false);
       setEditingClass(null);
       setClassForm({ level: "", section: "" });
-    } catch {
-      toast.error(t('common.error'));
-    } finally {
+    } catch (err: unknown) {
+	const msg = err?.response?.data?.message ?? '';
+	if (msg === 'CLASS_ALREADY_EXISTS') {
+		toast.error(t('classes.alreadyExists'));
+	} else {
+		toast.error(t('common.error'));
+	}
+	} finally {
       setSavingClass(false);
     }
   };
