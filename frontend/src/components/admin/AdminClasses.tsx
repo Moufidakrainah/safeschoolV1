@@ -5,12 +5,12 @@ import {
 	updateClass,
 	deleteClass,
 	getAllUsers,
-} from "../../services/api";
-import { Button } from "../ui/button";
+} from "@/services/api";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "../ui/pagination";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { API_BASE } from "@/config";
 
 //les types

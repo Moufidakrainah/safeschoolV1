@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useId } from "react";
-import type { UserSearchResult } from "../types";
+import type { UserSearchResult } from '@/types';
 
 interface AutocompleteProps {
   value: string;
