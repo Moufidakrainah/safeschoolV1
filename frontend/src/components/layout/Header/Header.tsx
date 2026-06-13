@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../ui/button';
-import type { AuthUser } from '../../../types';
+import { Button } from '@/components/ui/button';
+import type { AuthUser } from '@/types';
 
 interface Notification {
   id: string;

@@ -86,7 +86,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
         const mine = all.filter((r: Report) => r.reporter === "victime");
-        setMyReports(mine);
+        setMyReports(mine.sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 
         const notesMap: Record<string, any[]> = {};
         await Promise.all(

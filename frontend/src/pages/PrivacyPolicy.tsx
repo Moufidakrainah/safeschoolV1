@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import RoleHeader from '../components/layout/Header/RoleHeader';
+import { useAuth } from '@/context/AuthContext';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicy()

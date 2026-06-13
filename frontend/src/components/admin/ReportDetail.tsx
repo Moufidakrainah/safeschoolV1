@@ -110,13 +110,9 @@ export default function ReportDetail({
       {/* ── Statut + modifier ── */}
       <div className="bg-surface shadow-sm flex items-center justify-between mb-3 px-5 py-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500 font-semibold">Statut du signalement :</span>
-          <Badge variant={selected.status as BadgeVariant} />
-        </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 font-semibold">Modifier le statut :</span>
+            <span className="text-sm text-gray-500 font-semibold">Statut :</span>
             <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
@@ -183,11 +179,11 @@ export default function ReportDetail({
                   <p className="text-xs text-gray-400 italic">Identité non liée</p>
                 )}
 
-                {/* Bouton Lier / Modifier */}
-                {isAdmin && (
+                {/* Bouton Lier uniquement si pas encore liée */}
+                {isAdmin && !selected.victims?.[0]?.resolvedUser && (
                   <button className="text-xs text-blue-500 hover:underline mt-1"
                     onClick={() => { onSetActiveSuspect(activeSuspect === mainVictimId ? null : mainVictimId); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                    {selected.victims?.[0]?.resolvedUser ? 'Modifier' : ' Lier'}
+                    Lier
                   </button>
                 )}
 
@@ -313,10 +309,10 @@ export default function ReportDetail({
                           {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}
                         </div>
                       )}
-                      {isAdmin && (
+                      {isAdmin && !s.resolvedUser && (
                         <button className="text-xs text-blue-500 hover:underline mt-1"
                           onClick={() => { onSetActiveSuspect(activeSuspect === s.id ? null : s.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                          {s.resolvedUser ? 'Modifier' : 'Lier'}
+                          Lier
                         </button>
                       )}
                       {isAdmin && activeSuspect === s.id && (
@@ -342,8 +338,8 @@ export default function ReportDetail({
           {/* Alerteur */}
           <div>
             <p className="text-xs text-muted-foreground font-semibold mb-3">Alerteur</p>
-            <div className={`flex items-center gap-3 ${selected.isAnonymous ? 'opacity-50' : ''} ${!selected.isAnonymous && selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
-              onClick={() => !selected.isAnonymous && selected.student?.id && onNavigateToUser(selected.student.id)}>
+            <div className={`flex items-center gap-3 ${selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={() => selected.student?.id && onNavigateToUser(selected.student.id)}>
               {selected.student?.avatar
                 ? <img src={`${AVATAR_BASE}/${selected.student.avatar}`} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" />
                 : <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
@@ -352,7 +348,7 @@ export default function ReportDetail({
               }
               <div>
                 <p className="text-sm font-semibold text-gray-800">
-                  {selected.isAnonymous ? t('admin.detail.anonymousLabel') : `${selected.student?.firstName} ${selected.student?.lastName}`}
+                  {`${selected.student?.firstName} ${selected.student?.lastName}`}
                 </p>
                 {selected.student?.studentProfile?.schoolClass && (
                   <p className="text-xs text-primary">
@@ -360,7 +356,7 @@ export default function ReportDetail({
                   </p>
                 )}
                 <p className="text-xs text-gray-400 capitalize">{selected.reporter === 'victime' ? 'Victime' : 'Témoin'}</p>
-                {selected.isAnonymous && <p className="text-xs text-gray-400 italic">Signalement anonyme</p>}
+                {selected.isAnonymous && <p className="text-xs text-gray-400 italic">Signalement anonyme (identité visible admin)</p>}
               </div>
             </div>
           </div>

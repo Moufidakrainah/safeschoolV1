@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../components/ui/button';
-import type { Player } from '../../hooks/useQuizSocket';
+import { Button } from '@/components/ui/button';
+import type { Player } from '@/hooks/useQuizSocket';
 
 const RANK_STYLES: Record<number, string> = {
   1: 'bg-amber-400 text-white',

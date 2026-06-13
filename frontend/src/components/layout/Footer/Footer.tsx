@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { memo } from 'react';
 import { LANGUAGES } from './Footer.constants';
-import { useLanguage } from '../../../hooks/useLanguage';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const Footer = memo(function Footer() {
   const { t } = useTranslation();

@@ -220,7 +220,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<Textarea
 									id="description"
 									value={description}
-									onChange={(e) => setDescription(e.target.value)}
+									onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
 									placeholder={t("reporter.step3.descriptionPlaceholder")}
 									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
@@ -228,6 +228,11 @@ export default function StudentForm({ user }: StudentFormProps) {
 								{showErrors && !description && !fieldErrors.description && (
 									<p role="alert" className="mt-4 text-sm text-critical">
 										{t("reporter.validation.descriptionRequired")}
+									</p>
+								)}
+								{descriptionError && (
+									<p role="alert" className="mt-4 text-sm text-critical">
+										{descriptionError}
 									</p>
 								)}
 								{fieldErrors.description && (
@@ -348,7 +353,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 
 
 									<Button
-                    variant="outline"
+                    variant={victimInput.trim().length >= 2 ? "primary" : "outline"}
                     onClick={() => {
                       if (victimInput.trim()) {
                         const err = validateName(victimInput.trim());
@@ -409,29 +414,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<label className="block mb-3 mt-6 text-m font-semibold">
 									{t("reporter.step4.suspectsLabel")}
 								</label>
-								<div className="flex gap-2 items-center">
-									{/* <input
-										maxLength={50}
-										type="text"
-										value={suspectInput}
-										onChange={(e) => {
-											const { setSuspectInput } = {} as any;
-											handleSuspectSearch(e.target.value);
-										}}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" && suspectInput.trim()) {
-												e.preventDefault();
-												addSuspect({
-													firstName: suspectInput.trim(),
-													lastName: "",
-												});
-											}
-										}}
-										placeholder={t("reporter.step4.peoplePlaceholder")}
-										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-									/> */}
-
-
+								<div className="flex gap-2 items-center">	
 									<input
                   type="text"
                   value={suspectInput}
