@@ -7,7 +7,6 @@ import { API_BASE } from '@/config';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
-import { useState, useEffect } from "react";
 
 interface AdminUsersListProps {
     filteredUsers: AdminUser[];        // la liste des utilisateurs
@@ -20,12 +19,10 @@ interface AdminUsersListProps {
     usersTotalPages: number;              // nombre total de pages
     showUserForm: boolean;                // afficher le formulaire d'ajout ?
     isFormValid: boolean;                 // le formulaire est-il valide ?
-
     // ── Fonctions du parent ──
     onSetUsersSearch: (s: string) => void;                    // changer le texte de recherche
     onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;    // changer le tri
     onSetUsersRoleFilter: (f: string[]) => void;              // changer les filtres de rôle
-
     onSetUsersPage: (p: number) => void;                      // changer la page
     onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
     onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
@@ -33,9 +30,7 @@ interface AdminUsersListProps {
     onSaveUser: () => void;
   onValidateAll: () => boolean;
     renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
-
 }
-
 
 export default function AdminUserList({
   filteredUsers,
@@ -60,8 +55,6 @@ export default function AdminUserList({
   renderUserForm,
 }: AdminUsersListProps) {
     const { t } = useTranslation();
-// const [usersRoleFilter, onSetUsersRoleFilter] = useState<string[]>(['student', 'teacher', 'admin']);
-
     return (
         <section>
             {/* 1. Barre de recherche */}
