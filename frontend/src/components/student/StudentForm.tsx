@@ -220,7 +220,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<Textarea
 									id="description"
 									value={description}
-									onChange={(e) => setDescription(e.target.value)}
+									onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
 									placeholder={t("reporter.step3.descriptionPlaceholder")}
 									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
@@ -228,6 +228,11 @@ export default function StudentForm({ user }: StudentFormProps) {
 								{showErrors && !description && !fieldErrors.description && (
 									<p role="alert" className="mt-4 text-sm text-critical">
 										{t("reporter.validation.descriptionRequired")}
+									</p>
+								)}
+								{descriptionError && (
+									<p role="alert" className="mt-4 text-sm text-critical">
+										{descriptionError}
 									</p>
 								)}
 								{fieldErrors.description && (
