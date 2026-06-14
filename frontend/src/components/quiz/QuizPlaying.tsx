@@ -1,8 +1,16 @@
 import { useEffect, useRef } from 'react';
-import { Button } from '../../components/ui/button';
-import type { Player, QuestionState } from '../../hooks/useQuizSocket';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import type { Player, QuestionState, QuizLocale } from '@/hooks/useQuizSocket';
 
 const STREAK_CAP = 5;
+const QUIZ_LOCALES: QuizLocale[] = ['fr', 'en', 'de'];
+
+// Ramène la langue i18next active (qui peut être une variante régionale comme « en-US »)
+// vers l'une des langues effectivement traduites dans les questions, fr par défaut
+function resolveQuizLocale(language: string | undefined): QuizLocale {
+  return QUIZ_LOCALES.find((locale) => language?.startsWith(locale)) ?? 'fr';
+}
 
 type QuizPlayingProps = {
   joinedRoom: string;
@@ -26,6 +34,8 @@ export default function QuizPlaying({
   myStreak,
   submitAnswer,
 }: QuizPlayingProps) {
+  const { t, i18n } = useTranslation();
+  const locale = resolveQuizLocale(i18n.language);
   // Capture le rang de chaque joueur au début de chaque question pour que le
   // classement en direct puisse montrer comment les positions ont bougé pendant la révélation
   const prevRanksRef = useRef<Record<string, number>>({});
@@ -58,13 +68,13 @@ export default function QuizPlaying({
 
         {/* Ligne d'en-tête */}
         <div className="flex items-center justify-between text-sm text-gray-500">
-          <span>Salle : {joinedRoom}</span>
+          <span>{t('quiz.room', { code: joinedRoom })}</span>
           <span>{questionState?.questionNumber ?? '–'} / {questionState?.totalQuestions ?? '–'}</span>
         </div>
 
         {reconnecting && (
           <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-center text-sm text-amber-600">
-            Connexion perdue — reconnexion en cours…
+            {t('quiz.connectionLost')}
           </p>
         )}
 
@@ -92,7 +102,7 @@ export default function QuizPlaying({
         {!isRevealing && (
           <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
             <div className="flex flex-col">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Combo</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{t('quiz.combo')}</span>
               <span className="text-2xl font-black text-gray-900 tabular-nums">{myStreak}</span>
             </div>
             <div className="flex gap-0.5">
@@ -107,7 +117,7 @@ export default function QuizPlaying({
               ))}
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Multiplicateur</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{t('quiz.multiplier')}</span>
               <span className="text-2xl font-black text-primary tabular-nums">×{nextMult}</span>
             </div>
           </div>
@@ -116,54 +126,54 @@ export default function QuizPlaying({
         {questionState ? (
           <>
             {/* Question */}
-            <h2 key={questionState.questionNumber} className="quiz-rise text-lg font-bold text-gray-900 leading-snug">{questionState.question.text}</h2>
+            <h2 key={questionState.questionNumber} className="quiz-rise text-lg font-bold text-gray-900 leading-snug">{questionState.question.text[locale]}</h2>
 
             {/* Retour sur la réponse */}
             {isRevealing && questionState.lastAnswerCorrect && questionState.basePoints != null && (
               <div className="quiz-rise rounded-xl border border-green-100 bg-green-50 px-4 py-3 flex flex-col gap-3">
-                <span className="text-sm font-semibold text-green-600">Bonne réponse !</span>
+                <span className="text-sm font-semibold text-green-600">{t('quiz.correctAnswer')}</span>
                 <div className="flex items-center justify-center gap-4 tabular-nums">
                   <div className="flex flex-col items-center leading-tight">
                     <span className="text-lg font-black text-gray-900">{questionState.basePoints}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-gray-400">Vitesse</span>
+                    <span className="text-[10px] uppercase tracking-wide text-gray-400">{t('quiz.speed')}</span>
                   </div>
                   <span className="text-lg text-gray-400">×</span>
                   <div className="flex flex-col items-center leading-tight">
                     <span className="text-lg font-black text-gray-900">{questionState.multiplier}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-gray-400">Combo</span>
+                    <span className="text-[10px] uppercase tracking-wide text-gray-400">{t('quiz.combo')}</span>
                   </div>
                   <span className="text-lg text-gray-400">=</span>
                   <div className="flex flex-col items-center leading-tight">
                     <span className="quiz-pop text-2xl font-black text-green-600">+{questionState.pointsEarned}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-gray-400">Points</span>
+                    <span className="text-[10px] uppercase tracking-wide text-gray-400">{t('quiz.pointsLabel')}</span>
                   </div>
                 </div>
               </div>
             )}
             {isRevealing && questionState.lastAnswerCorrect === false && (
               <div className="quiz-shake flex items-center justify-between rounded-xl border border-red-100 bg-red-50 px-4 py-3">
-                <span className="text-sm font-semibold text-red-500">Mauvaise réponse</span>
-                <span className="text-sm text-gray-500">Combo perdu</span>
+                <span className="text-sm font-semibold text-red-500">{t('quiz.wrongAnswer')}</span>
+                <span className="text-sm text-gray-500">{t('quiz.comboLost')}</span>
               </div>
             )}
 
             {/* États d'attente */}
             {!isRevealing && questionState.hasAnswered && (
-              <p className="text-sm text-gray-400">Réponse envoyée. En attente des autres joueurs…</p>
+              <p className="text-sm text-gray-400">{t('quiz.answerSent')}</p>
             )}
             {!isRevealing && !questionState.hasAnswered && timeLeftMs <= 0 && (
-              <p className="text-sm text-gray-400">Temps écoulé. Prochaine question…</p>
+              <p className="text-sm text-gray-400">{t('quiz.timeUp')}</p>
             )}
             {isRevealing && questionState.selectedIndex == null && (
-              <p className="text-sm text-red-500 font-semibold">Vous n'avez pas répondu.</p>
+              <p className="text-sm text-red-500 font-semibold">{t('quiz.noAnswer')}</p>
             )}
             {isRevealing && (
-              <p className="text-sm text-gray-400">Prochaine question dans {secondsLeft}s</p>
+              <p className="text-sm text-gray-400">{t('quiz.nextQuestion', { seconds: secondsLeft })}</p>
             )}
 
             {/* Boutons de réponse */}
             <ul className="grid grid-cols-2 gap-3">
-              {questionState.question.options.map((opt, i) => {
+              {questionState.question.options[locale].map((opt, i) => {
                 const isCorrect = isRevealing && i === questionState.correctIndex;
                 const isWrongSelected = isRevealing && i === questionState.selectedIndex && !isCorrect;
                 const isNeutral = isRevealing && !isCorrect && !isWrongSelected;
@@ -199,12 +209,12 @@ export default function QuizPlaying({
             {/* Statistiques de révélation */}
             {isRevealing && questionState.answerStatistics.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Résultats</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('quiz.results')}</p>
                 <ul className="space-y-2">
                   {questionState.answerStatistics.map((stat) => (
                     <li key={stat.index} className="space-y-1">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="whitespace-pre-wrap wrap-break-word text-gray-700">{questionState.question.options[stat.index]}</span>
+                        <span className="whitespace-pre-wrap wrap-break-word text-gray-700">{questionState.question.options[locale][stat.index]}</span>
                         <span className="font-semibold text-gray-900 ml-2 shrink-0">{stat.count} ({stat.percentage}%)</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
@@ -219,7 +229,7 @@ export default function QuizPlaying({
             {/* Classement en direct pendant la révélation — avec mouvement de rang */}
             {isRevealing && sortedPlayers.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Classement en direct</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('quiz.liveRanking')}</p>
                 <ol className="space-y-1">
                   {sortedPlayers.slice(0, 5).map((p, idx) => {
                     const rank = idx + 1;
@@ -246,7 +256,7 @@ export default function QuizPlaying({
                         <span className={`flex-1 truncate ${isMe ? 'font-semibold text-primary' : 'text-gray-700'}`}>
                           {p.name}
                         </span>
-                        <span className="font-bold text-gray-900 shrink-0 tabular-nums">{p.score} pts</span>
+                        <span className="font-bold text-gray-900 shrink-0 tabular-nums">{t('quiz.points', { score: p.score })}</span>
                       </li>
                     );
                   })}
@@ -255,7 +265,7 @@ export default function QuizPlaying({
             )}
           </>
         ) : (
-          <p className="text-gray-400 text-sm">En attente de la question…</p>
+          <p className="text-gray-400 text-sm">{t('quiz.waitingQuestion')}</p>
         )}
       </div>
     </div>

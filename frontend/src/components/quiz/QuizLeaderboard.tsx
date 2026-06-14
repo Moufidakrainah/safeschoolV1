@@ -1,5 +1,6 @@
-import { Button } from '../../components/ui/button';
-import type { Player } from '../../hooks/useQuizSocket';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import type { Player } from '@/hooks/useQuizSocket';
 
 const RANK_STYLES: Record<number, string> = {
   1: 'bg-amber-400 text-white',
@@ -21,17 +22,18 @@ export default function QuizLeaderboard({
   myClientId,
   leaveRoom,
 }: QuizLeaderboardProps) {
+  const { t } = useTranslation();
   const board = finalLeaderboard ?? [];
   return (
     <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
       <div className="w-full max-w-md rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-6">
         <div className="text-center">
-          <h1 className="text-2xl font-black text-gray-900">Résultats finaux</h1>
-          <p className="text-sm text-gray-500 mt-1">Salle : {joinedRoom}</p>
+          <h1 className="text-2xl font-black text-gray-900">{t('quiz.finalResults')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('quiz.room', { code: joinedRoom })}</p>
         </div>
 
         {board.length === 0 ? (
-          <p className="text-center text-gray-500">Aucun score disponible.</p>
+          <p className="text-center text-gray-500">{t('quiz.noScore')}</p>
         ) : (
           <ol className="space-y-2">
             {board.map((player, index) => {
@@ -53,9 +55,9 @@ export default function QuizLeaderboard({
                   </span>
                   <span className={`flex-1 font-medium truncate ${isMe ? 'text-primary' : 'text-gray-800'}`}>
                     {player.name}
-                    {isMe && <span className="ml-1 text-xs font-normal text-gray-400">(vous)</span>}
+                    {isMe && <span className="ml-1 text-xs font-normal text-gray-400">{t('quiz.you')}</span>}
                   </span>
-                  <span className="font-bold text-gray-900 shrink-0">{player.score} pts</span>
+                  <span className="font-bold text-gray-900 shrink-0">{t('quiz.points', { score: player.score })}</span>
                 </li>
               );
             })}
@@ -63,7 +65,7 @@ export default function QuizLeaderboard({
         )}
 
         <Button onClick={leaveRoom} variant="primary">
-          Quitter
+          {t('quiz.leave')}
         </Button>
       </div>
     </div>

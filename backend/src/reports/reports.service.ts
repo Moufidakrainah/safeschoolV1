@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
@@ -12,6 +11,7 @@ import { ReportVictim } from "./report-victim.entity";
 import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
+import { LoggerService } from "../logger/logger.service";
 
 @Injectable()
 export class ReportsService {
@@ -22,6 +22,7 @@ export class ReportsService {
     private scoringService: ScoringService,
     @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
     private notificationsService: NotificationsService,
+    private logger: LoggerService,
   ) {}
 
   async create(
@@ -34,26 +35,23 @@ export class ReportsService {
     victims: { freeText: string }[] = [],
     frequency = "",
   ): Promise<Report> {
-    const { finalScore, grade, aiScore, aiReason } =
+    const { finalScore, grade, aiReason } =
       await this.scoringService.calculateScore(
         type, description, frequency,
         (student as any).studentProfile?.schoolClass?.level ?? "",
         suspects,
       );
-
     const year = new Date().getFullYear();
     const lastReport = await this.reportsRepository
       .createQueryBuilder("report")
       .where("report.caseNumber LIKE :pattern", { pattern: `#${year}-%` })
       .orderBy("report.caseNumber", "DESC")
       .getOne();
-
     let nextNumber = 1;
     if (lastReport?.caseNumber) {
       nextNumber = parseInt(lastReport.caseNumber.split("-")[1]) + 1;
     }
     const caseNumber = `#${year}-${String(nextNumber).padStart(3, "0")}`;
-
     const report = this.reportsRepository.create({
       type, reporter, description, grade,
       aiScore: finalScore, aiReason,
@@ -61,14 +59,21 @@ export class ReportsService {
       status: ReportStatus.PENDING,
     });
     const savedReport = await this.reportsRepository.save(report);
-
+    this.logger.report({
+      type: "report_event",
+      action: "created",
+      reportId: savedReport.id,
+      caseNumber,
+      grade,
+      score: finalScore,
+      status: ReportStatus.PENDING,
+      userId: student.id,
+    });
     for (const suspect of suspects) {
       await this.suspectsRepository.save(
         this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
       );
     }
-
-    // Si reporter = victime, ajouter automatiquement le student comme première victime
     if (reporter === 'victime') {
       await this.victimsRepository.save(
         this.victimsRepository.create({
@@ -78,14 +83,11 @@ export class ReportsService {
         })
       );
     }
-
-    // Ajouter les autres victimes saisies
     for (const victim of victims) {
       await this.victimsRepository.save(
         this.victimsRepository.create({ report: savedReport, freeText: victim.freeText })
       );
     }
-
     return this.reportsRepository.findOne({
       where: { id: savedReport.id },
       relations: ["suspects", "suspects.resolvedUser", "victims", "victims.resolvedUser"],
@@ -157,7 +159,16 @@ export class ReportsService {
         );
       }
     }
-    return this.reportsRepository.save(report);
+    const saved = await this.reportsRepository.save(report);
+    this.logger.report({
+      type: "report_event",
+      action: "updated",
+      reportId: saved.id,
+      caseNumber: saved.caseNumber,
+      grade: saved.grade,
+      status: saved.status,
+    });
+    return saved;
   }
 
   async addNote(
@@ -170,42 +181,36 @@ export class ReportsService {
     const report = await this.findOne(reportId);
     const note = this.notesRepository.create({ report, content, type, author });
     const saved = await this.notesRepository.save(note);
+    this.logger.report({
+      type: "report_event",
+      action: type === "convocation" ? "convocation_sent" : "note_added",
+      reportId,
+      caseNumber: report.caseNumber,
+      userId: author?.id,
+    });
 
     if (type === "convocation") {
-      if (targetRole === "victime" || targetRole === "temoin") {
+      if (targetRole === "alerteur" || targetRole === "victime" || targetRole === "temoin") {
         if (report.student?.id) {
           await this.notificationsService.create(
             report.student.id, reportId, `Convocation : ${content}`,
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
-        const suspectIndex = parseInt(targetRole.split("_")[1]);
-        const suspect = report.suspects?.[suspectIndex];
+        const userId = targetRole.slice("suspect_".length);
+        const suspect = report.suspects?.find(s => s.resolvedUser?.id === userId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
           );
         }
       } else if (targetRole?.startsWith("victim_")) {
-        const victimIndex = parseInt(targetRole.split("_")[1]);
-        const victim = report.victims?.[victimIndex];
+        const userId = targetRole.slice("victim_".length);
+        const victim = report.victims?.find(v => v.resolvedUser?.id === userId);
         if (victim?.resolvedUser?.id) {
           await this.notificationsService.create(
             victim.resolvedUser.id, reportId, `Convocation : ${content}`,
           );
-        }
-      } else {
-        if (report.student?.id) {
-          await this.notificationsService.create(
-            report.student.id, reportId, `Convocation : ${content}`,
-          );
-        }
-        for (const suspect of report.suspects ?? []) {
-          if (suspect.resolvedUser?.id) {
-            await this.notificationsService.create(
-              suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
-            );
-          }
         }
       }
     }
