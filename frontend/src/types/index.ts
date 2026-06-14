@@ -53,7 +53,6 @@ export interface AdminUser {
   } | null;
 }
 
-/*Resultat de recherche utilisateur (autocomplete) */
 export interface UserSearchResult {
   id: string;
   firstName: string;

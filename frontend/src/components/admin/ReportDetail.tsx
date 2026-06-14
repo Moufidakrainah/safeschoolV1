@@ -1,4 +1,3 @@
-
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -65,8 +64,6 @@ export default function ReportDetail({
   const severity = severityFromApiGrade(selected.grade);
   const severityColor = SEVERITY_COLORS[severity];
 
-  // ── Victime principale ──
-  // Trier les victims : alerteur (resolvedUser.id === student.id) en premier
   const sortedVictims = selected.victims
     ? [...selected.victims].sort((a, b) => {
         if (a.resolvedUser?.id === selected.student?.id) return -1;
@@ -87,7 +84,6 @@ export default function ReportDetail({
     ? selected.student?.studentProfile?.schoolClass
     : selected.victims?.[0]?.resolvedUser?.studentProfile?.schoolClass;
 
-  // id de la victime principale (pour le système de résolution)
   const mainVictimId = selected.victims?.[0]?.id;
 
   return (
@@ -95,24 +91,24 @@ export default function ReportDetail({
 
       {/* ── Titre ── */}
       <h1 className="text-2xl font-black text-primary text-center mb-4">
-        Signalement {selected.caseNumber}
+        {t('admin.detail.title', { caseNumber: selected.caseNumber })}
       </h1>
 
       {/* ── Navigation ── */}
       <div className="flex justify-between items-center mb-4">
-        <Button variant="ghost" onClick={onBack}>← Revenir à tous les signalements</Button>
+        <Button variant="ghost" onClick={onBack}>← {t('admin.detail.back')}</Button>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={onPrev} disabled={idx === 0}>← {t('admin.prev')}</Button>
           <Button variant="ghost" onClick={onNext} disabled={idx === filtered.length - 1}>{t('admin.next')} →</Button>
         </div>
       </div>
 
-      {/* ── Statut + modifier ── */}
+      {/* ── Statut ── */}
       <div className="bg-surface shadow-sm flex items-center justify-between mb-3 px-5 py-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
         {isAdmin && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500 font-semibold">Statut :</span>
+            <span className="text-sm text-gray-500 font-semibold">{t('admin.detail.status')} :</span>
             <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
@@ -130,9 +126,8 @@ export default function ReportDetail({
       {/* ── Victime principale ── */}
       <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
-        <p className="text-sm font-semibold text-gray-700 mb-3">Victime</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.detail.victim')}</p>
         <div className="flex items-start gap-4">
-          {/* Avatar */}
           {mainVictim?.avatar
             ? <img src={`${AVATAR_BASE}/${mainVictim.avatar}`} alt="" className="w-14 h-14 rounded-full object-cover border-2 border-gray-200 flex-shrink-0" />
             : <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-base font-bold text-gray-500 flex-shrink-0">
@@ -141,21 +136,17 @@ export default function ReportDetail({
           }
 
           <div className="flex-1">
-            {/* Nom (texte libre ou nom résolu) */}
             <p className={`font-semibold text-gray-800 ${mainVictim?.id ? 'cursor-pointer hover:text-primary' : ''}`}
               onClick={() => mainVictim?.id && onNavigateToUser(mainVictim.id)}>
-              {mainVictimFreeText ?? (mainVictim ? `${mainVictim.firstName} ${mainVictim.lastName}` : 'Non identifié')}
+              {mainVictimFreeText ?? (mainVictim ? `${mainVictim.firstName} ${mainVictim.lastName}` : t('admin.detail.unidentified'))}
             </p>
 
-            {/* Classe de la victime */}
             {mainVictimClass && (
               <p className="text-xs text-primary">{mainVictimClass.level} {mainVictimClass.section}</p>
             )}
 
-            {/* Cas reporter = 'temoin' : affiche résolution comme les suspects */}
             {selected.reporter === 'temoin' && mainVictimId && (
               <div className="mt-1">
-                {/* Victime résolue → affiche nom + délier */}
                 {selected.victims?.[0]?.resolvedUser && (
                   <div className="flex items-center gap-1 text-xs text-green-600">
                     {selected.victims[0].resolvedUser.firstName} {selected.victims[0].resolvedUser.lastName}
@@ -168,30 +159,27 @@ export default function ReportDetail({
                       <button className="text-red-400 hover:underline ml-2"
                         onClick={() => onResolveVictim(mainVictimId, null)}
                         disabled={resolving}>
-                        ✕ Délier
+                        ✕ {t('admin.detail.unlink')}
                       </button>
                     )}
                   </div>
                 )}
 
-                {/* Victime non résolue → "Identité non liée" */}
                 {!selected.victims?.[0]?.resolvedUser && (
-                  <p className="text-xs text-gray-400 italic">Identité non liée</p>
+                  <p className="text-xs text-gray-400 italic">{t('admin.detail.unlinked')}</p>
                 )}
 
-                {/* Bouton Lier uniquement si pas encore liée */}
                 {isAdmin && !selected.victims?.[0]?.resolvedUser && (
                   <button className="text-xs text-blue-500 hover:underline mt-1"
                     onClick={() => { onSetActiveSuspect(activeSuspect === mainVictimId ? null : mainVictimId); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                    Lier
+                    {t('admin.detail.link')}
                   </button>
                 )}
 
-                {/* Formulaire de recherche */}
                 {isAdmin && activeSuspect === mainVictimId && (
                   <div className="mt-2 border rounded-lg p-2 bg-gray-50 w-full">
                     <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
-                      placeholder="Rechercher un élève..." autoFocus
+                      placeholder={t('admin.detail.searchStudent')} autoFocus
                       className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                     {suspectResults.map((u: AdminUser) => (
                       <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
@@ -206,7 +194,7 @@ export default function ReportDetail({
           </div>
         </div>
 
-        {/* ── Autres victimes (à partir de l'index 1) ── */}
+        {/* ── Autres victimes ── */}
         {sortedVictims && sortedVictims.length > 1 && (
           <div className="mt-3 flex flex-col gap-2">
             {sortedVictims.slice(1).map((v) => (
@@ -224,22 +212,22 @@ export default function ReportDetail({
                         {isAdmin && (
                           <button className="text-red-400 hover:underline ml-2"
                             onClick={() => onResolveVictim(v.id, null)} disabled={resolving}>
-                            ✕ Délier
+                            ✕ {t('admin.detail.unlink')}
                           </button>
                         )}
                       </div>
                     )}
-                    {!v.resolvedUser && <p className="text-xs text-gray-400 italic">Identité non liée</p>}
+                    {!v.resolvedUser && <p className="text-xs text-gray-400 italic">{t('admin.detail.unlinked')}</p>}
                     {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        🔗 Lier
+                        🔗 {t('admin.detail.link')}
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
                       <div className="mt-2 border rounded-lg p-2 bg-gray-50 w-full">
                         <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
-                          placeholder="Rechercher un élève..." autoFocus
+                          placeholder={t('admin.detail.searchStudent')} autoFocus
                           className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                         {suspectResults.map((u: AdminUser) => (
                           <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
@@ -260,16 +248,16 @@ export default function ReportDetail({
       {/* ── Signalement ── */}
       <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
-        <p className="text-sm font-semibold text-gray-700 mb-3">Signalement</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.detail.report')}</p>
         <div className="flex flex-wrap gap-4 text-sm mb-4">
-          <div><span className="text-muted-foreground font-semibold">Date : </span>{new Date(selected.createdAt).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
-          <div><span className="text-muted-foreground font-semibold">Type : </span><span className="capitalize">{selected.type}</span></div>
-          <div><span className="text-muted-foreground font-semibold">Score IA : </span>{selected.aiScore ? `${selected.aiScore}/100` : '-'}</div>
+          <div><span className="text-muted-foreground font-semibold">{t('admin.detail.date')} : </span>{new Date(selected.createdAt).toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+          <div><span className="text-muted-foreground font-semibold">{t('admin.detail.type')} : </span><span className="capitalize">{selected.type}</span></div>
+          <div><span className="text-muted-foreground font-semibold">{t('admin.detail.aiScore')} : </span>{selected.aiScore ? `${selected.aiScore}/100` : '-'}</div>
         </div>
         <p className="text-sm text-gray-700 leading-7 mb-4">{selected.description}</p>
         {selected.aiReason && (
           <div className="bg-gray-100 rounded-lg px-4 py-3 text-xs text-gray-500 italic">
-            Analyse IA : {selected.aiReason}
+            {t('admin.detail.aiAnalysis')} : {selected.aiReason}
           </div>
         )}
       </div>
@@ -277,12 +265,12 @@ export default function ReportDetail({
       {/* ── Suspects + Alerteur ── */}
       <div className="bg-surface shadow-sm px-6 py-4 mb-3"
         style={{ borderLeft: `5px solid ${severityColor}` }}>
-        <p className="text-sm font-semibold text-gray-700 mb-3">Personnes impliquées</p>
+        <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.detail.involved')}</p>
         <div className="grid grid-cols-2 gap-6">
 
           {/* Suspects */}
           <div>
-            <p className="text-xs text-muted-foreground font-semibold mb-3">Suspect(s)</p>
+            <p className="text-xs text-muted-foreground font-semibold mb-3">{t('admin.detail.suspects')}</p>
             {selected.suspects?.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {selected.suspects.map((s) => (
@@ -306,19 +294,19 @@ export default function ReportDetail({
                               {s.resolvedUser.studentProfile.schoolClass.level} {s.resolvedUser.studentProfile.schoolClass.section}
                             </span>
                           )}
-                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ Délier</button>}
+                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ {t('admin.detail.unlink')}</button>}
                         </div>
                       )}
                       {isAdmin && !s.resolvedUser && (
                         <button className="text-xs text-blue-500 hover:underline mt-1"
                           onClick={() => { onSetActiveSuspect(activeSuspect === s.id ? null : s.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                          Lier
+                          {t('admin.detail.link')}
                         </button>
                       )}
                       {isAdmin && activeSuspect === s.id && (
                         <div className="mt-2 border rounded-lg p-2 bg-gray-50">
                           <input type="text" value={suspectSearch} onChange={e => onSuspectSearch(e.target.value)}
-                            placeholder="Rechercher un élève..." autoFocus
+                            placeholder={t('admin.detail.searchStudent')} autoFocus
                             className="w-full px-3 py-1.5 border rounded text-xs focus:outline-none mb-1" />
                           {suspectResults.map((u: AdminUser) => (
                             <button key={u.id} className="w-full text-left px-2 py-1 text-xs hover:bg-gray-100 rounded"
@@ -337,9 +325,9 @@ export default function ReportDetail({
 
           {/* Alerteur */}
           <div>
-            <p className="text-xs text-muted-foreground font-semibold mb-3">Alerteur</p>
-            <div className={`flex items-center gap-3 ${selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
-              onClick={() => selected.student?.id && onNavigateToUser(selected.student.id)}>
+            <p className="text-xs text-muted-foreground font-semibold mb-3">{t('admin.detail.reporter')}</p>
+            <div className={`flex items-center gap-3 ${selected.isAnonymous ? 'opacity-50 pointer-events-none' : selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={() => !selected.isAnonymous && selected.student?.id && onNavigateToUser(selected.student.id)}>
               {selected.student?.avatar
                 ? <img src={`${AVATAR_BASE}/${selected.student.avatar}`} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" />
                 : <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
@@ -355,8 +343,12 @@ export default function ReportDetail({
                     {selected.student.studentProfile.schoolClass.level} {selected.student.studentProfile.schoolClass.section}
                   </p>
                 )}
-                <p className="text-xs text-gray-400 capitalize">{selected.reporter === 'victime' ? 'Victime' : 'Témoin'}</p>
-                {selected.isAnonymous && <p className="text-xs text-gray-400 italic">Signalement anonyme (identité visible admin)</p>}
+                <p className="text-xs text-gray-400 capitalize">
+                  {selected.reporter === 'victime' ? t('report.reporter.victime') : t('report.reporter.temoin')}
+                </p>
+                {selected.isAnonymous && (
+                  <p className="text-xs text-gray-400 italic">{t('admin.detail.anonymous')}</p>
+                )}
               </div>
             </div>
           </div>
@@ -374,9 +366,11 @@ export default function ReportDetail({
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
           <div className="flex flex-col gap-2">
-            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1500))} rows={3}
-              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1500} />
-            <p className="text-xs text-gray-400 text-right">{newNote.length}/1500 {newNote.length >= 1500 && <span className="text-red-500">Limite atteinte</span>}</p>
+            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1400))} rows={3}
+              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1400} />
+            <p className="text-xs text-gray-400 text-right">
+              {newNote.length}/1400 {newNote.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
+            </p>
             <Button onClick={() => onAddNote('note')}>{t('admin.notes.save')}</Button>
           </div>
         )}
@@ -387,7 +381,7 @@ export default function ReportDetail({
         <div className="bg-surface shadow-sm px-6 py-4 mb-3"
           style={{ borderLeft: `5px solid ${severityColor}` }}>
           <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.convocation.title')}</p>
-          <p className="text-xs text-gray-500 mb-3">Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.</p>
+          <p className="text-xs text-gray-500 mb-3">{t('admin.convocation.hint')}</p>
           <ConvocationSelector selected={selected} checkedIds={checkedConvocIds}
             onToggle={id => {
               onToggleConvoc(id);
@@ -399,30 +393,32 @@ export default function ReportDetail({
               {checkedConvocIds.map(personId => {
                 const details = convocDetails[personId] ?? { date: '', message: '' };
                 const label = personId === 'alerteur'
-                  ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
+                  ? `${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
                     <div className="mb-2">
-                      <Label className="text-xs text-gray-500 mb-1 block">Date et heure</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t('admin.convocation.dateTime')}</Label>
                       <Input type="datetime-local" value={details.date} className="max-w-[220px]"
                         min={new Date().toISOString().slice(0,16)}
                         onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], date: e.target.value } }))} />
                       {details.date && new Date(details.date) <= new Date() && (
-                        <p className="text-red-500 text-xs mt-1">La date doit être dans le futur</p>
+                        <p className="text-red-500 text-xs mt-1">{t('admin.convocation.dateError')}</p>
                       )}
                     </div>
-                    <Textarea rows={2} placeholder="Message de convocation..." value={details.message}
-                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1500) } }))}
-                      className="resize-y" maxLength={1500} />
-                    <p className="text-xs text-gray-400 text-right">{details.message.length}/1500 {details.message.length >= 1500 && <span className="text-red-500">Limite atteinte</span>}</p>
+                    <Textarea rows={2} placeholder={t('admin.convocation.messagePlaceholder')} value={details.message}
+                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1400) } }))}
+                      className="resize-y" maxLength={1400} />
+                    <p className="text-xs text-gray-400 text-right">
+                      {details.message.length}/1400 {details.message.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
+                    </p>
                   </div>
                 );
               })}
-              {convocSuccess && <p className="text-green-600 text-sm">Convocations envoyées avec succès !</p>}
+              {convocSuccess && <p className="text-green-600 text-sm">{t('admin.convocation.success')}</p>}
               <Button
                 disabled={sendingConvoc || checkedConvocIds.some(id => !convocDetails[id]?.date || !convocDetails[id]?.message || new Date(convocDetails[id].date) <= new Date())}
                 onClick={async () => {
@@ -435,8 +431,8 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? 'Victime'; })()
-                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? 'Suspect'; })();
+                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim'); })()
+                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects'); })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);
@@ -446,7 +442,7 @@ export default function ReportDetail({
                     setTimeout(() => onSetConvocSuccess(false), 3000);
                   } finally { onSetSendingConvoc(false); }
                 }}
-              >{sendingConvoc ? 'Envoi...' : `📤 Envoyer ${checkedConvocIds.length} convocation(s)`}</Button>
+              >{sendingConvoc ? t('admin.convocation.sending') : t('admin.convocation.send', { count: checkedConvocIds.length })}</Button>
             </div>
           )}
         </div>

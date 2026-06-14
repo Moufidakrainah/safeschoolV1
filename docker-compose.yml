@@ -55,21 +55,22 @@ services:
 
 
 # == Logs et monitoring ================================
+
+### === ELK ===
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     container_name: safeschool_elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ports:
-      - "9201:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
     networks:
       - safeschool_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -77,8 +78,8 @@ services:
   logstash:
     image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: safeschool_logstash
-    ports:
-      - "5044:5044"
+    environment:
+      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
     volumes:
       - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
@@ -100,6 +101,8 @@ services:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
     volumes:
       - kibanadata:/usr/share/kibana/data
     depends_on:
@@ -114,8 +117,23 @@ services:
       retries: 10
       start_period: 60s
 
+  elasticsearch-setup:
+    image: curlimages/curl:latest
+    container_name: safeschool_elk_setup
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
+    volumes:
+      - ./elk/setup:/setup
+    command: ["/bin/sh", "/setup/setup.sh"]
+    networks:
+      - safeschool_network
+    restart: "no"
 
-# == VOLUMES =================================================
 volumes:
   pgdata:
   esdata:

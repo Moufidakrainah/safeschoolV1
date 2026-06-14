@@ -9,27 +9,26 @@ import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, Pagi
 import { Input } from '@/components/ui/input';
 
 interface AdminUsersListProps {
-    filteredUsers: AdminUser[];        // la liste des utilisateurs
-    usersPage: number;                 // la page actuelle
-    usersSearch: string;               // le texte de recherche
-    usersSort: 'asc' | 'desc' | 'date'; // le tri actuel
-    usersRoleFilter: string[];         // les filtres actifs (student, teacher, admin)
-    loadingUsers: boolean;             // chargement en cours ?
-    avatarTimestamps: Record<string, number>; // pour rafraîchir les photos
-    usersTotalPages: number;              // nombre total de pages
-    showUserForm: boolean;                // afficher le formulaire d'ajout ?
-    isFormValid: boolean;                 // le formulaire est-il valide ?
-    // ── Fonctions du parent ──
-    onSetUsersSearch: (s: string) => void;                    // changer le texte de recherche
-    onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;    // changer le tri
-    onSetUsersRoleFilter: (f: string[]) => void;              // changer les filtres de rôle
-    onSetUsersPage: (p: number) => void;                      // changer la page
-    onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
-    onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
-    onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
+    filteredUsers: AdminUser[];
+    usersPage: number;
+    usersSearch: string;
+    usersSort: 'asc' | 'desc' | 'date';
+    usersRoleFilter: string[];
+    loadingUsers: boolean;
+    avatarTimestamps: Record<string, number>;
+    usersTotalPages: number;
+    showUserForm: boolean;
+    isFormValid: boolean;
+    onSetUsersSearch: (s: string) => void;
+    onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;
+    onSetUsersRoleFilter: (f: string[]) => void;
+    onSetUsersPage: (p: number) => void;
+    onFetchUsers: (page?: number, search?: string) => void;
+    onNavigateToUser: (u: AdminUser) => void;
+    onSetShowUserForm: (v: boolean) => void;
     onSaveUser: () => void;
-  onValidateAll: () => boolean;
-    renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
+    onValidateAll: () => boolean;
+    renderUserForm: (isEdit: boolean) => JSX.Element;
 }
 
 export default function AdminUserList({
@@ -59,17 +58,21 @@ export default function AdminUserList({
         <section>
             {/* 1. Barre de recherche */}
             <div className="flex gap-2 mb-3">
-                <Input type="search" placeholder="Rechercher par nom ou prénom..." value={usersSearch} maxLength={120}
+                <Input type="search" placeholder={t('admin.users.searchPlaceholder')} value={usersSearch} maxLength={120}
                     onChange={e => { onSetUsersSearch(e.target.value); onSetUsersPage(1); onFetchUsers(1, e.target.value); }}
                     className="flex-1" />
                 <Button variant="outline" onClick={() => { onSetUsersSearch(''); onSetUsersRoleFilter([]); onSetUsersPage(1); onFetchUsers(1, ''); }}>
-                    Réinitialiser
+                    {t('common.reset')}
                 </Button>
             </div>
             {/* 2. Filtres roles + tri + bouton ajouter */}
             <div className="flex gap-4 mb-4 flex-wrap justify-between items-center">
                 <div className="flex gap-10">
-                {([{ key: 'student', label: 'Élèves' }, { key: 'teacher', label: 'Profs' }, { key: 'admin', label: 'Admins' }]).map(r => (
+                {([
+                  { key: 'student', label: t('admin.users.roleStudent') },
+                  { key: 'teacher', label: t('admin.users.roleTeacher') },
+                  { key: 'admin',   label: t('admin.users.roleAdmin') },
+                ]).map(r => (
                     <label key={r.key} className="flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
                     <Checkbox
                         checked={usersRoleFilter.includes(r.key)}
@@ -90,7 +93,7 @@ export default function AdminUserList({
                     className="text-sm border rounded-lg px-3 py-1.5 text-gray-600 focus:outline-none focus:border-primary">
                     <option value="asc">A → Z</option>
                     <option value="desc">Z → A</option>
-                    <option value="date">Date création</option>
+                    <option value="date">{t('admin.users.sortDate')}</option>
                     </select>
                     <Button onClick={() => onSetShowUserForm(true)}>{t('admin.users.add')}</Button>
                 </div>
@@ -132,7 +135,7 @@ export default function AdminUserList({
                             <div className="flex-1 px-5 py-5" style={{ minHeight: '80px' }}>
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
-                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
+                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{t(`admin.users.roles.${u.role}`)}</span>
                                 </div>
                                 <p className="card-meta mt-0.5">{u.email}</p>
                                 {u.studentProfile?.schoolClass && (
@@ -162,7 +165,7 @@ export default function AdminUserList({
                     <PaginationContent>
                     <PaginationItem>
                         <PaginationPrevious
-                        onClick={() => { if (usersPage > 1) { onSetUsersPage(usersPage - 1); onFetchUsers(usersPage - 1); } }}
+                        text={t('common.previous')} onClick={() => { if (usersPage > 1) { onSetUsersPage(usersPage - 1); onFetchUsers(usersPage - 1); } }}
                         className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                     </PaginationItem>
                     {Array.from({ length: Math.ceil(filteredUsers.length / 7) }, (_, i) => i + 1).map(p => (
@@ -175,7 +178,7 @@ export default function AdminUserList({
                     ))}
                     <PaginationItem>
                         <PaginationNext
-                        onClick={() => { if (usersPage < usersTotalPages) { onSetUsersPage(usersPage + 1); onFetchUsers(usersPage + 1); } }}
+                        text={t('common.next')} onClick={() => { if (usersPage < usersTotalPages) { onSetUsersPage(usersPage + 1); onFetchUsers(usersPage + 1); } }}
                         className={usersPage === Math.ceil(filteredUsers.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                     </PaginationItem>
                     </PaginationContent>

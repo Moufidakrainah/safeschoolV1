@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
   Tooltip, Legend, LineChart, Line, CartesianGrid, ResponsiveContainer
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 interface Props { reports: Report[] }
 
 export default function StatsDashboard({ reports }: Props) {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState('all');
   const [filterClass, setFilterClass] = useState('all');
   const [filterGrade, setFilterGrade] = useState('all');
@@ -88,10 +90,10 @@ export default function StatsDashboard({ reports }: Props) {
   // ── Données graphique par statut ──
   const statusData = useMemo(() => {
     const statuses = [
-      { name: 'Nouveau',    key: 'new',          color: '#6366f1' },
+      { name: t('stats.statusNew'),    key: 'new',          color: '#6366f1' },
       { name: 'En attente', key: 'pending',      color: '#eab308' },
-      { name: 'En cours',   key: 'in_progress',  color: '#0f3460' },
-      { name: 'Clôturé',    key: 'resolved',     color: '#22c55e' },
+      { name: t('stats.statusInProgress'),   key: 'in_progress',  color: '#0f3460' },
+      { name: t('stats.statusResolved'),    key: 'resolved',     color: '#22c55e' },
       { name: 'Rejeté',     key: 'false_report', color: SEVERITY_COLORS.critical },
     ];
     return statuses
@@ -120,8 +122,8 @@ export default function StatsDashboard({ reports }: Props) {
 
   // ── Labels affichés dans les filtres ──
   const periodLabel: Record<string, string> = {
-    all: 'Toute la période', '7': '7 derniers jours',
-    '30': '30 derniers jours', '90': '3 derniers mois', '365': '1 an',
+    all: t('stats.allPeriod'), '7': t('stats.last7'),
+    '30': t('stats.last30'), '90': t('stats.last90'), '365': t('stats.last365'),
   };
 
   return (
@@ -136,10 +138,10 @@ export default function StatsDashboard({ reports }: Props) {
             <SelectValue>{periodLabel[period]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toute la période</SelectItem>
-            <SelectItem value="7">7 derniers jours</SelectItem>
-            <SelectItem value="30">30 derniers jours</SelectItem>
-            <SelectItem value="90">3 derniers mois</SelectItem>
+            <SelectItem value="all">{t('stats.allPeriod')}</SelectItem>
+            <SelectItem value="7">{t('stats.last7')}</SelectItem>
+            <SelectItem value="30">{t('stats.last30')}</SelectItem>
+            <SelectItem value="90">{t('stats.last90')}</SelectItem>
             <SelectItem value="365">1 an</SelectItem>
           </SelectContent>
         </Select>
@@ -147,10 +149,10 @@ export default function StatsDashboard({ reports }: Props) {
         {/* Filtre classe (classe de la victime) */}
         <Select value={filterClass} onValueChange={setFilterClass}>
           <SelectTrigger className="w-48 bg-white">
-            <SelectValue>{filterClass === 'all' ? 'Toutes les classes' : filterClass}</SelectValue>
+            <SelectValue>{filterClass === 'all' ? t('stats.allClasses') : filterClass}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes les classes</SelectItem>
+            <SelectItem value="all">{t('stats.allClasses')}</SelectItem>
             {allClasses.map(c => <SelectItem key={c} value={c!}>{c}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -158,10 +160,10 @@ export default function StatsDashboard({ reports }: Props) {
         {/* Filtre grade */}
         <Select value={filterGrade} onValueChange={setFilterGrade}>
           <SelectTrigger className="w-48 bg-white">
-            <SelectValue>{filterGrade === 'all' ? 'Tous les grades' : API_GRADE_BADGE_LABELS[filterGrade]}</SelectValue>
+            <SelectValue>{filterGrade === 'all' ? t('stats.allGrades') : API_GRADE_BADGE_LABELS[filterGrade]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les grades</SelectItem>
+            <SelectItem value="all">{t('stats.allGrades')}</SelectItem>
             {API_REPORT_GRADES.map(grade => (
               <SelectItem key={grade} value={grade}>{API_GRADE_BADGE_LABELS[grade]}</SelectItem>
             ))}
@@ -170,14 +172,14 @@ export default function StatsDashboard({ reports }: Props) {
 
         {/* Compteur */}
         <div className="text-sm px-3 py-2 ml-auto">
-          {filtered.length} signalement{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
+          {t('stats.reportsFound', { count: filtered.length })}
         </div>
       </div>
 
       {/* ── Ligne 1 : Grade + Statut ── */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Répartition par grade</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byGrade')}</h3>
           {gradeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -193,7 +195,7 @@ export default function StatsDashboard({ reports }: Props) {
         </div>
 
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Répartition par statut</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byStatus')}</h3>
           {statusData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -211,7 +213,7 @@ export default function StatsDashboard({ reports }: Props) {
 
       {/* ── Ligne 2 : Signalements par classe de la victime ── */}
       <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par classe (victime)</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byClass')}</h3>
         {classData.length === 0
           ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
           : (
@@ -233,7 +235,7 @@ export default function StatsDashboard({ reports }: Props) {
       {/* ── Ligne 3 : Type + Évolution ── */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Signalements par type</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byType')}</h3>
           {typeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">Aucune donnée</p>
             : (
@@ -250,7 +252,7 @@ export default function StatsDashboard({ reports }: Props) {
         </div>
 
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Évolution (7 derniers jours)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.evolution')}</h3>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={last7Days}>
               <CartesianGrid strokeDasharray="3 3" />

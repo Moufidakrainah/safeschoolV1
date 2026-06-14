@@ -103,7 +103,7 @@ up-be: check-env ## Démarrer backend et database seulement
 	$(MAKE) seed-if-empty
 
 up-elk: check-env ## Démarrer la stack ELK
-	$(COMPOSE) up -d elasticsearch logstash kibana
+	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup
 
 down-elk: ## Arrêter la stack ELK
 	$(COMPOSE) down elasticsearch logstash kibana
@@ -126,6 +126,8 @@ logs-db: ## Suivre les logs de la base de données
 logs-elk: ## Suivre les logs de la stack ELK
 	$(COMPOSE) logs -f elasticsearch logstash kibana
 
+logs-setup: ## Afficher les logs du script de setup ELK
+	$(COMPOSE) logs elasticsearch-setup
 
 #  === BASE DE DONNÉES ===
 
@@ -182,9 +184,11 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
+.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
 
 # === TESTS CURL ===
+# Ces tests ciblent http://localhost:5000 (port backend direct).
+# Ils fonctionnent uniquement en mode dev (make dev), pas en prod (make all / nginx sur 8443).
 
 test-login-invalid-email: ## Tester login avec email mal formé (attendu: 400)
 	@curl -s -X POST http://localhost:5000/auth/login \

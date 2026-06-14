@@ -37,7 +37,8 @@
       "ariaLabel": "Hauptnavigation",
       "reports": "Meldungen",
       "users": "Benutzer",
-      "stats": "Statistiken"
+      "stats": "Statistiken",
+      "classes": "Klassen"
     },
     "topbar": {
       "role": "{{role}}-Bereich"
@@ -82,7 +83,8 @@
       "class": "Klasse",
       "aiScore": "KI-Score",
       "aiReason": "KI-Analyse",
-      "anonymous": "Anonym",
+      "aiAnalysis": "KI-Analyse",
+      "anonymous": "Anonyme Meldung (Identität für Admin sichtbar)",
       "yes": "Ja",
       "no": "Nein",
       "people": "Beteiligte Personen",
@@ -93,12 +95,22 @@
       "noSuspect": "Kein Verdächtiger angegeben",
       "suspectsCount": "Verdächtige(r)",
       "type": "Typ",
-      "reporter": "Gemeldet als",
+      "reporter": "Melder",
+      "involved": "Beteiligte Personen",
+      "report": "Meldung",
+      "status": "Status",
       "victims": "Opfer",
       "noVictim": "Kein Opfer angegeben",
       "victimLinked": "Verknüpft mit",
       "reporterVictime": "Opfer",
-      "reporterTemoin": "Zeuge"
+      "reporterTemoin": "Zeuge",
+      "unidentified": "Nicht identifiziert",
+      "unlinked": "Identität nicht verknüpft",
+      "unlink": "Verknüpfung lösen",
+      "link": "Verknüpfen",
+      "searchStudent": "Schüler suchen...",
+      "title": "Meldung {{caseNumber}}",
+      "back": "Zurück zu allen Meldungen"
     },
     "actions": {
       "groupLabel": "Aktionen zur Meldung",
@@ -116,8 +128,20 @@
     "convocation": {
       "title": "Beteiligte Personen vorladen",
       "dateLabel": "Datum und Uhrzeit",
+      "dateTime": "Datum und Uhrzeit",
       "placeholder": "Vorladungsnachricht...",
-      "send": "Vorladung senden"
+      "messagePlaceholder": "Vorladungsnachricht...",
+      "send": "📤 {{count}} Einladung(en) senden",
+      "sending": "Senden...",
+      "success": "Einladungen erfolgreich gesendet!",
+      "hint": "Wählen Sie die einzuladenden Personen aus und legen Sie Datum und Nachricht fest.",
+      "dateError": "Das Datum muss in der Zukunft liegen",
+      "selectRecipients": "Empfänger auswählen:",
+      "victimReporter": "Opfer / Melder",
+      "suspect": "Verdächtiger",
+      "victim": "Opfer",
+      "noRecipient": "Niemand zu laden — verknüpfen Sie zuerst Verdächtige/Opfer mit einem Schüler.",
+      "reporter": "Melder"
     },
     "users": {
       "title": "Benutzerverwaltung",
@@ -133,6 +157,11 @@
       "edit": "Bearbeiten",
       "delete": "Löschen",
       "selectClass": "Klasse auswählen",
+      "searchPlaceholder": "Nach Vor- oder Nachname suchen...",
+      "roleStudent": "Schüler",
+      "roleTeacher": "Lehrer",
+      "roleAdmin": "Admins",
+      "sortDate": "Erstellungsdatum",
       "roles": {
         "label": "Rolle",
         "student": "Schüler",
@@ -157,7 +186,16 @@
       "atLeastOneMajor": "At least one uppercase letter required",
       "atLeastOneSpecial": "At least one special character required",
       "noFirstName": "Password must not contain first name",
-      "noLastName": "Password must not contain last name"
+      "noLastName": "Password must not contain last name",
+      "class": "Klasse",
+      "dateOfBirth": "Geburtsdatum",
+      "ageMin": "Der Schüler muss mindestens 9 Jahre alt sein",
+      "ageMax": "Der Schüler kann nicht älter als 16 Jahre sein",
+      "classesTeacher": "Unterrichtete Klassen",
+      "noClass": "Keine Klasse verfügbar",
+      "charsCount": "{{count}}/50 Zeichen",
+      "maxChars": "Maximum 50 Zeichen erreicht",
+      "confirmStatus": "Statusänderung zu {{label}} bestätigen?"
     },
     "title": {
       "oneReport": "Einzelheiten eines Berichts",
@@ -183,8 +221,10 @@
     "all": "Alle Status"
   },
   "noteblock": {
-    "note": " Notiz",
-    "convocation": " Vorladung"
+    "note": "Notiz",
+    "convocation": " Vorladung",
+    "statusChange": "Status aktualisiert",
+    "by": "von"
   },
   "pagination": {
     "nav": "Seitennavigation",
@@ -202,7 +242,18 @@
     "next": "Weiter",
     "error": "Ein Fehler ist aufgetreten",
     "close": "Schließen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "reset": "Zurücksetzen",
+    "limitReached": "Limit erreicht",
+    "optional": "optional",
+    "confirm": "Bestätigen",
+    "inProgress": "In Bearbeitung..."
+  },
+  "report": {
+    "reporter": {
+      "victime": "Opfer",
+      "temoin": "Zeuge"
+    }
   },
   "quiz": {
     "title": "Quiz",
@@ -299,7 +350,11 @@
       "subjectUnknown": "Unbekannt",
       "job": "Beruf",
       "change": "Foto ändern",
-      "upload": "Hochladen"
+      "upload": "Hochladen",
+      "loading": "Laden...",
+      "noProfile": "Kein Berufsprofil registriert",
+      "classes": "Klassen",
+      "occupation": "Beruf"
     },
     "roles": {
       "teacher": "Lehrer",
@@ -355,7 +410,12 @@
       "sexual": "Sexuell",
       "sexualSub": "Gesten, Bemerkungen",
       "other": "Sonstiges",
-      "otherSub": "Unten beschreiben"
+      "otherSub": "Unten beschreiben",
+      "iAmTheVictim": "Ich bin ein Opfer",
+      "iAmTheWitness": "Ich bin ein Zeuge",
+      "iWasHarassed": "Ich wurde gemobbt",
+      "iSawHarassed": "Ich habe jemanden beim Mobbing gesehen",
+      "chooseOne": "Bitte wähle deine Situation"
     },
     "step3": {
       "title": "Fakten beschreiben",
@@ -379,7 +439,14 @@
       "addFreeText": "Hinzufügen",
       "suspectsAdded": "Hinzugefügte Verdächtige",
       "removeSuspect": "Entfernen",
-      "noSuspect": "Kein Verdächtiger hinzugefügt — Sie können diesen Schritt überspringen"
+      "noSuspect": "Kein Verdächtiger hinzugefügt — Sie können diesen Schritt überspringen",
+      "peoplePlaceholder": "Z.B. Vorname + Nachname",
+      "add+Victim": "Drücke `Enter` oder klicke auf `Opfer hinzufügen`",
+      "add+Suspect": "Drücke `Enter` oder klicke auf `Täter hinzufügen`",
+      "addVictim": "Opfer hinzufügen",
+      "addSuspect": "Täter hinzufügen",
+      "maxVictims": "Maximal 5 Opfer erreicht",
+      "maxSuspects": "Maximal 5 Verdächtige erreicht"
     },
     "step5": {
       "title": "Beweise",
@@ -393,19 +460,20 @@
       "type": "Art",
       "description": "Beschreibung",
       "frequency": "Häufigkeit",
-      "victim": "Opfer",
+      "victim": "Ich bin ein Opfer",
       "suspects": "Verdächtige",
-      "anonymous": "Anonyme Meldung",
+      "anonymous": "Klicke hier, wenn du zu dieser Meldung nicht kontaktiert werden möchtest",
       "anonymousDesc": "mein Name wird nicht sichtbar sein",
-      "victims": "Opfer"
+      "victims": "Opfer",
+      "suspect": "Ich bin ein Zeuge"
     },
     "submitting": "Wird gesendet...",
     "submit": "Meldung absenden",
     "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen.",
     "validation": {
       "typeRequired": "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
-      "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
-      "frequencyRequired": "Bitte die Häufigkeit angeben, um fortzufahren."
+      "descriptionRequired": "Beschreibung muss mindestens 20 Zeichen enthalten",
+      "frequencyRequired": "Häufigkeit ist erforderlich"
     },
     "title": {
       "myProfile": "Mein Profil",
@@ -451,7 +519,8 @@
     "loading": "Laden",
     "no": "Keine Benachrichtigungen",
     "report": "Meldung",
-    "read": "Gelesen"
+    "read": "Gelesen",
+    "statusUpdate": "Status Ihrer Akte {{caseNumber}} aktualisiert: {{status}}"
   },
   "student": {
     "profile": {
@@ -468,9 +537,128 @@
     "nav": {
       "profile": "Mein Profil",
       "quiz": "Quiz",
-      "report": "Meldung erstellen"
+      "report": "Meldung erstellen",
+      "cases": "Meine Fälle"
+    },
+    "cases": {
+      "summoned": "Du wirst vorgeladen am ",
+      "iAmVictim": "Ich bin ein Opfer",
+      "noUpdate": "Keine Aktualisierungen für diesen Fall",
+      "loading": "Laden...",
+      "noReport": "Keine Meldungen gefunden",
+      "meeting": "Ein Treffen fand statt am ",
+      "statusUpdate": "Status aktualisiert: {{status}} — {{date}}"
+    },
+    "validation": {
+      "descriptionRequired": "Beschreibung muss mindestens 20 Zeichen enthalten",
+      "frequencyRequired": "Häufigkeit ist erforderlich"
     }
   },
   "all": "Alle",
-  "section": "Abschnitt"
+  "section": "Abschnitt",
+  "stats": {
+    "allPeriod": "Gesamter Zeitraum",
+    "last7": "Letzte 7 Tage",
+    "last30": "Letzte 30 Tage",
+    "last90": "Letzte 3 Monate",
+    "last365": "1 Jahr",
+    "allClasses": "Alle Klassen",
+    "allGrades": "Alle Schweregrade",
+    "reportsFound": "{{count}} Meldung(en) gefunden",
+    "byGrade": "Nach Schweregrad",
+    "byStatus": "Nach Status",
+    "byClass": "Meldungen nach Klasse (Opfer)",
+    "byType": "Meldungen nach Typ",
+    "evolution": "Entwicklung (letzte 7 Tage)",
+    "statusNew": "Neu",
+    "statusInProgress": "In Bearbeitung",
+    "statusResolved": "Geschlossen",
+    "statusPending": "Ausstehend",
+    "statusFalseReport": "Falscher Bericht"
+  },
+  "classes": {
+    "loading": "Laden...",
+    "backToClasses": "← Zurück zu den Klassen",
+    "studentsEnrolled": "Eingeschriebene Schüler",
+    "noStudentInClass": "Keine Schüler in dieser Klasse.",
+    "assignStudents": "Schüler im Benutzerbereich zuweisen.",
+    "addClass": "+ Klasse hinzufügen",
+    "editClass": "Klasse bearbeiten",
+    "addClassTitle": "Klasse hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "noClass": "Keine Klassen",
+    "close": "Schließen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "student": "Schüler",
+    "students": "Schüler",
+    "deleteBlocked": "{{level}} {{section}} kann nicht gelöscht werden: {{count}} Schüler eingeschrieben.",
+    "deleteConfirm": "Möchten Sie die Klasse {{level}} {{section}} wirklich löschen?",
+    "level": "Stufe",
+    "section": "Abschnitt",
+    "levelRequired": "Stufe ist erforderlich",
+    "levelInvalid": "Stufe muss 3eme, 4eme, 5eme oder 6eme sein",
+    "sectionRequired": "Abschnitt ist erforderlich",
+    "sectionInvalid": "Abschnitt muss ein einzelner Großbuchstabe sein (A, B, C...)",
+    "alreadyExists": "Diese Klasse existiert bereits"
+  },
+  "userProfile": {
+    "backToReport": "Zurück zur Meldung",
+    "backToList": "Zurück zur Liste",
+    "prev": "← Vorherige",
+    "next": "Nächste →",
+    "changePhoto": "Foto ändern",
+    "uploading": "Hochladen...",
+    "class": "Klasse",
+    "dob": "Geburtsdatum",
+    "age": "Jahre",
+    "profession": "Beruf",
+    "subject": "Fach",
+    "classes": "Klassen",
+    "guardians": "Erziehungsberechtigte",
+    "addGuardian": "+ Hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "editGuardian": "Bearbeiten",
+    "deleteGuardian": "Löschen",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "address": "Adresse",
+    "confirmTitle": "Änderungen bestätigen",
+    "confirmBtn": "Bestätigen",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "role": "Rolle",
+    "password": "Passwort",
+    "passwordChanged": "geändert"
+  },
+  "validation": {
+    "descRequired": "Beschreibung ist erforderlich",
+    "descMin": "Beschreibung muss mindestens 20 Zeichen enthalten",
+    "descMax": "Beschreibung darf 2000 Zeichen nicht überschreiten",
+    "descInvalid": "Beschreibung scheint ungültig (wiederholende Zeichen erkannt)",
+    "nameRequired": "Name ist erforderlich",
+    "nameMin": "Name muss mindestens 2 Zeichen enthalten",
+    "nameMax": "Name darf 50 Zeichen nicht überschreiten",
+    "nameInvalid": "Name enthält ungültige oder wiederholende Zeichen",
+    "freqRequired": "Häufigkeit ist erforderlich",
+    "emailRequired": "E-Mail erforderlich",
+    "emailTooLong": "E-Mail zu lang (max. 50 Zeichen)",
+    "emailInvalid": "Ungültiges E-Mail-Format",
+    "passwordRequired": "Passwort erforderlich",
+    "passwordMin": "Passwort zu kurz",
+    "emailExists": "Diese E-Mail-Adresse wird bereits verwendet"
+  },
+  "toast": {
+    "avatarUpdated": "Foto erfolgreich aktualisiert",
+    "avatarError": "Fehler beim Aktualisieren des Fotos",
+    "parentAdded": "Erziehungsberechtigter erfolgreich hinzugefügt",
+    "parentUpdated": "Erziehungsberechtigter erfolgreich geändert",
+    "parentDeleted": "Erziehungsberechtigter erfolgreich gelöscht",
+    "parentError": "Ein Fehler ist aufgetreten",
+    "classCreated": "Klasse erfolgreich erstellt",
+    "classUpdated": "Klasse erfolgreich geändert",
+    "classDeleted": "Klasse erfolgreich gelöscht"
+  }
 }
