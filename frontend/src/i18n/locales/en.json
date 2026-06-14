@@ -221,8 +221,10 @@
     "all": "All statuses"
   },
   "noteblock": {
-    "note": " Note",
-    "convocation": " Summons"
+    "note": "Note",
+    "convocation": " Summons",
+    "statusChange": "Status updated",
+    "by": "by"
   },
   "pagination": {
     "nav": "Pagination",

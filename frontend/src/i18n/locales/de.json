@@ -221,8 +221,10 @@
     "all": "Alle Status"
   },
   "noteblock": {
-    "note": " Notiz",
-    "convocation": " Vorladung"
+    "note": "Notiz",
+    "convocation": " Vorladung",
+    "statusChange": "Status aktualisiert",
+    "by": "von"
   },
   "pagination": {
     "nav": "Seitennavigation",

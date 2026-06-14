@@ -230,7 +230,9 @@
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Convocation"
+    "convocation": " Convocation",
+    "statusChange": "Statut mis à jour",
+    "by": "par"
   },
   "pagination": {
     "nav": "Pagination",

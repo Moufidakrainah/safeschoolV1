@@ -61,9 +61,6 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
 
   return (
     <div className="flex flex-col gap-3 mb-5">
-      <p className="text-xs font-semibold text-gray-500 mb-1">
-        {t('admin.convocation.selectRecipients')}
-      </p>
       {people.map(p => (
         <div key={p.id} className="flex items-center gap-2">
           <Checkbox
