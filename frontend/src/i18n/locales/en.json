@@ -131,7 +131,7 @@
       "dateTime": "Date and time",
       "placeholder": "Summons message...",
       "messagePlaceholder": "Summons message...",
-      "send": "📤 Send {{count}} summons",
+      "send": "Send {{count}} summons",
       "sending": "Sending...",
       "success": "Summons sent successfully!",
       "hint": "Select the people to summon and set a date and message for each.",
