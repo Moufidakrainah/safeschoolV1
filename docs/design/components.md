@@ -41,7 +41,6 @@ The practical rule is simple: if a component could be reused in another product 
 | NoteBlock | `NoteBlock.tsx` | Administrative note or convocation block with author name and timestamp |
 | StepBar | `StepBar.tsx` | Multi-step progress bar for the report submission flow |
 | Pagination | `Pagination.tsx` | Page navigation controls for paginated lists (reports, users) |
-| Autocomplete | `Autocomplete.tsx` | Text input with a live user suggestion dropdown, used for linking suspects and victims to existing accounts |
 
 ---
 
