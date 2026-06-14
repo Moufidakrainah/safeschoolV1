@@ -142,11 +142,17 @@
       "dateTime": "Date et heure",
       "placeholder": "Message de convocation...",
       "messagePlaceholder": "Message de convocation...",
-      "send": "Envoyer {{count}} convocation(s)",
+      "send": "📤 Envoyer {{count}} convocation(s)",
       "sending": "Envoi...",
       "success": "Convocations envoyées avec succès !",
       "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",
-      "dateError": "La date doit être dans le futur"
+      "dateError": "La date doit être dans le futur",
+      "selectRecipients": "Sélectionner les destinataires :",
+      "victimReporter": "Victime / Alerteur",
+      "suspect": "Suspect",
+      "victim": "Victime",
+      "noRecipient": "Aucune personne à convoquer — liez d'abord les suspects/victimes à un élève.",
+      "reporter": "Alerteur"
     },
     "users": {
       "title": "Gestion des utilisateurs",
@@ -191,7 +197,16 @@
       "atLeastOneMajor": "Au moins une majuscule requise",
       "atLeastOneSpecial": "Au moins un caractère spécial requis",
       "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
-      "noLastName": "Le mot de passe ne doit pas contenir le nom"
+      "noLastName": "Le mot de passe ne doit pas contenir le nom",
+      "class": "Classe",
+      "dateOfBirth": "Date de naissance",
+      "ageMin": "L'élève doit avoir au moins 9 ans",
+      "ageMax": "L'élève ne peut pas avoir plus de 16 ans",
+      "classesTeacher": "Classes où il intervient",
+      "noClass": "Aucune classe disponible",
+      "charsCount": "{{count}}/50 caractères",
+      "maxChars": "Maximum 50 caractères atteint",
+      "confirmStatus": "Confirmer le changement de statut vers {{label}} ?"
     },
     "title": {
       "oneReport": "Details d'un signalement",
@@ -215,7 +230,9 @@
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Convocation"
+    "convocation": " Convocation",
+    "statusChange": "Statut mis à jour",
+    "by": "par"
   },
   "pagination": {
     "nav": "Pagination",
@@ -236,7 +253,9 @@
     "back": "Retour",
     "reset": "Réinitialiser",
     "limitReached": "Limite atteinte",
-    "optional": "optionnel"
+    "optional": "optionnel",
+    "confirm": "Confirmer",
+    "inProgress": "En cours..."
   },
   "report": {
     "reporter": {
@@ -391,9 +410,9 @@
       "descriptionPlaceholder": "Donne un maximum de détails",
       "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
-      "freq1": "1 fois",
-      "freq2": "2 fois",
-      "freq3": "3 fois et plus",
+      "freq1": "Une fois",
+      "freq2": "Deux fois",
+      "freq3": "Trois fois et plus",
       "freq4": "Tous les jours"
     },
     "step4": {
@@ -682,7 +701,8 @@
     "emailTooLong": "Email trop long (50 caractères max)",
     "emailInvalid": "Format d'email invalide",
     "passwordRequired": "Mot de passe obligatoire",
-    "passwordMin": "Mot de passe trop court"
+    "passwordMin": "Mot de passe trop court",
+    "emailExists": "Cette adresse email est déjà utilisée"
   },
   "toast": {
     "avatarUpdated": "Photo mise à jour avec succès",

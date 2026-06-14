@@ -135,7 +135,7 @@ export default function AdminUserList({
                             <div className="flex-1 px-5 py-5" style={{ minHeight: '80px' }}>
                                 <div className="flex items-center gap-2">
                                 <span className="card-title">{first} {last}</span>
-                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{u.role}</span>
+                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-500">{t(`admin.users.roles.${u.role}`)}</span>
                                 </div>
                                 <p className="card-meta mt-0.5">{u.email}</p>
                                 {u.studentProfile?.schoolClass && (
@@ -165,7 +165,7 @@ export default function AdminUserList({
                     <PaginationContent>
                     <PaginationItem>
                         <PaginationPrevious
-                        onClick={() => { if (usersPage > 1) { onSetUsersPage(usersPage - 1); onFetchUsers(usersPage - 1); } }}
+                        text={t('common.previous')} onClick={() => { if (usersPage > 1) { onSetUsersPage(usersPage - 1); onFetchUsers(usersPage - 1); } }}
                         className={usersPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                     </PaginationItem>
                     {Array.from({ length: Math.ceil(filteredUsers.length / 7) }, (_, i) => i + 1).map(p => (
@@ -178,7 +178,7 @@ export default function AdminUserList({
                     ))}
                     <PaginationItem>
                         <PaginationNext
-                        onClick={() => { if (usersPage < usersTotalPages) { onSetUsersPage(usersPage + 1); onFetchUsers(usersPage + 1); } }}
+                        text={t('common.next')} onClick={() => { if (usersPage < usersTotalPages) { onSetUsersPage(usersPage + 1); onFetchUsers(usersPage + 1); } }}
                         className={usersPage === Math.ceil(filteredUsers.length / 7) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                     </PaginationItem>
                     </PaginationContent>
