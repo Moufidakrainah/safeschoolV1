@@ -56,7 +56,7 @@ export class ReportsService {
       type, reporter, description, grade,
       aiScore: finalScore, aiReason,
       caseNumber, isAnonymous, student,
-      status: ReportStatus.PENDING,
+      status: ReportStatus.NEW,
     });
     const savedReport = await this.reportsRepository.save(report);
     this.logger.report({
@@ -129,6 +129,7 @@ export class ReportsService {
   async update(
     id: string,
     updates: { status?: ReportStatus; grade?: ReportGrade },
+    author?: any,
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade) report.grade = updates.grade;
@@ -136,21 +137,24 @@ export class ReportsService {
       report.status = updates.status;
       const date = new Date().toLocaleDateString('fr-FR');
       const statusLabels: Record<string, string> = {
-        pending: 'En attente',
-        in_progress: 'En cours',
-        resolved: 'Résolu',
-        closed: 'Clôturé',
-        rejected: 'Rejeté',
+        new:          'Nouveau',
+        pending:      'En attente',
+        in_progress:  'En cours',
+        resolved:     'Résolu',
+        false_report: 'Faux signalement',
+        closed:       'Clôturé',
+        rejected:     'Rejeté',
       };
       const label = statusLabels[updates.status] ?? updates.status;
+      // ── Créer la note avec l'auteur ──
       await this.notesRepository.save(
         this.notesRepository.create({
           report,
           content: `Statut mis à jour : ${label} — ${date}`,
           type: 'status_change',
+          author,
         })
       );
-      // Notifier l'élève uniquement si l'élève est victime
       if (report.student?.id && report.reporter === 'victime') {
         await this.notificationsService.create(
           report.student.id,

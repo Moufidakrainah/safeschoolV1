@@ -1,19 +1,17 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useReportForm } from "@/hooks/useReportForm";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
+	Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import StepBar from "@/components/StepBar";
 import type { AuthUser } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
+
+const MAX_VICTIMS  = 5;
+const MAX_SUSPECTS = 5;
 
 interface ReporterFormProps {
 	user: AuthUser | null;
@@ -32,17 +30,14 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 		loading, submitError,
 		showErrors, setShowErrors,
 		isNextDisabled,
-		suspects,
-		suspectInput, setSuspectInput,
-		victimName,
-		victimInput, setVictimInput,
-		setVictimName,
-		handleSubmit,
-		addSuspect, removeSuspect, resetForm,
-		descriptionError, setDescriptionError,
-		victimError, setVictimError,
-		suspectError,
-		validateDescription, validatePersonName,
+		suspects, suspectInput, setSuspectInput,
+		victimName, victimInput, setVictimInput, setVictimName,
+		handleSubmit, addSuspect, removeSuspect, resetForm,
+		descriptionErrorKey, setDescriptionErrorKey,
+		frequencyErrorKey,
+		victimErrorKey, setVictimErrorKey,
+		suspectErrorKey, setSuspectErrorKey,
+		validateDescriptionKey, validateNameKey,
 	} = useReportForm(user?.role, t);
 
 	const steps = [
@@ -54,19 +49,40 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 	];
 
 	const typeOptions = [
-		{ label: t("reporter.step2.physical"), value: "physique", sub: t("reporter.step2.physicalSub") },
-		{ label: t("reporter.step2.verbal"), value: "verbal", sub: t("reporter.step2.verbalSub") },
-		{ label: t("reporter.step2.cyber"), value: "cyber", sub: t("reporter.step2.cyberSub") },
-		{ label: t("reporter.step2.exclusion"), value: "exclusion", sub: t("reporter.step2.exclusionSub") },
-		{ label: t("reporter.step2.sexual"), value: "sexuel", sub: t("reporter.step2.sexualSub") },
+		{ label: t("reporter.step2.physical"),   value: "physique",  sub: t("reporter.step2.physicalSub") },
+		{ label: t("reporter.step2.verbal"),     value: "verbal",    sub: t("reporter.step2.verbalSub") },
+		{ label: t("reporter.step2.cyber"),      value: "cyber",     sub: t("reporter.step2.cyberSub") },
+		{ label: t("reporter.step2.exclusion"),  value: "exclusion", sub: t("reporter.step2.exclusionSub") },
+		{ label: t("reporter.step2.sexual"),     value: "sexuel",    sub: t("reporter.step2.sexualSub") },
 	];
 
 	const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
 	useEffect(() => {
-		const index = typeOptions.findIndex((o) => o.label === type);
+		const index = typeOptions.findIndex(o => o.value === type);
 		if (index >= 0) cardRefs.current[index]?.focus();
 	}, [type]);
+
+	// ── Helpers limites ──
+	const victimCount = victimName ? victimName.split('|').filter(Boolean).length : 0;
+	const victimFull  = victimCount  >= MAX_VICTIMS;
+	const suspectFull = suspects.length >= MAX_SUSPECTS;
+
+	const handleAddVictim = () => {
+		if (!victimInput.trim() || victimFull) return;
+		const errKey = validateNameKey(victimInput.trim());
+		if (errKey) { setVictimErrorKey(errKey); return; }
+		setVictimErrorKey('');
+		setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
+		setVictimInput('');
+	};
+
+	const handleAddSuspect = () => {
+		if (!suspectInput.trim() || suspectFull) return;
+		const errKey = validateNameKey(suspectInput.trim());
+		if (errKey) { setSuspectErrorKey(errKey); return; }
+		setSuspectErrorKey('');
+		addSuspect({ firstName: suspectInput.trim(), lastName: '' });
+	};
 
 	if (step === 6) {
 		return (
@@ -95,16 +111,15 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 				<StepBar steps={steps} currentStep={step} />
 				<div className="w-full mt-8">
 					<div>
+
+						{/* ── Étape 1 : Type ── */}
 						{step === 1 && (
 							<fieldset>
 								<legend className="font-bold text-lg mb-2">{t("reporter.step2.title")}</legend>
 								<div className="grid grid-cols-2 gap-3 mt-6">
-									{typeOptions.map((opt) => (
-										<button
-											key={opt.value}
-											onClick={() => setType(opt.value)}
-											className={`px-6 py-6 rounded-lg text-center border-2 outline-none ${type === opt.value ? "border-primary bg-white" : "border-gray-200"}`}
-										>
+									{typeOptions.map(opt => (
+										<button key={opt.value} onClick={() => setType(opt.value)}
+											className={`px-6 py-6 rounded-lg text-center border-2 outline-none ${type === opt.value ? "border-primary bg-white" : "border-gray-200"}`}>
 											<div className="text-m font-semibold">{opt.label}</div>
 											<div className="text-sm mt-1">{opt.sub}</div>
 										</button>
@@ -116,26 +131,27 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 							</fieldset>
 						)}
 
+						{/* ── Étape 2 : Description + fréquence ── */}
 						{step === 2 && (
 							<div>
 								<h2 className="font-bold text-lg mb-2">{t("reporter.step3.title")}</h2>
 								<div className="text-m font-semibold mt-6 mb-6">{t("reporter.step3.descriptionLabel")}</div>
-								<Textarea
-									id="description"
-									value={description}
-									onChange={(e) => { setDescription(e.target.value); setDescriptionError(validateDescription(e.target.value)); }}
+								<Textarea id="description" value={description} rows={7}
+									maxLength={2000}
+									onChange={e => {
+										setDescription(e.target.value);
+										setDescriptionErrorKey(validateDescriptionKey(e.target.value) ?? '');
+									}}
 									placeholder={t("reporter.step3.descriptionPlaceholder")}
-									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
 								/>
-								{showErrors && !description && (
-									<p role="alert" className="mb-4 text-sm text-red-600">{t("reporter.validation.descriptionRequired")}</p>
-								)}
-								{descriptionError && (
-									<p role="alert" className="mb-4 text-sm text-red-600">{descriptionError}</p>
+								<p className="text-xs text-gray-400 text-right mt-1">{description.length}/2000</p>
+								{/* t(clé) au rendu → se met à jour au changement de langue */}
+								{descriptionErrorKey && (
+									<p role="alert" className="mb-4 text-sm text-critical">{t(descriptionErrorKey)}</p>
 								)}
 								<label className="block mb-2 mt-4 text-m font-semibold">{t("reporter.step3.frequencyLabel")}</label>
-								<Select value={frequency} onValueChange={(v) => setFrequency(v)}>
+								<Select value={frequency} onValueChange={v => setFrequency(v)}>
 									<SelectTrigger id="frequency" className="bg-white">
 										<SelectValue>
 											{{ "Une fois": t("reporter.step3.freq1"), "Deux fois": t("reporter.step3.freq2"), "Trois fois ou plus": t("reporter.step3.freq3"), "Tous les jours": t("reporter.step3.freq4") }[frequency] || t("reporter.step3.frequencyPlaceholder")}
@@ -148,122 +164,87 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 										<SelectItem value="Tous les jours">{t("reporter.step3.freq4")}</SelectItem>
 									</SelectContent>
 								</Select>
-								{showErrors && !frequency && (
-									<p role="alert" className="mt-2 text-sm text-critical">{t("reporter.validation.frequencyRequired")}</p>
+								{frequencyErrorKey && (
+									<p role="alert" className="mt-2 text-sm text-critical">{t(frequencyErrorKey)}</p>
 								)}
 							</div>
 						)}
 
+						{/* ── Étape 3 : Victimes + suspects ── */}
 						{step === 3 && (
 							<div>
 								<h2 className="font-bold text-lg mb-2">{t("reporter.step4.title")}</h2>
+
+								{/* Victimes */}
 								<div className="mb-3 mt-6 text-m font-semibold">{t("reporter.step4.victimLabel")}</div>
 								<div className="flex gap-2 items-center">
-									<input
-										type="text"
-										value={victimInput}
-										onChange={(e) => setVictimInput(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" && victimInput.trim()) {
-												e.preventDefault();
-												const err = validatePersonName(victimInput.trim());
-												if (err) { setVictimError(err); return; }
-												setVictimError('');
-												setVictimName((prev) => prev ? prev + "|" + victimInput.trim() : victimInput.trim());
-												setVictimInput("");
-											}
-										}}
+									<input type="text" value={victimInput} maxLength={50}
+										onChange={e => setVictimInput(e.target.value)}
+										onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddVictim(); } }}
 										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 px-4 bg-white py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 									/>
 									<Button
-										variant={victimInput.trim().length >= 2 ? "primary" : "outline"}
-										onClick={() => {
-											if (victimInput.trim()) {
-												const err = validatePersonName(victimInput.trim());
-												if (err) { setVictimError(err); return; }
-												setVictimError('');
-												setVictimName((prev) => prev ? prev + "|" + victimInput.trim() : victimInput.trim());
-												setVictimInput("");
-											}
-										}}
-										disabled={!victimInput.trim()}
+										variant={victimInput.trim().length >= 2 && !victimFull ? "default" : "outline"}
+										onClick={handleAddVictim}
+										disabled={victimInput.trim().length < 2 || victimFull}
 									>
 										{t("reporter.step4.addVictim")}
 									</Button>
 								</div>
-								<p className="text-xs mt-4">{t("reporter.step4.add+Victim")}</p>
-								{victimError && <p role="alert" className="text-sm text-red-600 mt-1">{victimError}</p>}
+								<p className="text-xs mt-2 text-gray-400">{t("reporter.step4.add+Victim")}</p>
+								{victimFull && <p className="text-xs text-orange-500 mt-1">{t("reporter.step4.maxVictims")}</p>}
+								{victimErrorKey && <p role="alert" className="text-sm text-critical mt-1">{t(victimErrorKey)}</p>}
+
 								{victimName && (
-									<div className="mt-4">
-										<div className="flex flex-wrap gap-2">
-											{victimName.split("|").map((v, i) => (
-												<div key={i} className="flex gap-2 bg-surface px-3 py-1 rounded-full text-sm">
-													<span>{v}</span>
-													<button
-														onClick={() => {
-															const arr = victimName.split("|").filter((_, idx) => idx !== i);
-															setVictimName(arr.join("|"));
-														}}
-														className="text-critical font-bold cursor-pointer"
-													>
-														x
-													</button>
-												</div>
-											))}
-										</div>
+									<div className="mt-4 flex flex-wrap gap-2">
+										{victimName.split("|").filter(Boolean).map((v, i) => (
+											<div key={i} className="flex gap-2 bg-surface px-3 py-1 rounded-full text-sm">
+												<span>{v}</span>
+												<button onClick={() => setVictimName(victimName.split("|").filter((_, idx) => idx !== i).join("|"))}
+													className="text-critical font-bold cursor-pointer">x</button>
+											</div>
+										))}
 									</div>
 								)}
 
+								{/* Suspects */}
 								<div className="mt-5" />
 								<label className="block mb-3 mt-6 text-m font-semibold">{t("reporter.step4.suspectsLabel")}</label>
 								<div className="flex gap-2 items-center">
-									<input
-										type="text"
-										value={suspectInput}
-										onChange={(e) => setSuspectInput(e.target.value)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" && suspectInput.trim()) {
-												e.preventDefault();
-												addSuspect({ firstName: suspectInput.trim(), lastName: "" });
-											}
-										}}
-										placeholder="Par exemple : Prénom Nom Classe"
+									<input type="text" value={suspectInput} maxLength={50}
+										onChange={e => setSuspectInput(e.target.value)}
+										onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddSuspect(); } }}
+										placeholder={t("reporter.step4.peoplePlaceholder")}
 										className="flex-1 bg-white px-4 py-3 border-2 border-gray-200 rounded-lg text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
 									/>
 									<Button
-										variant={suspectInput.trim().length >= 2 ? "primary" : "outline"}
-										onClick={() => {
-											if (suspectInput.trim())
-												addSuspect({ firstName: suspectInput.trim(), lastName: "" });
-										}}
-										disabled={suspectInput.trim().length < 2}
+										variant={suspectInput.trim().length >= 2 && !suspectFull ? "default" : "outline"}
+										onClick={handleAddSuspect}
+										disabled={suspectInput.trim().length < 2 || suspectFull}
 									>
 										{t("reporter.step4.addSuspect")}
 									</Button>
 								</div>
-								<p className="text-xs mt-4">{t("reporter.step4.add+Suspect")}</p>
-								{suspectError && <p role="alert" className="text-sm text-red-600 mt-1">{suspectError}</p>}
+								<p className="text-xs mt-2 text-gray-400">{t("reporter.step4.add+Suspect")}</p>
+								{suspectFull && <p className="text-xs text-orange-500 mt-1">{t("reporter.step4.maxSuspects")}</p>}
+								{suspectErrorKey && <p role="alert" className="text-sm text-critical mt-1">{t(suspectErrorKey)}</p>}
+
 								{suspects.length > 0 && (
-									<div className="mt-4">
-										<div className="flex flex-wrap gap-2">
-											{suspects.map((s, i) => (
-												<div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm">
-													<span>{s.firstName} {s.lastName}</span>
-													<button
-														onClick={() => removeSuspect(i)}
-														className="text-critical font-bold cursor-pointer bg-transparent border-none"
-													>
-														x
-													</button>
-												</div>
-											))}
-										</div>
+									<div className="mt-4 flex flex-wrap gap-2">
+										{suspects.map((s, i) => (
+											<div key={i} className="flex items-center gap-2 bg-surface px-3 py-1 rounded-full text-sm">
+												<span>{s.firstName} {s.lastName}</span>
+												<button onClick={() => removeSuspect(i)}
+													className="text-critical font-bold cursor-pointer bg-transparent border-none">x</button>
+											</div>
+										))}
 									</div>
 								)}
 							</div>
 						)}
 
+						{/* ── Étape 4 : Preuves ── */}
 						{step === 4 && (
 							<div>
 								<h2 className="font-bold text-lg mb-2">{t("reporter.step5.title")}</h2>
@@ -272,18 +253,30 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 							</div>
 						)}
 
+						{/* ── Étape 5 : Récapitulatif ── */}
 						{step === 5 && (
 							<div>
 								<h2 className="font-bold text-lg mb-2">{t("reporter.step6.title")}</h2>
 								<dl className="text-m space-y-3">
 									{([
 										{ label: t("reporter.step6.who"), value: whoSignals },
-										{ label: t("reporter.step6.type"), value: type },
+										{ label: t("reporter.step6.type"), value: t(({
+											physique:  'reporter.step2.physical',
+											verbal:    'reporter.step2.verbal',
+											cyber:     'reporter.step2.cyber',
+											exclusion: 'reporter.step2.exclusion',
+											sexuel:    'reporter.step2.sexual',
+										} as Record<string,string>)[type] ?? type) },
 										{ label: t("reporter.step6.description"), value: description },
-										{ label: t("reporter.step6.frequency"), value: frequency },
-										...(victimName ? [{ label: t("reporter.step6.victims"), value: victimName.split("|").join(", ") }] : []),
-										...(suspects.length > 0 ? [{ label: t("reporter.step6.suspects"), value: suspects.map((s) => `${s.firstName} ${s.lastName}`).join(", ") }] : []),
-									] as const).map((row) => (
+										{ label: t("reporter.step6.frequency"), value: ({
+											"Une fois":           t("reporter.step3.freq1"),
+											"Deux fois":          t("reporter.step3.freq2"),
+											"Trois fois ou plus": t("reporter.step3.freq3"),
+											"Tous les jours":     t("reporter.step3.freq4"),
+										} as Record<string,string>)[frequency] ?? frequency },
+										...(victimName ? [{ label: t("reporter.step6.victims"), value: victimName.split("|").filter(Boolean).join(", ") }] : []),
+										...(suspects.length > 0 ? [{ label: t("reporter.step6.suspects"), value: suspects.map(s => `${s.firstName} ${s.lastName}`).join(", ") }] : []),
+									] as const).map(row => (
 										<div key={row.label} className="flex gap-2">
 											<div className="font-semibold min-w-[110px]">{row.label} :</div>
 											<div>{row.value}</div>
@@ -302,24 +295,27 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 							</div>
 						)}
 
+						{/* ── Navigation ── */}
 						<div className="flex justify-between mt-8">
 							{step > 1 && (
-								<Button variant={step === 1 ? "ghost" : "primary"} onClick={() => { setShowErrors(false); setStep((s) => s - 1); }} disabled={step === 1}>
+								<Button variant="default"
+									onClick={() => { setShowErrors(false); setStep(s => s - 1); }}
+									disabled={step === 1}>
 									← {t("common.previous")}
 								</Button>
 							)}
 							<div className="ml-auto">
-								{step < 5 ? (
-									<Button onClick={() => { if (isNextDisabled) { setShowErrors(true); return; } setShowErrors(false); setStep((s) => s + 1); }}>
+								{step < 5
+									? <Button onClick={() => { if (isNextDisabled) { setShowErrors(true); return; } setShowErrors(false); setStep(s => s + 1); }}>
 										{t("common.next")} →
-									</Button>
-								) : (
-									<Button onClick={handleSubmit} variant="success" disabled={loading}>
-										{loading ? t("reporter.submitting") : `${t("reporter.submit")}`}
-									</Button>
-								)}
+									  </Button>
+									: <Button onClick={handleSubmit} variant="success" disabled={loading}>
+										{loading ? t("reporter.submitting") : t("reporter.submit")}
+									  </Button>
+								}
 							</div>
 						</div>
+
 					</div>
 				</div>
 			</div>

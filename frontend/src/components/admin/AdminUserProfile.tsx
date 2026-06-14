@@ -149,7 +149,7 @@ export default function AdminUserProfile({
         </div>
         <div className="text-center">
           {(() => { const { first, last } = formatName(selectedUser.firstName, selectedUser.lastName); return <h2 className="text-xl font-bold text-gray-800">{first} {last}</h2>; })()}
-          <span className="text-sm text-gray-700 capitalize">{selectedUser.role}</span>
+          <span className="text-sm text-gray-700 capitalize">{t(`admin.users.roles.${selectedUser.role}`)}</span>
           <p className="text-sm text-gray-700 mt-1">{selectedUser.email}</p>
         </div>
         {!editMode && (
