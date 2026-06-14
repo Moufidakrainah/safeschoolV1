@@ -78,11 +78,10 @@ If the sample dataset has been seeded, the following accounts can be used for de
 
 | Email | Password | Role | Main area |
 |-------|----------|------|-----------|
-| `lotfi@safeschool.com` | `eleve123` | student | `/student` |
-| `admin@safeschool.com` | `admin123` | admin | `/dashboard` |
-| `directeur@safeschool.com` | `directeur123` | director | `/dashboard` |
-| `prof@safeschool.com` | `prof123` | teacher | `/reporter` |
-| `agent@safeschool.com` | `staff123` | staff | `/reporter` |
+| `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `admin@safeschool.com` | `ADMINadmin123123+` | admin | `/dashboard` |
+| `prof@safeschool.com` | `PROFprof123123+` | teacher | `/reporter` |
+
 
 ---
 ## Resources
