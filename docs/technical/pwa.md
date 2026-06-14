@@ -16,24 +16,34 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       manifest: {
-        name: 'SafeSchool',
-        short_name: 'SafeSchool',
-        theme_color: '#006278',
+        name: 'Safe School',
+        short_name: 'Safe School',
+        theme_color: '#0f5a63',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
-        ]
-      }
-    })
+          { src: '/logos/safeschool-logo.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logos/safeschool-logo.png', sizes: '512x512', type: 'image/png' },
+          { src: '/logos/safeschool-logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precache the build; serve index.html offline except for the API and WebSocket
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api/, /^\/socket\.io/],
+      },
+    }),
   ],
 })
 ```
 
 ## Features
 
-- **Installable**: users can add SafeSchool to their home screen or desktop from Chrome or Edge. An install prompt is displayed automatically when the browser criteria are met.
-- **Offline support**: the service worker caches the application shell and static assets. If connectivity is lost, the interface remains accessible for cached content.
+- **Installable**: users can add SafeSchool to their home screen or desktop from Chrome or Edge, which surface their native install option once the PWA criteria (manifest, service worker, HTTPS) are met.
+- **Offline support**: the service worker precaches the static build (the app shell — JS, CSS, HTML, icons and fonts) so an already-installed app can still boot without a network. It does **not** cache any API or WebSocket request, so screens that depend on backend data have no content offline. Offline support is therefore limited to loading the installed shell, not to using the application's data.
 - **Automatic updates**: with `registerType: 'autoUpdate'`, the service worker updates silently in the background when a new version is deployed.
 
 ## Why it fits this project
