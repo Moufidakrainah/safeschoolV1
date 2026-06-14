@@ -172,7 +172,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<Textarea
 									id="description"
 									value={description}
-									maxLength={2000}
 									onChange={(e) => {
 										setDescription(e.target.value);
 										// Stocker la clé, pas le message
@@ -182,12 +181,6 @@ export default function StudentForm({ user }: StudentFormProps) {
 									rows={7}
 									className="bg-white px-4 py-4 border-2 border-gray-200 rounded-lg"
 								/>
-								<p className="text-xs text-gray-400 text-right mt-1">
-									{description.length}/2000
-									{description.length >= 2000 && (
-										<span className="text-red-500 ml-1">{t('common.limitReached')}</span>
-									)}
-									</p>
 								{/* t(clé) au rendu → se met à jour automatiquement au changement de langue */}
 								{descriptionErrorKey && (
 									<p role="alert" className="mt-4 text-sm text-critical">{t(descriptionErrorKey)}</p>
@@ -320,9 +313,20 @@ export default function StudentForm({ user }: StudentFormProps) {
 								<dl className="text-m space-y-3">
 									{([
 										{ label: t("reporter.step6.who"), value: whoSignals === "victime" ? t("reporter.step6.victim") : t("reporter.step6.suspect") },
-										{ label: t("reporter.step6.type"), value: type },
+										{ label: t("reporter.step6.type"), value: t(({
+											physique:  'reporter.step2.physical',
+											verbal:    'reporter.step2.verbal',
+											cyber:     'reporter.step2.cyber',
+											exclusion: 'reporter.step2.exclusion',
+											sexuel:    'reporter.step2.sexual',
+										} as Record<string,string>)[type] ?? type) },
 										{ label: t("reporter.step6.description"), value: description },
-										{ label: t("reporter.step6.frequency"), value: frequency },
+										{ label: t("reporter.step6.frequency"), value: ({
+											"Une fois":           t("reporter.step3.freq1"),
+											"Deux fois":          t("reporter.step3.freq2"),
+											"Trois fois ou plus": t("reporter.step3.freq3"),
+											"Tous les jours":     t("reporter.step3.freq4"),
+										} as Record<string,string>)[frequency] ?? frequency },
 										...(victimName ? [{ label: t("reporter.step6.victims"), value: victimName.split("|").filter(Boolean).join(", ") }] : []),
 										...(suspects.length > 0 ? [{ label: t("reporter.step6.suspects"), value: suspects.map(s => `${s.firstName} ${s.lastName}`).join(", ") }] : []),
 									] as const).map((row) => (

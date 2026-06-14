@@ -441,9 +441,9 @@
       "type": "Art",
       "description": "Beschreibung",
       "frequency": "Häufigkeit",
-      "victim": "Opfer",
+      "victim": "Ich bin ein Opfer",
       "suspects": "Verdächtige",
-      "anonymous": "Anonyme Meldung",
+      "anonymous": "Klicke hier, wenn du zu dieser Meldung nicht kontaktiert werden möchtest",
       "anonymousDesc": "mein Name wird nicht sichtbar sein",
       "victims": "Opfer",
       "suspect": "Ich bin ein Zeuge"
@@ -527,7 +527,8 @@
       "noUpdate": "Keine Aktualisierungen für diesen Fall",
       "loading": "Laden...",
       "noReport": "Keine Meldungen gefunden",
-      "meeting": "Ein Treffen fand statt am "
+      "meeting": "Ein Treffen fand statt am ",
+      "statusUpdate": "Status aktualisiert: {{status}} — {{date}}"
     },
     "validation": {
       "descriptionRequired": "Beschreibung muss mindestens 20 Zeichen enthalten",

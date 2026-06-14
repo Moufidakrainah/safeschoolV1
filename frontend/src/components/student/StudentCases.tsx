@@ -20,6 +20,26 @@ const statusToBadgeVariant = (status: string) => {
   return map[status] ?? "new";
 };
 
+// Map type backend → clé i18n
+const TYPE_MAP: Record<string, string> = {
+  physique:  'reporter.step2.physical',
+  verbal:    'reporter.step2.verbal',
+  cyber:     'reporter.step2.cyber',
+  exclusion: 'reporter.step2.exclusion',
+  sexuel:    'reporter.step2.sexual',
+};
+
+// Map labels FR statut backend → clés badge i18n
+const STATUS_FR_TO_KEY: Record<string, string> = {
+  'Nouveau':          'badge.new',
+  'En cours':         'badge.in_progress',
+  'En attente':       'badge.pending',
+  'Résolu':           'badge.resolved',
+  'Faux signalement': 'badge.false_report',
+  'Clôturé':          'badge.closed',
+  'Rejeté':           'badge.rejected',
+};
+
 const MONTHS_FR: Record<string, number> = {
   janvier: 1, février: 2, mars: 3, avril: 4, mai: 5, juin: 6,
   juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
@@ -33,21 +53,13 @@ function parseConvocation(content: string) {
   const message = parts.slice(1).join("\n\n").trim();
 
   if (!dateMatch) {
-    return {
-      isPast: true,
-      displayDate: content.split("\n")[0].replace("📅", "").trim(),
-      message,
-    };
+    return { isPast: true, displayDate: content.split("\n")[0].replace("📅", "").trim(), message };
   }
 
   const [, day, monthStr, year, hours, minutes] = dateMatch;
   const monthNum = MONTHS_FR[monthStr.toLowerCase()];
   if (!monthNum) {
-    return {
-      isPast: true,
-      displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`,
-      message,
-    };
+    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message };
   }
 
   const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
@@ -126,6 +138,17 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     } catch { /* erreur réseau silencieuse volontaire */ }
   };
 
+  // ── Formater le contenu d'une note status_change ──
+  const formatStatusNote = (content: string): string => {
+    // Format backend : "Statut mis à jour : LABEL — DATE"
+    const match = content.match(/^Statut mis à jour : (.+) — (.+)$/);
+    if (!match) return content;
+    const [, labelFR, date] = match;
+    const badgeKey = STATUS_FR_TO_KEY[labelFR.trim()];
+    const translatedStatus = badgeKey ? t(badgeKey).trim() : labelFR;
+    return t('student.cases.statusUpdate', { status: translatedStatus, date });
+  };
+
   return (
     <section className="page-section">
       {loadingReports ? (
@@ -145,8 +168,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
                     <span className="card-title">{report.caseNumber}</span>
-                    <p className="card-subtitle mt-1 mb-2 capitalize">
-                      {report.type} - {t("student.cases.iAmVictim")}
+                    <p className="card-subtitle mt-1 mb-2">
+                      {t(TYPE_MAP[report.type] ?? report.type)} - {t("student.cases.iAmVictim")}
                     </p>
                     <p className="card-meta">
                       {new Date(report.createdAt).toLocaleDateString('fr-FR')}
@@ -168,7 +191,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                           <div key={note.id}
                             style={{ borderLeft: '3px solid var(--color-primary)' }}
                             className="p-3 bg-white">
-                            <p className="text-sm">{note.content}</p>
+                            <p className="text-sm">{formatStatusNote(note.content)}</p>
                           </div>
                         );
                       }
@@ -195,7 +218,6 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                                 </span>
                                 {isNew && <Badge variant="new_red" className="ml-4" />}
                               </div>
-                              {/* Plus de recipient — on affiche directement "Tu es convoqué(e)" */}
                               <p className="text-sm font-semibold">
                                 {t("student.cases.summoned")}{displayDate}
                               </p>

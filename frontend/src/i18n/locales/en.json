@@ -407,9 +407,9 @@
       "type": "Type",
       "description": "Description",
       "frequency": "Frequency",
-      "victim": "Victim",
+      "victim": "I am a victim",
       "suspects": "Suspects",
-      "anonymous": "Anonymous report",
+      "anonymous": "Check this box if you don't want to be contacted about this report",
       "anonymousDesc": "my name will not be visible",
       "victims": "Victim(s)",
       "suspect": "I am a witness"
@@ -472,7 +472,8 @@
       "noUpdate": "No updates for this case",
       "loading": "Loading...",
       "noReport": "No reports found",
-      "meeting": "A meeting took place on "
+      "meeting": "A meeting took place on ",
+      "statusUpdate": "Status updated: {{status}} — {{date}}"
     },
     "validation": {
       "descriptionRequired": "Description must contain at least 20 characters",
