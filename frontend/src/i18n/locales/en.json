@@ -391,7 +391,9 @@
       "add+Victim": "Press `Enter` or click `Add this victim`",
       "add+Suspect": "Press `Enter` or click `Add this bully`",
       "addVictim": "Add this victim",
-      "addSuspect": "Add this bully"
+      "addSuspect": "Add this bully",
+      "maxVictims": "Maximum 5 victims reached",
+      "maxSuspects": "Maximum 5 suspects reached"
     },
     "step5": {
       "title": "Evidence",
@@ -417,8 +419,8 @@
     "submitError": "Submission failed. Check your connection and try again.",
     "validation": {
       "typeRequired": "Please select a type of bullying to continue.",
-      "descriptionRequired": "Please describe the facts to continue.",
-      "frequencyRequired": "Please indicate the frequency to continue."
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     },
     "workshop": {
       "title": "Workshops",
@@ -465,12 +467,16 @@
       "soon": "This section will be available soon."
     },
     "cases": {
-      "summoned": "is summoned on ",
+      "summoned": "You are summoned on ",
       "iAmVictim": "I am a victim",
       "noUpdate": "No updates for this case",
       "loading": "Loading...",
       "noReport": "No reports found",
       "meeting": "A meeting took place on "
+    },
+    "validation": {
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     }
   },
   "privacy": {
@@ -545,7 +551,8 @@
     "loading": "Loading",
     "no": "No notifications",
     "report": "Report",
-    "read": "Read"
+    "read": "Read",
+    "statusUpdate": "Status of your case {{caseNumber}} updated: {{status}}"
   },
   "all": "All",
   "section": "Section",

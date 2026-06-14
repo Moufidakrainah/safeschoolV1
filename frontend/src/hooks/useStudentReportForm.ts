@@ -35,14 +35,17 @@ export interface UseStudentReportFormReturn {
   addSuspect: (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect: (index: number) => void;
   resetForm: () => void;
-  validateDescription: (desc: string) => string | null;
-  validateName: (name: string) => string | null;
-  victimError: string;
-  setVictimError: React.Dispatch<React.SetStateAction<string>>;
-  suspectError: string;
-  setSuspectError: React.Dispatch<React.SetStateAction<string>>;
-  descriptionError: string;
-  setDescriptionError: React.Dispatch<React.SetStateAction<string>>;
+  validateDescriptionKey: (desc: string) => string | null;
+  validateNameKey: (name: string) => string | null;
+  // Clés i18n (pas des messages) — t() est appelé dans le composant
+  victimErrorKey: string;
+  setVictimErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  suspectErrorKey: string;
+  setSuspectErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  descriptionErrorKey: string;
+  setDescriptionErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  frequencyErrorKey: string;
+  setFrequencyErrorKey: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export function useStudentReportForm(
@@ -51,86 +54,90 @@ export function useStudentReportForm(
 ): UseStudentReportFormReturn {
   const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
 
-  const validateName = (name: string): string | null => {
-    if (name.length < 2) return t('validation.nameMin');
-    if (name.length > 50) return t('validation.nameMax');
-    if (!/^(?!(.)\1{4,})[\p{L}\s\-']+$/u.test(name)) return t('validation.nameInvalid');
+  // ── Validators — retournent des CLÉS i18n, pas des messages ──
+  const validateNameKey = (name: string): string | null => {
+    if (name.length < 2) return 'validation.nameMin';
+    if (name.length > 50) return 'validation.nameMax';
+    if (!/^(?!(.)\1{4,})[\p{L}\s\-']+$/u.test(name)) return 'validation.nameInvalid';
     return null;
   };
 
-  const validateDescription = (desc: string): string | null => {
-    if (!desc.trim()) return t('validation.descRequired');
-    if (desc.length < 20) return t('validation.descMin');
-    if (desc.length > 2000) return t('validation.descMax');
-    if (/(.){9,}/.test(desc)) return t('validation.descInvalid');
+  const validateDescriptionKey = (desc: string): string | null => {
+    if (!desc.trim()) return 'validation.descRequired';
+    if (desc.length < 20) return 'validation.descMin';
+    if (desc.length > 2000) return 'validation.descMax';
+    if (/(.)\1{9,}/.test(desc)) return 'validation.descInvalid';
     const cleaned = desc.replace(/\s/g, '');
     if (cleaned.length > 10) {
       const freq: Record<string, number> = {};
       for (const c of cleaned) freq[c] = (freq[c] ?? 0) + 1;
       const maxFreq = Math.max(...Object.values(freq));
-      if (maxFreq / cleaned.length > 0.7) return t('validation.descInvalid');
+      if (maxFreq / cleaned.length > 0.7) return 'validation.descInvalid';
     }
     return null;
   };
 
-  const [step, setStep] = useState(1);
-  const [whoSignals, setWhoSignals] = useState(null);
-  const [type, setType] = useState('');
+  // ── État ──
+  const [step, setStep]               = useState(1);
+  const [whoSignals, setWhoSignals]   = useState<string>(defaultWho);
+  const [type, setType]               = useState('');
   const [description, setDescription] = useState('');
-  const [frequency, setFrequency] = useState('');
+  const [frequency, setFrequency]     = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]         = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [descriptionError, setDescriptionError] = useState('');
-  const [victimError, setVictimError] = useState('');
-  const [suspectError, setSuspectError] = useState('');
-  const [showErrors, setShowErrors] = useState(false);
-  const [suspects, setSuspects] = useState<UserSearchResult[]>([]);
+  // Stocke des CLÉS i18n, pas des messages
+  const [descriptionErrorKey, setDescriptionErrorKey] = useState('');
+  const [frequencyErrorKey, setFrequencyErrorKey]     = useState('');
+  const [victimErrorKey, setVictimErrorKey]           = useState('');
+  const [suspectErrorKey, setSuspectErrorKey]         = useState('');
+  const [showErrors, setShowErrors]                   = useState(false);
+  const [suspects, setSuspects]         = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
-  const [victimName, setVictimName] = useState('');
-  const [victimInput, setVictimInput] = useState('');
+  const [victimName, setVictimName]     = useState('');
+  const [victimInput, setVictimInput]   = useState('');
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
     (step === 2 && !type) ||
-    (step === 3 && (!!validateDescription(description) || !frequency));
+    (step === 3 && (!!validateDescriptionKey(description) || !frequency));
 
   const handleNext = () => {
     const errors: Record<string, string> = {};
 
-    if (step === 1 && !whoSignals) {
-      setShowErrors(true);
-      return;
-    }
-
-    if (step === 2 && !type) {
-      setShowErrors(true);
-      return;
-    }
+    if (step === 1 && !whoSignals) { setShowErrors(true); return; }
+    if (step === 2 && !type)       { setShowErrors(true); return; }
 
     if (step === 3) {
-      if (!description.trim()) {
+      const descErrKey = validateDescriptionKey(description.trim());
+      if (descErrKey) {
+        setDescriptionErrorKey(descErrKey);
         setShowErrors(true);
         return;
       }
-      const descError = validateDescription(description.trim());
-      if (descError) errors.description = descError;
-      if (!frequency) errors.frequency = t('validation.freqRequired');
+      setDescriptionErrorKey('');
+
+      if (!frequency) {
+        setFrequencyErrorKey('validation.freqRequired');
+        setShowErrors(true);
+        return;
+      }
+      setFrequencyErrorKey('');
     }
 
     if (step === 4) {
       if (victimName) {
-        victimName.split('|').forEach((v, i) => {
-          const err = validateName(v.trim());
-          if (err) errors[`victim_${i}`] = err;
+        victimName.split('|').filter(Boolean).forEach((v, i) => {
+          const errKey = validateNameKey(v.trim());
+          if (errKey) errors[`victim_${i}`] = t(errKey);
         });
       }
       suspects.forEach((s, i) => {
         const fullName = `${s.firstName} ${s.lastName}`.trim();
-        const err = validateName(fullName);
-        if (err) errors[`suspect_${i}`] = err;
+        const errKey = validateNameKey(fullName);
+        if (errKey) errors[`suspect_${i}`] = t(errKey);
       });
     }
 
@@ -158,7 +165,7 @@ export function useStudentReportForm(
       await createReport(type, whoSignals, fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(7);
     } catch (err: unknown) {
-      const messages = err?.response?.data?.message ?? err?.message;
+      const messages = (err as any)?.response?.data?.message ?? (err as any)?.message;
       if (Array.isArray(messages) && messages.length > 0) {
         setSubmitError(messages.join(' — '));
       } else if (typeof messages === 'string') {
@@ -175,9 +182,9 @@ export function useStudentReportForm(
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
     const name = `${suspect.firstName} ${suspect.lastName}`.trim();
-    const err = validateName(name);
-    if (err) { setSuspectError(err); return; }
-    setSuspectError('');
+    const errKey = validateNameKey(name);
+    if (errKey) { setSuspectErrorKey(errKey); return; }
+    setSuspectErrorKey('');
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
@@ -200,6 +207,10 @@ export function useStudentReportForm(
     setSubmitError(null);
     setFieldErrors({});
     setShowErrors(false);
+    setDescriptionErrorKey('');
+    setFrequencyErrorKey('');
+    setVictimErrorKey('');
+    setSuspectErrorKey('');
   };
 
   return {
@@ -217,8 +228,11 @@ export function useStudentReportForm(
     victimInput, setVictimInput,
     selectedVictim, setSelectedVictim,
     handleSubmit, handleNext, clearFieldErrors,
-    validateDescription, validateName, descriptionError, setDescriptionError,
-    victimError, setVictimError, suspectError, setSuspectError,
+    validateDescriptionKey, validateNameKey,
+    descriptionErrorKey, setDescriptionErrorKey,
+    frequencyErrorKey, setFrequencyErrorKey,
+    victimErrorKey, setVictimErrorKey,
+    suspectErrorKey, setSuspectErrorKey,
     addSuspect, removeSuspect, resetForm,
   };
 }
