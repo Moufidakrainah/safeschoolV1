@@ -22,7 +22,7 @@ services:
       database:
         condition: service_healthy
       logstash:
-        condition: service_healthy
+        condition: service_started
     networks:
       - safeschool_network
     healthcheck:
@@ -75,6 +75,23 @@ services:
       timeout: 10s
       retries: 10
 
+  elasticsearch-setup-users:
+    image: curlimages/curl:latest
+    container_name: safeschool_elk_setup_users
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
+    volumes:
+      - ./elk/setup:/setup
+    command: ["/bin/sh", "/setup/setup-users.sh"]
+    networks:
+      - safeschool_network
+    restart: "no"
+
   logstash:
     image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: safeschool_logstash
@@ -87,6 +104,7 @@ services:
         condition: service_healthy
     networks:
       - safeschool_network
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600 || exit 1"]
       interval: 15s
@@ -110,6 +128,7 @@ services:
         condition: service_healthy
     networks:
       - safeschool_network
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
       interval: 15s
@@ -117,16 +136,14 @@ services:
       retries: 10
       start_period: 60s
 
-  elasticsearch-setup:
+  elasticsearch-setup-kibana:
     image: curlimages/curl:latest
-    container_name: safeschool_elk_setup
+    container_name: safeschool_elk_setup_kibana
     depends_on:
-      elasticsearch:
+      kibana:
         condition: service_healthy
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
-      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
     volumes:
       - ./elk/setup:/setup
     command: ["/bin/sh", "/setup/setup.sh"]

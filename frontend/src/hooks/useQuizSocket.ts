@@ -353,16 +353,20 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       setConnected(false);
       setReconnecting(false);
       setSocketError('');
-      socketRef.current?.io.engine?.close();
+      const socket = socketRef.current;
+      if (socket) {
+        socket.io.reconnection(false);
+        socket.disconnect();
+      }
     };
 
     const handleOnline = () => {
       setOffline(false);
       const socket = socketRef.current;
-      if (socket && !socket.connected && socket.active) {
-        // Réseau revenu : on relance la connexion et on l'annonce
+      if (socket && !socket.connected) {
         setReconnecting(true);
-        socket.io.open();
+        socket.io.reconnection(true);
+        socket.connect();
       }
     };
     window.addEventListener('offline', handleOffline);
