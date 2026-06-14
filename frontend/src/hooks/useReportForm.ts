@@ -46,28 +46,28 @@ export interface UseReportFormReturn {
 const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
 const personRegex = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
 
-const validateDescription = (value: string): string => {
-  if (!value.trim()) return 'La description est obligatoire';
-  if (value.length < 20) return 'La description doit contenir au moins 20 caractères';
-  if (value.length > 2000) return 'La description ne peut pas dépasser 2000 caractères';
-  if (!descriptionRegex.test(value)) return 'La description semble invalide (caractères répétitifs détectés)';
-  return '';
-};
-
-const validatePersonName = (value: string): string => {
-  if (!value.trim()) return 'Le nom est obligatoire';
-  if (value.length < 2) return 'Le nom doit contenir au moins 2 caractères';
-  if (value.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
-  if (!personRegex.test(value)) return 'Le nom contient des caractères invalides ou répétitifs';
-  return '';
-};
-
 export function useReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
 ): UseReportFormReturn {
 
   const defaultWho = 'temoin';
+
+  const validateDescription = (value: string): string => {
+    if (!value.trim()) return t('validation.descRequired');
+    if (value.length < 20) return t('validation.descMin');
+    if (value.length > 2000) return t('validation.descMax');
+    if (!descriptionRegex.test(value)) return t('validation.descInvalid');
+    return '';
+  };
+
+  const validatePersonName = (value: string): string => {
+    if (!value.trim()) return t('validation.nameRequired');
+    if (value.length < 2) return t('validation.nameMin');
+    if (value.length > 50) return t('validation.nameMax');
+    if (!personRegex.test(value)) return t('validation.nameInvalid');
+    return '';
+  };
 
   const [step, setStep]               = useState(1);
   const [whoSignals, setWhoSignals]   = useState(defaultWho);

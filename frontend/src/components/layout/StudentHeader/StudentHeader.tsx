@@ -68,7 +68,7 @@ export default function StudentHeader({
   const navItems: { key: StudentSection; label: string }[] = [
     { key: 'profile', label: t('student.nav.profile') },
     { key: 'report',  label: t('student.nav.report') },
-    { key: 'cases',   label: 'Mes dossiers' },
+    { key: 'cases',   label: t('student.nav.cases') },
     { key: 'quiz',    label: t('student.nav.quiz') },
   ];
 
