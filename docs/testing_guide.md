@@ -9,14 +9,14 @@ Run `make all` from the project root. Once the stack is up, run `make ps` to ver
 
 `frontend`, `backend`, `database`, `elasticsearch`, `logstash`, `kibana` should show `up`.
 
-Open `https://localhost`.
+Open `https://localhost:8443`.
 
 ---
 
 ## 1. Authentication
 
 ### 1.1 Valid login
-Open `https://localhost/login` in a browser. Enter a valid account (teacher, student, or admin).
+Open `https://localhost:8443/login` in a browser. Enter a valid account (teacher, student, or admin).
 
 **Expected:** you are redirected to your dashboard. No error message.
 
@@ -26,7 +26,7 @@ Open `https://localhost/login` in a browser. Enter a valid account (teacher, stu
 In a terminal:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost/api/auth/login \
+curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"any@safeschool.fr","password":"wrongpassword"}' -k
 ```
@@ -44,7 +44,7 @@ Once implemented, run this script:
 
 ```bash
 for i in $(seq 1 11); do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost/api/auth/login \
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"test@safeschool.fr","password":"wrong"}' -k)
   echo "Attempt $i: $STATUS"
@@ -73,7 +73,7 @@ docker compose exec database psql -U postgres -d safeschool \
 Any API route that requires login should reject requests with no token:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://localhost/api/reports -k
+curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/api/reports -k
 ```
 
 **Expected:** `401`
@@ -84,12 +84,12 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost/api/reports -k
 First log in to get a token, then use it:
 
 ```bash
-TOKEN=$(curl -s -X POST https://localhost/api/auth/login \
+TOKEN=$(curl -s -X POST https://localhost:8443/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@safeschool.fr","password":"YourPassword"}' -k \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
-curl -s -o /dev/null -w "%{http_code}" https://localhost/api/reports \
+curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/api/reports \
   -H "Authorization: Bearer $TOKEN" -k
 ```
 
@@ -100,20 +100,22 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost/api/reports \
 ## 3. ELK monitoring
 
 ### 3.1 Logs reach Elasticsearch (end-to-end chain)
-Generate a login event, then verify it landed in Elasticsearch:
+Generate a login event, then verify it landed in Kibana:
 
 ```bash
-# Step 1 — trigger an event
-curl -s -X POST https://localhost/api/auth/login \
+# Step 1 — trigger an auth event
+curl -s -X POST https://localhost:8443/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@safeschool.fr","password":"YourPassword"}' -k > /dev/null
-
-# Step 2 — wait ~5 seconds, then query Elasticsearch
-curl -s "http://localhost:9200/safeschool-logs-*/_search?q=type:auth_event&size=1" \
-  | python3 -m json.tool | head -30
+  -d '{"email":"admin@safeschool.com","password":"admin123123+"}' -k > /dev/null
 ```
 
-**Expected:** JSON response with `hits.total.value >= 1` and a document containing `"type": "auth_event"`.
+Step 2 — open Kibana at **http://localhost:5601** (login: `elastic` / see `.env` → `ELASTIC_PASSWORD`).
+
+Go to **Discover**, select the `safeschool-logs` data view, set the time range to **last 15 minutes**.
+
+**Expected:** at least one document with `type: auth_event` appears within a few seconds.
+
+> Note: Elasticsearch port 9200 is intentionally not exposed to the host. All access goes through Kibana or from inside the Docker network.
 
 ---
 
@@ -194,16 +196,16 @@ Open two different browsers (e.g. Firefox + Chrome). Log in with two different a
 
 ### 6.1 Elasticsearch is not reachable from outside containers
 ```bash
-curl -s -o /dev/null -w "%{http_code}" http://localhost:9200
+curl -s -o /dev/null -w "%{http_code}" --connect-timeout 3 http://localhost:9200
 ```
 
-**Expected:** connection refused — output is `000` or the command hangs with no response.
+**Expected:** `000` (connection refused — port 9200 is not exposed to the host, only accessible inside the Docker network).
 
 ---
 
 ### 6.2 HTTPS is active
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://localhost -k
+curl -s -o /dev/null -w "%{http_code}" https://localhost:8443 -k
 ```
 
 **Expected:** `200`
