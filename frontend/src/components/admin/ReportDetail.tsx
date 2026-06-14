@@ -366,10 +366,10 @@ export default function ReportDetail({
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
           <div className="flex flex-col gap-2">
-            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1500))} rows={3}
-              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1500} />
+            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1400))} rows={3}
+              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1400} />
             <p className="text-xs text-gray-400 text-right">
-              {newNote.length}/1500 {newNote.length >= 1500 && <span className="text-red-500">{t('common.limitReached')}</span>}
+              {newNote.length}/1400 {newNote.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
             </p>
             <Button onClick={() => onAddNote('note')}>{t('admin.notes.save')}</Button>
           </div>
@@ -410,10 +410,10 @@ export default function ReportDetail({
                       )}
                     </div>
                     <Textarea rows={2} placeholder={t('admin.convocation.messagePlaceholder')} value={details.message}
-                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1500) } }))}
-                      className="resize-y" maxLength={1500} />
+                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1400) } }))}
+                      className="resize-y" maxLength={1400} />
                     <p className="text-xs text-gray-400 text-right">
-                      {details.message.length}/1500 {details.message.length >= 1500 && <span className="text-red-500">{t('common.limitReached')}</span>}
+                      {details.message.length}/1400 {details.message.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
                     </p>
                   </div>
                 );
