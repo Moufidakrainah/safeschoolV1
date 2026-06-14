@@ -54,3 +54,4 @@ SafeSchool is used in a school environment where students and staff may rely on 
 
 - PWA installation requires HTTPS in production — consistent with the application's infrastructure, which routes all external traffic through nginx with TLS.
 - Firefox does not support the `beforeinstallprompt` event; the install prompt is not shown in Firefox, though the service worker and offline caching remain functional.
+- **Self-signed certificate — install limited to the host machine.** This project uses a self-signed TLS certificate (no public domain / trusted CA), so only `localhost` counts as a secure origin. Other devices reaching it over the LAN IP reject the untrusted certificate, which blocks service-worker registration and the install prompt. To install elsewhere, the device must first trust `nginx/certs/fullchain.pem` (add it as a trusted CA).

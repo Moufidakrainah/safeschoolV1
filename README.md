@@ -475,6 +475,7 @@ For deeper documentation beyond what is required here — architecture overview,
 ### Known Limitations
 
 - Firefox does not support installing the application as a PWA (no `beforeinstallprompt` / install affordance). The app still runs normally in Firefox, and the service worker and offline caching keep working — only the "install to home screen / desktop" step is unavailable, so install it from Chrome or Edge instead.
+- The PWA can only be installed out of the box on the machine that hosts the server. Because this project ships a **self-signed** TLS certificate (no public domain / trusted CA), only `localhost` is treated as a secure origin — so the service worker registers and the install prompt appears only on the host machine. Other devices (phones, tablets, other computers) reach the app over the LAN IP and reject the untrusted certificate, which blocks service-worker registration and therefore the install prompt. To install it elsewhere, that device must first trust the certificate (`nginx/certs/fullchain.pem`) by adding it as a trusted CA — see [`docs/technical/pwa.md`](docs/technical/pwa.md).
 
 <!- TODO équipe : lister les en anglais les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés).  -->
 
