@@ -135,7 +135,13 @@
       "sending": "Sending...",
       "success": "Summons sent successfully!",
       "hint": "Select the people to summon and set a date and message for each.",
-      "dateError": "The date must be in the future"
+      "dateError": "The date must be in the future",
+      "selectRecipients": "Select recipients:",
+      "victimReporter": "Victim / Reporter",
+      "suspect": "Suspect",
+      "victim": "Victim",
+      "noRecipient": "No one to summon — first link suspects/victims to a student.",
+      "reporter": "Reporter"
     },
     "users": {
       "title": "User management",
@@ -180,7 +186,16 @@
       "atLeastOneMajor": "At least one uppercase letter required",
       "atLeastOneSpecial": "At least one special character required",
       "noFirstName": "Password must not contain first name",
-      "noLastName": "Password must not contain last name"
+      "noLastName": "Password must not contain last name",
+      "class": "Class",
+      "dateOfBirth": "Date of birth",
+      "ageMin": "The student must be at least 9 years old",
+      "ageMax": "The student cannot be more than 16 years old",
+      "classesTeacher": "Classes they teach",
+      "noClass": "No class available",
+      "charsCount": "{{count}}/50 characters",
+      "maxChars": "Maximum 50 characters reached",
+      "confirmStatus": "Confirm status change to {{label}}?"
     },
     "title": {
       "oneReport": "Details of a report",
@@ -206,8 +221,10 @@
     "all": "All statuses"
   },
   "noteblock": {
-    "note": " Note",
-    "convocation": " Summons"
+    "note": "Note",
+    "convocation": " Summons",
+    "statusChange": "Status updated",
+    "by": "by"
   },
   "pagination": {
     "nav": "Pagination",
@@ -228,7 +245,9 @@
     "back": "Back",
     "reset": "Reset",
     "limitReached": "Limit reached",
-    "optional": "optional"
+    "optional": "optional",
+    "confirm": "Confirm",
+    "inProgress": "In progress..."
   },
   "report": {
     "reporter": {
@@ -391,7 +410,9 @@
       "add+Victim": "Press `Enter` or click `Add this victim`",
       "add+Suspect": "Press `Enter` or click `Add this bully`",
       "addVictim": "Add this victim",
-      "addSuspect": "Add this bully"
+      "addSuspect": "Add this bully",
+      "maxVictims": "Maximum 5 victims reached",
+      "maxSuspects": "Maximum 5 suspects reached"
     },
     "step5": {
       "title": "Evidence",
@@ -405,9 +426,9 @@
       "type": "Type",
       "description": "Description",
       "frequency": "Frequency",
-      "victim": "Victim",
+      "victim": "I am a victim",
       "suspects": "Suspects",
-      "anonymous": "Anonymous report",
+      "anonymous": "Check this box if you don't want to be contacted about this report",
       "anonymousDesc": "my name will not be visible",
       "victims": "Victim(s)",
       "suspect": "I am a witness"
@@ -417,8 +438,8 @@
     "submitError": "Submission failed. Check your connection and try again.",
     "validation": {
       "typeRequired": "Please select a type of bullying to continue.",
-      "descriptionRequired": "Please describe the facts to continue.",
-      "frequencyRequired": "Please indicate the frequency to continue."
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     },
     "workshop": {
       "title": "Workshops",
@@ -465,12 +486,17 @@
       "soon": "This section will be available soon."
     },
     "cases": {
-      "summoned": "is summoned on ",
+      "summoned": "You are summoned on ",
       "iAmVictim": "I am a victim",
       "noUpdate": "No updates for this case",
       "loading": "Loading...",
       "noReport": "No reports found",
-      "meeting": "A meeting took place on "
+      "meeting": "A meeting took place on ",
+      "statusUpdate": "Status updated: {{status}} — {{date}}"
+    },
+    "validation": {
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     }
   },
   "privacy": {
@@ -545,7 +571,8 @@
     "loading": "Loading",
     "no": "No notifications",
     "report": "Report",
-    "read": "Read"
+    "read": "Read",
+    "statusUpdate": "Status of your case {{caseNumber}} updated: {{status}}"
   },
   "all": "All",
   "section": "Section",
@@ -640,7 +667,8 @@
     "emailTooLong": "Email too long (50 characters max)",
     "emailInvalid": "Invalid email format",
     "passwordRequired": "Password required",
-    "passwordMin": "Password too short"
+    "passwordMin": "Password too short",
+    "emailExists": "This email address is already in use"
   },
   "toast": {
     "avatarUpdated": "Photo updated successfully",

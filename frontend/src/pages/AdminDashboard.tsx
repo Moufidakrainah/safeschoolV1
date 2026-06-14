@@ -28,7 +28,6 @@ import ParentFormItem from '@/components/admin/ParentFormItem';
 
 interface SchoolClass { id: string; level: string; section: string; }
 
-// Helper pour construire le userForm depuis un utilisateur
 const buildUserForm = (u: AdminUser) => ({
   firstName: u.firstName,
   lastName: u.lastName,
@@ -113,17 +112,12 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-
-
   useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
 
   useEffect(() => {
     if (selectedUserId) {
       getUserById(selectedUserId).then(u => {
-        if (u) {
-          setSelectedUser(u);
-          setUserForm(buildUserForm(u));
-        }
+        if (u) { setSelectedUser(u); setUserForm(buildUserForm(u)); }
       }).catch(() => {});
     }
   }, [selectedUserId]);
@@ -139,7 +133,7 @@ export default function AdminDashboard() {
   }, [selectedUser?.id]);
 
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch { /* erreur réseau silencieuse volontaire */ } finally { setLoading(false); }
+    try { setReports(await getAllReports()); } catch { } finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -196,7 +190,7 @@ export default function AdminDashboard() {
 
   const handleReset = () => { setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all'); setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1); setResetKey(k => k + 1); };
 
-  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { /* erreur réseau silencieuse volontaire */ } };
+  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { } };
   const goTo = (report: typeof selected) => { setSelected(report); if (report) { loadNotes(report.id); setCheckedConvocIds([]); } };
 
   const handleAddNote = async (type = 'note') => {
@@ -204,30 +198,30 @@ export default function AdminDashboard() {
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
-    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { /* erreur réseau silencieuse volontaire */ }
+    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { }
   };
 
-const renderUserForm = (isEdit = false) => (
+  const renderUserForm = (isEdit = false) => (
     <div className="rounded-lg bg-[var(--color-primary-hover)] p-4 flex flex-col gap-3">
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
         <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.firstName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}
+        {errors.firstName && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.firstName)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
         <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.lastName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}
+        {errors.lastName && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.lastName)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
         <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{errors.email}</p>}
+        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.email)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
         <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />
-        {errors.password && <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}
+        {errors.password && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.password)}</p>}
       </div>
       <Select
         value={userForm.role}
@@ -249,21 +243,26 @@ const renderUserForm = (isEdit = false) => (
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
         </SelectContent>
       </Select>
+
       {userForm.role === 'student' && (
         <>
           <div>
-            <Label className="text-white text-sm">Classe</Label>
+            <Label className="text-white text-sm">{t('admin.users.class')}</Label>
             <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
               <SelectTrigger className="bg-white mt-1">
                 <SelectValue placeholder={t('admin.users.selectClass')}>
-                  {classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}
+                  {classes.find(c => c.id === userForm.classId)
+                    ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}`
+                    : t('admin.users.selectClass')}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-white text-sm">Date de naissance</Label>
+            <Label className="text-white text-sm">{t('admin.users.dateOfBirth')}</Label>
             <Input
               type="date"
               value={userForm.dateOfBirth}
@@ -274,30 +273,45 @@ const renderUserForm = (isEdit = false) => (
             />
             {userForm.dateOfBirth && (
               new Date(userForm.dateOfBirth) > new Date(new Date().setFullYear(new Date().getFullYear() - 9))
-                ? <p className="text-red-300 text-xs mt-1">L'élève doit avoir au moins 9 ans</p>
+                ? <p className="text-red-300 text-xs mt-1">{t('admin.users.ageMin')}</p>
                 : new Date(userForm.dateOfBirth) < new Date(new Date().setFullYear(new Date().getFullYear() - 16))
-                ? <p className="text-red-300 text-xs mt-1">L'élève ne peut pas avoir plus de 16 ans</p>
+                ? <p className="text-red-300 text-xs mt-1">{t('admin.users.ageMax')}</p>
                 : null
             )}
           </div>
-
         </>
       )}
+
       {userForm.role === 'teacher' && (
         <>
           <div>
             <Label className="text-white text-sm">{t('admin.teacher.subjectTeached')}</Label>
-            <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
-            <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
-            {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}
+            <Input
+              value={userForm.subject}
+              onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))}
+              placeholder="ex: Mathématiques"
+              className="bg-white mt-1"
+              maxLength={50}
+            />
+            <p className="text-white/60 text-xs mt-0.5">
+              {t('admin.users.charsCount', { count: userForm.subject.length })}
+            </p>
+            {userForm.subject.length === 50 && (
+              <p className="text-red-300 text-xs mt-0.5">{t('admin.users.maxChars')}</p>
+            )}
           </div>
           <div>
-            <Label className="text-white text-sm mb-2 block">Classes où il intervient</Label>
+            <Label className="text-white text-sm mb-2 block">{t('admin.users.classesTeacher')}</Label>
             <div className="flex flex-wrap gap-2">
               {classes.map(c => (
-                <button key={c.id} type="button" onClick={() => toggleClassId(c.id)} className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${userForm.classIds.includes(c.id) ? 'bg-white text-primary border-white' : 'bg-transparent text-white border-white/50 hover:border-white'}`}>{c.level} {c.section}</button>
+                <button key={c.id} type="button" onClick={() => toggleClassId(c.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${userForm.classIds.includes(c.id) ? 'bg-white text-primary border-white' : 'bg-transparent text-white border-white/50 hover:border-white'}`}>
+                  {c.level} {c.section}
+                </button>
               ))}
-              {classes.length === 0 && <p className="text-white/60 text-xs">Aucune classe disponible</p>}
+              {classes.length === 0 && (
+                <p className="text-white/60 text-xs">{t('admin.users.noClass')}</p>
+              )}
             </div>
           </div>
         </>
@@ -359,10 +373,7 @@ const renderUserForm = (isEdit = false) => (
             setSelected(null);
             setSelectedUser(null);
             const u = await getUserById(userId);
-            if (u) {
-              setSelectedUser(u);
-              setUserForm(buildUserForm(u));
-            }
+            if (u) { setSelectedUser(u); setUserForm(buildUserForm(u)); }
             setViewSection('users');
             navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
           }}
@@ -370,10 +381,20 @@ const renderUserForm = (isEdit = false) => (
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-              <p className="text-sm text-gray-700 mb-4">Confirmer le changement de statut vers <strong>{confirmAction.label}</strong> ?</p>
+              <p className="text-sm text-gray-700 mb-4">
+                {t('admin.users.confirmStatus', { label: confirmAction.label })}
+              </p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setConfirmAction(null)} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">Annuler</button>
-                <button onClick={async () => { await handleUpdateStatus(selected!.id, confirmAction.status); setConfirmAction(null); }} disabled={saving} className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">{saving ? 'En cours...' : 'Confirmer'}</button>
+                <button onClick={() => setConfirmAction(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={async () => { await handleUpdateStatus(selected!.id, confirmAction.status); setConfirmAction(null); }}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">
+                  {saving ? t('common.inProgress') : t('common.confirm')}
+                </button>
               </div>
             </div>
           </div>
@@ -418,12 +439,26 @@ const renderUserForm = (isEdit = false) => (
                 </SelectContent>
               </Select>
               <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger>
-                <SelectContent><SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}</SelectContent>
+                <SelectTrigger aria-label={t('admin.filters.allClasses')}>
+                  <SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>
+                  {classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}
+                </SelectContent>
               </Select>
               <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger>
-                <SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent>
+                <SelectTrigger aria-label={t('admin.filters.allReporters')}>
+                  <SelectValue>
+                    {filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>
+                  {[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
               <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
@@ -468,30 +503,26 @@ const renderUserForm = (isEdit = false) => (
                 ))}
               </ul>
             )}
-           
 
-
-{totalPages > 1 && (
+            {totalPages > 1 && (
               <PaginationShadcn className="mt-4">
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                    <PaginationPrevious text={t('common.previous')} text={t('common.previous')} onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
                     <PaginationItem key={p}>
-                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)}
-                        className="cursor-pointer">{p}</PaginationLink>
+                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)} className="cursor-pointer">{p}</PaginationLink>
                     </PaginationItem>
                   ))}
                   <PaginationItem>
-                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                    <PaginationNext text={t('common.next')} text={t('common.next')} onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                 </PaginationContent>
               </PaginationShadcn>
             )}
-
           </>
         )}
 
@@ -524,7 +555,6 @@ const renderUserForm = (isEdit = false) => (
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-              // Créer les parents si élève et parents dans le formulaire
               if (userForm.role === 'student' && userForm.parents.length > 0) {
                 const freshU = await getUserById(selectedUser.id);
                 const studentProfileId = freshU?.studentProfile?.id;
@@ -537,13 +567,7 @@ const renderUserForm = (isEdit = false) => (
                 }
               }
               const u = await getUserById(selectedUser.id);
-              if (u) {
-                setSelectedUser(null);
-                setTimeout(() => {
-                  setSelectedUser(u);
-                  setUserForm(buildUserForm(u));
-                }, 50);
-              }
+              if (u) { setSelectedUser(null); setTimeout(() => { setSelectedUser(u); setUserForm(buildUserForm(u)); }, 50); }
               await fetchUsers();
             }}
             renderUserForm={renderUserForm}
@@ -586,10 +610,20 @@ const renderUserForm = (isEdit = false) => (
         {deleteTarget && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-              <p className="text-sm text-gray-600 mb-4">{deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                {deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}
+              </p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); setDeleteError(''); }} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">{isBlocked ? t('common.close') : t('common.cancel')}</button>
-                {!isBlocked && <button onClick={confirmDelete} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">{isDeleting ? t('common.loading') : t('common.delete')}</button>}
+                <button onClick={() => { setDeleteTarget(null); }}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
+                  {isBlocked ? t('common.close') : t('common.cancel')}
+                </button>
+                {!isBlocked && (
+                  <button onClick={confirmDelete} disabled={isDeleting}
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                    {isDeleting ? t('common.loading') : t('common.delete')}
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -326,8 +326,8 @@ export default function ReportDetail({
           {/* Alerteur */}
           <div>
             <p className="text-xs text-muted-foreground font-semibold mb-3">{t('admin.detail.reporter')}</p>
-            <div className={`flex items-center gap-3 ${selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
-              onClick={() => selected.student?.id && onNavigateToUser(selected.student.id)}>
+            <div className={`flex items-center gap-3 ${selected.isAnonymous ? 'opacity-50 pointer-events-none' : selected.student?.id ? 'cursor-pointer hover:opacity-80' : ''}`}
+              onClick={() => !selected.isAnonymous && selected.student?.id && onNavigateToUser(selected.student.id)}>
               {selected.student?.avatar
                 ? <img src={`${AVATAR_BASE}/${selected.student.avatar}`} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-gray-200" />
                 : <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
@@ -366,10 +366,10 @@ export default function ReportDetail({
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
           <div className="flex flex-col gap-2">
-            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1500))} rows={3}
-              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1500} />
+            <Textarea value={newNote} onChange={e => onSetNewNote(e.target.value.slice(0, 1400))} rows={3}
+              placeholder={t('admin.notes.placeholder')} className="resize-y bg-gray-50" maxLength={1400} />
             <p className="text-xs text-gray-400 text-right">
-              {newNote.length}/1500 {newNote.length >= 1500 && <span className="text-red-500">{t('common.limitReached')}</span>}
+              {newNote.length}/1400 {newNote.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
             </p>
             <Button onClick={() => onAddNote('note')}>{t('admin.notes.save')}</Button>
           </div>
@@ -393,10 +393,10 @@ export default function ReportDetail({
               {checkedConvocIds.map(personId => {
                 const details = convocDetails[personId] ?? { date: '', message: '' };
                 const label = personId === 'alerteur'
-                  ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
+                  ? `${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -410,10 +410,10 @@ export default function ReportDetail({
                       )}
                     </div>
                     <Textarea rows={2} placeholder={t('admin.convocation.messagePlaceholder')} value={details.message}
-                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1500) } }))}
-                      className="resize-y" maxLength={1500} />
+                      onChange={e => onSetConvocDetails((prev: Record<string, { date: string; message: string }>) => ({ ...prev, [personId]: { ...prev[personId], message: e.target.value.slice(0, 1400) } }))}
+                      className="resize-y" maxLength={1400} />
                     <p className="text-xs text-gray-400 text-right">
-                      {details.message.length}/1500 {details.message.length >= 1500 && <span className="text-red-500">{t('common.limitReached')}</span>}
+                      {details.message.length}/1400 {details.message.length >= 1400 && <span className="text-red-500">{t('common.limitReached')}</span>}
                     </p>
                   </div>
                 );

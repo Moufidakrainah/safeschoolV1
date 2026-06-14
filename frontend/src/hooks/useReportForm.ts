@@ -33,18 +33,21 @@ export interface UseReportFormReturn {
   addSuspect:         (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect:      (index: number) => void;
   resetForm:          () => void;
-  descriptionError:   string;
-  setDescriptionError: React.Dispatch<React.SetStateAction<string>>;
-  victimError:        string;
-  setVictimError:     React.Dispatch<React.SetStateAction<string>>;
-  suspectError:       string;
-  setSuspectError:    React.Dispatch<React.SetStateAction<string>>;
-  validateDescription: (value: string) => string;
-  validatePersonName:  (value: string) => string;
+  // Clés i18n — t() est appelé dans le composant
+  descriptionErrorKey:   string;
+  setDescriptionErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  frequencyErrorKey:     string;
+  setFrequencyErrorKey:  React.Dispatch<React.SetStateAction<string>>;
+  victimErrorKey:        string;
+  setVictimErrorKey:     React.Dispatch<React.SetStateAction<string>>;
+  suspectErrorKey:       string;
+  setSuspectErrorKey:    React.Dispatch<React.SetStateAction<string>>;
+  validateDescriptionKey: (value: string) => string | null;
+  validateNameKey:        (value: string) => string | null;
 }
 
 const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
-const personRegex = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
+const personRegex      = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
 
 export function useReportForm(
   userRole: string | undefined,
@@ -53,20 +56,21 @@ export function useReportForm(
 
   const defaultWho = 'temoin';
 
-  const validateDescription = (value: string): string => {
-    if (!value.trim()) return t('validation.descRequired');
-    if (value.length < 20) return t('validation.descMin');
-    if (value.length > 2000) return t('validation.descMax');
-    if (!descriptionRegex.test(value)) return t('validation.descInvalid');
-    return '';
+  // ── Validators — retournent des CLÉS i18n ──
+  const validateDescriptionKey = (value: string): string | null => {
+    if (!value.trim()) return 'validation.descRequired';
+    if (value.length < 20) return 'validation.descMin';
+    if (value.length > 2000) return 'validation.descMax';
+    if (!descriptionRegex.test(value)) return 'validation.descInvalid';
+    return null;
   };
 
-  const validatePersonName = (value: string): string => {
-    if (!value.trim()) return t('validation.nameRequired');
-    if (value.length < 2) return t('validation.nameMin');
-    if (value.length > 50) return t('validation.nameMax');
-    if (!personRegex.test(value)) return t('validation.nameInvalid');
-    return '';
+  const validateNameKey = (value: string): string | null => {
+    if (!value.trim()) return 'validation.nameRequired';
+    if (value.length < 2) return 'validation.nameMin';
+    if (value.length > 50) return 'validation.nameMax';
+    if (!personRegex.test(value)) return 'validation.nameInvalid';
+    return null;
   };
 
   const [step, setStep]               = useState(1);
@@ -78,13 +82,16 @@ export function useReportForm(
   const [loading, setLoading]         = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showErrors, setShowErrors]   = useState(false);
-  const [descriptionError, setDescriptionError] = useState('');
-  const [victimError, setVictimError]           = useState('');
-  const [suspectError, setSuspectError]         = useState('');
+
+  // ── Stocke des CLÉS i18n, pas des messages ──
+  const [descriptionErrorKey, setDescriptionErrorKey] = useState('');
+  const [frequencyErrorKey, setFrequencyErrorKey]     = useState('');
+  const [victimErrorKey, setVictimErrorKey]           = useState('');
+  const [suspectErrorKey, setSuspectErrorKey]         = useState('');
 
   const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!!validateDescription(description) || !frequency));
+    (step === 2 && (!!validateDescriptionKey(description) || !frequency));
 
   const [suspects,     setSuspects]     = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
@@ -93,13 +100,18 @@ export function useReportForm(
   const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
   const handleSubmit = async () => {
-    if (!type || !description || !frequency) return;
+    // Valider description
+    const descKey = validateDescriptionKey(description.trim());
+    if (descKey) { setDescriptionErrorKey(descKey); setShowErrors(true); return; }
+    if (!frequency) { setFrequencyErrorKey('validation.freqRequired'); setShowErrors(true); return; }
+    if (!type) return;
+
     setLoading(true);
     setSubmitError(null);
     try {
       const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({ freeText: `${s.firstName} ${s.lastName}` }));
-      const victimsData = victimName ? [{ freeText: victimName }] : [];
+      const victimsData  = victimName ? [{ freeText: victimName }] : [];
       await createReport(type, 'temoin', fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(6);
     } catch {
@@ -111,9 +123,9 @@ export function useReportForm(
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
     const name = `${suspect.firstName} ${suspect.lastName}`.trim();
-    const err = validatePersonName(name);
-    if (err) { setSuspectError(err); return; }
-    setSuspectError('');
+    const errKey = validateNameKey(name);
+    if (errKey) { setSuspectErrorKey(errKey); return; }
+    setSuspectErrorKey('');
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
@@ -135,14 +147,19 @@ export function useReportForm(
     setIsAnonymous(false);
     setSubmitError(null);
     setShowErrors(false);
+    setDescriptionErrorKey('');
+    setFrequencyErrorKey('');
+    setVictimErrorKey('');
+    setSuspectErrorKey('');
   };
 
   return {
     step, setStep,
-    descriptionError, setDescriptionError,
-    victimError, setVictimError,
-    suspectError, setSuspectError,
-    validateDescription, validatePersonName,
+    descriptionErrorKey, setDescriptionErrorKey,
+    frequencyErrorKey, setFrequencyErrorKey,
+    victimErrorKey, setVictimErrorKey,
+    suspectErrorKey, setSuspectErrorKey,
+    validateDescriptionKey, validateNameKey,
     whoSignals, setWhoSignals,
     type, setType,
     description, setDescription,
