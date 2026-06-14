@@ -19,7 +19,7 @@ export class StudentProfilesService {
       : null;
     const profile = this.studentProfilesRepository.create({
       schoolClass,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) as any : null,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       user: { id: userId },
     });
     return this.studentProfilesRepository.save(profile);
@@ -47,7 +47,7 @@ export class StudentProfilesService {
       const schoolClass = await this.classesRepository.findOne({ where: { id: updates.classId } });
       if (schoolClass) profile.schoolClass = schoolClass;
     }
-    if (updates.dateOfBirth) profile.dateOfBirth = new Date(updates.dateOfBirth) as any;
+    if (updates.dateOfBirth) profile.dateOfBirth = new Date(updates.dateOfBirth);
     return this.studentProfilesRepository.save(profile);
   }
 

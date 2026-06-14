@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useCallback } from 'react';
-import Header from '../Header/Header';
-import { getNotifications, getUnreadCount, markNotificationRead } from '../../../services/api';
-import { useReconnectKey } from '../../../hooks/useOnlineStatus';
-import type { AuthUser } from '../../../types';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import Header from '@/components/layout/Header/Header';
+import { getNotifications, getUnreadCount, markNotificationRead } from '@/services/api';
+import { useReconnectKey } from '@/hooks/useOnlineStatus';
+import type { AuthUser } from '@/types';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
 
@@ -23,10 +23,13 @@ interface StudentHeaderProps {
   onNotifRefresh?: () => void;
 }
 
-export default function StudentHeader({ user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
+export default function StudentHeader({
+  user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh,
+}: StudentHeaderProps) {
   const { t } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const prevCountRef = useRef(0);
 
   const reconnectKey = useReconnectKey();
 
@@ -35,10 +38,16 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     try {
       const [countData, notifs] = await Promise.all([getUnreadCount(), getNotifications()]);
-      setUnreadCount(prev => {
-        if (prev !== (countData.count ?? 0)) onNotifRefresh?.();
-        return countData.count ?? 0;
-      });
+      const newCount = countData.count ?? 0;
+
+      // ── Comparer AVANT le setState pour éviter setState dans setState ──
+      if (prevCountRef.current !== newCount) {
+        prevCountRef.current = newCount;
+        // onNotifRefresh appelé en dehors du setter
+        onNotifRefresh?.();
+      }
+
+      setUnreadCount(newCount);
       setNotifications(notifs);
     } catch {
       setUnreadCount(0);
@@ -70,14 +79,14 @@ export default function StudentHeader({ user, logoutUser, viewSection, setViewSe
           prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
         );
         onNotifRefresh?.();
-      } catch {}
+      } catch { /* erreur réseau silencieuse volontaire */ }
     }
   };
 
   const navItems: { key: StudentSection; label: string }[] = [
     { key: 'profile', label: t('student.nav.profile') },
     { key: 'report',  label: t('student.nav.report') },
-    { key: 'cases',   label: 'Mes dossiers' },
+    { key: 'cases',   label: t('student.nav.cases') },
     { key: 'quiz',    label: t('student.nav.quiz') },
   ];
 

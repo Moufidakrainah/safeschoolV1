@@ -9,12 +9,11 @@ import {
 import OfflineNotice from "@/components/OfflineNotice";
 import { useReconnectKey } from "@/hooks/useOnlineStatus";
 import { Badge } from "@/components/ui/badge";
-import { SEVERITY_COLORS, severityFromApiGrade } from "@/utils/severity";
 import { useTranslation } from 'react-i18next';
-import type { AuthUser } from "@/types";
+import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
-  const map: Record<string, any> = {
+  const map: Record<string, string> = {
     new: "new",
     in_progress: "in_progress",
     pending: "pending",
@@ -24,49 +23,52 @@ const statusToBadgeVariant = (status: string) => {
   return map[status] ?? "new";
 };
 
+// Map type backend → clé i18n
+const TYPE_MAP: Record<string, string> = {
+  physique:  'reporter.step2.physical',
+  verbal:    'reporter.step2.verbal',
+  cyber:     'reporter.step2.cyber',
+  exclusion: 'reporter.step2.exclusion',
+  sexuel:    'reporter.step2.sexual',
+};
+
+// Map labels FR statut backend → clés badge i18n
+const STATUS_FR_TO_KEY: Record<string, string> = {
+  'Nouveau':          'badge.new',
+  'En cours':         'badge.in_progress',
+  'En attente':       'badge.pending',
+  'Résolu':           'badge.resolved',
+  'Faux signalement': 'badge.false_report',
+  'Clôturé':          'badge.closed',
+  'Rejeté':           'badge.rejected',
+};
+
 const MONTHS_FR: Record<string, number> = {
   janvier: 1, février: 2, mars: 3, avril: 4, mai: 5, juin: 6,
   juillet: 7, août: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12,
 };
 
-function anonymizeConvocation(content: string): string {
-  return content.replace(/^.+? est convoqué/, 'Vous êtes convoqué');
-}
-
 function parseConvocation(content: string) {
   const dateMatch = content.match(
     /(\d{1,2})\s+([a-záàâäéèêëíìîïóòôöúùûüç]+)\s+(\d{4})\s+à\s+(\d{1,2}):(\d{2})/,
   );
-  content = anonymizeConvocation(content);
   const parts = content.split("\n\n");
   const message = parts.slice(1).join("\n\n").trim();
-  const recipientMatch = content.match(/^(.+?) est convoqué/);
-  const recipient = recipientMatch ? recipientMatch[1].trim() : null;
 
   if (!dateMatch) {
-    return {
-      isPast: true,
-      displayDate: content.split("\n")[0].replace("📅", "").trim(),
-      message,
-      recipient,
-    };
+    return { isPast: true, displayDate: content.split("\n")[0].replace("📅", "").trim(), message };
   }
 
   const [, day, monthStr, year, hours, minutes] = dateMatch;
   const monthNum = MONTHS_FR[monthStr.toLowerCase()];
   if (!monthNum) {
-    return {
-      isPast: true,
-      displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`,
-      message,
-      recipient,
-    };
+    return { isPast: true, displayDate: `${day} ${monthStr} ${year} à ${hours}:${minutes}`, message };
   }
 
   const rdvDate = new Date(Number(year), monthNum - 1, Number(day), Number(hours), Number(minutes));
   const isPast = rdvDate < new Date();
   const displayDate = `${String(day).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}/${year} à ${hours}h${minutes}`;
-  return { isPast, displayDate, message, recipient };
+  return { isPast, displayDate, message };
 }
 
 interface StudentCasesProps {
@@ -77,11 +79,11 @@ interface StudentCasesProps {
 
 export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
   const { t } = useTranslation();
-  const [myReports, setMyReports] = useState<any[]>([]);
+  const [myReports, setMyReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
   const [loadFailedOffline, setLoadFailedOffline] = useState(false);
-  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
-  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+  const [reportNotes, setReportNotes] = useState<Record<string, Note[]>>({});
+  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }>>({});
   const reconnectKey = useReconnectKey();
 
   useEffect(() => {
@@ -90,16 +92,16 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
 
     Promise.all([getAllReports(), getNotifications()])
       .then(async ([all, notifs]) => {
-        const mine = all.filter((r: any) => r.reporter === "victime");
-        setMyReports(mine);
+        const mine = all.filter((r: Report) => r.reporter === "victime");
+        setMyReports(mine.sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 
-        const notesMap: Record<string, any[]> = {};
+        const notesMap: Record<string, Note[]> = {};
         await Promise.all(
-          mine.map(async (r: any) => {
+          mine.map(async (r: Report) => {
             try {
               const notes = await getNotes(r.id);
               notesMap[r.id] = notes.filter(
-                (n: any) => n.type === "convocation" || n.type === "status_change"
+                (n: Note) => n.type === "convocation" || n.type === "status_change"
               );
             } catch {
               notesMap[r.id] = [];
@@ -108,8 +110,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         );
         setReportNotes(notesMap);
 
-        const unreadMap: Record<string, any> = {};
-        notifs.filter((n: any) => !n.isRead).forEach((n: any) => { unreadMap[n.id] = n; });
+        const unreadMap: Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }> = {};
+        notifs.filter((n: Note & { isRead: boolean }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
         setLoadFailedOffline(false);
       })
@@ -120,8 +122,8 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
       .finally(() => setLoadingReports(false));
   }, [user?.id, refreshKey, reconnectKey]);
 
-  const findUnreadNotifForNote = (note: any, reportId: string): any | null => {
-    return Object.values(unreadNotifs).find((n: any) => {
+  const findUnreadNotifForNote = (note: Note, reportId: string) => {
+    return Object.values(unreadNotifs).find((n) => {
       if (n.report?.id !== reportId) return false;
       const noteContent = note.content.replace("📅 ", "").trim();
       const notifMsg = n.message.replace("Convocation : ", "").trim();
@@ -132,7 +134,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     }) ?? null;
   };
 
-  const handleConvocationClick = async (notif: any) => {
+  const handleConvocationClick = async (notif: Note & { id: string; isRead: boolean }) => {
     if (!notif) return;
     try {
       await markNotificationRead(notif.id);
@@ -142,110 +144,95 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         return updated;
       });
       onNotifRefresh?.();
-    } catch {}
+    } catch { /* erreur réseau silencieuse volontaire */ }
+  };
+
+  // ── Formater le contenu d'une note status_change ──
+  const formatStatusNote = (content: string): string => {
+    // Format backend : "Statut mis à jour : LABEL — DATE"
+    const match = content.match(/^Statut mis à jour : (.+) — (.+)$/);
+    if (!match) return content;
+    const [, labelFR, date] = match;
+    const badgeKey = STATUS_FR_TO_KEY[labelFR.trim()];
+    const translatedStatus = badgeKey ? t(badgeKey).trim() : labelFR;
+    return t('student.cases.statusUpdate', { status: translatedStatus, date });
   };
 
   return (
     <section className="page-section">
       {loadingReports ? (
-        <p className="text-center py-10 text-gray-400">Chargement...</p>
+        <p className="text-center py-10 text-gray-400">{t("student.cases.loading")}</p>
       ) : loadFailedOffline ? (
         <OfflineNotice />
       ) : myReports.length === 0 ? (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-10 text-center">
-          <p className="text-gray-400 text-sm">Aucun signalement trouvé</p>
+          <p className="text-gray-400 text-sm">{t("student.cases.noReport")}</p>
         </div>
       ) : (
         <ul className="flex flex-col gap-3">
-          {myReports.map((report: any) => {
-            const severity = severityFromApiGrade(report.grade);
+          {myReports.map((report: Report) => {
             const notes = reportNotes[report.id] ?? [];
-            const reportUnreadCount = Object.values(unreadNotifs).filter(
-              (n: any) => n.report?.id === report.id,
-            ).length;
 
             return (
-              <li
-                key={report.id}
-                style={{ borderLeft: `5px solid ${SEVERITY_COLORS[severity]}` }}
-                className="bg-surface px-6 py-5 shadow-sm rounded-sm"
-              >
-                {/* En-tête du dossier */}
+              <li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
+                {/* En-tête */}
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="card-title">{report.caseNumber}</span>
-                      {reportUnreadCount > 0 && (
-                        <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                          {reportUnreadCount}
-                        </span>
-                      )}
-                    </div>
-                    <p className="card-subtitle mt-1 mb-2 capitalize">
-                      {report.type} — Je suis victime
+                    <span className="card-title">{report.caseNumber}</span>
+                    <p className="card-subtitle mt-1 mb-2">
+                      {t(TYPE_MAP[report.type] ?? report.type)} - {t("student.cases.iAmVictim")}
                     </p>
                     <p className="card-meta">
                       {new Date(report.createdAt).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
-                  <Badge variant={statusToBadgeVariant(report.status)} className="ml-4" />
+                  <Badge variant={statusToBadgeVariant(report.status)} />
                 </div>
 
-                {/* Notes : status_change + convocations */}
+                {/* Notes */}
                 {notes.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">Aucune mise à jour pour ce dossier.</p>
+                  <p className="text-xs text-gray-400 italic">{t("student.cases.noUpdate")}</p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
-                    {notes.map((note: any) => {
+                    {notes.map((note: Note) => {
 
-                      // ── Note de changement de statut ──
+                      // ── Changement de statut ──
                       if (note.type === 'status_change') {
                         return (
-                          <div
-                            key={note.id}
+                          <div key={note.id}
                             style={{ borderLeft: '3px solid var(--color-primary)' }}
-                            className="p-3 rounded-sm bg-gray-50"
-                          >
-                            <p className="text-sm text-gray-600">{note.content}</p>
+                            className="p-3 bg-white">
+                            <p className="text-sm">{formatStatusNote(note.content)}</p>
                           </div>
                         );
                       }
 
                       // ── Convocation ──
-                      const { isPast, displayDate, message, recipient } = parseConvocation(note.content);
+                      const { isPast, displayDate, message } = parseConvocation(note.content);
                       const unreadNotif = !isPast ? findUnreadNotifForNote(note, report.id) : null;
                       const isNew = !!unreadNotif;
 
                       return (
-                        <div
-                          key={note.id}
+                        <div key={note.id}
                           onClick={() => isNew && handleConvocationClick(unreadNotif)}
-                          style={{ borderLeft: '3px solid var(--color-warning)' }}
-                          className={`p-3 rounded-sm bg-indigo-50 ${isNew ? 'cursor-pointer hover:bg-indigo-100' : ''} transition-colors`}
-                        >
+                          style={{ borderLeft: "3px solid var(--color-warning)" }}
+                          className="p-3 bg-indigo-50">
                           {isPast ? (
                             <p className="text-gray-400 text-sm">
-                              Un rendez-vous a eu lieu le <strong>{displayDate}</strong>
+                              {t("student.cases.meeting")}<strong>{displayDate}</strong>
                             </p>
                           ) : (
                             <div>
-                              <div className="flex justify-between items-center mb-1">
-                                <span className="text-xs font-semibold text-primary">
+                              <div className="flex justify-between">
+                                <span className="text-xs font-semibold">
                                   {t('noteblock.convocation')}
                                 </span>
-                                {isNew && (
-                                  <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full">
-                                    Nouveau
-                                  </span>
-                                )}
+                                {isNew && <Badge variant="new_red" className="ml-4" />}
                               </div>
-                              <p className="text-sm font-semibold text-gray-700">
-                                {recipient ? <span>{recipient}</span> : 'Vous'}{' '}
-                                êtes convoqué(e) le <strong>{displayDate}</strong>
+                              <p className="text-sm font-semibold">
+                                {t("student.cases.summoned")}{displayDate}
                               </p>
-                              {message && (
-                                <p className="text-gray-600 mt-1 text-xs whitespace-pre-line">{message}</p>
-                              )}
+                              {message && <p className="mt-1 text-xs">{message}</p>}
                             </div>
                           )}
                         </div>

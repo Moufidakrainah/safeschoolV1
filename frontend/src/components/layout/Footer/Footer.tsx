@@ -2,14 +2,14 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { memo } from 'react';
 import { LANGUAGES } from './Footer.constants';
-import { useLanguage } from '../../../hooks/useLanguage';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const Footer = memo(function Footer() {
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useLanguage();
 
   return (
-    <footer className="bg-primary text-white py-4 px-6" role="contentinfo">
+    <footer className="bg-primary text-white py-4 px-6 " role="contentinfo" >
       <div className="container mx-auto flex flex-wrap items-center justify-between gap-4 text-sm">
         <nav aria-label={t('footer.legalNav')} className="flex-grow">
           <ul className="flex gap-6 list-none p-0 m-0">

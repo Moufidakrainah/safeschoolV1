@@ -109,7 +109,7 @@ export class UsersController {
       destination: './uploads/avatars',
       filename: (req, file, cb) => {
         const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-        cb(null, `${req.params.id}${ext}`);
+        cb(null, `${String(req.params.id)}${ext}`);
       },
     }),
     fileFilter: (req, file, cb) => {

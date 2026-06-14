@@ -8,9 +8,6 @@ interface StatCardProps {
 }
 
 export default function StatCard({ label, value, color, active, onClick, activeTextColor = 'white' }: StatCardProps) {
-  const borderColor = active
-    ? `color-mix(in oklab, ${color} 60%, black)`
-    : `color-mix(in oklab, ${color} 35%, white)`;
 
   const textColor = active ? activeTextColor : 'var(--foreground)';
 

@@ -89,7 +89,8 @@ export class ReportsController {
   async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req) {
     validateUUID(id);
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
-    return this.reportsService.update(id, dto);
+    // ── Passer req.user comme auteur pour la note status_change ──
+    return this.reportsService.update(id, dto, req.user);
   }
 
   @Get(":id/notes")
@@ -99,7 +100,15 @@ export class ReportsController {
       const report = await this.reportsService.findOne(id);
       if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
       const notes = await this.reportsService.getNotes(id);
-      return notes.filter((n: any) => n.type === "convocation" || n.type === "status_change");
+      const user = req.user;
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      return notes.filter((n: any) => {
+        if (n.type === "status_change") return true;
+        if (n.type === "convocation") {
+          return n.content.toLowerCase().includes(fullName);
+        }
+        return false;
+      });
     }
     return this.reportsService.getNotes(id);
   }

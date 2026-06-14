@@ -1,0 +1,41 @@
+# ════════════════════════════════════════════════════════════════════
+#  Overlay PROD (chargé explicitement : make prod)
+#  docker compose -f docker-compose.yml -f docker-compose.prod.yml ...
+#
+#  - backend : image compilée (node dist/main), pas de sources montées.
+#  - nginx   : terminaison TLS + sert le build du frontend + reverse proxy.
+#  - frontend : PAS de conteneur de dev (le build est servi par nginx).
+# ════════════════════════════════════════════════════════════════════
+
+services:
+
+  backend:
+    build:
+      target: prod
+    restart: always
+    # Les avatars uploadés persistent hors du conteneur.
+    volumes:
+      - backend_uploads:/app/uploads
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        # Vide => le frontend utilise des URLs relatives (même origine).
+        VITE_API_URL: ""
+    container_name: safeschool_nginx
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - safeschool_network
+    restart: always
+
+volumes:
+  backend_uploads:
