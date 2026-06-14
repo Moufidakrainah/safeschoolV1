@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 type QuizJoinScreenProps = {
   connected: boolean;
   reconnecting: boolean;
+  offline: boolean;
   socketError: string;
   roomCode: string;
   setRoomCode: (code: string) => void;
@@ -15,6 +16,7 @@ type QuizJoinScreenProps = {
 export default function QuizJoinScreen({
   connected,
   reconnecting,
+  offline,
   socketError,
   roomCode,
   setRoomCode,
@@ -25,8 +27,15 @@ export default function QuizJoinScreen({
     <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
         <h1 className="text-center text-2xl font-black text-gray-900">{t('quiz.title')}</h1>
-        {reconnecting && <p className="text-sm text-amber-500 text-center">{t('quiz.reconnecting')}</p>}
-        {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
+        {/* Hors ligne*/}
+        {offline ? (
+          <p className="text-sm text-amber-500 text-center">{t('offline.message')}</p>
+        ) : (
+          <>
+            {reconnecting && <p className="text-sm text-amber-500 text-center">{t('quiz.reconnecting')}</p>}
+            {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
+          </>
+        )}
         <form
           onSubmit={(e) => { e.preventDefault(); joinRoom(roomCode); }}
           className="flex flex-col gap-3"

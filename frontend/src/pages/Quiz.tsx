@@ -24,6 +24,7 @@ export default function Quiz() {
   const {
     connected,
     reconnecting,
+    offline,
     socketError,
     myClientId,
     isHost,
@@ -56,6 +57,7 @@ export default function Quiz() {
         <QuizJoinScreen
           connected={connected}
           reconnecting={reconnecting}
+          offline={offline}
           socketError={socketError}
           roomCode={roomCode}
           setRoomCode={setRoomCode}
