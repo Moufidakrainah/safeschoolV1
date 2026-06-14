@@ -70,7 +70,6 @@ export default function AdminUserProfile({
     }
   }, [selectedUser?.id, selectedUser?.staffProfile]);
 
-  // ── Avatar avec toasts ──
   const handleAvatarChange = async (file: File) => {
     setUploadingAvatarId(selectedUser.id);
     try {
@@ -83,7 +82,6 @@ export default function AdminUserProfile({
     }
   };
 
-  // ── Parents avec toasts ──
   const handleSaveParent = async () => {
     const studentProfileId = selectedUser?.studentProfile?.id;
     try {
@@ -157,11 +155,16 @@ export default function AdminUserProfile({
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
-            <label className={`cursor-pointer inline-flex items-center gap-1 h-10 px-4 py-2 rounded-md text-sm font-medium bg-primary text-white hover:opacity-90 transition-opacity ${uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}`}>
-              {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
-            </label>
+
+            {/* ── Bouton changer photo — même taille que les autres ── */}
+            <Button asChild className={uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}>
+              <label className="cursor-pointer">
+                {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                  onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
+              </label>
+            </Button>
+
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}
             </Button>
