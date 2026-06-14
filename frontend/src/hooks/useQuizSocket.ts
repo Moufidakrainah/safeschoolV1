@@ -347,12 +347,19 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
     const handleOffline = () => {
       setConnected(false);
       setReconnecting(true);
-      socketRef.current?.io.engine?.close();
+      const socket = socketRef.current;
+      if (socket) {
+        socket.io.reconnection(false);
+        socket.disconnect();
+      }
     };
 
     const handleOnline = () => {
-      const socket = socketRef.current;
-      if (socket && !socket.connected && socket.active) socket.io.open();
+      const socket = socketRef.current; 
+      if (socket && !socket.connected) {
+        socket.io.reconnection(true);
+        socket.connect();
+      }
     };
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
