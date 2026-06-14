@@ -7,28 +7,32 @@ import { API_BASE } from '@/config';
 import { formatName } from '@/utils/formatName';
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Input } from '@/components/ui/input';
+import OfflineNotice from '@/components/OfflineNotice';
 
 interface AdminUsersListProps {
-    filteredUsers: AdminUser[];
-    usersPage: number;
-    usersSearch: string;
-    usersSort: 'asc' | 'desc' | 'date';
-    usersRoleFilter: string[];
-    loadingUsers: boolean;
-    avatarTimestamps: Record<string, number>;
-    usersTotalPages: number;
-    showUserForm: boolean;
-    isFormValid: boolean;
-    onSetUsersSearch: (s: string) => void;
-    onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;
-    onSetUsersRoleFilter: (f: string[]) => void;
-    onSetUsersPage: (p: number) => void;
-    onFetchUsers: (page?: number, search?: string) => void;
-    onNavigateToUser: (u: AdminUser) => void;
-    onSetShowUserForm: (v: boolean) => void;
-    onSaveUser: () => void;
-    onValidateAll: () => boolean;
-    renderUserForm: (isEdit: boolean) => JSX.Element;
+    filteredUsers: AdminUser[];        // la liste des utilisateurs
+    usersPage: number;                 // la page actuelle
+    usersSearch: string;               // le texte de recherche
+    usersSort: 'asc' | 'desc' | 'date'; // le tri actuel
+    usersRoleFilter: string[];         // les filtres actifs (student, teacher, admin)
+    loadingUsers: boolean;             // chargement en cours ?
+    usersFailedOffline: boolean;       // le chargement a échoué car hors ligne ?
+    avatarTimestamps: Record<string, number>; // pour rafraîchir les photos
+    usersTotalPages: number;              // nombre total de pages
+    showUserForm: boolean;                // afficher le formulaire d'ajout ?
+    isFormValid: boolean;                 // le formulaire est-il valide ?
+
+    // ── Fonctions du parent ──
+    onSetUsersSearch: (s: string) => void;                    // changer le texte de recherche
+    onSetUsersSort: (s: 'asc' | 'desc' | 'date') => void;    // changer le tri
+    onSetUsersRoleFilter: (f: string[]) => void;              // changer les filtres de rôle
+    onSetUsersPage: (p: number) => void;                      // changer la page
+    onFetchUsers: (page?: number, search?: string) => void;   // recharger les utilisateurs
+    onNavigateToUser: (u: AdminUser) => void;                 // naviguer vers un profil
+    onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
+    onSaveUser: () => void;                                   // sauvegarder un utilisateur
+    onValidateAll: () => boolean;                             // valider tous les champs du formulaire
+    renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
 }
 
 export default function AdminUserList({
@@ -38,6 +42,7 @@ export default function AdminUserList({
   usersSort,
   usersRoleFilter,
   loadingUsers,
+  usersFailedOffline,
   avatarTimestamps,
   usersTotalPages,
   showUserForm,
@@ -112,6 +117,8 @@ export default function AdminUserList({
             {/* 4. Liste utilisateurs */}
             {loadingUsers ? (
                 <p className="text-center py-10 text-gray-400">{t('admin.loading')}</p>
+                ) : usersFailedOffline && filteredUsers.length === 0 ? (
+                <OfflineNotice />
                 ) : (
                 <ul className="flex flex-col gap-3 mt-4">
                     {filteredUsers.slice((usersPage - 1) * 7, usersPage * 7).map(u => {
