@@ -24,9 +24,6 @@ api.interceptors.response.use(
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
 
-export const register = async (email: string, password: string, firstName: string, lastName: string) =>
-  (await api.post('/auth/register', { email, password, firstName, lastName })).data;
-
 export const getAllReports = async () => (await api.get('/reports')).data;
 
 export const createReport = async (

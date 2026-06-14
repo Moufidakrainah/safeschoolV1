@@ -31,32 +31,4 @@ export class AuthService {
       },
     };
   }
-
-  async register(
-    email: string,
-    password: string,
-    firstName: string,
-    lastName: string,
-  ) {
-    const existing = await this.usersService.findByEmail(email);
-    if (existing) throw new UnauthorizedException("Cet email est déjà utilisé");
-    const user = await this.usersService.create(
-      email,
-      password,
-      firstName,
-      lastName,
-    );
-    const payload = { sub: user.id, email: user.email, role: user.role };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        studentProfile: null,
-      },
-    };
-  }
 }
