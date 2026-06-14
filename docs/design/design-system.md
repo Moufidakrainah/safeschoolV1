@@ -26,7 +26,6 @@ frontend/src/components/
 │   ├── alert-dialog.tsx
 │   └── pagination.tsx
 │
-├── Autocomplete.tsx       ← shared application components
 ├── ConvocationSelector.tsx
 ├── NoteBlock.tsx
 ├── Pagination.tsx

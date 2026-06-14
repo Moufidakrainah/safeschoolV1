@@ -58,9 +58,9 @@ flowchart LR
 
 ---
 
-## Current vs Target Network Architecture
+## Network Architecture — Development vs Production
 
-### Current state (dev, HTTP)
+### Development state (HTTP, direct ports)
 
 Each service exposes its port directly to the host. The browser talks to several different servers:
 
@@ -78,17 +78,17 @@ Everything runs over plain HTTP. JWT tokens, passwords, and student data are rea
 | Frontend (Vite) | 5173 | 5173 |
 | Backend (NestJS) | 3000 | 5000 |
 | PostgreSQL | 5432 | 5433 |
-| Elasticsearch | 9200 | 9201 |
-| Logstash (TCP) | 5044 | 5044 |
+| Elasticsearch | 9200 | — (internal only) |
+| Logstash (TCP) | 5044 | — (internal only) |
 | Kibana | 5601 | 5601 |
 
-### Target state (prod, HTTPS with nginx reverse proxy)
+### Production state (HTTPS with nginx reverse proxy)
 
 A single entry point: nginx. The browser only talks to nginx. nginx then forwards requests internally over the private Docker network.
 
 ```
 Browser
-  └── port 443 (HTTPS) → nginx (reverse proxy)
+  └── port 8443 (HTTPS) → nginx (reverse proxy)
                               ├── /          → frontend (React)
                               ├── /api/      → backend (NestJS)
                               └── /ws/       → backend WebSocket (quiz)
