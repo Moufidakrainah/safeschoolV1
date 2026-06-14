@@ -1,6 +1,6 @@
 # API Reference — SafeSchool
 
-> Base URL: `http://localhost:5000` (dev) / `https://<domain>` (prod)
+> Base URL: `http://localhost:5000` (dev) / `https://localhost:8443/api` (prod)
 > All routes except `POST /auth/login` and `POST /auth/register` require the header:
 > `Authorization: Bearer <token>`
 > The token is obtained via `POST /auth/login` and expires according to the JWT configuration.
