@@ -18,7 +18,8 @@
     "loading": "Chargement",
     "no": "Aucune notification",
     "report": "Signalement",
-    "read": "Lu"
+    "read": "Lu",
+    "statusUpdate": "Statut de votre dossier {{caseNumber}} mis à jour : {{status}}"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -145,7 +146,13 @@
       "sending": "Envoi...",
       "success": "Convocations envoyées avec succès !",
       "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",
-      "dateError": "La date doit être dans le futur"
+      "dateError": "La date doit être dans le futur",
+      "selectRecipients": "Sélectionner les destinataires :",
+      "victimReporter": "Victime / Alerteur",
+      "suspect": "Suspect",
+      "victim": "Victime",
+      "noRecipient": "Aucune personne à convoquer — liez d'abord les suspects/victimes à un élève.",
+      "reporter": "Alerteur"
     },
     "users": {
       "title": "Gestion des utilisateurs",
@@ -190,7 +197,16 @@
       "atLeastOneMajor": "Au moins une majuscule requise",
       "atLeastOneSpecial": "Au moins un caractère spécial requis",
       "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
-      "noLastName": "Le mot de passe ne doit pas contenir le nom"
+      "noLastName": "Le mot de passe ne doit pas contenir le nom",
+      "class": "Classe",
+      "dateOfBirth": "Date de naissance",
+      "ageMin": "L'élève doit avoir au moins 9 ans",
+      "ageMax": "L'élève ne peut pas avoir plus de 16 ans",
+      "classesTeacher": "Classes où il intervient",
+      "noClass": "Aucune classe disponible",
+      "charsCount": "{{count}}/50 caractères",
+      "maxChars": "Maximum 50 caractères atteint",
+      "confirmStatus": "Confirmer le changement de statut vers {{label}} ?"
     },
     "title": {
       "oneReport": "Details d'un signalement",
@@ -214,7 +230,9 @@
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Convocation"
+    "convocation": " Convocation",
+    "statusChange": "Statut mis à jour",
+    "by": "par"
   },
   "pagination": {
     "nav": "Pagination",
@@ -235,7 +253,9 @@
     "back": "Retour",
     "reset": "Réinitialiser",
     "limitReached": "Limite atteinte",
-    "optional": "optionnel"
+    "optional": "optionnel",
+    "confirm": "Confirmer",
+    "inProgress": "En cours..."
   },
   "report": {
     "reporter": {
@@ -390,9 +410,9 @@
       "descriptionPlaceholder": "Donne un maximum de détails",
       "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
-      "freq1": "1 fois",
-      "freq2": "2 fois",
-      "freq3": "3 fois et plus",
+      "freq1": "Une fois",
+      "freq2": "Deux fois",
+      "freq3": "Trois fois et plus",
       "freq4": "Tous les jours"
     },
     "step4": {
@@ -410,7 +430,9 @@
       "addFreeText": "Ajouter",
       "suspectsAdded": "Suspects ajoutés",
       "removeSuspect": "Retirer",
-      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
+      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape",
+      "maxVictims": "Maximum 5 victimes atteint",
+      "maxSuspects": "Maximum 5 suspects atteint"
     },
     "step5": {
       "title": "Télécharge tout document utile pour ce signalement",
@@ -436,8 +458,8 @@
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement",
-      "descriptionRequired": "Décris les faits",
-      "frequencyRequired": "Indique la fréquence "
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     }
   },
   "student": {
@@ -501,8 +523,8 @@
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement pour continuer.",
-      "descriptionRequired": "Décris les faits pour continuer.",
-      "frequencyRequired": "Indique la fréquence pour continuer."
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     },
     "title": {
       "myProfile": "Mon profil",
@@ -515,7 +537,8 @@
       "iAmVictim": "Je suis une victime",
       "noUpdate": "Aucune mise à jour pour ce dossier",
       "meeting": "Un rendez-vous a eu lieu le",
-      "summoned": "est convoqué(e) le "
+      "summoned": "Tu es convoqué(e) le ",
+      "statusUpdate": "Statut mis à jour : {{status}} — {{date}}"
     }
   },
   "privacy": {
@@ -678,7 +701,8 @@
     "emailTooLong": "Email trop long (50 caractères max)",
     "emailInvalid": "Format d'email invalide",
     "passwordRequired": "Mot de passe obligatoire",
-    "passwordMin": "Mot de passe trop court"
+    "passwordMin": "Mot de passe trop court",
+    "emailExists": "Cette adresse email est déjà utilisée"
   },
   "toast": {
     "avatarUpdated": "Photo mise à jour avec succès",

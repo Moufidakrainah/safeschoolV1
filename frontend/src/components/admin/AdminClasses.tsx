@@ -19,16 +19,16 @@ const CLASSES_PER_PAGE = 7;
 export default function AdminClasses() {
   const { t } = useTranslation();
 
-  // ── Validators avec t() ──
-  const validateLevel = (value: string): string => {
-    if (!value.trim()) return t('classes.levelRequired');
-    if (!/^[3-6]eme$/.test(value.trim())) return t('classes.levelInvalid');
+  // ── Validators — retournent des CLÉS i18n ──
+  const validateLevelKey = (value: string): string => {
+    if (!value.trim()) return 'classes.levelRequired';
+    if (!/^[3-6]eme$/.test(value.trim())) return 'classes.levelInvalid';
     return '';
   };
 
-  const validateSection = (value: string): string => {
-    if (!value.trim()) return t('classes.sectionRequired');
-    if (!/^[A-Z]$/.test(value.trim().toUpperCase())) return t('classes.sectionInvalid');
+  const validateSectionKey = (value: string): string => {
+    if (!value.trim()) return 'classes.sectionRequired';
+    if (!/^[A-Z]$/.test(value.trim().toUpperCase())) return 'classes.sectionInvalid';
     return '';
   };
 
@@ -39,8 +39,9 @@ export default function AdminClasses() {
   const [editingClass, setEditingClass] = useState<SchoolClass | null>(null);
   const [classForm, setClassForm] = useState({ level: "", section: "" });
   const [savingClass, setSavingClass] = useState(false);
-  const [levelError, setLevelError] = useState('');
-  const [sectionError, setSectionError] = useState('');
+  // ── Stocke des CLÉS i18n ──
+  const [levelErrorKey, setLevelErrorKey] = useState('');
+  const [sectionErrorKey, setSectionErrorKey] = useState('');
   const [classPage, setClassPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ cls: SchoolClass; blocked: boolean; message: string } | null>(null);
   const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
@@ -52,7 +53,7 @@ export default function AdminClasses() {
       setClasses(cls);
       const allUsers = Array.isArray(usr) ? usr : Array.isArray(usr?.data) ? usr.data : [];
       setStudents(allUsers.filter((u: StudentUser) => u.role === "student"));
-    } catch { /* erreur réseau silencieuse volontaire */ }
+    } catch { }
     finally { setLoading(false); }
   }, []);
 
@@ -63,11 +64,11 @@ export default function AdminClasses() {
     : [];
 
   const handleSaveClass = async () => {
-    const lErr = validateLevel(classForm.level);
-    const sErr = validateSection(classForm.section);
-    setLevelError(lErr);
-    setSectionError(sErr);
-    if (lErr || sErr) return;
+    const lKey = validateLevelKey(classForm.level);
+    const sKey = validateSectionKey(classForm.section);
+    setLevelErrorKey(lKey);
+    setSectionErrorKey(sKey);
+    if (lKey || sKey) return;
     setSavingClass(true);
     try {
       if (editingClass) {
@@ -82,13 +83,13 @@ export default function AdminClasses() {
       setEditingClass(null);
       setClassForm({ level: "", section: "" });
     } catch (err: unknown) {
-	const msg = err?.response?.data?.message ?? '';
-	if (msg === 'CLASS_ALREADY_EXISTS') {
-		toast.error(t('classes.alreadyExists'));
-	} else {
-		toast.error(t('common.error'));
-	}
-	} finally {
+      const msg = (err as any)?.response?.data?.message ?? '';
+      if (msg === 'CLASS_ALREADY_EXISTS') {
+        toast.error(t('classes.alreadyExists'));
+      } else {
+        toast.error(t('common.error'));
+      }
+    } finally {
       setSavingClass(false);
     }
   };
@@ -120,7 +121,6 @@ export default function AdminClasses() {
 
   if (loading) return <p className="text-center py-16 text-gray-400">{t('classes.loading')}</p>;
 
-  // ── Vue détail classe ──
   if (selectedClass) {
     return (
       <section className="flex flex-col gap-4">
@@ -168,12 +168,11 @@ export default function AdminClasses() {
     <section className="page-section">
       <div className="flex-shrink-0">
         <div className="flex justify-end items-center mb-4">
-          <Button size="sm" onClick={() => { setShowClassForm(true); setEditingClass(null); setClassForm({ level: "", section: "" }); }}>
+          <Button size="sm" onClick={() => { setShowClassForm(true); setEditingClass(null); setClassForm({ level: "", section: "" }); setLevelErrorKey(''); setSectionErrorKey(''); }}>
             {t('classes.addClass')}
           </Button>
         </div>
 
-        {/* Formulaire ajout/modif */}
         {showClassForm && (
           <div className="bg-surface shadow-sm rounded-sm px-6 py-5 mb-3">
             <h3 className="font-bold mb-4">
@@ -187,9 +186,13 @@ export default function AdminClasses() {
                   placeholder="ex: 5eme"
                   className="bg-white mt-1"
                   maxLength={10}
-                  onChange={e => { setClassForm(p => ({ ...p, level: e.target.value })); setLevelError(validateLevel(e.target.value)); }}
+                  onChange={e => {
+                    setClassForm(p => ({ ...p, level: e.target.value }));
+                    setLevelErrorKey(validateLevelKey(e.target.value));
+                  }}
                 />
-                {levelError && <p className="text-red-300 text-xs mt-1">{levelError}</p>}
+                {/* t(clé) au rendu → se met à jour au changement de langue */}
+                {levelErrorKey && <p className="text-red-300 text-xs mt-1">{t(levelErrorKey)}</p>}
               </div>
               <div>
                 <Label className="text-white text-sm">{t('classes.section')}</Label>
@@ -198,9 +201,12 @@ export default function AdminClasses() {
                   placeholder="ex: A"
                   className="bg-white mt-1"
                   maxLength={2}
-                  onChange={e => { setClassForm(p => ({ ...p, section: e.target.value.toUpperCase() })); setSectionError(validateSection(e.target.value)); }}
+                  onChange={e => {
+                    setClassForm(p => ({ ...p, section: e.target.value.toUpperCase() }));
+                    setSectionErrorKey(validateSectionKey(e.target.value));
+                  }}
                 />
-                {sectionError && <p className="text-red-300 text-xs mt-1">{sectionError}</p>}
+                {sectionErrorKey && <p className="text-red-300 text-xs mt-1">{t(sectionErrorKey)}</p>}
               </div>
             </div>
             <div className="flex gap-3 justify-end mt-4">
@@ -214,7 +220,6 @@ export default function AdminClasses() {
           </div>
         )}
 
-        {/* Liste des classes */}
         <div className="flex flex-col gap-3">
           {classes.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-6">{t('classes.noClass')}</p>
@@ -233,7 +238,7 @@ export default function AdminClasses() {
                     </p>
                   </div>
                   <div className="flex gap-2" onClick={e => e.stopPropagation()}>
-                    <Button size="sm" variant="default" onClick={() => { setEditingClass(cls); setClassForm({ level: cls.level, section: cls.section }); setShowClassForm(true); }}>
+                    <Button size="sm" variant="default" onClick={() => { setEditingClass(cls); setClassForm({ level: cls.level, section: cls.section }); setShowClassForm(true); setLevelErrorKey(''); setSectionErrorKey(''); }}>
                       {t('classes.edit')}
                     </Button>
                     <Button size="sm" variant="default" onClick={() => handleDeleteClass(cls)}>
@@ -250,7 +255,7 @@ export default function AdminClasses() {
           <PaginationShadcn className="mt-4">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious onClick={() => { if (classPage > 1) setClassPage(classPage - 1); }}
+                <PaginationPrevious text={t('common.previous')} onClick={() => { if (classPage > 1) setClassPage(classPage - 1); }}
                   className={classPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
               </PaginationItem>
               {Array.from({ length: Math.ceil(classes.length / CLASSES_PER_PAGE) }, (_, i) => i + 1).map(p => (
@@ -259,7 +264,7 @@ export default function AdminClasses() {
                 </PaginationItem>
               ))}
               <PaginationItem>
-                <PaginationNext onClick={() => { if (classPage < Math.ceil(classes.length / CLASSES_PER_PAGE)) setClassPage(classPage + 1); }}
+                <PaginationNext text={t('common.next')} onClick={() => { if (classPage < Math.ceil(classes.length / CLASSES_PER_PAGE)) setClassPage(classPage + 1); }}
                   className={classPage === Math.ceil(classes.length / CLASSES_PER_PAGE) ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
               </PaginationItem>
             </PaginationContent>
@@ -267,7 +272,6 @@ export default function AdminClasses() {
         )}
       </div>
 
-      {/* Modal suppression */}
       {deleteModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">

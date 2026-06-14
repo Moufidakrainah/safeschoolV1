@@ -1,19 +1,27 @@
+import { useTranslation } from 'react-i18next';
 import type { Report } from '@/types';
 import { Checkbox } from "./ui/checkbox";
+
 interface ConvocationSelectorProps {
   selected: Report;
   checkedIds: string[];
   onToggle: (id: string) => void;
 }
+
 export default function ConvocationSelector({ selected, checkedIds, onToggle }: ConvocationSelectorProps) {
+  const { t } = useTranslation();
+
   if (!selected) return null;
+
   const people: { id: string; role: string; fullName: string }[] = [];
 
   // Alerteur (si pas anonyme)
   if (!selected.isAnonymous && selected.student) {
     people.push({
       id: 'alerteur',
-      role: selected.reporter === 'victime' ? 'Victime / Alerteur' : 'Alerteur',
+      role: selected.reporter === 'victime'
+        ? t('admin.convocation.victimReporter')
+        : t('admin.convocation.reporter'),
       fullName: `${selected.student.firstName} ${selected.student.lastName}`,
     });
   }
@@ -24,17 +32,21 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
   extraVictims.forEach((v, i: number) => {
     people.push({
       id: `victim_${v.resolvedUser.id}`,
-      role: extraVictims.length > 1 ? `Victime ${i + 1}` : 'Victime',
+      role: extraVictims.length > 1
+        ? `${t('admin.convocation.victim')} ${i + 1}`
+        : t('admin.convocation.victim'),
       fullName: `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`,
     });
   });
 
-  // Suspects liés uniquement — utilise l'userId comme identifiant
+  // Suspects liés uniquement
   const linkedSuspects = selected.suspects?.filter((s) => s.resolvedUser) ?? [];
   linkedSuspects.forEach((s, i: number) => {
     people.push({
       id: `suspect_${s.resolvedUser.id}`,
-      role: linkedSuspects.length > 1 ? `Suspect ${i + 1}` : 'Suspect',
+      role: linkedSuspects.length > 1
+        ? `${t('admin.convocation.suspect')} ${i + 1}`
+        : t('admin.convocation.suspect'),
       fullName: `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`,
     });
   });
@@ -42,14 +54,13 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
   if (people.length === 0) {
     return (
       <p className="text-sm text-gray-400 mb-4">
-        Aucune personne à convoquer — liez d'abord les suspects/victimes à un élève.
+        {t('admin.convocation.noRecipient')}
       </p>
     );
   }
 
   return (
     <div className="flex flex-col gap-3 mb-5">
-      <p className="text-xs font-semibold text-gray-500 mb-1">Sélectionner les destinataires :</p>
       {people.map(p => (
         <div key={p.id} className="flex items-center gap-2">
           <Checkbox
