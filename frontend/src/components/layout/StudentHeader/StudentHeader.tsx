@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Header from '@/components/layout/Header/Header';
 import { getNotifications, getUnreadCount, markNotificationRead } from '@/services/api';
 import type { AuthUser } from '@/types';
@@ -22,19 +22,27 @@ interface StudentHeaderProps {
   onNotifRefresh?: () => void;
 }
 
-export default function StudentHeader({ 
-	user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh }: StudentHeaderProps) {
+export default function StudentHeader({
+  user, logoutUser, viewSection, setViewSection, notifRefreshKey = 0, onNotifRefresh,
+}: StudentHeaderProps) {
   const { t } = useTranslation();
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const prevCountRef = useRef(0);
 
   const fetchNotifs = useCallback(async () => {
     try {
       const [countData, notifs] = await Promise.all([getUnreadCount(), getNotifications()]);
-      setUnreadCount(prev => {
-        if (prev !== (countData.count ?? 0)) onNotifRefresh?.();
-        return countData.count ?? 0;
-      });
+      const newCount = countData.count ?? 0;
+
+      // ── Comparer AVANT le setState pour éviter setState dans setState ──
+      if (prevCountRef.current !== newCount) {
+        prevCountRef.current = newCount;
+        // onNotifRefresh appelé en dehors du setter
+        onNotifRefresh?.();
+      }
+
+      setUnreadCount(newCount);
       setNotifications(notifs);
     } catch {
       setUnreadCount(0);
@@ -61,7 +69,7 @@ export default function StudentHeader({
           prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
         );
         onNotifRefresh?.();
-      } catch {}
+      } catch { /* erreur réseau silencieuse volontaire */ }
     }
   };
 
