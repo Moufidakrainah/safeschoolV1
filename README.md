@@ -42,6 +42,7 @@ Docker, Docker Compose, Make, Git.
 | `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis |
 | `AI_ENABLED` | Toggles the AI scoring feature on/off |
 | `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL` | Log shipping configuration for the ELK stack |
+| `ELASTIC_PASSWORD` | Password for the Elasticsearch `elastic` superuser (also used to log into Kibana) |
 
 ### Run the Project
 
@@ -66,11 +67,22 @@ make fclean     # Down + remove volumes
 
 ### Access URLs
 
+**Development (`make dev`)**
+
 | URL | Service |
 |-----|---------|
-| `http://localhost:5173` | Frontend |
+| `http://localhost:5173` | Frontend (Vite dev server) |
 | `http://localhost:5000` | Backend API |
-| `http://localhost:5601` | Kibana |
+| `http://localhost:5601` | Kibana (log monitoring) |
+
+**Production (`make all`)**
+
+| URL | Service |
+|-----|---------|
+| `https://localhost:8443` | Application (frontend + `/api` backend) |
+| `http://localhost:5601` | Kibana (log monitoring) |
+
+Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
 
 ### Demo Accounts
 
@@ -78,11 +90,10 @@ If the sample dataset has been seeded, the following accounts can be used for de
 
 | Email | Password | Role | Main area |
 |-------|----------|------|-----------|
-| `lotfi@safeschool.com` | `eleve123` | student | `/student` |
-| `admin@safeschool.com` | `admin123` | admin | `/dashboard` |
-| `directeur@safeschool.com` | `directeur123` | director | `/dashboard` |
-| `prof@safeschool.com` | `prof123` | teacher | `/reporter` |
-| `agent@safeschool.com` | `staff123` | staff | `/reporter` |
+| `lotfi@safeschool.com` | `eleve123123+` | student | `/student` |
+| `admin@safeschool.com` | `admin123123+` | admin | `/dashboard` |
+| `directeur@safeschool.com` | `admin123123+` | director | `/dashboard` |
+| `prof@safeschool.com` | `prof123123+` | teacher | `/reporter` |
 
 ---
 ## Resources
@@ -154,16 +165,16 @@ Every team member contributed to the code as well as to the organization of the 
 
 ### 2. Project Manager / Scrum Master — eguthman
 
-Coordinated the project workflow, maintained visibility on priorities, and supported the team through planning, documentation and process structure.
+Led project coordination for the full duration of the project, with responsibility for workflow structure, visibility, and documentation.
 
-- Coordinate the team's tasks and workflow.
-- Design and maintain the GitHub project board structure (views, labels, columns, priorities and module tracking).
-- Organize and facilitate meetings.
-- Prepare meeting agendas in advance and write follow-up meeting minutes to preserve decisions.
-- Track progress and identify blockers.
-- Establish and document collaboration practices for Git, pull requests and code review.
-- Ensure clear communication within the team.
-- Document processes and decisions.
+- Designed and maintained the GitHub board: views, labels, columns, module tracking and priority visibility, evolving the structure as the project grew.
+- Built out the Makefile from a minimal starting point: added targets, structured startup commands, and added healthchecks in Docker Compose to make the stack reliable to bring up consistently.
+- Structured the Git and pull-request workflow: wrote the conventions and maintained them throughout the project.
+- Organized and facilitated team meetings throughout the project, prepared agendas in advance and wrote minutes to keep decisions and next actions traceable.
+- Reviewed pull request diffs and filed issues on the board when inconsistencies or potential problems surfaced, maintaining codebase awareness even without owning the implementation.
+- Built and maintained the project documentation: architecture, API, ELK stack, design system, testing guide, Git workflow.
+- Took ownership of the ELK integration (Elasticsearch, Logstash, Kibana): configured the full stack with security enabled, structured backend logging, and automated dashboard import on startup.
+- Contributed to frontend architecture choices: introduced Tailwind CSS and shadcn/ui to give the team a consistent visual base.
 
 ### 3. Technical Lead 1 — mobougri
 
