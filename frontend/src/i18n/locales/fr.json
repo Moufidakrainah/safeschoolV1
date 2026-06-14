@@ -518,7 +518,8 @@
       "iAmVictim": "Je suis une victime",
       "noUpdate": "Aucune mise à jour pour ce dossier",
       "meeting": "Un rendez-vous a eu lieu le",
-      "summoned": "Tu es convoqué(e) le "
+      "summoned": "Tu es convoqué(e) le ",
+      "statusUpdate": "Statut mis à jour : {{status}} — {{date}}"
     }
   },
   "privacy": {
