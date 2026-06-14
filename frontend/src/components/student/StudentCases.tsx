@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import type { AuthUser, Report, Note } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
-  const map: Record<string, any> = {
+  const map: Record<string, string> = {
     new: "new",
     in_progress: "in_progress",
     pending: "pending",
@@ -74,10 +74,10 @@ interface StudentCasesProps {
 
 export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: StudentCasesProps) {
   const { t } = useTranslation();
-  const [myReports, setMyReports] = useState<any[]>([]);
+  const [myReports, setMyReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(false);
-  const [reportNotes, setReportNotes] = useState<Record<string, any[]>>({});
-  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, any>>({});
+  const [reportNotes, setReportNotes] = useState<Record<string, Note[]>>({});
+  const [unreadNotifs, setUnreadNotifs] = useState<Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }>>({});
 
   useEffect(() => {
     if (!user?.id) return;
@@ -88,7 +88,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         const mine = all.filter((r: Report) => r.reporter === "victime");
         setMyReports(mine.sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
 
-        const notesMap: Record<string, any[]> = {};
+        const notesMap: Record<string, Note[]> = {};
         await Promise.all(
           mine.map(async (r: Report) => {
             try {
@@ -103,7 +103,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         );
         setReportNotes(notesMap);
 
-        const unreadMap: Record<string, any> = {};
+        const unreadMap: Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }> = {};
         notifs.filter((n: Note & { isRead: boolean; report?: { id: string } }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
       })
@@ -147,24 +147,17 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
       ) : (
         <ul className="flex flex-col gap-3">
           {myReports.map((report: Report) => {
-            const severity = severityFromApiGrade(report.grade);
             const notes = reportNotes[report.id] ?? [];
             const reportUnreadCount = Object.values(unreadNotifs).filter(
               (n) => (n as Note & { report?: { id: string } }).report?.id === report.id,
             ).length;
 
             return (
-              <li
-                key={report.id}
-                className="bg-surface px-6 py-5 shadow-sm"
-              >
+              <li key={report.id} className="bg-surface px-6 py-5 shadow-sm">
                 {/* En-tête du dossier */}
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex-1">
-                    {/* <div className="flex items-center gap-2 mb-1"> */}
-                      <span className="card-title">{report.caseNumber}</span>
-
-                    {/* </div> */}
+                    <span className="card-title">{report.caseNumber}</span>
                     <p className="card-subtitle mt-1 mb-2 capitalize">
                       {report.type} - {t("student.cases.iAmVictim")}
                     </p>
@@ -175,11 +168,9 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                   <Badge variant={statusToBadgeVariant(report.status)} />
                 </div>
 
-                {/* Notes : status_change + convocations */}
+                {/* Notes */}
                 {notes.length === 0 ? (
-                  <p className="text-xs text-gray-400 italic">
-						{t("student.cases.noUpdate")}
-				</p>
+                  <p className="text-xs text-gray-400 italic">{t("student.cases.noUpdate")}</p>
                 ) : (
                   <div className="flex flex-col gap-2 mt-2">
                     {notes.map((note: Note) => {
@@ -189,8 +180,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                         return (
                           <div
                             key={note.id}
-                            style={{ 
-								borderLeft: '3px solid var(--color-primary)' }}
+                            style={{ borderLeft: '3px solid var(--color-primary)' }}
                             className="p-3 bg-white"
                           >
                             <p className="text-sm">{note.content}</p>
@@ -207,12 +197,12 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                         <div
                           key={note.id}
                           onClick={() => isNew && handleConvocationClick(unreadNotif)}
-                          style={{ borderLeft: "3px solid var(--color-warning)",}}
-                          className={`p-3 bg-indigo-50`}
+                          style={{ borderLeft: "3px solid var(--color-warning)" }}
+                          className="p-3 bg-indigo-50"
                         >
                           {isPast ? (
                             <p className="text-gray-400 text-sm">
-                            {t("student.cases.meeting")}<strong>{displayDate}</strong>
+                              {t("student.cases.meeting")}<strong>{displayDate}</strong>
                             </p>
                           ) : (
                             <div>
@@ -220,17 +210,13 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                                 <span className="text-xs font-semibold">
                                   {t('noteblock.convocation')}
                                 </span>
-                                {isNew && (
-                                 <Badge variant="new_red" className="ml-4" />
-                                )}
+                                {isNew && <Badge variant="new_red" className="ml-4" />}
                               </div>
                               <p className="text-sm font-semibold">
-                                {recipient ? <span>{recipient}</span> : ""}{" "}
-                               {t("student.cases.summoned")} {displayDate}
+                                {recipient ? <span>{recipient}</span> : ""}
+                                {" "}{t("student.cases.summoned")}{displayDate}
                               </p>
-                              {message && (
-                                <p className="mt-1 text-xs">{message}</p>
-                              )}
+                              {message && <p className="mt-1 text-xs">{message}</p>}
                             </div>
                           )}
                         </div>
