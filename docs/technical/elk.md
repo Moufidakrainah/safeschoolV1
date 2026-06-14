@@ -17,8 +17,8 @@ Only **Kibana** (`5601`) is exposed to the host. Elasticsearch and Logstash are 
 ## Starting the stack
 
 ```bash
-make up-elk      # starts ES + Logstash + Kibana + elasticsearch-setup
-make logs-setup  # follow setup progress
+make all         # starts the full application stack, including ELK
+make logs-setup  # follow ELK setup progress (optional, first run only)
 ```
 
 The `elasticsearch-setup` service runs once on startup and:
@@ -84,7 +84,7 @@ Unhandled exceptions are emitted as **ERROR** with the `error` tag.
 | `scoring` | Score calculations |
 | `error` | ERROR level logs |
 
-KQL syntax: `tags: "auth"` — `level: "ERROR"` — `type: "auth_event"`
+Filter syntax (KQL — Kibana Query Language): `tags: "auth"` — `level: "ERROR"` — `type: "auth_event"`
 
 ---
 
@@ -150,6 +150,5 @@ Keep Kibana Discover open during test sessions:
 | Elasticsearch — storage and indexing | ✅ | `safeschool-logs-YYYY.MM.DD` index, index template |
 | Logstash — collection and transformation | ✅ | TCP/JSON pipeline, type-based tags, normalized timestamp |
 | Kibana — visualization and dashboards | ✅ | 4-panel dashboard, auto-imported |
-| Persistent volumes | ✅ | `esdata`, `kibanadata` |
-| ILM retention policy | ✅ | Hot 7d → Warm → Delete 30d, created automatically |
+| Retention and archiving policy (ILM) | ✅ | Hot 7d (active) → Warm 30d (compressed, read-only) → Delete, created automatically |
 | Security — authenticated access | ✅ | xpack.security, 3 system users, ports closed |
