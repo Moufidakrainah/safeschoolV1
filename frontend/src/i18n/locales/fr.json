@@ -18,7 +18,8 @@
     "loading": "Chargement",
     "no": "Aucune notification",
     "report": "Signalement",
-    "read": "Lu"
+    "read": "Lu",
+    "statusUpdate": "Statut de votre dossier {{caseNumber}} mis à jour : {{status}}"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -410,7 +411,9 @@
       "addFreeText": "Ajouter",
       "suspectsAdded": "Suspects ajoutés",
       "removeSuspect": "Retirer",
-      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
+      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape",
+      "maxVictims": "Maximum 5 victimes atteint",
+      "maxSuspects": "Maximum 5 suspects atteint"
     },
     "step5": {
       "title": "Télécharge tout document utile pour ce signalement",
@@ -436,8 +439,8 @@
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement",
-      "descriptionRequired": "Décris les faits",
-      "frequencyRequired": "Indique la fréquence "
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     }
   },
   "student": {
@@ -501,8 +504,8 @@
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement pour continuer.",
-      "descriptionRequired": "Décris les faits pour continuer.",
-      "frequencyRequired": "Indique la fréquence pour continuer."
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     },
     "title": {
       "myProfile": "Mon profil",
@@ -515,7 +518,7 @@
       "iAmVictim": "Je suis une victime",
       "noUpdate": "Aucune mise à jour pour ce dossier",
       "meeting": "Un rendez-vous a eu lieu le",
-      "summoned": "est convoqué(e) le "
+      "summoned": "Tu es convoqué(e) le "
     }
   },
   "privacy": {

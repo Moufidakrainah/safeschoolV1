@@ -425,7 +425,9 @@
       "add+Victim": "Drücke `Enter` oder klicke auf `Opfer hinzufügen`",
       "add+Suspect": "Drücke `Enter` oder klicke auf `Täter hinzufügen`",
       "addVictim": "Opfer hinzufügen",
-      "addSuspect": "Täter hinzufügen"
+      "addSuspect": "Täter hinzufügen",
+      "maxVictims": "Maximal 5 Opfer erreicht",
+      "maxSuspects": "Maximal 5 Verdächtige erreicht"
     },
     "step5": {
       "title": "Beweise",
@@ -451,8 +453,8 @@
     "submitError": "Senden fehlgeschlagen. Bitte Verbindung prüfen und erneut versuchen.",
     "validation": {
       "typeRequired": "Bitte einen Mobbingtyp auswählen, um fortzufahren.",
-      "descriptionRequired": "Bitte den Sachverhalt beschreiben, um fortzufahren.",
-      "frequencyRequired": "Bitte die Häufigkeit angeben, um fortzufahren."
+      "descriptionRequired": "Beschreibung muss mindestens 20 Zeichen enthalten",
+      "frequencyRequired": "Häufigkeit ist erforderlich"
     },
     "title": {
       "myProfile": "Mein Profil",
@@ -498,7 +500,8 @@
     "loading": "Laden",
     "no": "Keine Benachrichtigungen",
     "report": "Meldung",
-    "read": "Gelesen"
+    "read": "Gelesen",
+    "statusUpdate": "Status Ihrer Akte {{caseNumber}} aktualisiert: {{status}}"
   },
   "student": {
     "profile": {
@@ -519,12 +522,16 @@
       "cases": "Meine Fälle"
     },
     "cases": {
-      "summoned": "wird vorgeladen am ",
+      "summoned": "Du wirst vorgeladen am ",
       "iAmVictim": "Ich bin ein Opfer",
       "noUpdate": "Keine Aktualisierungen für diesen Fall",
       "loading": "Laden...",
       "noReport": "Keine Meldungen gefunden",
       "meeting": "Ein Treffen fand statt am "
+    },
+    "validation": {
+      "descriptionRequired": "Beschreibung muss mindestens 20 Zeichen enthalten",
+      "frequencyRequired": "Häufigkeit ist erforderlich"
     }
   },
   "all": "Alle",
