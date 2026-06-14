@@ -1,14 +1,12 @@
+import type { Report } from '@/types';
 import { Checkbox } from "./ui/checkbox";
-
 interface ConvocationSelectorProps {
-  selected: any;
+  selected: Report;
   checkedIds: string[];
   onToggle: (id: string) => void;
 }
-
 export default function ConvocationSelector({ selected, checkedIds, onToggle }: ConvocationSelectorProps) {
   if (!selected) return null;
-
   const people: { id: string; role: string; fullName: string }[] = [];
 
   // Alerteur (si pas anonyme)
@@ -20,30 +18,26 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
     });
   }
 
-  // Victimes liées — tous les cas (victime ou temoin)
-  // Exclure la victime auto-ajoutée = l'alerteur lui-même
+  // Victimes liées — exclure l'alerteur lui-même
   const extraVictims = selected.victims
-    ?.filter((v: any) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
-
-  extraVictims.forEach((v: any, i: number) => {
+    ?.filter((v) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
+  extraVictims.forEach((v, i: number) => {
     people.push({
-      id: `victim_${i}`,
+      id: `victim_${v.resolvedUser.id}`,
       role: extraVictims.length > 1 ? `Victime ${i + 1}` : 'Victime',
       fullName: `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`,
     });
   });
 
-  // Suspects liés uniquement
-  selected.suspects
-    ?.filter((s: any) => s.resolvedUser)
-    .forEach((s: any, i: number) => {
-      const linkedSuspects = selected.suspects.filter((s: any) => s.resolvedUser);
-      people.push({
-        id: `suspect_${i}`,
-        role: linkedSuspects.length > 1 ? `Suspect ${i + 1}` : 'Suspect',
-        fullName: `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`,
-      });
+  // Suspects liés uniquement — utilise l'userId comme identifiant
+  const linkedSuspects = selected.suspects?.filter((s) => s.resolvedUser) ?? [];
+  linkedSuspects.forEach((s, i: number) => {
+    people.push({
+      id: `suspect_${s.resolvedUser.id}`,
+      role: linkedSuspects.length > 1 ? `Suspect ${i + 1}` : 'Suspect',
+      fullName: `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`,
     });
+  });
 
   if (people.length === 0) {
     return (

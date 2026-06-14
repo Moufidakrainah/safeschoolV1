@@ -29,12 +29,12 @@ import {
 } from '@/components/ui/select';
 
 // Composants app custom
-// import AppBadge    from '../components/ASupprimerBadge';
-import StatCard    from '../components/StatCard';
-import NoteBlock   from '../components/NoteBlock';
+// import AppBadge    from '@/components/ASupprimerBadge';
+import StatCard    from '@/components/StatCard';
+import NoteBlock   from '@/components/NoteBlock';
 
 import { useTranslation } from 'react-i18next';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 

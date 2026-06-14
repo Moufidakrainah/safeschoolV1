@@ -1,18 +1,16 @@
-import { IsString, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateClassDto {
   @IsString()
   @IsNotEmpty({ message: 'Le niveau est obligatoire' })
-  @MinLength(2, { message: 'Le niveau doit contenir au moins 2 caractères' })
-  @MaxLength(10, { message: 'Le niveau ne peut pas dépasser 10 caractères' })
+  @Matches(/^[3-6]eme$/, { message: 'Le niveau doit être 3eme, 4eme, 5eme ou 6eme' })
   @Transform(({ value }) => value?.trim())
   level: string;
 
   @IsString()
   @IsNotEmpty({ message: 'La section est obligatoire' })
-  @MinLength(1, { message: 'La section doit contenir au moins 1 caractère' })
-  @MaxLength(2, { message: 'La section ne peut pas dépasser 2 caractères' })
-  @Transform(({ value }) => value?.trim())
+  @Matches(/^[A-Z]$/, { message: 'La section doit être une seule lettre majuscule (A, B, C...)' })
+  @Transform(({ value }) => value?.trim().toUpperCase())
   section: string;
 }
