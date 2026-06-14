@@ -202,13 +202,15 @@ Led project coordination for the full duration of the project, with responsibili
 
 ### 4. Technical Lead 2 — quclaque
 
-Focused on the project's real-time layer: designed and built the multiplayer quiz and the WebSocket communication behind it.
+Focused on the project's real-time layer and installability of the frontend.
 
 - Implement the real-time multiplayer quiz end to end (NestJS gateway/service on the backend, React game interface on the frontend).
 - Design the WebSocket event protocol and the synchronized game lifecycle: lobby, question flow, answer reveal, scoring and leaderboard.
 - Handle the multiplayer edge cases: authentication on the socket handshake, reconnection grace period, host migration, single-room-per-account enforcement and room-capacity limits.
-- Contribute to the Progressive Web App (installable frontend with limited offline support).
-
+- Implement the Progressive Web App from scratch: service worker via vite-plugin-pwa, web app manifest, install prompt, and static shell caching for offline loading.
+- Co-define the initial backend stack at project kickoff: NestJS, TypeORM, PostgreSQL, JWT authentication.
+- Validate technical accuracy of documentation on features I own (WebSocket, PWA architecture HTTPS, Nginx)
+- Investigate and fix bugs across the stack
 
 ---
 ## Project Management
