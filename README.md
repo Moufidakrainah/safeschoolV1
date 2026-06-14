@@ -475,7 +475,12 @@ For deeper documentation beyond what is required here — architecture overview,
 ### Known Limitations
 
 - Firefox does not support installing the application as a PWA (no `beforeinstallprompt` / install affordance). The app still runs normally in Firefox, and the service worker and offline caching keep working — only the "install to home screen / desktop" step is unavailable, so install it from Chrome or Edge instead.
-- The PWA can only be installed out of the box on the machine that hosts the server. Because this project ships a **self-signed** TLS certificate (no public domain / trusted CA), only `localhost` is treated as a secure origin — so the service worker registers and the install prompt appears only on the host machine. Other devices (phones, tablets, other computers) reach the app over the LAN IP and reject the untrusted certificate, which blocks service-worker registration and therefore the install prompt. To install it elsewhere, that device must first trust the certificate (`nginx/certs/fullchain.pem`) by adding it as a trusted CA — see [`docs/technical/pwa.md`](docs/technical/pwa.md).
+- The PWA's **offline mode depends on a trusted TLS certificate**, and this project ships a **self-signed** one (no public domain / trusted CA). Two things must be distinguished: *installing* the app only needs a "secure context" (which `localhost` is granted automatically, even with a self-signed cert), but *registering the service worker* — the part that makes the app load offline — requires the certificate to actually be **trusted**. Clicking "proceed anyway" on the browser warning lets the page render but does **not** satisfy the service worker, which keeps failing with an SSL certificate error. As a result:
+  - On the **host machine** over `https://localhost:8443`, you can install the app, but the service worker only registers (and offline truly works) once you import the certificate into the browser/OS trust store.
+  - **Other devices** (phones, tablets, other computers) reach the app over the LAN IP, which is not even a secure origin until the certificate is trusted — so neither install nor offline works there until that device trusts `nginx/certs/fullchain.pem` as a CA.
+  - In **dev mode** (`make dev`) over `http://localhost`, there is no certificate to validate and `localhost` is a secure context, so the service worker registers and offline works out of the box.
+
+  To get full offline support anywhere, trust the certificate on that device — see [`docs/technical/pwa.md`](docs/technical/pwa.md).
 
 <!- TODO équipe : lister les en anglais les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés).  -->
 

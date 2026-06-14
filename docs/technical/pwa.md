@@ -54,4 +54,44 @@ SafeSchool is used in a school environment where students and staff may rely on 
 
 - PWA installation requires HTTPS in production — consistent with the application's infrastructure, which routes all external traffic through nginx with TLS.
 - Firefox does not support the `beforeinstallprompt` event; the install prompt is not shown in Firefox, though the service worker and offline caching remain functional.
-- **Self-signed certificate — install limited to the host machine.** This project uses a self-signed TLS certificate (no public domain / trusted CA), so only `localhost` counts as a secure origin. Other devices reaching it over the LAN IP reject the untrusted certificate, which blocks service-worker registration and the install prompt. To install elsewhere, the device must first trust `nginx/certs/fullchain.pem` (add it as a trusted CA).
+
+## Self-signed certificate: install vs. offline
+
+This project ships a **self-signed** TLS certificate (no public domain or trusted CA). That makes two otherwise-related things behave differently, which is a common source of confusion:
+
+- **Installing** the app only requires a *secure context*. The browser grants `localhost` a secure context automatically, even with a self-signed (untrusted) certificate — so the install prompt appears, and the page renders, on the host machine.
+- **Registering the service worker** — the part that actually caches the app shell and makes it load offline — requires the certificate to be *trusted*. The service worker script (`sw.js`) is fetched over a connection that must have **no certificate error**. Clicking "Proceed anyway" on the browser warning works for normal page navigation and subresources, but the service worker fetch ignores that bypass and keeps failing with:
+
+  ```
+  An SSL certificate error occurred when fetching the script.
+  Failed to register a ServiceWorker for scope ('https://localhost:8443/')
+  with script ('https://localhost:8443/sw.js'): An SSL certificate error occurred when fetching the script.
+  ```
+
+  In DevTools → Application → Service Workers this shows up as a worker stuck `trying to install` (with a `1970` epoch "Received" date) that never reaches `activated and is running`.
+
+### Behaviour per environment
+
+| Environment | Secure context? | Certificate valid? | Service worker registers? | Offline works? |
+|---|---|---|---|---|
+| `make dev` over `http://localhost` | Yes (`localhost` waiver) | n/a — no TLS | Yes | Yes |
+| Prod `https://localhost:8443`, cert **untrusted** | Yes (`localhost`) | No (click-through only) | No | No |
+| Prod `https://localhost:8443`, cert **trusted** | Yes | Yes | Yes | Yes |
+| Other device over LAN IP, cert **untrusted** | No | No | No | No |
+| Other device over LAN IP, cert **trusted** | Yes | Yes | Yes | Yes |
+
+The takeaway: to get real offline support — on the host machine *or* on a phone/tablet/other computer — that device must **trust the certificate** (`nginx/certs/fullchain.pem`). In `make dev` over HTTP it works out of the box because there is no certificate to validate.
+
+### Trusting the certificate in Chrome (GUI, no terminal)
+
+This can be done entirely in the browser interface:
+
+1. Open Chrome → three-dots menu (top right) → **Settings**.
+2. Left sidebar → **Privacy and security** → **Security**.
+3. Scroll to the bottom → **Manage certificates** (on newer Chrome this opens the `chrome://certificate-manager` page).
+4. Go to the **Local certificates** / **Authorities** tab.
+5. Click **Import**, browse to your `.crt` / `.pem` file (e.g. `nginx/certs/fullchain.pem`), select it and click **Open**.
+6. In the trust dialog, check **"Trust this certificate for identifying websites"**.
+7. Click **OK** and **restart Chrome completely**.
+
+After restarting, `https://localhost:8443` (or the LAN IP) loads without a warning, and the service worker reaches `activated and is running`. For a LAN IP to be accepted, the certificate must include that IP in its Subject Alternative Names — regenerate with `make certs-renew CERT_IP=<your-LAN-IP>` if needed.
