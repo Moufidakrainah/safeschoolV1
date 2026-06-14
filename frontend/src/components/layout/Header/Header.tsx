@@ -33,7 +33,7 @@ function formatNotifMessage(message: string, t: (key: string, opts?: object) => 
   // ── Convocation ──
   if (message.startsWith('Convocation : ')) {
     const content = message.replace('Convocation : ', '');
-    const anonymized = content.replace(/^.+? est convoqué/, t('student.cases.summoned').trim());
+    const anonymized = content.replace(/^.+? est convoqué\(e\) le /, t('student.cases.summoned'));
     return `${t('noteblock.convocation').trim()} : ${anonymized}`;
   }
 

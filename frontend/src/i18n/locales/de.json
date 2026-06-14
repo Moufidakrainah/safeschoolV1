@@ -131,11 +131,17 @@
       "dateTime": "Datum und Uhrzeit",
       "placeholder": "Vorladungsnachricht...",
       "messagePlaceholder": "Vorladungsnachricht...",
-      "send": "{{count}} Einladung(en) senden",
+      "send": "📤 {{count}} Einladung(en) senden",
       "sending": "Senden...",
       "success": "Einladungen erfolgreich gesendet!",
       "hint": "Wählen Sie die einzuladenden Personen aus und legen Sie Datum und Nachricht fest.",
-      "dateError": "Das Datum muss in der Zukunft liegen"
+      "dateError": "Das Datum muss in der Zukunft liegen",
+      "selectRecipients": "Empfänger auswählen:",
+      "victimReporter": "Opfer / Melder",
+      "suspect": "Verdächtiger",
+      "victim": "Opfer",
+      "noRecipient": "Niemand zu laden — verknüpfen Sie zuerst Verdächtige/Opfer mit einem Schüler.",
+      "reporter": "Melder"
     },
     "users": {
       "title": "Benutzerverwaltung",
@@ -180,7 +186,16 @@
       "atLeastOneMajor": "At least one uppercase letter required",
       "atLeastOneSpecial": "At least one special character required",
       "noFirstName": "Password must not contain first name",
-      "noLastName": "Password must not contain last name"
+      "noLastName": "Password must not contain last name",
+      "class": "Klasse",
+      "dateOfBirth": "Geburtsdatum",
+      "ageMin": "Der Schüler muss mindestens 9 Jahre alt sein",
+      "ageMax": "Der Schüler kann nicht älter als 16 Jahre sein",
+      "classesTeacher": "Unterrichtete Klassen",
+      "noClass": "Keine Klasse verfügbar",
+      "charsCount": "{{count}}/50 Zeichen",
+      "maxChars": "Maximum 50 Zeichen erreicht",
+      "confirmStatus": "Statusänderung zu {{label}} bestätigen?"
     },
     "title": {
       "oneReport": "Einzelheiten eines Berichts",
@@ -228,7 +243,9 @@
     "back": "Zurück",
     "reset": "Zurücksetzen",
     "limitReached": "Limit erreicht",
-    "optional": "optional"
+    "optional": "optional",
+    "confirm": "Bestätigen",
+    "inProgress": "In Bearbeitung..."
   },
   "report": {
     "reporter": {

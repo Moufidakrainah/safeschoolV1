@@ -131,11 +131,17 @@
       "dateTime": "Date and time",
       "placeholder": "Summons message...",
       "messagePlaceholder": "Summons message...",
-      "send": "Send {{count}} summons",
+      "send": "📤 Send {{count}} summons",
       "sending": "Sending...",
       "success": "Summons sent successfully!",
       "hint": "Select the people to summon and set a date and message for each.",
-      "dateError": "The date must be in the future"
+      "dateError": "The date must be in the future",
+      "selectRecipients": "Select recipients:",
+      "victimReporter": "Victim / Reporter",
+      "suspect": "Suspect",
+      "victim": "Victim",
+      "noRecipient": "No one to summon — first link suspects/victims to a student.",
+      "reporter": "Reporter"
     },
     "users": {
       "title": "User management",
@@ -180,7 +186,16 @@
       "atLeastOneMajor": "At least one uppercase letter required",
       "atLeastOneSpecial": "At least one special character required",
       "noFirstName": "Password must not contain first name",
-      "noLastName": "Password must not contain last name"
+      "noLastName": "Password must not contain last name",
+      "class": "Class",
+      "dateOfBirth": "Date of birth",
+      "ageMin": "The student must be at least 9 years old",
+      "ageMax": "The student cannot be more than 16 years old",
+      "classesTeacher": "Classes they teach",
+      "noClass": "No class available",
+      "charsCount": "{{count}}/50 characters",
+      "maxChars": "Maximum 50 characters reached",
+      "confirmStatus": "Confirm status change to {{label}}?"
     },
     "title": {
       "oneReport": "Details of a report",
@@ -228,7 +243,9 @@
     "back": "Back",
     "reset": "Reset",
     "limitReached": "Limit reached",
-    "optional": "optional"
+    "optional": "optional",
+    "confirm": "Confirm",
+    "inProgress": "In progress..."
   },
   "report": {
     "reporter": {

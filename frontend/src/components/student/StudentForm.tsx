@@ -29,7 +29,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 		{ label: t("reporter.step2.verbal"),   value: "verbal",   sub: t("reporter.step2.verbalSub") },
 		{ label: t("reporter.step2.cyber"),    value: "cyber",    sub: t("reporter.step2.cyberSub") },
 		{ label: t("reporter.step2.exclusion"),value: "exclusion",sub: t("reporter.step2.exclusionSub") },
-		{ label: t("reporter.step2.sexual"),   value: "sexual",   sub: t("reporter.step2.sexualSub") },
+		{ label: t("reporter.step2.sexual"),   value: "sexuel",   sub: t("reporter.step2.sexualSub") },
 	];
 
 	const {
