@@ -508,7 +508,7 @@ export default function AdminDashboard() {
               <PaginationShadcn className="mt-4">
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                    <PaginationPrevious text={t('common.previous')} text={t('common.previous')} onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
                       className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
@@ -517,7 +517,7 @@ export default function AdminDashboard() {
                     </PaginationItem>
                   ))}
                   <PaginationItem>
-                    <PaginationNext onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                    <PaginationNext text={t('common.next')} text={t('common.next')} onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
                       className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
                   </PaginationItem>
                 </PaginationContent>

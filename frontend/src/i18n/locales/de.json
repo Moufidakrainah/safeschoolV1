@@ -647,7 +647,8 @@
     "emailTooLong": "E-Mail zu lang (max. 50 Zeichen)",
     "emailInvalid": "Ungültiges E-Mail-Format",
     "passwordRequired": "Passwort erforderlich",
-    "passwordMin": "Passwort zu kurz"
+    "passwordMin": "Passwort zu kurz",
+    "emailExists": "Diese E-Mail-Adresse wird bereits verwendet"
   },
   "toast": {
     "avatarUpdated": "Foto erfolgreich aktualisiert",

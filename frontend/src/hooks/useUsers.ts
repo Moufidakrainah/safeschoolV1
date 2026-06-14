@@ -181,7 +181,14 @@ export function useUsers(): UseUsersReturn {
       setShowUserForm(false); setEditingUser(null);
       setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
       toast.success(editingUser ? t('toast.parentUpdated') : t('toast.parentAdded'));
-    } catch { toast.error(t('common.error')); }
+    } catch (err: unknown) {
+      const msg = (err as any)?.response?.data?.message ?? '';
+      if (msg === 'Cet email est déjà utilisé') {
+        setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
+      } else {
+        toast.error(t('common.error'));
+      }
+    }
   }, [editingUser, userForm, fetchUsers, t]);
 
   const handleDeleteUser = useCallback(async (id: string) => {
