@@ -89,7 +89,8 @@ export class ReportsController {
   async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req) {
     validateUUID(id);
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
-    return this.reportsService.update(id, dto);
+    // ── Passer req.user comme auteur pour la note status_change ──
+    return this.reportsService.update(id, dto, req.user);
   }
 
   @Get(":id/notes")

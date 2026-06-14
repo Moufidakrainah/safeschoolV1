@@ -21,22 +21,24 @@ interface ParentFormItemProps {
 
 export default function ParentFormItem({ parent, idx, onChange, onRemove, dark = false }: ParentFormItemProps) {
   const { t } = useTranslation();
-  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', phone: '' });
 
-  function validateField(field: string, value: string): string {
+  // ── Stocke des CLÉS i18n, pas des messages ──
+  const [errorKeys, setErrorKeys] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+
+  function validateFieldKey(field: string, value: string): string {
     const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
     if (field === 'firstName') {
-      if (!value.trim()) return t('admin.users.errorRequired');
-      if (!nameRegex.test(value)) return t('admin.users.name');
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!nameRegex.test(value)) return 'admin.users.name';
     } else if (field === 'lastName') {
-      if (!value.trim()) return t('admin.users.errorRequired');
-      if (!nameRegex.test(value)) return t('admin.users.name');
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!nameRegex.test(value)) return 'admin.users.name';
     } else if (field === 'email') {
-      if (!value.trim()) return t('admin.users.errorRequired');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return t('admin.users.errorEmailFormat');
-      if (value.length > 50) return t('admin.users.tooLong');
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return 'admin.users.errorEmailFormat';
+      if (value.length > 50) return 'admin.users.tooLong';
     } else if (field === 'phone' && value.length > 0) {
-      if (!/^[0-9+\s]{0,15}$/.test(value)) return t('validation.emailInvalid');
+      if (!/^[0-9+\s]{0,15}$/.test(value)) return 'validation.emailInvalid';
     }
     return '';
   }
@@ -50,7 +52,7 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
 
   return (
     <div className={containerClass}>
-      {/* En-tête : Parent N + bouton Supprimer */}
+      {/* En-tête */}
       <div className="flex justify-between items-center">
         <span className={dark ? 'text-white text-xs font-semibold' : 'text-xs font-semibold text-gray-700'}>
           {t('userProfile.guardians')} {idx + 1}
@@ -76,12 +78,13 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
               const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
               const normalized = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
               onChange({ ...parent, firstName: normalized });
-              setErrors(prev => ({ ...prev, firstName: validateField('firstName', normalized) }));
+              setErrorKeys(prev => ({ ...prev, firstName: validateFieldKey('firstName', normalized) }));
             }}
             maxLength={20}
             className={inputClass}
           />
-          {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
+          {/* t(clé) au rendu → se met à jour au changement de langue */}
+          {errorKeys.firstName && <p className={errorClass}>{t(errorKeys.firstName)}</p>}
         </div>
         <div>
           <Label className={labelClass}>{t('userProfile.lastName')}</Label>
@@ -90,12 +93,12 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
             onChange={e => {
               const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
               onChange({ ...parent, lastName: val });
-              setErrors(prev => ({ ...prev, lastName: validateField('lastName', val) }));
+              setErrorKeys(prev => ({ ...prev, lastName: validateFieldKey('lastName', val) }));
             }}
             maxLength={20}
             className={inputClass}
           />
-          {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
+          {errorKeys.lastName && <p className={errorClass}>{t(errorKeys.lastName)}</p>}
         </div>
       </div>
 
@@ -107,12 +110,12 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
           value={parent.email}
           onChange={e => {
             onChange({ ...parent, email: e.target.value });
-            setErrors(prev => ({ ...prev, email: validateField('email', e.target.value) }));
+            setErrorKeys(prev => ({ ...prev, email: validateFieldKey('email', e.target.value) }));
           }}
           maxLength={50}
           className={inputClass}
         />
-        {errors.email && <p className={errorClass}>{errors.email}</p>}
+        {errorKeys.email && <p className={errorClass}>{t(errorKeys.email)}</p>}
       </div>
 
       {/* Téléphone */}
@@ -125,13 +128,13 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
           onChange={e => {
             const val = e.target.value.replace(/[^0-9+\s]/g, '');
             onChange({ ...parent, phone: val });
-            setErrors(prev => ({ ...prev, phone: validateField('phone', val) }));
+            setErrorKeys(prev => ({ ...prev, phone: validateFieldKey('phone', val) }));
           }}
           maxLength={15}
           placeholder="ex: +33 6 12 34 56 78"
           className={inputClass}
         />
-        {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+        {errorKeys.phone && <p className={errorClass}>{t(errorKeys.phone)}</p>}
       </div>
 
       {/* Adresse */}
