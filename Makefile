@@ -185,3 +185,79 @@ top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
 .PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
+
+# === TESTS CURL ===
+# Ces tests ciblent http://localhost:5000 (port backend direct).
+# Ils fonctionnent uniquement en mode dev (make dev), pas en prod (make all / nginx sur 8443).
+
+test-login-invalid-email: ## Tester login avec email mal formé (attendu: 400)
+	@curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"pasunemailvraiment","password":"eleve123"}' | python3 -m json.tool
+
+test-login-bad-password: ## Tester login avec mauvais mot de passe (attendu: 401)
+	@curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"mauvaismdp"}' | python3 -m json.tool
+
+test-login-unknown-email: ## Tester login avec email inconnu (attendu: 401)
+	@curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"inconnu@test.com","password":"eleve123"}' | python3 -m json.tool
+
+test-login-ok: ## Tester login valide (attendu: 200 + token)
+	@curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | python3 -m json.tool
+
+test-report-spam: ## Tester signalement avec description spam (attendu: 400)
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	curl -s -X POST http://localhost:5000/reports \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $$TOKEN" \
+		-d '{"type":"physique","reporter":"victime","description":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","isAnonymous":false,"frequency":"Une fois"}' | python3 -m json.tool
+
+test-report-short: ## Tester signalement avec description trop courte (attendu: 400)
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	curl -s -X POST http://localhost:5000/reports \
+		-H "Content-Type: application/json" \
+		-H "Authorization: Bearer $$TOKEN" \
+		-d '{"type":"physique","reporter":"victime","description":"trop court","isAnonymous":false,"frequency":"Une fois"}' | python3 -m json.tool
+
+test-no-token: ## Tester accès sans token (attendu: 401)
+	@curl -s http://localhost:5000/reports | python3 -m json.tool
+
+test-auth: test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok ## Lancer tous les tests auth
+
+test-reports: test-report-spam test-report-short test-no-token ## Lancer tous les tests reports
+
+test-all: test-auth test-reports ## Lancer tous les tests curl
+
+test-decode-token: ## Décoder le payload du token JWT de Lotfi
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"admin@safeschool.com","password":"admin123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	echo "$$TOKEN" | cut -d'.' -f2 | python3 decode_jwt.py
+
+test-verify-token: ## Vérifier la signature du token avec le JWT_SECRET
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	SECRET=$$(grep JWT_SECRET .env | cut -d'=' -f2); \
+	python3 verify_jwt.py "$$TOKEN" "$$SECRET"
+
+test-wrong-role: ## Tester accès GET /users avec token élève (attendu: 403)
+	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"eleve123"}' | \
+		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
+	curl -s http://localhost:5000/users \
+		-H "Authorization: Bearer $$TOKEN" | python3 -m json.tool
