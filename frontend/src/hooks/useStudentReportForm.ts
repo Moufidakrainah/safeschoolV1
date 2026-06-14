@@ -52,8 +52,7 @@ export function useStudentReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
-  const defaultWho = userRole === 'student' ? 'victime' : 'temoin';
-
+  
   // ── Validators — retournent des CLÉS i18n, pas des messages ──
   const validateNameKey = (name: string): string | null => {
     if (name.length < 2) return 'validation.nameMin';
@@ -79,7 +78,7 @@ export function useStudentReportForm(
 
   // ── État ──
   const [step, setStep]               = useState(1);
-  const [whoSignals, setWhoSignals]   = useState<string>(defaultWho);
+  const [whoSignals, setWhoSignals]   = useState<string>();
   const [type, setType]               = useState('');
   const [description, setDescription] = useState('');
   const [frequency, setFrequency]     = useState('');
@@ -198,7 +197,7 @@ export function useStudentReportForm(
     setType('');
     setDescription('');
     setFrequency('');
-    setWhoSignals(defaultWho);
+    setWhoSignals();
     setVictimName('');
     setVictimInput('');
     setSelectedVictim(null);

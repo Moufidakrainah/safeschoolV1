@@ -142,7 +142,7 @@
       "dateTime": "Date et heure",
       "placeholder": "Message de convocation...",
       "messagePlaceholder": "Message de convocation...",
-      "send": "📤 Envoyer {{count}} convocation(s)",
+      "send": "Envoyer {{count}} convocation(s)",
       "sending": "Envoi...",
       "success": "Convocations envoyées avec succès !",
       "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",

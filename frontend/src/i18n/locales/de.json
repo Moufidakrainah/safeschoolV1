@@ -131,7 +131,7 @@
       "dateTime": "Datum und Uhrzeit",
       "placeholder": "Vorladungsnachricht...",
       "messagePlaceholder": "Vorladungsnachricht...",
-      "send": "📤 {{count}} Einladung(en) senden",
+      "send": "{{count}} Einladung(en) senden",
       "sending": "Senden...",
       "success": "Einladungen erfolgreich gesendet!",
       "hint": "Wählen Sie die einzuladenden Personen aus und legen Sie Datum und Nachricht fest.",

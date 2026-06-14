@@ -393,10 +393,10 @@ export default function ReportDetail({
               {checkedConvocIds.map(personId => {
                 const details = convocDetails[personId] ?? { date: '', message: '' };
                 const label = personId === 'alerteur'
-                  ? `👤 ${selected.student?.firstName} ${selected.student?.lastName}`
+                  ? `${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `🟦 ${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `🔴 ${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
+                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
+                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
