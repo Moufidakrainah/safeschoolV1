@@ -112,6 +112,14 @@ curl -s -X POST "http://kibana:5601/api/saved_objects/_import?overwrite=true" \
   -F file=@/setup/kibana-data-view.ndjson
 
 echo ""
+echo "Import du Dashboard SafeSchool - Logs Overview..."
+
+curl -s -X POST "http://kibana:5601/api/saved_objects/_import?overwrite=true" \
+  -H "kbn-xsrf: true" \
+  -u "elastic:${ELASTIC_PASSWORD}" \
+  -F file=@/setup/kibana-dashboard.ndjson
+
+echo ""
 echo "Configuration ELK terminee."
 echo "Kibana accessible sur http://localhost:5601"
 echo "Retention des logs : 30 jours"
