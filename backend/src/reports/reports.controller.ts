@@ -8,6 +8,7 @@ import { ResolveUserDto } from "./dto/resolve-user.dto";
 import { AddNoteDto } from "./dto/add-note.dto";
 import { Request as ExpressRequest } from 'express';
 import { JwtUser } from '../common/interfaces/jwt-user.interface';
+import { ReportNote } from './report-note.entity';
 
 @Controller("reports")
 @UseGuards(AuthGuard("jwt"))
@@ -92,7 +93,7 @@ export class ReportsController {
       const notes = await this.reportsService.getNotes(id);
       const user = req.user;
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
-      return notes.filter((n: any) => {
+      return notes.filter((n: ReportNote) => {
         if (n.type === "status_change") return true;
         if (n.type === "convocation") {
           return n.content.toLowerCase().includes(fullName);
