@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import Header from '@/components/layout/Header/Header';
 import type { AuthUser } from '@/types';
+import { Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+
 
 interface AdminHeaderProps {
   user: AuthUser | null;
@@ -26,11 +29,21 @@ export default function AdminHeader({
   ];
 
   return (
-    <header>
-      <Header user={user} logoutUser={logoutUser} />
-      <nav className="bg-primary px-8 py-0 flex items-center gap-8" aria-label={t('admin.nav.ariaLabel')}>
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-16"/>
-        {navItems.map(item => (
+<header className="w-full flex flex-col">
+  <Header user={user} logoutUser={logoutUser} />
+
+  {/* Mobile menu */}
+  <div className="md:hidden bg-primary px-4 py-2 flex items-center justify-between">
+    <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-10" />
+
+    <Sheet>
+      <SheetTrigger>
+        <Menu className="text-white h-6 w-6" />
+      </SheetTrigger>
+      <SheetContent side="left" className="p-4 bg-primary text-white">
+        <nav className="flex flex-col gap-4">
+        
+ {navItems.map(item => (
           <button
             key={item.key}
             onClick={item.onClick}
@@ -42,7 +55,12 @@ export default function AdminHeader({
             {item.label}
           </button>
         ))}
+        
       </nav>
+    </SheetContent>
+  </Sheet>
+</div>
+
     </header>
   );
 }
