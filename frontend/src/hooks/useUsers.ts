@@ -55,7 +55,6 @@ export interface UseUsersReturn {
     parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
     dateOfBirth: string;
   }>>;
-  // ── Stocke des CLÉS i18n, pas des messages ──
   errors: { firstName: string; lastName: string; email: string; password: string };
   isFormValid: boolean;
   deleteTarget: string | null;
@@ -105,7 +104,6 @@ export function useUsers(): UseUsersReturn {
     dateOfBirth: '',
   });
 
-  // ── Stocke des CLÉS i18n, pas des messages traduits ──
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -151,9 +149,12 @@ export function useUsers(): UseUsersReturn {
       });
       const data = await res.json();
       if (data.avatar) {
+        // ✅ Mettre à jour selectedUser AVANT fetchUsers pour éviter le 404
+        setSelectedUser(prev => prev && prev.id === userId
+          ? { ...prev, avatar: data.avatar }
+          : prev);
         setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
         await fetchUsers();
-        setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev);
         toast.success(t('toast.avatarUpdated'));
       }
     } catch { }
@@ -216,7 +217,6 @@ export function useUsers(): UseUsersReturn {
     } finally { setIsDeleting(false); }
   }, [deleteTarget, fetchUsers, navigate, t]);
 
-  // ── Validators — retournent des CLÉS i18n ──
   const getFieldErrorKey = useCallback((field: string, value: string, firstName?: string, lastName?: string): string => {
     const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
     if (field === 'firstName' || field === 'lastName') {
