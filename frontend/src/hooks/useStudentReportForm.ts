@@ -24,20 +24,18 @@ export interface UseStudentReportFormReturn {
   suspects: UserSearchResult[];
   suspectInput: string;
   setSuspectInput: React.Dispatch<React.SetStateAction<string>>;
-  victimName: string;
-  setVictimName: React.Dispatch<React.SetStateAction<string>>;
+  victims: UserSearchResult[];
   victimInput: string;
-  selectedVictim: UserSearchResult | null;
-  setSelectedVictim: React.Dispatch<React.SetStateAction<UserSearchResult | null>>;
   setVictimInput: React.Dispatch<React.SetStateAction<string>>;
   handleSubmit: () => Promise<void>;
   handleNext: () => void;
   addSuspect: (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect: (index: number) => void;
+  addVictim: (victim: { id?: string; firstName: string; lastName: string; role?: string }) => void;
+  removeVictim: (index: number) => void;
   resetForm: () => void;
   validateDescriptionKey: (desc: string) => string | null;
   validateNameKey: (name: string) => string | null;
-  // Clés i18n (pas des messages) — t() est appelé dans le composant
   victimErrorKey: string;
   setVictimErrorKey: React.Dispatch<React.SetStateAction<string>>;
   suspectErrorKey: string;
@@ -46,14 +44,14 @@ export interface UseStudentReportFormReturn {
   setDescriptionErrorKey: React.Dispatch<React.SetStateAction<string>>;
   frequencyErrorKey: string;
   setFrequencyErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  clearFieldErrors: () => void;
 }
 
 export function useStudentReportForm(
-  userRole: string | undefined,
+  _userRole: string | undefined,
   t: (key: string) => string,
 ): UseStudentReportFormReturn {
-  
-  // ── Validators — retournent des CLÉS i18n, pas des messages ──
+
   const validateNameKey = (name: string): string | null => {
     if (name.length < 2) return 'validation.nameMin';
     if (name.length > 50) return 'validation.nameMax';
@@ -76,9 +74,8 @@ export function useStudentReportForm(
     return null;
   };
 
-  // ── État ──
   const [step, setStep]               = useState(1);
-  const [whoSignals, setWhoSignals]   = useState<string>();
+  const [whoSignals, setWhoSignals]   = useState<string>('');
   const [type, setType]               = useState('');
   const [description, setDescription] = useState('');
   const [frequency, setFrequency]     = useState('');
@@ -86,7 +83,6 @@ export function useStudentReportForm(
   const [loading, setLoading]         = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  // Stocke des CLÉS i18n, pas des messages
   const [descriptionErrorKey, setDescriptionErrorKey] = useState('');
   const [frequencyErrorKey, setFrequencyErrorKey]     = useState('');
   const [victimErrorKey, setVictimErrorKey]           = useState('');
@@ -94,9 +90,8 @@ export function useStudentReportForm(
   const [showErrors, setShowErrors]                   = useState(false);
   const [suspects, setSuspects]         = useState<UserSearchResult[]>([]);
   const [suspectInput, setSuspectInput] = useState('');
-  const [victimName, setVictimName]     = useState('');
+  const [victims, setVictims]           = useState<UserSearchResult[]>([]);
   const [victimInput, setVictimInput]   = useState('');
-  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
   const isNextDisabled =
     (step === 1 && !whoSignals) ||
@@ -111,28 +106,18 @@ export function useStudentReportForm(
 
     if (step === 3) {
       const descErrKey = validateDescriptionKey(description.trim());
-      if (descErrKey) {
-        setDescriptionErrorKey(descErrKey);
-        setShowErrors(true);
-        return;
-      }
+      if (descErrKey) { setDescriptionErrorKey(descErrKey); setShowErrors(true); return; }
       setDescriptionErrorKey('');
-
-      if (!frequency) {
-        setFrequencyErrorKey('validation.freqRequired');
-        setShowErrors(true);
-        return;
-      }
+      if (!frequency) { setFrequencyErrorKey('validation.freqRequired'); setShowErrors(true); return; }
       setFrequencyErrorKey('');
     }
 
     if (step === 4) {
-      if (victimName) {
-        victimName.split('|').filter(Boolean).forEach((v, i) => {
-          const errKey = validateNameKey(v.trim());
-          if (errKey) errors[`victim_${i}`] = t(errKey);
-        });
-      }
+      victims.forEach((v, i) => {
+        const fullName = `${v.firstName} ${v.lastName}`.trim();
+        const errKey = validateNameKey(fullName);
+        if (errKey) errors[`victim_${i}`] = t(errKey);
+      });
       suspects.forEach((s, i) => {
         const fullName = `${s.firstName} ${s.lastName}`.trim();
         const errKey = validateNameKey(fullName);
@@ -140,12 +125,7 @@ export function useStudentReportForm(
       });
     }
 
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      setShowErrors(true);
-      return;
-    }
-
+    if (Object.keys(errors).length > 0) { setFieldErrors(errors); setShowErrors(true); return; }
     setFieldErrors({});
     setShowErrors(false);
     setStep(s => s + 1);
@@ -158,31 +138,35 @@ export function useStudentReportForm(
     try {
       const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({ freeText: `${s.firstName} ${s.lastName}`.trim() }));
-      const victimsData = victimName
-        ? victimName.split('|').filter(v => v.trim()).map(v => ({ freeText: v.trim() }))
-        : [];
+      const victimsData  = victims.map(v => ({ freeText: `${v.firstName} ${v.lastName}`.trim() }));
       await createReport(type, whoSignals, fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(7);
     } catch (err: unknown) {
-      if (isOfflineError(err)) {
-        setSubmitError(t('offline.actionUnavailable'));
-        return;
-      }
+      if (isOfflineError(err)) { setSubmitError(t('offline.actionUnavailable')); return; }
       const messages = (err as { response?: { data?: { message?: unknown } }; message?: unknown })?.response?.data?.message
         ?? (err as { message?: unknown })?.message;
-      if (Array.isArray(messages) && messages.length > 0) {
-        setSubmitError(messages.join(' — '));
-      } else if (typeof messages === 'string') {
-        setSubmitError(messages);
-      } else {
-        setSubmitError(t('reporter.submitError'));
-      }
+      if (Array.isArray(messages) && messages.length > 0) setSubmitError(messages.join(' — '));
+      else if (typeof messages === 'string') setSubmitError(messages);
+      else setSubmitError(t('reporter.submitError'));
     } finally {
       setLoading(false);
     }
   };
 
   const clearFieldErrors = () => setFieldErrors({});
+
+  const addVictim = (victim: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    const name = `${victim.firstName} ${victim.lastName}`.trim();
+    const errKey = validateNameKey(name);
+    if (errKey) { setVictimErrorKey(errKey); return; }
+    setVictimErrorKey('');
+    if (!victims.find(v => v.firstName === victim.firstName && v.lastName === victim.lastName)) {
+      setVictims([...victims, victim as UserSearchResult]);
+    }
+    setVictimInput('');
+  };
+
+  const removeVictim = (index: number) => setVictims(victims.filter((_, i) => i !== index));
 
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
     const name = `${suspect.firstName} ${suspect.lastName}`.trim();
@@ -198,23 +182,12 @@ export function useStudentReportForm(
   const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
-    setStep(1);
-    setType('');
-    setDescription('');
-    setFrequency('');
-    setWhoSignals();
-    setVictimName('');
-    setVictimInput('');
-    setSelectedVictim(null);
-    setSuspects([]);
-    setIsAnonymous(false);
-    setSubmitError(null);
-    setFieldErrors({});
-    setShowErrors(false);
-    setDescriptionErrorKey('');
-    setFrequencyErrorKey('');
-    setVictimErrorKey('');
-    setSuspectErrorKey('');
+    setStep(1); setType(''); setDescription(''); setFrequency('');
+    setWhoSignals(''); setVictims([]); setVictimInput('');
+    setSuspects([]); setSuspectInput('');
+    setIsAnonymous(false); setSubmitError(null); setFieldErrors({});
+    setShowErrors(false); setDescriptionErrorKey(''); setFrequencyErrorKey('');
+    setVictimErrorKey(''); setSuspectErrorKey('');
   };
 
   return {
@@ -228,15 +201,14 @@ export function useStudentReportForm(
     showErrors, setShowErrors,
     isNextDisabled,
     suspects, suspectInput, setSuspectInput,
-    victimName, setVictimName,
-    victimInput, setVictimInput,
-    selectedVictim, setSelectedVictim,
+    victims, victimInput, setVictimInput,
     handleSubmit, handleNext, clearFieldErrors,
     validateDescriptionKey, validateNameKey,
     descriptionErrorKey, setDescriptionErrorKey,
     frequencyErrorKey, setFrequencyErrorKey,
     victimErrorKey, setVictimErrorKey,
     suspectErrorKey, setSuspectErrorKey,
+    addVictim, removeVictim,
     addSuspect, removeSuspect, resetForm,
   };
 }

@@ -28,7 +28,7 @@ function HomeRedirect() {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated) return <Navigate to="/login" />;
   if (user?.role === 'student') return <Navigate to="/student" />;
-  if (user?.role === 'admin' || user?.role === 'director') return <Navigate to="/dashboard" />;
+  if (user?.role === 'admin') return <Navigate to="/dashboard" />;
   if (user?.role === 'teacher') return <Navigate to="/reporter" />;
   return <Navigate to="/login" />;
 }

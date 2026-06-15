@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/context/AuthContext";
 import {
 	Table,
-	TableHeader,
 	TableBody,
 	TableCell,
 	TableCellLeft,
@@ -20,8 +19,8 @@ interface Parent {
 	firstName: string;
 	lastName: string;
 	email: string;
-	phone?: string;
-	address?: string;
+	phone?: string | null;
+	address?: string | null;
 }
 
 interface StudentProfileProps {
@@ -35,11 +34,10 @@ const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
 export default function StudentProfile({
 	user,
 	parents,
-	loadingParents,
 }: StudentProfileProps) {
 	const { t } = useTranslation();
-	const { updateUser } = useAuth();
-	const [avatar, setAvatar] = useState<string | null>(user?.avatar ?? null);
+	const { updateUser: _updateUser } = useAuth();
+	const [avatar, _setAvatar] = useState<string | null>(user?.avatar ?? null);
 
 	const calcAge = (dateOfBirth: string): number => {
 		const dob = new Date(dateOfBirth);
@@ -70,10 +68,7 @@ export default function StudentProfile({
 
 					<div className="text-center mt-4">
 						{(() => {
-							const { first, last } = formatName(
-								user?.firstName,
-								user?.lastName,
-							);
+							const { first, last } = formatName(user?.firstName ?? '', user?.lastName ?? '');
 							return (
 								<h2 className="text-2xl font-bold mb-4">
 									{first} {last}

@@ -50,7 +50,7 @@ const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
 const personRegex      = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
 
 export function useReportForm(
-  userRole: string | undefined,
+  _userRole: string | undefined,
   t: (key: string) => string,
 ): UseReportFormReturn {
 

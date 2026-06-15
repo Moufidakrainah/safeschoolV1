@@ -32,13 +32,13 @@ interface AdminUserProfileProps {
   onHandleAvatarUpload: (userId: string, file: File) => void;
   onHandleDeleteUser: (id: string) => void;
   onSaveUser: () => void;
-  renderUserForm: (isEdit: boolean) => JSX.Element;
+  renderUserForm: (isEdit: boolean) => React.ReactElement;
   calcAge: (dateOfBirth: string) => number;
 }
 
 export default function AdminUserProfile({
   selectedUser, filteredUsers,
-  avatarTimestamps, classes, userForm, _errors,
+  avatarTimestamps, classes, userForm,
   isFormValid, originReportId,
   onBack, onPrev, onNextUser, onHandleAvatarUpload,
   onHandleDeleteUser, onSaveUser,
@@ -157,13 +157,11 @@ export default function AdminUserProfile({
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
 
             {/* ── Bouton changer photo — même taille que les autres ── */}
-            <Button asChild className={uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}>
-              <label className="cursor-pointer">
+            <label className="cursor-pointer">
                 {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                   onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
               </label>
-            </Button>
 
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}

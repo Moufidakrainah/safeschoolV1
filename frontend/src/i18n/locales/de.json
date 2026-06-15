@@ -1,10 +1,4 @@
 {
-  "offline": {
-    "message": "Sie sind offline",
-    "actionUnavailable": "Diese Aktion ist offline nicht verfügbar. Bitte versuchen Sie es erneut, sobald Sie wieder verbunden sind.",
-    "contentUnavailable": "Dieser Inhalt kann offline nicht geladen werden. Er wird automatisch geladen, sobald Sie wieder verbunden sind.",
-    "retry": "Erneut versuchen"
-  },
   "login": {
     "labelEmail": "Benutzername",
     "labelPassword": "Passwort",
@@ -112,8 +106,8 @@
       "reporterTemoin": "Zeuge",
       "unidentified": "Nicht identifiziert",
       "unlinked": "Identität nicht verknüpft",
-      "unlink": "Verknüpfung lösen",
-      "link": "Verknüpfen",
+      "unlink": "Trennen",
+      "link": "Zuordnen",
       "searchStudent": "Schüler suchen...",
       "title": "Meldung {{caseNumber}}",
       "back": "Zurück zu allen Meldungen"
@@ -137,7 +131,7 @@
       "dateTime": "Datum und Uhrzeit",
       "placeholder": "Vorladungsnachricht...",
       "messagePlaceholder": "Vorladungsnachricht...",
-      "send": "📤 {{count}} Einladung(en) senden",
+      "send": "{{count}} Einladung(en) senden",
       "sending": "Senden...",
       "success": "Einladungen erfolgreich gesendet!",
       "hint": "Wählen Sie die einzuladenden Personen aus und legen Sie Datum und Nachricht fest.",
@@ -177,22 +171,22 @@
         "director": "Direktor",
         "choose": "Rolle auswählen"
       },
-      "errorEmailFormat": "Ungültiges E-Mail-Format.",
-      "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
+      "errorEmailFormat": "Ungültiges E-Mail-Format",
+      "errorPasswordLength": "Das Passwort muss mindestens 12 Zeichen enthalten",
       "deleteConfirm": "Möchten Sie diesen Benutzer wirklich löschen?",
-      "deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist..",
-      "deleteError": "Beim Löschen ist ein Fehler aufgetreten..",
+      "deleteBlocked": "Dieser Benutzer kann nicht gelöscht werden, da er mit einem oder mehreren Berichten verknüpft ist.",
+      "deleteError": "Beim Löschen ist ein Fehler aufgetreten.",
       "deleteSelf": "Sie können Ihr eigenes Konto nicht löschen",
       "name": "Nur Buchstaben, Bindestriche und Apostrophe (2-20 Zeichen)",
       "errorRequired": "Dieses Feld ist erforderlich",
-      "tooLong": "Too long (max 50 characters)",
-      "atLeast": "Minimum 12 characters",
-      "atLeastOneNumber": "At least one digit required",
-      "atLeastOneMinus": "At least one lowercase letter required",
-      "atLeastOneMajor": "At least one uppercase letter required",
-      "atLeastOneSpecial": "At least one special character required",
-      "noFirstName": "Password must not contain first name",
-      "noLastName": "Password must not contain last name",
+      "tooLong": "Zu lang (max. 50 Zeichen)",
+      "atLeast": "Mindestens 12 Zeichen",
+      "atLeastOneNumber": "Mindestens eine Zahl erforderlich",
+      "atLeastOneMinus": "Mindestens ein Kleinbuchstabe erforderlich",
+      "atLeastOneMajor": "Mindestens ein Großbuchstabe erforderlich",
+      "atLeastOneSpecial": "Mindestens ein Sonderzeichen erforderlich",
+      "noFirstName": "Passwort darf den Vornamen nicht enthalten",
+      "noLastName": "Passwort darf den Nachnamen nicht enthalten",
       "class": "Klasse",
       "dateOfBirth": "Geburtsdatum",
       "ageMin": "Der Schüler muss mindestens 9 Jahre alt sein",
@@ -228,7 +222,7 @@
   },
   "noteblock": {
     "note": "Notiz",
-    "convocation": " Vorladung",
+    "convocation": "Vorladung",
     "statusChange": "Status aktualisiert",
     "by": "von"
   },
@@ -580,11 +574,15 @@
     "statusInProgress": "In Bearbeitung",
     "statusResolved": "Geschlossen",
     "statusPending": "Ausstehend",
-    "statusFalseReport": "Falscher Bericht"
+    "statusFalseReport": "Falscher Bericht",
+    "noData": "Keine Daten",
+    "total": "Gesamt",
+    "statusRejected": "Falscher Bericht",
+    "reportsLabel": "Meldungen"
   },
   "classes": {
     "loading": "Laden...",
-    "backToClasses": "← Zurück zu den Klassen",
+    "backToClasses": "Zurück zu den Klassen",
     "studentsEnrolled": "Eingeschriebene Schüler",
     "noStudentInClass": "Keine Schüler in dieser Klasse.",
     "assignStudents": "Schüler im Benutzerbereich zuweisen.",
@@ -612,8 +610,8 @@
   "userProfile": {
     "backToReport": "Zurück zur Meldung",
     "backToList": "Zurück zur Liste",
-    "prev": "← Vorherige",
-    "next": "Nächste →",
+    "prev": "Vorherige",
+    "next": "Nächste",
     "changePhoto": "Foto ändern",
     "uploading": "Hochladen...",
     "class": "Klasse",
@@ -666,5 +664,11 @@
     "classCreated": "Klasse erfolgreich erstellt",
     "classUpdated": "Klasse erfolgreich geändert",
     "classDeleted": "Klasse erfolgreich gelöscht"
+  },
+  "severity": {
+    "critical": "Kritisch",
+    "high": "Hoch",
+    "medium": "Mittel",
+    "low": "Niedrig"
   }
 }

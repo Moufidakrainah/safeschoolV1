@@ -1,10 +1,4 @@
 {
-  "offline": {
-    "message": "Vous êtes hors ligne",
-    "actionUnavailable": "Cette action est indisponible hors ligne. Veuillez réessayer une fois reconnecté.",
-    "contentUnavailable": "Ce contenu ne peut pas être chargé hors ligne. Il se chargera automatiquement dès que vous serez reconnecté.",
-    "retry": "Réessayer"
-  },
   "login": {
     "labelEmail": "Identifiant",
     "labelPassword": "Mot de passe",
@@ -123,8 +117,8 @@
       "reporterTemoin": "Témoin",
       "unidentified": "Non identifié",
       "unlinked": "Identité non liée",
-      "unlink": "Délier",
-      "link": "Lier",
+      "unlink": "Rompre",
+      "link": "Associer",
       "searchStudent": "Rechercher un élève...",
       "title": "Signalement {{caseNumber}}",
       "back": "Revenir à tous les signalements"
@@ -148,7 +142,7 @@
       "dateTime": "Date et heure",
       "placeholder": "Message de convocation...",
       "messagePlaceholder": "Message de convocation...",
-      "send": "📤 Envoyer {{count}} convocation(s)",
+      "send": "Envoyer {{count}} convocation(s)",
       "sending": "Envoi...",
       "success": "Convocations envoyées avec succès !",
       "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",
@@ -236,7 +230,7 @@
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Convocation",
+    "convocation": "Convocation",
     "statusChange": "Statut mis à jour",
     "by": "par"
   },
@@ -623,22 +617,26 @@
     "last90": "3 derniers mois",
     "last365": "1 an",
     "allClasses": "Toutes les classes",
-    "allGrades": "Tous les grades",
+    "allGrades": "Toutes les gravités",
     "reportsFound": "{{count}} signalement(s) trouvé(s)",
-    "byGrade": "Répartition par grade",
+    "byGrade": "Répartition par gravité",
     "byStatus": "Répartition par statut",
     "byClass": "Signalements par classe (victime)",
     "byType": "Signalements par type",
     "evolution": "Évolution (7 derniers jours)",
     "statusNew": "Nouveau",
     "statusInProgress": "En cours",
-    "statusResolved": "Clôturé",
+    "statusResolved": "Résolu",
     "statusPending": "En attente",
-    "statusFalseReport": "Faux signalement"
+    "statusFalseReport": "Faux signalement",
+    "noData": "Aucune donnée",
+    "total": "Total",
+    "statusRejected": "Faux signalement",
+    "reportsLabel": "Signalements"
   },
   "classes": {
     "loading": "Chargement...",
-    "backToClasses": "← Retour aux classes",
+    "backToClasses": "Retour aux classes",
     "studentsEnrolled": "Élèves inscrits",
     "noStudentInClass": "Aucun élève dans cette classe.",
     "assignStudents": "Assignez des élèves depuis la section Utilisateurs.",
@@ -666,8 +664,8 @@
   "userProfile": {
     "backToReport": "Retour au signalement",
     "backToList": "Retour à la liste",
-    "prev": "← Précédent",
-    "next": "Suivant →",
+    "prev": "Précédent",
+    "next": "Suivant",
     "changePhoto": "Changer la photo",
     "uploading": "Upload...",
     "class": "Classe",
@@ -720,5 +718,11 @@
     "classCreated": "Classe créée avec succès",
     "classUpdated": "Classe modifiée avec succès",
     "classDeleted": "Classe supprimée avec succès"
+  },
+  "severity": {
+    "critical": "Critique",
+    "high": "Grave",
+    "medium": "Moyen",
+    "low": "Faible"
   }
 }

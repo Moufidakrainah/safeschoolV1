@@ -124,7 +124,7 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
 export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
 
-export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentProfileId: string }) =>
+export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentIds: string[] }) =>
   (await api.post('/parents', dto)).data;
 export const updateParent = async (id: string, dto: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string }) =>
   (await api.patch(`/parents/${id}`, dto)).data;

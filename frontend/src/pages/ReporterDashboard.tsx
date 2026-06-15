@@ -13,7 +13,6 @@
 // React & libs
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 // Contexts & hooks
 import { useAuth } from '@/context/AuthContext';
@@ -30,7 +29,6 @@ import RoleHeader from '@/components/layout/Header/RoleHeader';
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
-  const { t } = useTranslation();
   const navigate = useNavigate();
 
   // Lecture du query param ?section= pour la prise en charge des liens directs

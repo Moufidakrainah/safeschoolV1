@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import type { AuthUser } from '@/types';
@@ -29,7 +29,7 @@ const STATUS_FR_TO_KEY: Record<string, string> = {
   'Rejeté':            'badge.rejected',
 };
 
-function formatNotifMessage(message: string, t: (key: string, opts?: object) => string): string {
+function formatNotifMessage(message: string, t: (key: string, opts?: Record<string, unknown>) => string): string {
   // ── Convocation ──
   if (message.startsWith('Convocation : ')) {
     const content = message.replace('Convocation : ', '');
