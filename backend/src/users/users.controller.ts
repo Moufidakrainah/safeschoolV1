@@ -9,7 +9,6 @@ import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { validateUUID } from "../utils/validate-uuid";
-import { ChangePasswordDto } from './dto/change-password.dto';
 import { Request as ExpressRequest } from 'express';
 import { JwtUser } from '../common/interfaces/jwt-user.interface';
 
@@ -63,15 +62,6 @@ export class UsersController {
       throw new ForbiddenException("Seul l'admin peut modifier des utilisateurs");
     }
     return this.usersService.updateByAdmin(id, dto);
-  }
-
-  @Patch(":id/password")
-  async changePassword(@Request() req: ExpressRequest & { user: JwtUser }, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
-    validateUUID(id);
-    if (req.user.role !== "admin" && req.user.id !== id) {
-      throw new ForbiddenException("Accès refusé");
-    }
-    return this.usersService.changePassword(id, dto.password);
   }
 
   @Get(':id/can-delete')
