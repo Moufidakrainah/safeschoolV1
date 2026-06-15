@@ -167,7 +167,7 @@ Coordinated the project workflow, maintained visibility on priorities, and suppo
 
 ### 3. Technical Lead 1 — mobougri
 
-Responsible for the backend architecture, database design, and full-stack data integration, as well as the complete Dockerization of the project.
+Responsible for the backend architecture, database design, and full-stack data integration, as well as the complete Dockerization of the project. The real-time quiz module (WebSockets, game logic) was under quclaque's responsibility.
 
 ### 4. Technical Lead 2 — quclaque
 
@@ -432,7 +432,7 @@ notifications
 - Designed and developed the NestJS backend from scratch: TypeORM entities, DTOs with `class-validator` validation, JWT guards, services and controllers covering all core modules — `reports`, `users`, `parents`, `classes`, `staff-profiles`, `student-profiles`, `notifications`.
 - Set up the PostgreSQL database: complete schema, entity relationships with cascade delete rules, and seeding for demo data.
 - Implemented the security layer: password hashing with bcrypt, JWT authentication via Passport, input validation with `class-validator` and a global `ValidationPipe`, and role-based route protection via guards.
-- Built the incident reporting system end to end: report creation, automatic case numbering, status lifecycle, administrative notes, convocations addressed to specific users by UUID, and resolution of suspects and victims against real user accounts.
+- Built the incident reporting system on the backend side: report creation, automatic case numbering, status lifecycle, administrative notes, convocations addressed to specific users by UUID, and resolution of suspects and victims against real user accounts.
 - Handled data integration between backend and frontend: designed `api.ts` as the single service layer and maintained `types/index.ts` as the shared type contract, keeping TypeScript types consistent across both sides of the stack throughout parallel branch development.
 - Dockerized the full project: wrote multi-stage `Dockerfile` for both the frontend (Node.js + Vite) and the backend (NestJS), configured `docker-compose.yml` orchestrating all services with persistent volumes, internal networks, and environment variables via `.env`, and set up a PostgreSQL healthcheck with `depends_on: condition: service_healthy` to guarantee ordered startup.
 - Main ambition: to keep developing SafeSchool beyond this project and see it one day deployed in schools across France — because harassment is a real problem that deserves a real tool.
