@@ -5,16 +5,27 @@
 ---
 ## Description
 
-**SafeSchool** is a web platform for managing school harassment reports in middle schools. Students and school staff can report harassment situations they witness or experience. Each report is automatically graded by severity with AI assistance, then routed to and handled by the school's administrative staff (teachers, supervisors, directors).
+**SafeSchool** is a web platform for managing school harassment reports in middle schools. 
+Students and teachers can report instances of harassment. Students can be witnesses or victims.
+Teachers can only be witnesses. 
+Each report is automatically graded by severity with AI assistance, then routed to and handled by the school's administrative staff.
 
 ### Key Features
 
 - Report submission and triage, with AI-assisted severity scoring and sentiment analysis of report descriptions
-- Role-based dashboards for students, reporting staff, and administrators, including full CRUD on users, classes and reports
+- Customized dashboards for students, teachers, and administrators with different access levels depending on their roles
+- Administrators have access to reports, users, and classes (CRUD)
+- Teachers have access to their profile, report creation, and quizzes
 - Organization system: schools structured into classes, with students, parents and staff linked to them
 - Real-time multiplayer quiz on school-harassment awareness, powered by WebSockets
 - Game features include live score updates, leaderboard, and remote play across devices
-- Notification system for report status changes, quiz invitations and other key events
+- Notification system for report status changes, quiz invitations and other key events 
+
+
+!!! TO BE CHECKED Est-ce qu'on a les invitations au quiz ? !!!
+<!--  -->
+
+
 - Multilingual interface (French / English / German) tested across Chrome, Firefox and Edge
 - Installable Progressive Web App (PWA) whose static shell is cached for offline loading (backend data still requires a connection)
 - Centralized log management and monitoring via the ELK stack (Elasticsearch, Logstash, Kibana)
@@ -180,7 +191,15 @@ Every team member contributed to the code as well as to the organization of the 
 
 ### 1. Product Owner — mdoan
 
-<!- TODO mdoan : completer en anglais avec une description precise de ton role -->
+I am the Product Owner and I actively participate in the frontend development of the application.
+
+As Product Owner, I conducted a functional requirements analysis based on the issue of school bullying and the expectations of future users. I studied documentation and institutional resources related to the prevention and handling of bullying in schools to define the platform's essential functionalities: secure reporting, case tracking, user management, dashboards, and statistics.
+
+I wrote and prioritized business requirements, defined user journeys, and ensured regular progress tracking of the project. My role also included verifying the conformity of the developed functionalities with the initial requirements, performing functional tests, and ensuring the overall consistency of the product.
+
+In parallel, I participated in the application's frontend development using React, TypeScript, and Tailwind CSS. I contributed to the implementation of reusable components and the improvement of the user experience. I also worked on state management, application internationalization, dynamic forms, and the implementation of a consistent interface based on a common design system.
+
+This dual responsibility allowed me to maintain a constant link between business needs and their technical implementation, ensuring that each developed feature delivers real value to users while respecting the project objectives.
 
 
 ### 2. Project Manager / Scrum Master — eguthman
@@ -295,6 +314,9 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process. A base file is shared by both modes, with a dev overlay (hot reload, direct ports) and a prod overlay (compiled backend + nginx).
 - **nginx** — in production nginx serves the built frontend, terminates TLS and reverse-proxies the API, uploads and WebSocket traffic to the backend, so the whole application runs behind a single HTTPS origin instead of exposing the dev servers directly. Same-origin serving also keeps the frontend free of hard-coded backend hosts (it uses relative URLs), so it works over localhost, a LAN IP or a domain without rebuilding.
 - **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
+- **Internationalization (i18n)** — We chose to integrate an internationalization system from the outset of the project to make the application accessible to the widest possible audience. 
+The application is currently available in French, English, and German. Thanks to the i18n library, adding a new language is now very simple: each language is centralized in a dedicated translation file, which facilitates maintenance and project development. 
+- **Quiz** — To raise students' awareness of bullying, we chose to develop an interactive quiz inspired by platforms such as Kahoot. The goal was to offer a more engaging educational tool than simply providing information. 
 
 <!- TODO équipe : compléter en anglais si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
 
@@ -328,11 +350,11 @@ erDiagram
 ### Tables and Relationships
 
 ```
-users (role: student | teacher | staff | director | admin)
+users (role: student | teacher | staff | admin)
   ├── id (PK, uuid)
   ├── email (unique), password (hashed, select: false), firstName, lastName, avatar
   ├── 1—1 → student_profiles (if role = student)
-  ├── 1—1 → staff_profiles (if role = staff/teacher/director)
+  ├── 1—1 → staff_profiles (if role = teacher)
   └── 1—N → reports (as the reporting student)
 
 student_profiles
@@ -385,7 +407,7 @@ notifications
 | users | id | UUID | Primary key |
 | users | email | varchar, unique | Login identifier |
 | users | password | varchar (hashed, `select: false`) | bcrypt hash, never returned by default queries |
-| users | role | enum (`UserRole`) | student / teacher / staff / director / admin — drives permissions |
+| users | role | enum (`UserRole`) | student / teacher / admin — drives permissions |
 | reports | grade | enum (`ReportGrade`) | Severity grade computed from the AI scoring service |
 | reports | status | enum (`ReportStatus`) | Lifecycle state of a report (default: `NEW`) |
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
@@ -396,21 +418,21 @@ notifications
 
 | Feature | Description | Team member(s) |
 |---------|-------------|---------------|
-| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | <!-- login --> |
-| Report submission and follow-up | Students and school staff can submit harassment reports, optionally anonymously, then follow their status as the case is handled. | <!-- login --> |
-| Report review workflow | Authorized staff can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | <!-- login --> |
-| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | <!-- login --> |
-| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | <!-- login --> |
-| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | <!-- login --> |
+| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | mobougri |
+| Report submission and follow-up | Students and teachers can submit harassment reports, optionally anonymously then follow the progress of their case if they are victims. | mdoan |
+| Report review workflow | Admin users can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | mdoan |
+| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | mobougri |
+| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | mobougri |
+| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | mobougri |
 | Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | quclaque |
-| Notification system | The platform notifies users about report updates, quiz events and other important actions. | <!-- login --> |
-| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | <!-- login --> |
-| Internationalization | The interface is available in French, English and German through a language switcher. | <!-- login --> |
+| Notification system | The platform notifies users about report updates, quiz events and other important actions. | mobougri |
+| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | mdoan |
+| Internationalization | The interface is available in French, English and German through a language switcher. | eguthman + mdoan |
 | Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | quclaque |
-| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | <!-- login --> |
-| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | <!-- login --> |
-| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | <!-- login --> |
-| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | <!-- login --> |
+| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | mobougri + mdoan |
+| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | eguthman |
+| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | mobougri |
+| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | eguthman |
 
 <!- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
 
@@ -419,23 +441,23 @@ notifications
 
 | Module | Category | Type | Points | Description / justification | Team member(s) |
 |--------|----------|------|--------|------------------------------|---------------|
-| Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | <!-- login --> |
+| Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | mobrougri + mdoan |
 | Real-time features — WebSockets (Quiz) | Web | Major | 2 | Implemented through a Socket.io quiz module that synchronizes room state, scores and progression between connected players in real time. | quclaque |
-| ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | <!-- login --> |
-| Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | <!-- login --> |
+| ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | mobrougri |
+| Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | mobrougri + mdoan |
 | Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | quclaque |
-| 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | <!-- login --> |
-| Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | <!-- login --> |
-| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | <!-- login --> |
-| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | <!-- login --> |
-| Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | <!-- login --> |
-| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | <!-- login --> |
-| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | <!-- login --> |
-| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | <!-- login --> |
+| 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | mdoan |
+| Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | mobougri |
+| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | mobougri |
+| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | eguthman + mdoan |
+| Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | mobrougi + mdoan |
+| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | mobougri |
+| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | mobougri |
+| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | mobougri |
 | Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Implemented as a complete browser-based awareness quiz with rules, scoring, question flow and shared match state. | quclaque |
 | Remote players | Gaming & UX | Major | 2 | Implemented by allowing players on separate devices to join the same live quiz room and play together over the network. | quclaque |
 | Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Implemented with quiz rooms that support more than two simultaneous players in the same match. | quclaque |
-| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | <!-- login --> |
+| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | eguthman |
 
 **Total: 8 Major × 2 + 9 Minor × 1 = 25 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
 
@@ -463,7 +485,16 @@ notifications
 
 ### mdoan
 
-- TODO mdoan: describe concrete features, modules, responsibilities and challenges personally handled.
+- Chosed the topic of school bullying because it is a major societal issue that regularly makes headlines. I was surprised to find that there are still few solutions available to middle school students to easily report bullying or alert a trusted adult.
+- Participated in defining functional requirements and validating features to ensure their compliance with the specifications.
+- Developed a large part of the application's frontend using React.
+- Designed the user interface with Tailwind CSS and custom CSS to provide a clear, modern, and accessible user experience.
+- Organized the various pages and React components to make the application easy to maintain and evolve.
+- Contributed to the user experience design, ensuring that the user journeys were simple and intuitive for students.
+- Ensured that the data provided by the backend met the frontend's requirements to allow for the correct integration of functionalities.
+- Collaborated with the backend developers to verify that the APIs exposed the information necessary for displaying data in the interface.
+- Performed functional tests to verify that the developed functionalities met the specifications.
+- Participated in the final validation of the application by verifying the consistency between the initial requirements and the functionalities actually implemented.
 
 ### mobougri
 
