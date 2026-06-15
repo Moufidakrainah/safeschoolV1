@@ -117,6 +117,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
+  const [offline, setOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [socketError, setSocketError] = useState('');
   const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
   const [questionState, setQuestionState] = useState<QuestionState>(null);
@@ -208,6 +209,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
       socket.on('connect_error', () => {
         setConnected(false);
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
         setSocketError('Impossible de se connecter au serveur.');
       });
 
@@ -220,6 +222,8 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       });
 
       socket.io.on('reconnect_attempt', () => {
+        // On n'annonce une reconnexion que si elle est réellement possible (réseau présent)
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
         setReconnecting(true);
       });
 
@@ -345,14 +349,25 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
     connectSocket();
 
     const handleOffline = () => {
+      setOffline(true);
       setConnected(false);
-      setReconnecting(true);
-      socketRef.current?.io.engine?.close();
+      setReconnecting(false);
+      setSocketError('');
+      const socket = socketRef.current;
+      if (socket) {
+        socket.io.reconnection(false);
+        socket.disconnect();
+      }
     };
 
     const handleOnline = () => {
+      setOffline(false);
       const socket = socketRef.current;
-      if (socket && !socket.connected && socket.active) socket.io.open();
+      if (socket && !socket.connected) {
+        setReconnecting(true);
+        socket.io.reconnection(true);
+        socket.connect();
+      }
     };
     window.addEventListener('offline', handleOffline);
     window.addEventListener('online', handleOnline);
@@ -421,6 +436,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   return {
     connected,
     reconnecting,
+    offline,
     socketError,
     myClientId,
     isHost,
