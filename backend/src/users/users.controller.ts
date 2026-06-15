@@ -90,7 +90,9 @@ export class UsersController {
       },
     }),
     fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+      const allowedExts = ['.jpg', '.jpeg', '.png', '.webp'];
+      const ext = path.extname(file.originalname).toLowerCase();
+      if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/) || !allowedExts.includes(ext)) {
         return cb(new BadRequestException('Seules les images jpg/png/webp sont acceptées'), false);
       }
       cb(null, true);
