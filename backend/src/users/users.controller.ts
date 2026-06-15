@@ -1,20 +1,5 @@
 
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Request,
-  ForbiddenException,
-  UseInterceptors,
-  UploadedFile,
-  BadRequestException,
-} from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, Request, ForbiddenException, UseInterceptors, UploadedFile, BadRequestException } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import * as path from "path";
@@ -25,6 +10,8 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { validateUUID } from "../utils/validate-uuid";
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { Request as ExpressRequest } from 'express';
+import { JwtUser } from '../common/interfaces/jwt-user.interface';
 
 @Controller("users")
 @UseGuards(AuthGuard("jwt"))
@@ -39,12 +26,12 @@ export class UsersController {
 
   @Get()
   async findAll(
-    @Request() req,
+    @Request() req: ExpressRequest & { user: JwtUser },
     @Query("role") role?: string,
     @Query("page") page?: string,
     @Query("limit") limit?: string,
   ) {
-    if (req.user.role !== "admin" && req.user.role !== "director") {
+    if (req.user.role !== "admin") {
       throw new ForbiddenException("Accès refusé");
     }
     const pageNum = page ? parseInt(page) : 1;
@@ -53,16 +40,16 @@ export class UsersController {
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string, @Request() req) {
+  async findOne(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
-    if (req.user.role !== "admin" && req.user.role !== "director" && req.user.id !== id) {
+    if (req.user.role !== "admin" && req.user.id !== id) {
       throw new ForbiddenException("Accès refusé");
     }
     return this.usersService.findById(id);
   }
 
   @Post()
-  async createUser(@Request() req, @Body() dto: CreateUserDto) {
+  async createUser(@Request() req: ExpressRequest & { user: JwtUser }, @Body() dto: CreateUserDto) {
     if (req.user.role !== "admin") {
       throw new ForbiddenException("Seul l'admin peut créer des utilisateurs");
     }
@@ -70,7 +57,7 @@ export class UsersController {
   }
 
   @Patch(":id")
-  async updateUser(@Request() req, @Param("id") id: string, @Body() dto: UpdateUserDto) {
+  async updateUser(@Request() req: ExpressRequest & { user: JwtUser }, @Param("id") id: string, @Body() dto: UpdateUserDto) {
     validateUUID(id);
     if (req.user.role !== "admin") {
       throw new ForbiddenException("Seul l'admin peut modifier des utilisateurs");
@@ -79,7 +66,7 @@ export class UsersController {
   }
 
   @Patch(":id/password")
-  async changePassword(@Request() req, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
+  async changePassword(@Request() req: ExpressRequest & { user: JwtUser }, @Param("id") id: string, @Body() dto: ChangePasswordDto) {
     validateUUID(id);
     if (req.user.role !== "admin" && req.user.id !== id) {
       throw new ForbiddenException("Accès refusé");
@@ -88,14 +75,14 @@ export class UsersController {
   }
 
   @Get(':id/can-delete')
-  async canDelete(@Request() req, @Param('id') id: string) {
+  async canDelete(@Request() req: ExpressRequest & { user: JwtUser }, @Param('id') id: string) {
     validateUUID(id);
     if (req.user.role !== 'admin') throw new ForbiddenException();
     return this.usersService.canDelete(id);
   }
 
   @Delete(":id")
-  async deleteUser(@Request() req, @Param("id") id: string) {
+  async deleteUser(@Request() req: ExpressRequest & { user: JwtUser }, @Param("id") id: string) {
     validateUUID(id);
     if (req.user.role !== "admin") {
       throw new ForbiddenException("Seul l'admin peut supprimer des utilisateurs");
@@ -120,7 +107,7 @@ export class UsersController {
     },
     limits: { fileSize: 2 * 1024 * 1024 },
   }))
-  async uploadAvatar(@Param('id') id: string, @UploadedFile() file: any, @Request() req) {
+  async uploadAvatar(@Param('id') id: string, @UploadedFile() file: any, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
     if (req.user.role !== 'admin' && req.user.id !== id) {
       throw new ForbiddenException('Accès refusé');
