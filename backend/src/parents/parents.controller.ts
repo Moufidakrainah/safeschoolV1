@@ -19,21 +19,6 @@ export class ParentsController {
     return this.parentsService.create(dto);
   }
 
-  @Get()
-  async findAll(@Request() req: ExpressRequest & { user: JwtUser }) {
-    if (req.user.role !== "admin")
-      throw new ForbiddenException("Accès refusé");
-    return this.parentsService.findAll();
-  }
-
-  @Get(":id")
-  async findOne(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
-    validateUUID(id);
-    if (req.user.role !== "admin")
-      throw new ForbiddenException("Accès refusé");
-    return this.parentsService.findOne(id);
-  }
-
   @Patch(":id")
   async update(
     @Param("id") id: string,
