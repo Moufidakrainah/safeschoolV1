@@ -1,3 +1,4 @@
+import type { AdminUser, BadgeVariant, ReportVictim, ReportSuspect } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ interface ReportDetailProps {
 }
 
 export default function ReportDetail({
-  selected, filtered, notes, isAdmin, _saving, resolving,
+  selected, filtered, notes, isAdmin, resolving,
   checkedConvocIds, convocDetails, sendingConvoc, convocSuccess,
   newNote, activeSuspect, suspectSearch, suspectResults,
   onBack, onPrev, onNext, onUpdateStatus, onAddNote, onResolveSuspect, onResolveVictim,
@@ -109,7 +110,7 @@ export default function ReportDetail({
         {isAdmin && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 font-semibold">{t('admin.detail.status')} :</span>
-            <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
+            <Select value={selected.status} onValueChange={v => { if (v) onUpdateStatus(v, t(`badge.${v}`)); }}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
               </SelectTrigger>
@@ -159,7 +160,7 @@ export default function ReportDetail({
                       <button className="text-red-400 hover:underline ml-2"
                         onClick={() => onResolveVictim(mainVictimId, null)}
                         disabled={resolving}>
-                        ✕ {t('admin.detail.unlink')}
+                        {t('admin.detail.unlink')}
                       </button>
                     )}
                   </div>
@@ -212,7 +213,7 @@ export default function ReportDetail({
                         {isAdmin && (
                           <button className="text-red-400 hover:underline ml-2"
                             onClick={() => onResolveVictim(v.id, null)} disabled={resolving}>
-                            ✕ {t('admin.detail.unlink')}
+                            {t('admin.detail.unlink')}
                           </button>
                         )}
                       </div>
@@ -221,7 +222,7 @@ export default function ReportDetail({
                     {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        🔗 {t('admin.detail.link')}
+                        {t('admin.detail.link')}
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
@@ -294,7 +295,7 @@ export default function ReportDetail({
                               {s.resolvedUser.studentProfile.schoolClass.level} {s.resolvedUser.studentProfile.schoolClass.section}
                             </span>
                           )}
-                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ {t('admin.detail.unlink')}</button>}
+                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>{t('admin.detail.unlink')}</button>}
                         </div>
                       )}
                       {isAdmin && !s.resolvedUser && (

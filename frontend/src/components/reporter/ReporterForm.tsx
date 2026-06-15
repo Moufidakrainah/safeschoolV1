@@ -154,7 +154,7 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 									<p role="alert" className="mb-4 text-sm text-critical">{t(descriptionErrorKey)}</p>
 								)}
 								<label className="block mb-2 mt-4 text-m font-semibold">{t("reporter.step3.frequencyLabel")}</label>
-								<Select value={frequency} onValueChange={v => setFrequency(v)}>
+								<Select value={frequency} onValueChange={v => { if (v !== null) setFrequency(v); }}>
 									<SelectTrigger id="frequency" className="bg-white">
 										<SelectValue>
 											{{ "Une fois": t("reporter.step3.freq1"), "Deux fois": t("reporter.step3.freq2"), "Trois fois ou plus": t("reporter.step3.freq3"), "Tous les jours": t("reporter.step3.freq4") }[frequency] || t("reporter.step3.frequencyPlaceholder")}

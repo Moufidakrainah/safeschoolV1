@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { getStudentParents } from "@/services/api";
@@ -12,7 +11,6 @@ import RoleHeader from "@/components/layout/Header/RoleHeader";
 type StudentSection = "profile" | "report" | "quiz" | "cases";
 
 export default function StudentDashboard() {
-  const { t } = useTranslation();
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -53,7 +51,7 @@ export default function StudentDashboard() {
         {viewSection === "profile" && (
           <StudentProfile
             user={user}
-            parents={parents}
+            parents={parents as Parent[]}
             loadingParents={loadingParents}
           />
         )}
