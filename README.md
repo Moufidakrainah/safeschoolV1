@@ -427,8 +427,6 @@ notifications
 
 ### mobougri
 
-### mobougri
-
 **Backend Lead & Full-Stack Integration**
 
 - Designed and developed the NestJS backend from scratch: TypeORM entities, DTOs with `class-validator` validation, JWT guards, services and controllers covering all core modules — `reports`, `users`, `parents`, `classes`, `staff-profiles`, `student-profiles`, `notifications`.
