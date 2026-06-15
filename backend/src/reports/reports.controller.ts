@@ -1,16 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  Body,
-  Query,
-  Request,
-  UseGuards,
-  ForbiddenException,
-  BadRequestException,
-} from "@nestjs/common";
+import { Controller, Get, Post, Patch, Param, Body, Query, Request, UseGuards,  ForbiddenException, BadRequestException } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ReportsService } from "./reports.service";
 import { validateUUID } from "../utils/validate-uuid";
@@ -18,6 +6,8 @@ import { CreateReportDto } from "./dto/create-report.dto";
 import { UpdateReportDto } from "./dto/update-report.dto";
 import { ResolveUserDto } from "./dto/resolve-user.dto";
 import { AddNoteDto } from "./dto/add-note.dto";
+import { Request as ExpressRequest } from 'express';
+import { JwtUser } from '../common/interfaces/jwt-user.interface';
 
 @Controller("reports")
 @UseGuards(AuthGuard("jwt"))
@@ -25,7 +15,7 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Post()
-  async create(@Body() dto: CreateReportDto, @Request() req) {
+  async create(@Body() dto: CreateReportDto, @Request() req: ExpressRequest & { user: JwtUser }) {
     const allowedRoles = ["student", "teacher"];
     if (!allowedRoles.includes(req.user.role))
       throw new ForbiddenException("Only student, teacher and staff can create a report");
@@ -36,22 +26,22 @@ export class ReportsController {
   }
 
   @Get()
-  async findAll(@Request() req) {
+  async findAll(@Request() req: ExpressRequest & { user: JwtUser }) {
     if (req.user.role === "student") return this.reportsService.findByStudent(req.user.id);
     return this.reportsService.findAll();
   }
 
   @Get("victims/search")
-  async searchByVictim(@Query("name") name: string, @Request() req) {
-    if (req.user.role !== "admin" && req.user.role !== "director")
+  async searchByVictim(@Query("name") name: string, @Request() req: ExpressRequest & { user: JwtUser }) {
+    if (req.user.role !== "admin")
       throw new ForbiddenException("Access denied");
     if (!name || name.trim().length < 2) return [];
     return this.reportsService.findByVictimName(name.trim());
   }
 
   @Get("victims/stats")
-  async victimStats(@Request() req) {
-    if (req.user.role !== "admin" && req.user.role !== "director")
+  async victimStats(@Request() req: ExpressRequest & { user: JwtUser }) {
+    if (req.user.role !== "admin")
       throw new ForbiddenException("Access denied");
     return this.reportsService.countByVictim();
   }
@@ -60,7 +50,7 @@ export class ReportsController {
   async resolveSuspect(
     @Param("suspectId") suspectId: string,
     @Body() dto: ResolveUserDto,
-    @Request() req,
+    @Request() req: ExpressRequest & { user: JwtUser },
   ) {
     if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
     return this.reportsService.resolveSuspect(suspectId, dto.resolvedUserId);
@@ -70,14 +60,14 @@ export class ReportsController {
   async resolveVictim(
     @Param("victimId") victimId: string,
     @Body() dto: ResolveUserDto,
-    @Request() req,
+    @Request() req: ExpressRequest & { user: JwtUser },
   ) {
     if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
     return this.reportsService.resolveVictim(victimId, dto.resolvedUserId);
   }
 
   @Get(":id")
-  async findOne(@Param("id") id: string, @Request() req) {
+  async findOne(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
     const report = await this.reportsService.findOne(id);
     if (req.user.role === "student" && report.student.id !== req.user.id)
@@ -86,7 +76,7 @@ export class ReportsController {
   }
 
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req) {
+  async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
     if (req.user.role === "student") throw new ForbiddenException("Access denied");
     // ── Passer req.user comme auteur pour la note status_change ──
@@ -94,7 +84,7 @@ export class ReportsController {
   }
 
   @Get(":id/notes")
-  async getNotes(@Param("id") id: string, @Request() req) {
+  async getNotes(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
     if (req.user.role === "student") {
       const report = await this.reportsService.findOne(id);
@@ -117,7 +107,7 @@ export class ReportsController {
   async addNote(
     @Param("id") id: string,
     @Body() dto: AddNoteDto,
-    @Request() req,
+    @Request() req: ExpressRequest & { user: JwtUser },
   ) {
     validateUUID(id);
     if (dto.content && dto.content.length > 1500)
