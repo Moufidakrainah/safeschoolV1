@@ -32,21 +32,6 @@ export class ReportsController {
     return this.reportsService.findAll();
   }
 
-  @Get("victims/search")
-  async searchByVictim(@Query("name") name: string, @Request() req: ExpressRequest & { user: JwtUser }) {
-    if (req.user.role !== "admin")
-      throw new ForbiddenException("Access denied");
-    if (!name || name.trim().length < 2) return [];
-    return this.reportsService.findByVictimName(name.trim());
-  }
-
-  @Get("victims/stats")
-  async victimStats(@Request() req: ExpressRequest & { user: JwtUser }) {
-    if (req.user.role !== "admin")
-      throw new ForbiddenException("Access denied");
-    return this.reportsService.countByVictim();
-  }
-
   @Patch("suspects/:suspectId/resolve")
   async resolveSuspect(
     @Param("suspectId") suspectId: string,
@@ -66,16 +51,7 @@ export class ReportsController {
     if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
     return this.reportsService.resolveVictim(victimId, dto.resolvedUserId);
   }
-
-  @Get(":id")
-  async findOne(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
-    validateUUID(id);
-    const report = await this.reportsService.findOne(id);
-    if (req.user.role === "student" && report.student.id !== req.user.id)
-      throw new ForbiddenException("Access denied");
-    return report;
-  }
-
+  
   @Patch(":id")
   async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req: ExpressRequest & { user: JwtUser }) {
     validateUUID(id);
