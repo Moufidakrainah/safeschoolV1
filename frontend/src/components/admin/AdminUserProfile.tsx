@@ -157,7 +157,7 @@ export default function AdminUserProfile({
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
 
             {/* ── Bouton changer photo — même taille que les autres ── */}
-            <Button asChild className={uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}>
+            <Button className={uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}>
               <label className="cursor-pointer">
                 {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
