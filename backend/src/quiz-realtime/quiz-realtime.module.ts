@@ -5,9 +5,15 @@ import { QuizRealtimeService } from './quiz-realtime.service';
 
 @Module({
 	imports: [
-		JwtModule.register({
-			secret: process.env.JWT_SECRET,
-			verifyOptions: { algorithms: ['HS256'] },
+		JwtModule.registerAsync({
+			useFactory: () => {
+				const secret = process.env.JWT_SECRET;
+				if (!secret) throw new Error('JWT_SECRET non défini');
+				return {
+				secret,
+				verifyOptions: { algorithms: ['HS256'] },
+				};
+			},
 		}),
 	],
 	providers: [QuizRealtimeGateway, QuizRealtimeService],
