@@ -24,12 +24,6 @@ export class ClassesController {
     return this.classesService.findAll();
   }
 
-  @Get(":id")
-  async findOne(@Param("id") id: string) {
-    validateUUID(id);
-    return this.classesService.findOne(id);
-  }
-
   @Patch(":id")
   async update(
     @Param("id") id: string,

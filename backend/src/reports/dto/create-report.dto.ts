@@ -5,6 +5,7 @@ class PersonDto {
   @IsString()
   @MinLength(2, { message: 'Le nom doit contenir au moins 2 caractères' })
   @MaxLength(50, { message: 'Le nom ne peut pas dépasser 50 caractères' })
+  @Matches(/^[^\x00]*$/, { message: 'Le champ contient des caractères invalides' })
   @Matches(/^(?!(.)\1{4,})[\p{L}\s\-']+$/u, {
     message: 'Le nom contient des caractères invalides ou répétitifs',
   })
@@ -25,10 +26,11 @@ export class CreateReportDto {
   @IsString()
   @MinLength(20, { message: 'La description doit contenir au moins 20 caractères' })
   @MaxLength(2000, { message: 'La description ne peut pas dépasser 2000 caractères' })
+  @Matches(/^[^\x00]*$/, { message: 'Le champ contient des caractères invalides' })
   @Matches(/^(?!(.)\1{9,})[\s\S]+$/u, {
     message: 'La description semble invalide (caractères répétitifs détectés)',
   })
-  description: string;
+description: string;
 
   @IsBoolean()
   isAnonymous: boolean;
