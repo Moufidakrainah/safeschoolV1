@@ -412,7 +412,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="bg-gray-50 font-sans">
+    <div className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
       <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
 
@@ -640,6 +640,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -159,7 +159,7 @@ export default function ReportDetail({
                       <button className="text-red-400 hover:underline ml-2"
                         onClick={() => onResolveVictim(mainVictimId, null)}
                         disabled={resolving}>
-                        ✕ {t('admin.detail.unlink')}
+                        {t('admin.detail.unlink')}
                       </button>
                     )}
                   </div>
@@ -212,7 +212,7 @@ export default function ReportDetail({
                         {isAdmin && (
                           <button className="text-red-400 hover:underline ml-2"
                             onClick={() => onResolveVictim(v.id, null)} disabled={resolving}>
-                            ✕ {t('admin.detail.unlink')}
+                            {t('admin.detail.unlink')}
                           </button>
                         )}
                       </div>
@@ -221,7 +221,7 @@ export default function ReportDetail({
                     {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        🔗 {t('admin.detail.link')}
+                        {t('admin.detail.link')}
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
@@ -294,7 +294,7 @@ export default function ReportDetail({
                               {s.resolvedUser.studentProfile.schoolClass.level} {s.resolvedUser.studentProfile.schoolClass.section}
                             </span>
                           )}
-                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ {t('admin.detail.unlink')}</button>}
+                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>{t('admin.detail.unlink')}</button>}
                         </div>
                       )}
                       {isAdmin && !s.resolvedUser && (
