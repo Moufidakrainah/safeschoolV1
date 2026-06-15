@@ -111,7 +111,6 @@ export class LoggerService implements NestLoggerService {
     frequencyScore: number;
     classScore: number;
     recidiveScore: number;
-    suspectRoleScore: number;
     aiScore: number;
     finalScore: number;
     grade: string;

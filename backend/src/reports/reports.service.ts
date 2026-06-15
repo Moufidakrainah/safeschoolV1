@@ -11,6 +11,7 @@ import { ReportVictim } from "./report-victim.entity";
 import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
+import { LoggerService } from "../logger/logger.service";
 
 @Injectable()
 export class ReportsService {
@@ -21,6 +22,7 @@ export class ReportsService {
     private scoringService: ScoringService,
     @InjectRepository(ReportNote) private notesRepository: Repository<ReportNote>,
     private notificationsService: NotificationsService,
+    private logger: LoggerService,
   ) {}
 
   async create(
@@ -57,6 +59,16 @@ export class ReportsService {
       status: ReportStatus.NEW,
     });
     const savedReport = await this.reportsRepository.save(report);
+    this.logger.report({
+      type: "report_event",
+      action: "created",
+      reportId: savedReport.id,
+      caseNumber,
+      grade,
+      score: finalScore,
+      status: ReportStatus.PENDING,
+      userId: student.id,
+    });
     for (const suspect of suspects) {
       await this.suspectsRepository.save(
         this.suspectsRepository.create({ report: savedReport, freeText: suspect.freeText })
@@ -151,7 +163,16 @@ export class ReportsService {
         );
       }
     }
-    return this.reportsRepository.save(report);
+    const saved = await this.reportsRepository.save(report);
+    this.logger.report({
+      type: "report_event",
+      action: "updated",
+      reportId: saved.id,
+      caseNumber: saved.caseNumber,
+      grade: saved.grade,
+      status: saved.status,
+    });
+    return saved;
   }
 
   async addNote(
@@ -164,6 +185,13 @@ export class ReportsService {
     const report = await this.findOne(reportId);
     const note = this.notesRepository.create({ report, content, type, author });
     const saved = await this.notesRepository.save(note);
+    this.logger.report({
+      type: "report_event",
+      action: type === "convocation" ? "convocation_sent" : "note_added",
+      reportId,
+      caseNumber: report.caseNumber,
+      userId: author?.id,
+    });
 
     if (type === "convocation") {
       if (targetRole === "alerteur" || targetRole === "victime" || targetRole === "temoin") {

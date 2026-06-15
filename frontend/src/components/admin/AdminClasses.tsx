@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { getClasses, createClass, updateClass, deleteClass, getAllUsers } from "@/services/api";
+import { getClasses, createClass, updateClass, deleteClass, getAllUsers, isOfflineError } from "@/services/api";
+import OfflineNotice from "@/components/OfflineNotice";
+import { useReconnectKey } from "@/hooks/useOnlineStatus";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -45,6 +47,8 @@ export default function AdminClasses() {
   const [classPage, setClassPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ cls: SchoolClass; blocked: boolean; message: string } | null>(null);
   const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
+  const [loadFailedOffline, setLoadFailedOffline] = useState(false);
+  const reconnectKey = useReconnectKey();
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -53,11 +57,15 @@ export default function AdminClasses() {
       setClasses(cls);
       const allUsers = Array.isArray(usr) ? usr : Array.isArray(usr?.data) ? usr.data : [];
       setStudents(allUsers.filter((u: StudentUser) => u.role === "student"));
-    } catch { }
+      setLoadFailedOffline(false);
+    } catch (e) {
+      setLoadFailedOffline(isOfflineError(e));
+    }
     finally { setLoading(false); }
   }, []);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  // Rechargé au montage et à chaque retour de connexion
+  useEffect(() => { fetchAll(); }, [fetchAll, reconnectKey]);
 
   const studentsInClass = selectedClass
     ? students.filter(s => s.studentProfile?.schoolClass?.id === selectedClass.id)
@@ -120,6 +128,8 @@ export default function AdminClasses() {
   const initials = (s: StudentUser) => `${s.firstName?.[0] ?? ""}${s.lastName?.[0] ?? ""}`.toUpperCase();
 
   if (loading) return <p className="text-center py-16 text-gray-400">{t('classes.loading')}</p>;
+
+  if (loadFailedOffline && classes.length === 0) return <OfflineNotice />;
 
   if (selectedClass) {
     return (
