@@ -125,7 +125,7 @@ export default function StatsDashboard({ reports }: Props) {
       {/* ── Filtres ── */}
       <div className="flex flex-wrap gap-3 items-end mb-6">
 
-        <Select value={period} onValueChange={setPeriod}>
+        <Select value={period} onValueChange={v => { if (v !== null) setPeriod(v); }}>
           <SelectTrigger className="w-48 bg-white">
             <SelectValue>{periodLabel[period]}</SelectValue>
           </SelectTrigger>
@@ -138,7 +138,7 @@ export default function StatsDashboard({ reports }: Props) {
           </SelectContent>
         </Select>
 
-        <Select value={filterClass} onValueChange={setFilterClass}>
+        <Select value={filterClass} onValueChange={v => { if (v !== null) setFilterClass(v); }}>
           <SelectTrigger className="w-48 bg-white">
             <SelectValue>{filterClass === 'all' ? t('stats.allClasses') : filterClass}</SelectValue>
           </SelectTrigger>
@@ -148,7 +148,7 @@ export default function StatsDashboard({ reports }: Props) {
           </SelectContent>
         </Select>
 
-        <Select value={filterGrade} onValueChange={setFilterGrade}>
+        <Select value={filterGrade} onValueChange={v => { if (v !== null) setFilterGrade(v); }}>
           <SelectTrigger className="w-48 bg-white">
             <SelectValue>
               {filterGrade === 'all' ? t('stats.allGrades') : severityLabel(severityFromApiGrade(filterGrade))}

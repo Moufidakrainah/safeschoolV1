@@ -10,7 +10,7 @@ import OfflineNotice from "@/components/OfflineNotice";
 import { useReconnectKey } from "@/hooks/useOnlineStatus";
 import { Badge } from "@/components/ui/badge";
 import { useTranslation } from 'react-i18next';
-import type { AuthUser, Report, Note } from "@/types";
+import type { AuthUser, Report, Note, BadgeVariant } from "@/types";
 
 const statusToBadgeVariant = (status: string) => {
   const map: Record<string, string> = {
@@ -111,7 +111,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
         setReportNotes(notesMap);
 
         const unreadMap: Record<string, Note & { id: string; isRead: boolean; report?: { id: string }; message?: string }> = {};
-        notifs.filter((n: Note & { isRead: boolean }) => !n.isRead).forEach((n) => { unreadMap[n.id] = n; });
+        notifs.filter((n: Note & { isRead: boolean }) => !n.isRead).forEach((n: Note & { isRead: boolean; message?: string; report?: { id: string } }) => { unreadMap[n.id] = n; });
         setUnreadNotifs(unreadMap);
         setLoadFailedOffline(false);
       })
@@ -126,7 +126,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
     return Object.values(unreadNotifs).find((n) => {
       if (n.report?.id !== reportId) return false;
       const noteContent = note.content.replace("📅 ", "").trim();
-      const notifMsg = n.message.replace("Convocation : ", "").trim();
+      const notifMsg = (n.message ?? '').replace("Convocation : ", "").trim();
       return (
         notifMsg.includes(noteContent.split("\n\n")[0].trim()) ||
         noteContent.includes(notifMsg.split("\n\n")[0].trim())
@@ -186,7 +186,7 @@ export default function StudentCases({ user, onNotifRefresh, refreshKey = 0 }: S
                       {new Date(report.createdAt).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
-                  <Badge variant={statusToBadgeVariant(report.status)} />
+                  <Badge variant={statusToBadgeVariant(report.status) as BadgeVariant} />
                 </div>
 
                 {/* Notes */}

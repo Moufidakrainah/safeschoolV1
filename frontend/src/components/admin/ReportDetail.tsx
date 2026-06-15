@@ -1,3 +1,4 @@
+import type { AdminUser, BadgeVariant, ReportVictim, ReportSuspect } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ interface ReportDetailProps {
 }
 
 export default function ReportDetail({
-  selected, filtered, notes, isAdmin, _saving, resolving,
+  selected, filtered, notes, isAdmin, resolving,
   checkedConvocIds, convocDetails, sendingConvoc, convocSuccess,
   newNote, activeSuspect, suspectSearch, suspectResults,
   onBack, onPrev, onNext, onUpdateStatus, onAddNote, onResolveSuspect, onResolveVictim,
@@ -109,7 +110,7 @@ export default function ReportDetail({
         {isAdmin && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 font-semibold">{t('admin.detail.status')} :</span>
-            <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
+            <Select value={selected.status} onValueChange={v => { if (v) onUpdateStatus(v, t(`badge.${v}`)); }}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
               </SelectTrigger>

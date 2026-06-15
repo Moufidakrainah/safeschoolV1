@@ -10,12 +10,12 @@ export default function PrivacyPolicy()
   const { user, logoutUser } = useAuth();
 const navigate = useNavigate();
 
-  const goToAdminSection = (section: 'reports' | 'users' | 'stats') => {
+  const goToAdminSection = (section: 'reports' | 'users' | 'stats' | 'classes') => {
     navigate(`/dashboard?section=${section}`);
   };
 
   const goToStudentSection = (
-    section: 'profile' | 'report' | 'notifications' | 'quiz'
+    section: 'profile' | 'report' | 'quiz' | 'cases'
   ) => {
     navigate(`/student?section=${section}`);
   };
@@ -35,7 +35,7 @@ const navigate = useNavigate();
         logoutUser={logoutUser}
         {...(user?.role === 'admin' && {
           adminViewSection: 'reports',
-          adminSetViewSection: (section: 'reports' | 'users' | 'stats') =>
+          adminSetViewSection: (section: 'reports' | 'users' | 'stats' | 'classes') =>
             goToAdminSection(section),
           adminSetSelected: () => {},
           adminFetchUsers: () => {},
@@ -43,11 +43,11 @@ const navigate = useNavigate();
         {...(user?.role === 'student' && {
           studentViewSection: 'profile',
           studentSetViewSection: (
-            section: 'profile' | 'report' | 'notifications' | 'quiz'
+            section: 'profile' | 'report' | 'quiz' | 'cases'
           ) => goToStudentSection(section),
           studentNotifRefreshKey: 0,
         })}
-        {...((user?.role === 'teacher' || user?.role === 'reporter') && {
+        {...((user?.role === 'teacher') && {
           reporterViewSection: 'report',
           reporterSetViewSection: (section: 'profile' | 'report' | 'quiz') =>
             goToReporterSection(section),

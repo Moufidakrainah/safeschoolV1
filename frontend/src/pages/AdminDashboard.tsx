@@ -1,3 +1,4 @@
+import type { AdminUser } from '@/types';
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -27,7 +28,7 @@ import type { Report, Note } from '@/types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
-import ParentFormItem from '@/components/admin/ParentFormItem';
+
 
 interface SchoolClass { id: string; level: string; section: string; }
 
@@ -113,7 +114,6 @@ export default function AdminDashboard() {
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
-  const [existingParentsCount, setExistingParentsCount] = useState(0);
 
   const itemsPerPage = 5;
 
@@ -130,13 +130,7 @@ export default function AdminDashboard() {
 
   useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection, reconnectKey]);
 
-  useEffect(() => {
-    if (selectedUser?.role === 'student' && selectedUser?.id) {
-      import('../services/api').then(({ getStudentParents }) => {
-        getStudentParents(selectedUser.id).then(p => setExistingParentsCount(p.length)).catch(() => setExistingParentsCount(0));
-      });
-    } else { setExistingParentsCount(0); }
-  }, [selectedUser?.id]);
+
 
   const fetchReports = async () => {
     try { setReports(await getAllReports()); setReportsFailedOffline(false); }
@@ -163,7 +157,7 @@ export default function AdminDashboard() {
       await resolveSuspect(suspectId, userId);
       const updated = await getAllReports();
       setReports(updated);
-      setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
+      setSelected((updated as Report[]).find((r: Report) => r.id === selected?.id) ?? null);
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
     } finally { setResolving(false); }
   };
@@ -233,7 +227,7 @@ export default function AdminDashboard() {
       </div>
       <Select
         value={userForm.role}
-        onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}
+        onValueChange={v => setUserForm(prev => ({ ...prev, role: v ?? prev.role, classId: '', subject: '', classIds: [] }))}
         disabled={isEdit}
       >
         <SelectTrigger className={`bg-white ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
@@ -256,7 +250,7 @@ export default function AdminDashboard() {
         <>
           <div>
             <Label className="text-white text-sm">{t('admin.users.class')}</Label>
-            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
+            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v ?? prev.classId }))}>
               <SelectTrigger className="bg-white mt-1">
                 <SelectValue placeholder={t('admin.users.selectClass')}>
                   {classes.find(c => c.id === userForm.classId)
@@ -331,13 +325,13 @@ export default function AdminDashboard() {
     return (
       <main className="flex-1 bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
-        <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
+        <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={(r) => setSelected(r as Report | null)} adminFetchUsers={fetchUsers} />
         <ReportDetail
           selected={selected}
           filtered={filtered}
           notes={notes}
           isAdmin={isAdmin}
-          saving={saving}
+          _saving={saving}
           resolving={resolving}
           checkedConvocIds={checkedConvocIds}
           convocDetails={convocDetails}
@@ -357,7 +351,7 @@ export default function AdminDashboard() {
             await resolveVictim(victimId, userId);
             const updated = await getAllReports();
             setReports(updated);
-            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
+            setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
             setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
           }}
           onSetActiveSuspect={setActiveSuspect}
@@ -373,6 +367,7 @@ export default function AdminDashboard() {
           onSetSuspectSearch={setSuspectSearch}
           onSetSuspectResults={setSuspectResults}
           onAddNoteRaw={addNote}
+          onSendConvocations={async () => {}}
           onLoadNotes={loadNotes}
           onNavigateToUser={async (userId) => {
             const currentReportId = selected?.id ?? '';
@@ -414,7 +409,7 @@ export default function AdminDashboard() {
   return (
     <div className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
-      <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
+      <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={(r) => setSelected(r as Report | null)} adminFetchUsers={fetchUsers} />
 
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
@@ -431,7 +426,7 @@ export default function AdminDashboard() {
               <Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} />
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-              <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
+              <Select value={filterStatus} onValueChange={v => { if (v !== null) setFilterStatus(v); setCurrentPage(1); }}>
                 <SelectTrigger aria-label={t('admin.filters.status')}>
                   <SelectValue>
                     {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
@@ -446,7 +441,7 @@ export default function AdminDashboard() {
                   <SelectItem value="false_report">{t('badge.false_report')}</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
+              <Select value={filterClass} onValueChange={v => { if (v !== null) setFilterClass(v); setCurrentPage(1); }}>
                 <SelectTrigger aria-label={t('admin.filters.allClasses')}>
                   <SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue>
                 </SelectTrigger>
@@ -455,7 +450,7 @@ export default function AdminDashboard() {
                   {classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
+              <Select value={filterStudent} onValueChange={v => { if (v !== null) setFilterStudent(v); setCurrentPage(1); }}>
                 <SelectTrigger aria-label={t('admin.filters.allReporters')}>
                   <SelectValue>
                     {filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}
@@ -543,7 +538,7 @@ export default function AdminDashboard() {
             avatarTimestamps={avatarTimestamps}
             classes={classes}
             userForm={userForm}
-            errors={errors}
+            _errors={errors}
             isFormValid={!!isFormValid}
             originReportId={originReportId}
             onBack={() => {
