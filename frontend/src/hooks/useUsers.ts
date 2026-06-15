@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import {
   getAllUsers, updateUser, createUser, deleteUser, checkCanDeleteUser,
   searchUsers, getClasses, getStaffProfile, createStaffProfile, updateStaffProfile,
-  createParent,
+  createParent, isOfflineError,
 } from '@/services/api';
 import type { AdminUser } from '@/types';
 import { API_BASE } from '@/config';
@@ -24,6 +24,7 @@ export interface UseUsersReturn {
   users: AdminUser[];
   allUsers: AdminUser[];
   loadingUsers: boolean;
+  usersFailedOffline: boolean;
   usersPage: number;
   setUsersPage: React.Dispatch<React.SetStateAction<number>>;
   usersTotalPages: number;
@@ -84,6 +85,7 @@ export function useUsers(): UseUsersReturn {
   const [users, setUsers]               = useState<AdminUser[]>([]);
   const [allUsers, setAllUsers]         = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [usersFailedOffline, setUsersFailedOffline] = useState(false);
   const [usersPage, setUsersPage]       = useState(1);
   const [usersTotalPages, setUsersTotalPages] = useState(1);
   const [usersTotal, setUsersTotal]     = useState(0);
@@ -133,7 +135,8 @@ export function useUsers(): UseUsersReturn {
         setUsersTotalPages(Math.ceil(arr.length / 7) || 1);
         setUsersTotal(arr.length ?? 0);
       }
-    } catch { setAllUsers([]); setUsers([]); }
+      setUsersFailedOffline(false);
+    } catch (err) { setAllUsers([]); setUsers([]); setUsersFailedOffline(isOfflineError(err)); }
     finally { setLoadingUsers(false); }
   }, [usersPage, usersSearch]);
 
@@ -310,7 +313,7 @@ export function useUsers(): UseUsersReturn {
   }, [allUsers, usersRoleFilter, usersSort]);
 
   return {
-    users, allUsers, loadingUsers,
+    users, allUsers, loadingUsers, usersFailedOffline,
     usersPage, setUsersPage, usersTotalPages, usersTotal,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,

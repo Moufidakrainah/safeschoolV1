@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createReport } from '@/services/api';
+import { createReport, isOfflineError } from '@/services/api';
 import type { UserSearchResult } from '@/types';
 
 export interface UseReportFormReturn {
@@ -114,8 +114,8 @@ export function useReportForm(
       const victimsData  = victimName ? [{ freeText: victimName }] : [];
       await createReport(type, 'temoin', fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(6);
-    } catch {
-      setSubmitError(t('reporter.submitError'));
+    } catch (err) {
+      setSubmitError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'reporter.submitError'));
     } finally {
       setLoading(false);
     }
