@@ -1,4 +1,10 @@
 {
+  "offline": {
+    "message": "Sie sind offline",
+    "actionUnavailable": "Diese Aktion ist offline nicht verfügbar. Bitte versuchen Sie es erneut, sobald Sie wieder verbunden sind.",
+    "contentUnavailable": "Dieser Inhalt kann offline nicht geladen werden. Er wird automatisch geladen, sobald Sie wieder verbunden sind.",
+    "retry": "Erneut versuchen"
+  },
   "login": {
     "labelEmail": "Benutzername",
     "labelPassword": "Passwort",

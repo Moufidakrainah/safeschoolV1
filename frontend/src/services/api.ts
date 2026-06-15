@@ -2,9 +2,29 @@ import axios from 'axios';
 import type { SuspectInput, VictimInput } from '@/types';
 import { API_BASE } from '@/config';
 
+/* Erreur levée quand une requête est tentée hors ligne — rejetée avant
+   d'atteindre le réseau pour éviter les erreurs GET dans la console */
+export class OfflineError extends Error {
+  readonly isOffline = true;
+  constructor() {
+    super('OFFLINE');
+    this.name = 'OfflineError';
+  }
+}
+
+/* Vrai si l'erreur est due à l'absence de connexion (hors ligne ou serveur injoignable) */
+export function isOfflineError(err: unknown): boolean {
+  if (err instanceof OfflineError) return true;
+  return axios.isAxiosError(err) && err.code === 'ERR_NETWORK';
+}
+
 const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
+  // Hors ligne : échec immédiat, sans tenter la requête
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return Promise.reject(new OfflineError());
+  }
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;

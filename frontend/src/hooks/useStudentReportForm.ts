@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createReport } from '@/services/api';
+import { createReport, isOfflineError } from '@/services/api';
 import type { UserSearchResult } from '@/types';
 
 export interface UseStudentReportFormReturn {
@@ -164,7 +164,12 @@ export function useStudentReportForm(
       await createReport(type, whoSignals, fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(7);
     } catch (err: unknown) {
-      const messages = (err as any)?.response?.data?.message ?? (err as any)?.message;
+      if (isOfflineError(err)) {
+        setSubmitError(t('offline.actionUnavailable'));
+        return;
+      }
+      const messages = (err as { response?: { data?: { message?: unknown } }; message?: unknown })?.response?.data?.message
+        ?? (err as { message?: unknown })?.message;
       if (Array.isArray(messages) && messages.length > 0) {
         setSubmitError(messages.join(' — '));
       } else if (typeof messages === 'string') {

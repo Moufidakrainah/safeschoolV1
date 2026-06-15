@@ -16,7 +16,7 @@
 - Game features include live score updates, leaderboard, and remote play across devices
 - Notification system for report status changes, quiz invitations and other key events
 - Multilingual interface (French / English / German) tested across Chrome, Firefox and Edge
-- Installable Progressive Web App (PWA) with offline support
+- Installable Progressive Web App (PWA) whose static shell is cached for offline loading (backend data still requires a connection)
 - Centralized log management and monitoring via the ELK stack (Elasticsearch, Logstash, Kibana)
 
 <!- TODO équipe : relire/ajuster cette description en anglais et cette liste pour qu'elles correspondent exactement au périmètre livré -->
@@ -36,40 +36,73 @@ Docker, Docker Compose, Make, Git.
 | Variable | Purpose |
 |----------|---------|
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | PostgreSQL connection |
-| `BACKEND_PORT` | NestJS listening port |
+| `BACKEND_PORT` | NestJS internal listening port |
+| `FRONTEND_URL` | Frontend origin(s) allowed by the backend CORS / WebSocket layer (used in development; in production nginx serves everything from a single origin) |
 | `JWT_SECRET` | Secret used to sign authentication tokens |
-| `VITE_API_URL` | URL the frontend uses to reach the backend API |
+| `VITE_API_URL` | URL the frontend uses to reach the backend API. In development it points at the backend (`http://localhost:5000`); in production the build is run with it empty so the frontend uses same-origin relative URLs proxied by nginx |
+| `VITE_SOCKET_URL` | Optional override for the WebSocket / quiz endpoint when it differs from `VITE_API_URL` |
 | `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis |
 | `AI_ENABLED` | Toggles the AI scoring feature on/off |
 | `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL` | Log shipping configuration for the ELK stack |
+| `ELASTIC_PASSWORD` | Password for the Elasticsearch `elastic` superuser (also used to log into Kibana) |
 
 ### Run the Project
+
+The project has two run modes, both driven by the Makefile:
+
+- **Development** (`make dev`) — hot-reload frontend (Vite) and backend (NestJS watch), no nginx. The frontend is reached directly on port `5173` and the backend on port `5000` (cross-origin).
+- **Production** (`make all` / `make prod`) — the frontend is built as static files and served by **nginx**, which also terminates TLS (HTTPS) and reverse-proxies the API, file uploads and WebSocket traffic to the backend on a single origin. Self-signed certificates are generated automatically on the first run.
 
 ```bash
 # Clone the repository
 git clone ...
 
-# Start all services
-make all
+# Development mode (hot reload, HTTP, no nginx)
+make dev
+
+# Production mode (nginx + HTTPS) — this is the default target
+make all          # alias of `make prod`
 
 # The database is seeded automatically on first run if it's empty.
 # To force a manual re-seed: make seed
 ```
 
+In production the certificate is self-signed, so the browser warns on the first visit — accept it to continue. To (re)generate certificates, for example embedding your LAN IP: `make certs-renew`.
+
 ### Stop the Project
 
 ```bash
-make down       # Stop containers
-make fclean     # Down + remove volumes
+make down        # Stop the development stack
+make prod-down   # Stop the production (nginx) stack
+make fclean      # Down + remove volumes, images and build cache
 ```
 
 
 ### Access URLs
 
+**Development (`make dev`):**
+
 | URL | Service |
 |-----|---------|
-| `http://localhost:5173` | Frontend |
+| `http://localhost:5173` | Frontend (Vite dev server) |
 | `http://localhost:5000` | Backend API |
+| `http://localhost:5601` | Kibana (log monitoring) |
+
+**Production (`make all`)**
+
+| URL | Service |
+|-----|---------|
+| `https://localhost:8443` | Application (frontend + `/api` backend) |
+| `http://localhost:5601` | Kibana (log monitoring) |
+
+Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
+
+**Production (`make all` / `make prod`):**
+
+| URL | Service |
+|-----|---------|
+| `https://localhost:8443` | Application — frontend, API and WebSocket served by nginx over HTTPS |
+| `http://localhost:8080` | HTTP entry point (redirects to HTTPS) |
 | `http://localhost:5601` | Kibana |
 
 ### Demo Accounts
@@ -153,16 +186,16 @@ Every team member contributed to the code as well as to the organization of the 
 
 ### 2. Project Manager / Scrum Master — eguthman
 
-Coordinated the project workflow, maintained visibility on priorities, and supported the team through planning, documentation and process structure.
+Led project coordination for the full duration of the project, with responsibility for workflow structure, visibility, and documentation.
 
-- Coordinate the team's tasks and workflow.
-- Design and maintain the GitHub project board structure (views, labels, columns, priorities and module tracking).
-- Organize and facilitate meetings.
-- Prepare meeting agendas in advance and write follow-up meeting minutes to preserve decisions.
-- Track progress and identify blockers.
-- Establish and document collaboration practices for Git, pull requests and code review.
-- Ensure clear communication within the team.
-- Document processes and decisions.
+- Designed and maintained the GitHub board: views, labels, columns, module tracking and priority visibility, evolving the structure as the project grew.
+- Built out the Makefile from a minimal starting point: added targets, structured startup commands, and added healthchecks in Docker Compose to make the stack reliable to bring up consistently.
+- Structured the Git and pull-request workflow: wrote the conventions and maintained them throughout the project.
+- Organized and facilitated team meetings throughout the project, prepared agendas in advance and wrote minutes to keep decisions and next actions traceable.
+- Reviewed pull request diffs and filed issues on the board when inconsistencies or potential problems surfaced, maintaining codebase awareness even without owning the implementation.
+- Built and maintained the project documentation: architecture, API, ELK stack, design system, testing guide, Git workflow.
+- Took ownership of the ELK integration (Elasticsearch, Logstash, Kibana): configured the full stack with security enabled, structured backend logging, and automated dashboard import on startup.
+- Contributed to frontend architecture choices: introduced Tailwind CSS and shadcn/ui to give the team a consistent visual base.
 
 ### 3. Technical Lead 1 — mobougri
 
@@ -170,7 +203,12 @@ Coordinated the project workflow, maintained visibility on priorities, and suppo
 
 ### 4. Technical Lead 2 — quclaque
 
-<!- TODO quclaque : completer en anglais avec une description precise de ton role -->
+Focused on the project's real-time layer: designed and built the multiplayer quiz and the WebSocket communication behind it.
+
+- Implement the real-time multiplayer quiz end to end (NestJS gateway/service on the backend, React game interface on the frontend).
+- Design the WebSocket event protocol and the synchronized game lifecycle: lobby, question flow, answer reveal, scoring and leaderboard.
+- Handle the multiplayer edge cases: authentication on the socket handshake, reconnection grace period, host migration, single-room-per-account enforcement and room-capacity limits.
+- Contribute to the Progressive Web App (installable frontend with limited offline support).
 
 
 ---
@@ -241,6 +279,7 @@ To improve coordination in a team that was discovering full-stack web developmen
 | Technology | Purpose |
 |-----------|---------|
 | Docker / Docker Compose | Containerization |
+| nginx | Production reverse proxy, TLS termination and static frontend serving |
 | Elasticsearch 8.12 | Log storage & search |
 | Logstash 8.12 | Log ingestion pipeline |
 | Kibana 8.12 | Log visualization |
@@ -252,7 +291,8 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
 - **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
 - **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
-- **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process.
+- **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process. A base file is shared by both modes, with a dev overlay (hot reload, direct ports) and a prod overlay (compiled backend + nginx).
+- **nginx** — in production nginx serves the built frontend, terminates TLS and reverse-proxies the API, uploads and WebSocket traffic to the backend, so the whole application runs behind a single HTTPS origin instead of exposing the dev servers directly. Same-origin serving also keeps the frontend free of hard-coded backend hosts (it uses relative URLs), so it works over localhost, a LAN IP or a domain without rebuilding.
 - **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
 
 <!- TODO équipe : compléter en anglais si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
@@ -361,11 +401,11 @@ notifications
 | AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | <!-- login --> |
 | User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | <!-- login --> |
 | School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | <!-- login --> |
-| Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | <!-- login --> |
+| Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | quclaque |
 | Notification system | The platform notifies users about report updates, quiz events and other important actions. | <!-- login --> |
 | Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | <!-- login --> |
 | Internationalization | The interface is available in French, English and German through a language switcher. | <!-- login --> |
-| Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | <!-- login --> |
+| Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | quclaque |
 | Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | <!-- login --> |
 | Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | <!-- login --> |
 | Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | <!-- login --> |
@@ -379,10 +419,10 @@ notifications
 | Module | Category | Type | Points | Description / justification | Team member(s) |
 |--------|----------|------|--------|------------------------------|---------------|
 | Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | <!-- login --> |
-| Real-time features — WebSockets (Quiz) | Web | Major | 2 | Implemented through a Socket.io quiz module that synchronizes room state, scores and progression between connected players in real time. | <!-- login --> |
+| Real-time features — WebSockets (Quiz) | Web | Major | 2 | Implemented through a Socket.io quiz module that synchronizes room state, scores and progression between connected players in real time. | quclaque |
 | ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | <!-- login --> |
 | Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | <!-- login --> |
-| Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | <!-- login --> |
+| Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | quclaque |
 | 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | <!-- login --> |
 | Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | <!-- login --> |
 | Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | <!-- login --> |
@@ -391,9 +431,9 @@ notifications
 | Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | <!-- login --> |
 | Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | <!-- login --> |
 | User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | <!-- login --> |
-| Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Implemented as a complete browser-based awareness quiz with rules, scoring, question flow and shared match state. | <!-- login --> |
-| Remote players | Gaming & UX | Major | 2 | Implemented by allowing players on separate devices to join the same live quiz room and play together over the network. | <!-- login --> |
-| Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Implemented with quiz rooms that support more than two simultaneous players in the same match. | <!-- login --> |
+| Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Implemented as a complete browser-based awareness quiz with rules, scoring, question flow and shared match state. | quclaque |
+| Remote players | Gaming & UX | Major | 2 | Implemented by allowing players on separate devices to join the same live quiz room and play together over the network. | quclaque |
+| Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Implemented with quiz rooms that support more than two simultaneous players in the same match. | quclaque |
 | Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | <!-- login --> |
 
 **Total: 8 Major × 2 + 9 Minor × 1 = 25 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
@@ -430,7 +470,11 @@ notifications
 
 ### quclaque
 
-- TODO quclaque: describe concrete features, modules, responsibilities and challenges personally handled.
+- Designed and implemented the real-time multiplayer quiz end to end: the NestJS WebSocket gateway and game service on the backend, and the React game interface (lobby, live questions, answer reveal and final leaderboard) on the frontend.
+- Built the quiz around a Socket.IO event protocol with server-authoritative game state: rooms identified by a join code, a shared question flow with per-question timers, a reveal phase showing answer statistics, and a scoring model that combines answer speed and answer streaks.
+- Handled the hard multiplayer cases so several players on different devices can play the same match reliably: JWT authentication on the socket handshake, a reconnection grace period that restores a player's in-progress state, host migration when the host leaves, single-room-per-account enforcement and room-capacity limits.
+- Contributed to the Progressive Web App so the frontend can be installed and offers limited offline support.
+- Main challenge: this was my first time with NestJS and Socket.IO, so the hardest part was understanding the tech stack — how NestJS gateways, dependency injection and Socket.IO rooms/events fit together — and then using it to keep every client's game state synchronized in real time. I worked through it by reading the documentation, building the game flow incrementally, and testing it with several simultaneous clients.
 
 
 ---
@@ -439,6 +483,14 @@ notifications
 For deeper documentation beyond what is required here — architecture overview, API map, WebSocket quiz flow, ELK, PWA, design-system material, meeting minutes and workflow notes — start with [`docs/DOCS.md`](docs/DOCS.md).
 
 ### Known Limitations
+
+- Firefox does not support installing the application as a PWA (no `beforeinstallprompt` / install affordance). The app still runs normally in Firefox, and the service worker and offline caching keep working — only the "install to home screen / desktop" step is unavailable, so install it from Chrome or Edge instead.
+- The PWA's **offline mode depends on a trusted TLS certificate**, and this project ships a **self-signed** one (no public domain / trusted CA). Two things must be distinguished: *installing* the app only needs a "secure context" (which `localhost` is granted automatically, even with a self-signed cert), but *registering the service worker* — the part that makes the app load offline — requires the certificate to actually be **trusted**. Clicking "proceed anyway" on the browser warning lets the page render but does **not** satisfy the service worker, which keeps failing with an SSL certificate error. As a result:
+  - On the **host machine** over `https://localhost:8443`, you can install the app, but the service worker only registers (and offline truly works) once you import the certificate into the browser/OS trust store.
+  - **Other devices** (phones, tablets, other computers) reach the app over the LAN IP, which is not even a secure origin until the certificate is trusted — so neither install nor offline works there until that device trusts `nginx/certs/fullchain.pem` as a CA.
+  - In **dev mode** (`make dev`) over `http://localhost`, there is no certificate to validate and `localhost` is a secure context, so the service worker registers and offline works out of the box.
+
+  To get full offline support anywhere, trust the certificate on that device — see [`docs/technical/pwa.md`](docs/technical/pwa.md).
 
 <!- TODO équipe : lister les en anglais les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés).  -->
 

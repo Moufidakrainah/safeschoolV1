@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import Header from '@/components/layout/Header/Header';
 import { getNotifications, getUnreadCount, markNotificationRead } from '@/services/api';
+import { useReconnectKey } from '@/hooks/useOnlineStatus';
 import type { AuthUser } from '@/types';
 
 type StudentSection = 'profile' | 'report' | 'quiz' | 'cases';
@@ -30,7 +31,11 @@ export default function StudentHeader({
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const prevCountRef = useRef(0);
 
+  const reconnectKey = useReconnectKey();
+
   const fetchNotifs = useCallback(async () => {
+    // Hors ligne : on saute le rafraîchissement et on garde le dernier état connu
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
     try {
       const [countData, notifs] = await Promise.all([getUnreadCount(), getNotifications()]);
       const newCount = countData.count ?? 0;
@@ -59,6 +64,11 @@ export default function StudentHeader({
   useEffect(() => {
     if (notifRefreshKey > 0) fetchNotifs();
   }, [notifRefreshKey, fetchNotifs]);
+
+  // Rafraîchit les notifications dès le retour de la connexion
+  useEffect(() => {
+    if (reconnectKey > 0) fetchNotifs();
+  }, [reconnectKey, fetchNotifs]);
 
   const handleNotifClick = async (notif: Notification) => {
     if (!notif.isRead) {

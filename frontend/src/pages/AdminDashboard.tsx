@@ -6,7 +6,10 @@ import {
   getAllReports, updateReport, getNotes, addNote,
   getUserById, searchUsers, resolveSuspect, resolveVictim,
   getStaffProfile, createStaffProfile, updateStaffProfile, updateUser, createParent,
+  isOfflineError,
 } from '@/services/api';
+import OfflineNotice from '@/components/OfflineNotice';
+import { useReconnectKey } from '@/hooks/useOnlineStatus';
 import { useUsers } from '@/hooks/useUsers';
 import StatsDashboard from '@/components/admin/StatsDashboard';
 import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
@@ -50,7 +53,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   const {
-    loadingUsers,
+    loadingUsers, usersFailedOffline,
     usersPage, setUsersPage, usersTotalPages,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,
@@ -68,6 +71,8 @@ export default function AdminDashboard() {
 
   const [reports, setReports]   = useState<Report[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [reportsFailedOffline, setReportsFailedOffline] = useState(false);
+  const reconnectKey = useReconnectKey();
   const [selected, setSelected] = useState<Report | null>(null);
   const [saving, setSaving]     = useState(false);
   const [view, setView]         = useState<'list' | 'detail'>('list');
@@ -112,7 +117,8 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-  useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
+  // Rechargé au montage et à chaque retour de connexion
+  useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, [reconnectKey]);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -122,7 +128,7 @@ export default function AdminDashboard() {
     }
   }, [selectedUserId]);
 
-  useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
+  useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection, reconnectKey]);
 
   useEffect(() => {
     if (selectedUser?.role === 'student' && selectedUser?.id) {
@@ -133,7 +139,9 @@ export default function AdminDashboard() {
   }, [selectedUser?.id]);
 
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch { } finally { setLoading(false); }
+    try { setReports(await getAllReports()); setReportsFailedOffline(false); }
+    catch (err) { setReportsFailedOffline(isOfflineError(err)); }
+    finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
@@ -474,6 +482,8 @@ export default function AdminDashboard() {
             </div>
             {loading ? (
               <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p>
+            ) : reportsFailedOffline && reports.length === 0 ? (
+              <OfflineNotice />
             ) : filtered.length === 0 ? (
               <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
             ) : (
@@ -583,6 +593,7 @@ export default function AdminDashboard() {
             usersSort={usersSort}
             usersRoleFilter={usersRoleFilter}
             loadingUsers={loadingUsers}
+            usersFailedOffline={usersFailedOffline}
             avatarTimestamps={avatarTimestamps}
             usersTotalPages={usersTotalPages}
             showUserForm={showUserForm}
