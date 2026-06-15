@@ -4,13 +4,13 @@ import { Transform } from 'class-transformer';
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty({ message: 'Prénom obligatoire' })
-  @Matches(/^[a-zA-ZÀ-ÿ'\-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Prénom invalide (lettres et tirets, 2-20 caractères)' })
   @Transform(({ value }) => value?.trim())
   firstName: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Nom obligatoire' })
-  @Matches(/^[a-zA-ZÀ-ÿ'\-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
+  @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, { message: 'Nom invalide (lettres et tirets, 2-20 caractères)' })
   @Transform(({ value }) => value?.trim())
   lastName: string;
 

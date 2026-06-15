@@ -1,4 +1,4 @@
-import { IsString, IsBoolean, IsOptional, IsArray, ValidateNested, MaxLength, MinLength, IsIn, Matches } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsArray, ArrayMaxSize, ValidateNested, MaxLength, MinLength, IsIn, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class PersonDto {
@@ -35,12 +35,14 @@ export class CreateReportDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(5, { message: 'Maximum 5 suspects autorisés' })
   @ValidateNested({ each: true })
   @Type(() => PersonDto)
   suspects?: PersonDto[];
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(5, { message: 'Maximum 5 suspects autorisés' })
   @ValidateNested({ each: true })
   @Type(() => PersonDto)
   victims?: PersonDto[];

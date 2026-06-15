@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
+// Chaque question arrive traduite dans toutes les langues supportées ; le client choisit
+// librement laquelle afficher selon la langue active (voir QuizPlaying)
+export type QuizLocale = 'fr' | 'en' | 'de';
+export type LocalizedText = Record<QuizLocale, string>;
+export type LocalizedOptions = Record<QuizLocale, string[]>;
+
 type QuestionPayload = {
   roomId: string;
   question: {
     id: number;
-    text: string;
-    options: string[];
+    text: LocalizedText;
+    options: LocalizedOptions;
   };
   questionNumber: number;
   totalQuestions: number;
@@ -111,6 +117,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
+  const [offline, setOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
   const [socketError, setSocketError] = useState('');
   const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
   const [questionState, setQuestionState] = useState<QuestionState>(null);
@@ -131,6 +138,8 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const joinedRoomRef = useRef<string | null>(null);
   const playerNameRef = useRef<string | undefined>(playerName);
   playerNameRef.current = playerName;
+  const gamePhaseRef = useRef<GamePhase>('lobby');
+  gamePhaseRef.current = gamePhase;
 
   useEffect(() => {
     joinedRoomRef.current = joinedRoom;
@@ -200,6 +209,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
       socket.on('connect_error', () => {
         setConnected(false);
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
         setSocketError('Impossible de se connecter au serveur.');
       });
 
@@ -212,6 +222,8 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       });
 
       socket.io.on('reconnect_attempt', () => {
+        // On n'annonce une reconnexion que si elle est réellement possible (réseau présent)
+        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
         setReconnecting(true);
       });
 
@@ -219,10 +231,18 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
 
-      socket.on('quiz:joined', (data: { roomId: string; hostId: string; selfId?: string }) => {
+      socket.on('quiz:joined', (data: { roomId: string; hostId: string; status?: string; selfId?: string }) => {
         setJoinedRoom(data.roomId);
         setSocketError('');
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
+
+        if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
+          setGamePhase('lobby');
+          setQuestionState(null);
+          setTimeLeftMs(0);
+          setFinalLeaderboard(null);
+          setSocketError('La partie a été interrompue pendant la déconnexion.');
+        }
       });
 
       socket.on('quiz:game:started', () => {
@@ -328,8 +348,34 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
     connectSocket();
 
+    const handleOffline = () => {
+      setOffline(true);
+      setConnected(false);
+      setReconnecting(false);
+      setSocketError('');
+      const socket = socketRef.current;
+      if (socket) {
+        socket.io.reconnection(false);
+        socket.disconnect();
+      }
+    };
+
+    const handleOnline = () => {
+      setOffline(false);
+      const socket = socketRef.current;
+      if (socket && !socket.connected) {
+        setReconnecting(true);
+        socket.io.reconnection(true);
+        socket.connect();
+      }
+    };
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
       clearGiveUpTimer();
       if (joinedRoomRef.current) {
         socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });
@@ -390,6 +436,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   return {
     connected,
     reconnecting,
+    offline,
     socketError,
     myClientId,
     isHost,

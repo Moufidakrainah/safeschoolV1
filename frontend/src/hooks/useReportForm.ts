@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { createReport, searchUsers } from '@/services/api';
+import { createReport, isOfflineError } from '@/services/api';
 import type { UserSearchResult } from '@/types';
-import { useTranslation } from 'react-i18next';
 
 export interface UseReportFormReturn {
   step:        number;
@@ -23,31 +22,56 @@ export interface UseReportFormReturn {
   isNextDisabled: boolean;
   suspects:           UserSearchResult[];
   suspectInput:       string;
-  suspectSuggestions: UserSearchResult[];
-  searchingUsers:     boolean;
+  setSuspectInput:    React.Dispatch<React.SetStateAction<string>>;
   victimName:         string;
   setVictimName:      React.Dispatch<React.SetStateAction<string>>;
   victimInput:        string;
-  victimSuggestions:  UserSearchResult[];
   selectedVictim:     UserSearchResult | null;
   setSelectedVictim:  React.Dispatch<React.SetStateAction<UserSearchResult | null>>;
   setVictimInput:     React.Dispatch<React.SetStateAction<string>>;
-  setVictimSuggestions: React.Dispatch<React.SetStateAction<UserSearchResult[]>>;
   handleSubmit:       () => Promise<void>;
-  handleSuspectSearch:(value: string) => Promise<void>;
-  handleVictimSearch: (value: string) => Promise<void>;
   addSuspect:         (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => void;
   removeSuspect:      (index: number) => void;
   resetForm:          () => void;
+  // Clés i18n — t() est appelé dans le composant
+  descriptionErrorKey:   string;
+  setDescriptionErrorKey: React.Dispatch<React.SetStateAction<string>>;
+  frequencyErrorKey:     string;
+  setFrequencyErrorKey:  React.Dispatch<React.SetStateAction<string>>;
+  victimErrorKey:        string;
+  setVictimErrorKey:     React.Dispatch<React.SetStateAction<string>>;
+  suspectErrorKey:       string;
+  setSuspectErrorKey:    React.Dispatch<React.SetStateAction<string>>;
+  validateDescriptionKey: (value: string) => string | null;
+  validateNameKey:        (value: string) => string | null;
 }
+
+const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
+const personRegex      = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
 
 export function useReportForm(
   userRole: string | undefined,
   t: (key: string) => string,
 ): UseReportFormReturn {
 
-//il faut enlever les suggestions de noms d'eleves
   const defaultWho = 'temoin';
+
+  // ── Validators — retournent des CLÉS i18n ──
+  const validateDescriptionKey = (value: string): string | null => {
+    if (!value.trim()) return 'validation.descRequired';
+    if (value.length < 20) return 'validation.descMin';
+    if (value.length > 2000) return 'validation.descMax';
+    if (!descriptionRegex.test(value)) return 'validation.descInvalid';
+    return null;
+  };
+
+  const validateNameKey = (value: string): string | null => {
+    if (!value.trim()) return 'validation.nameRequired';
+    if (value.length < 2) return 'validation.nameMin';
+    if (value.length > 50) return 'validation.nameMax';
+    if (!personRegex.test(value)) return 'validation.nameInvalid';
+    return null;
+  };
 
   const [step, setStep]               = useState(1);
   const [whoSignals, setWhoSignals]   = useState(defaultWho);
@@ -59,86 +83,56 @@ export function useReportForm(
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showErrors, setShowErrors]   = useState(false);
 
-    const isNextDisabled =
+  // ── Stocke des CLÉS i18n, pas des messages ──
+  const [descriptionErrorKey, setDescriptionErrorKey] = useState('');
+  const [frequencyErrorKey, setFrequencyErrorKey]     = useState('');
+  const [victimErrorKey, setVictimErrorKey]           = useState('');
+  const [suspectErrorKey, setSuspectErrorKey]         = useState('');
+
+  const isNextDisabled =
     (step === 1 && !type) ||
-    (step === 2 && (!description.trim() || !frequency));
+    (step === 2 && (!!validateDescriptionKey(description) || !frequency));
 
-  const [suspects,           setSuspects]           = useState<UserSearchResult[]>([]);
-  const [suspectInput,       setSuspectInput]       = useState('');
-  const [suspectSuggestions, setSuspectSuggestions] = useState<UserSearchResult[]>([]);
-  const [searchingUsers,     setSearchingUsers]     = useState(false);
+  const [suspects,     setSuspects]     = useState<UserSearchResult[]>([]);
+  const [suspectInput, setSuspectInput] = useState('');
+  const [victimName,   setVictimName]   = useState('');
+  const [victimInput,  setVictimInput]  = useState('');
+  const [selectedVictim, setSelectedVictim] = useState<UserSearchResult | null>(null);
 
-  const [victimName,        setVictimName]        = useState('');
-  const [victimInput,       setVictimInput]       = useState('');
-  const [victimSuggestions, setVictimSuggestions] = useState<UserSearchResult[]>([]);
-  const [selectedVictim,    setSelectedVictim]    = useState<UserSearchResult | null>(null);
-
-
-  //some translations to be done
   const handleSubmit = async () => {
-    if (!type || !description || !frequency) return;
+    // Valider description
+    const descKey = validateDescriptionKey(description.trim());
+    if (descKey) { setDescriptionErrorKey(descKey); setShowErrors(true); return; }
+    if (!frequency) { setFrequencyErrorKey('validation.freqRequired'); setShowErrors(true); return; }
+    if (!type) return;
+
     setLoading(true);
     setSubmitError(null);
     try {
       const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
-      const suspectsData = suspects.map(s => ({
-        freeText: `${s.firstName} ${s.lastName}`,
-      }));
-      const victimsData = victimName ? [{ freeText: victimName }] : [];
-
-      await createReport(
-        type,
-        'temoin',
-        fullDescription,
-        isAnonymous,
-        suspectsData,
-        victimsData,
-        frequency,
-      );
+      const suspectsData = suspects.map(s => ({ freeText: `${s.firstName} ${s.lastName}` }));
+      const victimsData  = victimName ? [{ freeText: victimName }] : [];
+      await createReport(type, 'temoin', fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(6);
     } catch (err) {
-      setSubmitError(t('reporter.submitError'));
+      setSubmitError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'reporter.submitError'));
     } finally {
       setLoading(false);
     }
   };
 
-//   attention, certaines fonctions ne sont plus utilisees 
-  const handleSuspectSearch = async (value: string) => {
-    setSuspectInput(value);
-    if (value.length < 2) { setSuspectSuggestions([]); return; }
-    setSearchingUsers(true);
-    try {
-      setSuspectSuggestions(await searchUsers(value));
-    } catch {
-      setSuspectSuggestions([]);
-    } finally {
-      setSearchingUsers(false);
-    }
-  };
-
-  const handleVictimSearch = async (value: string) => {
-    setVictimInput(value);
-    setSelectedVictim(null);
-    setVictimName(value);
-    if (value.length < 2) { setVictimSuggestions([]); return; }
-    try {
-      setVictimSuggestions(await searchUsers(value));
-    } catch {
-      setVictimSuggestions([]);
-    }
-  };
-
   const addSuspect = (suspect: { id?: string; firstName: string; lastName: string; role?: string }) => {
+    const name = `${suspect.firstName} ${suspect.lastName}`.trim();
+    const errKey = validateNameKey(name);
+    if (errKey) { setSuspectErrorKey(errKey); return; }
+    setSuspectErrorKey('');
     if (!suspects.find(s => s.firstName === suspect.firstName && s.lastName === suspect.lastName)) {
       setSuspects([...suspects, suspect as UserSearchResult]);
     }
     setSuspectInput('');
-    setSuspectSuggestions([]);
   };
 
-  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index)
-);
+  const removeSuspect = (index: number) => setSuspects(suspects.filter((_, i) => i !== index));
 
   const resetForm = () => {
     setStep(1);
@@ -153,10 +147,19 @@ export function useReportForm(
     setIsAnonymous(false);
     setSubmitError(null);
     setShowErrors(false);
+    setDescriptionErrorKey('');
+    setFrequencyErrorKey('');
+    setVictimErrorKey('');
+    setSuspectErrorKey('');
   };
 
   return {
     step, setStep,
+    descriptionErrorKey, setDescriptionErrorKey,
+    frequencyErrorKey, setFrequencyErrorKey,
+    victimErrorKey, setVictimErrorKey,
+    suspectErrorKey, setSuspectErrorKey,
+    validateDescriptionKey, validateNameKey,
     whoSignals, setWhoSignals,
     type, setType,
     description, setDescription,
@@ -165,18 +168,12 @@ export function useReportForm(
     loading, submitError,
     showErrors, setShowErrors,
     isNextDisabled,
-    suspects, suspectInput, 
-	suspectSuggestions, 
-	searchingUsers,
+    suspects, suspectInput, setSuspectInput,
     victimName, setVictimName,
     victimInput, setVictimInput,
-    victimSuggestions, 
-	setVictimSuggestions,
     selectedVictim, setSelectedVictim,
     handleSubmit,
-	handleSuspectSearch, 
-	handleVictimSearch,
-    addSuspect, removeSuspect, 
-	resetForm,
+    addSuspect, removeSuspect,
+    resetForm,
   };
 }

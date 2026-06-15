@@ -4,12 +4,12 @@ import StudentHeader from '@/components/layout/StudentHeader/StudentHeader';
 import ReporterHeader from '@/components/layout/ReporterHeader/ReporterHeader';
 
 interface RoleHeaderProps {
-  user: any;
+  user: AuthUser | null;
   logoutUser: () => void;
   adminViewSection?: 'reports' | 'users' | 'stats' | 'classes';
   adminSetViewSection?: (s: 'reports' | 'users' | 'stats' | 'classes') => void;
   adminFetchUsers?: () => void;
-  adminSetSelected?: (r: any) => void;
+  adminSetSelected?: (r: Report | null) => void;
   adminSetView?: (v: 'list' | 'detail') => void;
   studentViewSection?: 'profile' | 'report' | 'quiz' | 'cases';
   studentSetViewSection?: (s: 'profile' | 'report' | 'quiz' | 'cases') => void;

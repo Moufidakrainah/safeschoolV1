@@ -1,13 +1,45 @@
 import axios from 'axios';
-import type { SuspectInput, VictimInput } from '../types';
+import type { SuspectInput, VictimInput } from '@/types';
+import { API_BASE } from '@/config';
 
-const api = axios.create({ baseURL: 'http://localhost:5000' });
+/* Erreur levée quand une requête est tentée hors ligne — rejetée avant
+   d'atteindre le réseau pour éviter les erreurs GET dans la console */
+export class OfflineError extends Error {
+  readonly isOffline = true;
+  constructor() {
+    super('OFFLINE');
+    this.name = 'OfflineError';
+  }
+}
+
+/* Vrai si l'erreur est due à l'absence de connexion (hors ligne ou serveur injoignable) */
+export function isOfflineError(err: unknown): boolean {
+  if (err instanceof OfflineError) return true;
+  return axios.isAxiosError(err) && err.code === 'ERR_NETWORK';
+}
+
+const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
+  // Hors ligne : échec immédiat, sans tenter la requête
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return Promise.reject(new OfflineError());
+  }
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
@@ -59,8 +91,8 @@ export const updateUser = async (id: string, dto: Record<string, string>) =>
 export const deleteUser = async (id: string) => {
   try {
     return (await api.delete(`/users/${id}`)).data;
-  } catch (err: any) {
-    const message = err.response?.data?.message || 'DELETE_FAILED';
+  } catch (err: unknown) {
+    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'DELETE_FAILED';
     throw new Error(message);
   }
 };
@@ -102,10 +134,10 @@ export const updateParent = async (id: string, dto: { firstName?: string; lastNa
 export const deleteParent = async (id: string) =>
   (await api.delete(`/parents/${id}`)).data;
 
-export const createStaffProfile = async (dto: Record<string, any>) =>
+export const createStaffProfile = async (dto: Record<string, string | string[]>) =>
   (await api.post('/staff-profiles', dto)).data;
 
-export const updateStaffProfile = async (id: string, dto: Record<string, any>) =>
+export const updateStaffProfile = async (id: string, dto: Record<string, string | string[]>) =>
   (await api.patch(`/staff-profiles/${id}`, dto)).data;
 
 export default api;

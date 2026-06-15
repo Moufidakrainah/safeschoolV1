@@ -1,49 +1,28 @@
-
-# == FRONTEND ================================================
+# ════════════════════════════════════════════════════════════════════
+#  Base commune (dev + prod).
+#  - dev  : `make dev`  -> base + docker-compose.override.yml (auto)
+#           frontend Vite + backend en watch, pas de nginx.
+#  - prod : `make prod` -> base + docker-compose.prod.yml
+#           backend compilé + nginx (TLS), pas de serveur de dev.
+#  Les parties spécifiques (target de build, ports, montages, nginx)
+#  vivent dans les fichiers d'overlay.
+# ════════════════════════════════════════════════════════════════════
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: safeschool_frontend
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - safeschool_network
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ > /dev/null 2>&1 || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
 
 # == BACKEND =================================================
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: safeschool_backend
-    ports:
-      - "5000:3000"
-    volumes:
-      - backend_node_modules:/app/node_modules
-      - ./backend:/app
     env_file:
       - .env
     depends_on:
       database:
         condition: service_healthy
       logstash:
-        condition: service_healthy
+        condition: service_started
     networks:
       - safeschool_network
     healthcheck:
@@ -55,7 +34,6 @@ services:
 
 
 # == BASE DE DONNÉES =========================================
-
   database:
     image: postgres:15-alpine
     container_name: safeschool_db
@@ -78,30 +56,47 @@ services:
 
 # == Logs et monitoring ================================
 
+### === ELK ===
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     container_name: safeschool_elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ports:
-      - "9201:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
     networks:
       - safeschool_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10
 
+  elasticsearch-setup-users:
+    image: curlimages/curl:latest
+    container_name: safeschool_elk_setup_users
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
+    volumes:
+      - ./elk/setup:/setup
+    command: ["/bin/sh", "/setup/setup-users.sh"]
+    networks:
+      - safeschool_network
+    restart: "no"
+
   logstash:
     image: docker.elastic.co/logstash/logstash:8.12.0
     container_name: safeschool_logstash
-    ports:
-      - "5044:5044"
+    environment:
+      - LOGSTASH_INTERNAL_PASSWORD=${LOGSTASH_INTERNAL_PASSWORD}
     volumes:
       - ./elk/logstash/pipeline:/usr/share/logstash/pipeline
     depends_on:
@@ -109,6 +104,7 @@ services:
         condition: service_healthy
     networks:
       - safeschool_network
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9600 || exit 1"]
       interval: 15s
@@ -123,6 +119,8 @@ services:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
     volumes:
       - kibanadata:/usr/share/kibana/data
     depends_on:
@@ -130,6 +128,7 @@ services:
         condition: service_healthy
     networks:
       - safeschool_network
+    restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
       interval: 15s
@@ -137,8 +136,20 @@ services:
       retries: 10
       start_period: 60s
 
-
-# == VOLUMES =================================================
+  elasticsearch-setup-kibana:
+    image: curlimages/curl:latest
+    container_name: safeschool_elk_setup_kibana
+    depends_on:
+      kibana:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./elk/setup:/setup
+    command: ["/bin/sh", "/setup/setup.sh"]
+    networks:
+      - safeschool_network
+    restart: "no"
 
 volumes:
   pgdata:
@@ -149,7 +160,6 @@ volumes:
 
 
 # == RÉSEAU ==================================================
-
 networks:
   safeschool_network:
     driver: bridge
