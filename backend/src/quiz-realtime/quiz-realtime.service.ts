@@ -185,14 +185,15 @@ type SubmitAnswerResult =
     };
 
 type JoinRoomResult = {
-  status:
-    | "joined"
-    | "reconnected"
-    | "quiz-already-started"
-    | "roomcode-bad-format"
-    | "room-is-full"
-    | "server-at-capacity";
-  snapshot: RoomSnapshot;
+	status:
+		| 'joined'
+		| 'reconnected'
+		| 'quiz-already-started'
+		| 'roomcode-bad-format'
+		| 'room-is-full'
+		| 'server-at-capacity';
+	snapshot: RoomSnapshot;
+	revealPayload?: QuestionRevealPayload | null;
 };
 
 type LeaveRoomResult =
@@ -214,71 +215,77 @@ export class QuizRealtimeService {
     };
   }
 
-  joinRoom({
-    roomId,
-    playerId,
-    socketId,
-    playerName,
-  }: JoinRoomInput): JoinRoomResult {
-    if (roomId.length < 3 || roomId.length > 10) {
-      return {
-        status: "roomcode-bad-format",
-        snapshot: this.getRoomSnapshot(roomId),
-      };
-    }
+	joinRoom({ roomId, playerId, socketId, playerName }: JoinRoomInput): JoinRoomResult {
+		if (roomId.length < 3 || roomId.length > 10) {
+			return {
+				status : "roomcode-bad-format",
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
 
-    let room = this.rooms.get(roomId);
+		let room = this.rooms.get(roomId);
 
-    // Reconnexion : le joueur est déjà membre (peut-être en pleine partie). On rattache
-    // le nouveau socket et on annule toute suppression de période de grâce en attente
-    if (room && room.players.has(playerId)) {
-      const player = room.players.get(playerId)!;
-      if (player.disconnectTimer) {
-        clearTimeout(player.disconnectTimer);
-        player.disconnectTimer = null;
-      }
-      player.socketId = socketId;
-      player.connected = true;
-      player.graceEndsAt = null;
-      if (playerName?.trim()) {
-        player.name = playerName.trim();
-      }
-      return {
-        status: "reconnected",
-        snapshot: this.getRoomSnapshot(roomId),
-      };
-    }
+		// Reconnexion : le joueur est déjà membre (peut-être en pleine partie). On rattache
+		// le nouveau socket et on annule toute suppression de période de grâce en attente
+		if (room && room.players.has(playerId)) {
+			const player = room.players.get(playerId)!;
+			if (player.disconnectTimer) {
+				clearTimeout(player.disconnectTimer);
+				player.disconnectTimer = null;
+			}
+			player.socketId = socketId;
+			player.connected = true;
+			player.graceEndsAt = null;
+			if (playerName?.trim()) {
+				player.name = playerName.trim();
+			}
 
-    if (!room && this.rooms.size >= MAX_CONCURRENT_ROOMS) {
-      return {
-        status: "server-at-capacity",
-        snapshot: null,
-      };
-    }
+			let revealPayload: QuestionRevealPayload | null = null;
+			if (
+				room.status === 'in-progress' &&
+				room.revealEndsAt === null &&
+				this.allConnectedAnswered(room)
+			) {
+				revealPayload = this.enterRevealPhase(room);
+			}
 
-    if (!room) {
-      room = {
-        roomId,
-        hostId: playerId,
-        status: "waiting",
-        players: new Map<string, QuizPlayer>(),
-        questions: [],
-        currentQuestionIndex: 0,
-        answeredPlayerIds: new Set<string>(),
-        selectedAnswerByPlayerId: new Map<string, number>(),
-        startedAt: null,
-        questionEndsAt: null,
-        questionTimer: null,
-        revealEndsAt: null,
-        revealTimer: null,
-      };
-      this.rooms.set(roomId, room);
-    } else if (room.status === "in-progress") {
-      return {
-        status: "quiz-already-started",
-        snapshot: this.getRoomSnapshot(roomId),
-      };
-    }
+			return {
+				status: 'reconnected',
+				snapshot: this.getRoomSnapshot(roomId),
+				revealPayload,
+			};
+		}
+
+		if (!room && this.rooms.size >= MAX_CONCURRENT_ROOMS) {
+			return {
+				status: 'server-at-capacity',
+				snapshot: null,
+			};
+		}
+
+		if (!room) {
+			room = {
+				roomId,
+				hostId: playerId,
+				status: 'waiting',
+				players: new Map<string, QuizPlayer>(),
+				questions: [],
+				currentQuestionIndex: 0,
+				answeredPlayerIds: new Set<string>(),
+				selectedAnswerByPlayerId: new Map<string, number>(),
+				startedAt: null,
+				questionEndsAt: null,
+				questionTimer: null,
+				revealEndsAt: null,
+				revealTimer: null,
+			};
+			this.rooms.set(roomId, room);
+		} else if (room.status === 'in-progress') {
+			return {
+				status: 'quiz-already-started',
+				snapshot: this.getRoomSnapshot(roomId),
+			};
+		}
 
     if (room.players.size >= 32) {
       return {

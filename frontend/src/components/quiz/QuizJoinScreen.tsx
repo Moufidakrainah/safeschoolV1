@@ -36,14 +36,8 @@ export default function QuizJoinScreen({
           </p>
         ) : (
           <>
-            {reconnecting && (
-              <p className="text-sm text-amber-500 text-center">
-                {t("quiz.reconnecting")}
-              </p>
-            )}
-            {socketError && (
-              <p className="text-sm text-red-500 text-center">{socketError}</p>
-            )}
+            {reconnecting && <p className="text-sm text-amber-500 text-center">{t('quiz.reconnecting')}</p>}
+            {socketError && <p className="text-sm text-red-500 text-center">{t(socketError)}</p>}
           </>
         )}
         <form

@@ -1,4 +1,9 @@
 {
+  "offline": {
+    "message": "You are offline.",
+    "contentUnavailable": "This content is not available offline.",
+    "actionUnavailable": "This action is not available offline."
+  },
   "login": {
     "labelEmail": "Username",
     "labelPassword": "Password",
@@ -259,6 +264,18 @@
   "quiz": {
     "title": "Quiz",
     "reconnecting": "Reconnecting…",
+    "errors": {
+      "reconnectFailed": "Reconnection failed. Please reload the page.",
+      "unauthorized": "You must be logged in to access the quiz.",
+      "gameInterrupted": "The game was interrupted during the disconnection.",
+      "alreadyStarted": "The quiz has already started.",
+      "roomFull": "This room is full.",
+      "alreadyInRoom": "You are already connected to a room in another tab or window. Leave it before joining another one.",
+      "joinFailed": "Unable to join the room.",
+      "roomClosed": "The room has been closed.",
+      "notConnected": "No connection to the server.",
+      "invalidCode": "The code must be between 3 and 10 characters."
+    },
     "roomCodeLabel": "Room code",
     "roomCodePlaceholder": "Enter the code",
     "join": "Join",

@@ -206,98 +206,62 @@ export class QuizRealtimeGateway
     }
   }
 
-  @SubscribeMessage("quiz:ping")
-  handlePing(
-    @MessageBody() payload: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    return {
-      event: "quiz:pong",
-      data: this.quizRealtimeService.createPongMessage(payload, client.id),
-    };
-  }
+	@SubscribeMessage('quiz:join')
+	handleJoin(
+		@MessageBody() payload: JoinRoomPayload,
+		@ConnectedSocket() client: Socket,
+	) {
+		if (!payload || !isNonEmptyString(payload.roomId)) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: null, reason: 'invalid-payload', snapshot: null },
+			};
+		}
+		if (payload.playerName !== undefined && typeof payload.playerName !== 'string') {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'invalid-payload', snapshot: null },
+			};
+		}
 
-  @SubscribeMessage("quiz:join")
-  handleJoin(
-    @MessageBody() payload: JoinRoomPayload,
-    @ConnectedSocket() client: Socket,
-  ) {
-    if (!payload || !isNonEmptyString(payload.roomId)) {
-      return {
-        event: "quiz:join:ignored",
-        data: { roomId: null, reason: "invalid-payload", snapshot: null },
-      };
-    }
-    if (
-      payload.playerName !== undefined &&
-      typeof payload.playerName !== "string"
-    ) {
-      return {
-        event: "quiz:join:ignored",
-        data: {
-          roomId: payload.roomId,
-          reason: "invalid-payload",
-          snapshot: null,
-        },
-      };
-    }
+		const playerId = this.getPlayerId(client);
+		if (!playerId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'unauthorized', snapshot: null },
+			};
+		}
 
-    const playerId = this.getPlayerId(client);
-    if (!playerId) {
-      return {
-        event: "quiz:join:ignored",
-        data: {
-          roomId: payload.roomId,
-          reason: "unauthorized",
-          snapshot: null,
-        },
-      };
-    }
+		// Une seule salle active par compte : si ce compte est déjà en ligne dans une salle
+		// (un autre onglet, ou une autre salle), on refuse de rejoindre et on laisse cette salle
+		// intacte. Se reconnecter après une vraie coupure n'est pas affecté car la
+		// présence restante n'est plus "connectée"
+		const activeRoomId = this.quizRealtimeService.getActiveRoomId(playerId, client.id);
+		if (activeRoomId) {
+			return {
+				event: 'quiz:join:ignored',
+				data: { roomId: payload.roomId, reason: 'already-in-room', snapshot: null },
+			};
+		}
 
-    // Une seule salle active par compte : si ce compte est déjà en ligne dans une salle
-    // (un autre onglet, ou une autre salle), on refuse de rejoindre et on laisse cette salle
-    // intacte. Se reconnecter après une vraie coupure n'est pas affecté car la
-    // présence restante n'est plus "connectée"
-    const activeRoomId = this.quizRealtimeService.getActiveRoomId(
-      playerId,
-      client.id,
-    );
-    if (activeRoomId) {
-      return {
-        event: "quiz:join:ignored",
-        data: {
-          roomId: payload.roomId,
-          reason: "already-in-room",
-          snapshot: null,
-        },
-      };
-    }
+		// Nettoie toute présence restante (déconnectée) dans les autres salles pour que le
+		// compte ne soit suivi que dans une seule salle, puis rafraîchit ces salles
+		const evictions = this.quizRealtimeService.evictFromOtherRooms(playerId, payload.roomId);
+		for (const eviction of evictions) {
+			void client.leave(eviction.roomId);
+			if (eviction.result.status === 'room-closed') {
+				this.server.to(eviction.roomId).emit('quiz:room:closed', { roomId: eviction.roomId });
+			} else if (eviction.result.snapshot) {
+				this.server.to(eviction.roomId).emit('quiz:room:update', eviction.result.snapshot);
+			}
+		}
 
-    // Nettoie toute présence restante (déconnectée) dans les autres salles pour que le
-    // compte ne soit suivi que dans une seule salle, puis rafraîchit ces salles
-    const evictions = this.quizRealtimeService.evictFromOtherRooms(
-      playerId,
-      payload.roomId,
-    );
-    for (const eviction of evictions) {
-      void client.leave(eviction.roomId);
-      if (eviction.result.status === "room-closed") {
-        this.server
-          .to(eviction.roomId)
-          .emit("quiz:room:closed", { roomId: eviction.roomId });
-      } else if (eviction.result.snapshot) {
-        this.server
-          .to(eviction.roomId)
-          .emit("quiz:room:update", eviction.result.snapshot);
-      }
-    }
-
-    const result = this.quizRealtimeService.joinRoom({
-      roomId: payload.roomId,
-      playerId,
-      socketId: client.id,
-      playerName: payload.playerName,
-    });
+		const result = this.quizRealtimeService.joinRoom({
+			roomId: payload.roomId,
+			playerId,
+			socketId: client.id,
+			playerName: payload.playerName,
+		});
 
     if (result.status === "roomcode-bad-format") {
       return {
@@ -351,10 +315,19 @@ export class QuizRealtimeGateway
       this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
     }
 
-    // Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
-    if (result.status === "reconnected") {
-      this.sendReconnectState(client, payload.roomId, playerId);
-    }
+		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
+		if (result.status === 'reconnected') {
+			this.sendReconnectState(client, payload.roomId, playerId);
+
+			if (result.revealPayload) {
+				this.server
+					.to(payload.roomId)
+					.emit('quiz:score:update', result.revealPayload.roomSnapshot);
+				this.server
+					.to(payload.roomId)
+					.emit('quiz:question:reveal', result.revealPayload);
+			}
+		}
 
     return {
       event: "quiz:joined",
