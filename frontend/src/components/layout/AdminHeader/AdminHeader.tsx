@@ -28,6 +28,30 @@ export default function AdminHeader({
     
   ];
 
+function NavButtons({ isMobile }: { isMobile?: boolean }) {
+  return (
+    <>
+      {navItems.map(item => (
+        <button
+          key={item.key}
+          onClick={() => item.onClick?.()}
+          className={
+            isMobile
+              ? "text-left text-lg font-semibold text-white"
+              : `font-bold text-sm transition-opacity ${
+                  viewSection === item.key
+                    ? "text-white underline underline-offset-4"
+                    : "text-white/80 hover:text-white"
+                }`
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </>
+  );
+}
+
   return (
 <header className="w-full flex flex-col">
   <Header user={user} logoutUser={logoutUser} />
@@ -41,25 +65,22 @@ export default function AdminHeader({
         <Menu className="text-white h-6 w-6" />
       </SheetTrigger>
       <SheetContent side="left" className="p-4 bg-primary text-white">
-        <nav className="flex flex-col gap-4">
-        
- {navItems.map(item => (
-          <button
-            key={item.key}
-            onClick={item.onClick}
-            aria-current={viewSection === item.key ? 'page' : undefined}
-            className={`font-bold text-sm transition-opacity ${
-              viewSection === item.key ? 'text-white underline underline-offset-4' : 'text-white/80 hover:text-white'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-        
-      </nav>
+  
+
+      <nav className="flex flex-col gap-4">
+          <NavButtons isMobile />
+        </nav>
     </SheetContent>
   </Sheet>
 </div>
+
+
+  {/* Desktop */}
+  <nav className="bg-primary px-8 py-0 hidden md:flex items-center gap-8">
+    <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-10 md:h-14" />
+    <NavButtons />
+  </nav>
+
 
     </header>
   );

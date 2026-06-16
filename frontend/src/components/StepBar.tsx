@@ -8,10 +8,6 @@ export default function StepBar({ steps, currentStep }: StepBarProps) {
     <div
     className="w-full"
       role="progressbar"
-      aria-valuenow={currentStep}
-      aria-valuemin={1}
-      aria-valuemax={steps.length}
-      aria-label={`Étape ${currentStep} sur ${steps.length}`}
     >
       <div className="flex gap-2">
         {steps.map((s, i) => (
