@@ -111,7 +111,9 @@ export function useReportForm(
     try {
       const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({ freeText: `${s.firstName} ${s.lastName}` }));
-      const victimsData  = victimName ? [{ freeText: victimName }] : [];
+      const victimsData = victimName
+        ? victimName.split('|').filter(Boolean).map(name => ({ freeText: name }))
+        : [];
       await createReport(type, 'temoin', fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(6);
     } catch (err) {
