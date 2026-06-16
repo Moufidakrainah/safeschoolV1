@@ -139,25 +139,29 @@ export function useUsers(): UseUsersReturn {
   }, [usersPage, usersSearch]);
 
   const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await fetch(`${API_BASE}/users/${userId}/avatar`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.avatar) {
-        setSelectedUser(prev => prev && prev.id === userId
-          ? { ...prev, avatar: data.avatar }
-          : prev);
-        setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
-        await fetchUsers();
-        toast.success(t('toast.avatarUpdated'));
-      }
-    } catch { }
-  }, [fetchUsers, t]);
+  // ✅ Vérifier le type avant d'envoyer
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const res = await fetch(`${API_BASE}/users/${userId}/avatar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (data.avatar) {
+      setSelectedUser(prev => prev && prev.id === userId
+        ? { ...prev, avatar: data.avatar }
+        : prev);
+      setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
+      await fetchUsers();
+      toast.success(t('toast.avatarUpdated'));
+    }
+  } catch { }
+}, [fetchUsers, t]);
 
   const handleSaveUser = useCallback(async () => {
   try {
