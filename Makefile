@@ -144,6 +144,9 @@ wait-schema: # Attendre que TypeORM crée le schéma
 
 seed: wait-schema ## Injecter les données de démonstration
 	$(COMPOSE) exec -T database sh -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < $(SEED_FILE)
+	@mkdir -p backend/uploads/avatars
+	@cp database/avatars/* backend/uploads/avatars/
+	@echo "Avatars copiés."
 
 seed-if-empty: wait-schema ## Seeder seulement si la base est vide
 	@user_count="$$($(COMPOSE) exec -T database sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tAc "SELECT COUNT(*) FROM public.users;"' | tr -d '[:space:]')"; \
