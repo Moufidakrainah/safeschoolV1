@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { login, isOfflineError } from '@/services/api';
@@ -16,6 +16,8 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const { loginUser } = useAuth();
   const navigate = useNavigate();
@@ -56,14 +58,27 @@ export default function Login() {
       else if (data.user.role === 'teacher') navigate('/reporter');
       else navigate('/dashboard');
     } catch (err: unknown) {
-  if (isOfflineError(err)) {
-    setError(t('offline.actionUnavailable'));
-  } else if ((err as { response?: { status?: number } })?.response?.status === 429) {
-    setError(t('login.tooManyRequests'));
-  } else {
-    setError(t('login.error'));
-  }
-} finally {
+      if (isOfflineError(err)) {
+        setError(t('offline.actionUnavailable'));
+      } else if ((err as { response?: { status?: number } })?.response?.status === 429) {
+        setError(t('login.tooManyRequests'));
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        setCountdown(60);
+        intervalRef.current = setInterval(() => {
+          setCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(intervalRef.current!);
+              intervalRef.current = null;
+              setError('');
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        setError(t('login.error'));
+      }
+    } finally {
       setLoading(false);
     }
   };
@@ -116,10 +131,16 @@ export default function Login() {
           </div>
 
           <div className="min-h-10 w-full">
-            {error && <p className="text-red-300 text-l w-full text-center">{error}</p>}
+            {error && (
+              <p className="text-red-300 text-l w-full text-center">
+                {countdown > 0
+                  ? t('login.tooManyRequestsCountdown', { seconds: countdown })
+                  : error}
+              </p>
+            )}
           </div>
 
-          <Button type="submit" variant="login" disabled={loading || !isFormValid()}>
+          <Button type="submit" variant="login" disabled={loading || !isFormValid() || countdown > 0}>
             {loading ? t('login.loading') : t('login.submit')}
           </Button>
 

@@ -9,7 +9,8 @@
     "error": "Incorrect credentials.",
     "errorRequired": "Please fill in all fields.",
     "keepEmpty": "(leave empty to keep unchanged)",
-    "tooManyRequests": "Too many attempts. Please try again in 1 minute."
+    "tooManyRequests": "Too many attempts. Please try again in 1 minute.",
+    "tooManyRequestsCountdown": "Too many attempts. Try again in {{seconds}}s."
   },
   "nav": {
     "logout": "Log out"
