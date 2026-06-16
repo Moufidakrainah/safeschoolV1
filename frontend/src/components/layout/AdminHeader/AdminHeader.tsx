@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import Header from "@/components/layout/Header/Header";
 import type { AuthUser } from "@/types";
 import { Menu } from "lucide-react";
@@ -24,7 +25,7 @@ export default function AdminHeader({
   fetchUsers,
 }: AdminHeaderProps) {
   const { t } = useTranslation();
-
+  const [menuOpen, setMenuOpen] = useState(false);
   const navItems: {
     key: "reports" | "users" | "stats" | "classes";
     label: string;
@@ -75,7 +76,10 @@ export default function AdminHeader({
         {navItems.map((item) => (
           <button
             key={item.key}
-            onClick={() => item.onClick?.()}
+            onClick={() => {
+              item.onClick?.();
+              if (isMobile) setMenuOpen(false);
+            }}
             className={
               isMobile
                 ? "text-left text-lg font-semibold text-white"
@@ -105,8 +109,8 @@ export default function AdminHeader({
           className="h-10"
         />
 
-        <Sheet>
-          <SheetTrigger>
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetTrigger onClick={() => setMenuOpen(true)}>
             <Menu className="text-white h-6 w-6" />
           </SheetTrigger>
           <SheetContent side="left" className="p-4 bg-primary text-white">

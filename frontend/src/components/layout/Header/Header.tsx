@@ -78,17 +78,16 @@ export default function Header({
     : "";
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
-    };
+    }
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
 
   return (
     <div className="px-8 py-2 bg-surface flex items-center">
@@ -131,13 +130,16 @@ export default function Header({
               {open && (
                 <div
                   className="
-      fixed inset-0 z-50 flex items-start justify-center pt-24
-md:items-center md:pt-0
-
-    "
+                  fixed inset-0 z-50 flex items-start justify-center pt-24
+                  bg-black/30
+                  md:absolute md:inset-auto md:right-0
+                  md:flex md:items-start md:justify-end md:bg-transparent
+                  "
                 >
-                  {/* // <div className="absolute right-0 top-10 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50 overflow-hidden"> */}
-                  <div className="w-80 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden">
+                  <div
+                    ref={dropdownRef}
+                    className="w-80 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden"
+                  >  
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="text-sm font-semibold text-gray-800">
                         {t("notifications.notifs")}

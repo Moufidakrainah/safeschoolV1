@@ -41,6 +41,7 @@ export default function StudentHeader({
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const prevCountRef = useRef(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const reconnectKey = useReconnectKey();
 
@@ -112,7 +113,10 @@ export default function StudentHeader({
         {navItems.map((item) => (
           <button
             key={item.key}
-            onClick={() => setViewSection(item.key)}
+            onClick={() => {
+              setViewSection(item.key);
+              if (isMobile) setMenuOpen(false);
+            }}
             className={
               isMobile
                 ? "text-left text-lg font-semibold text-white"
@@ -148,8 +152,8 @@ export default function StudentHeader({
           className="h-10"
         />
 
-        <Sheet>
-          <SheetTrigger>
+        <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+          <SheetTrigger onClick={() => setMenuOpen(true)}>
             <Menu className="text-white h-6 w-6" />
           </SheetTrigger>
           <SheetContent side="left" className="p-4 bg-primary text-white">

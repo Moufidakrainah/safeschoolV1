@@ -79,11 +79,6 @@ const TYPE_MAP: Record<string, string> = {
   sexuel: "reporter.step2.sexual",
 };
 
-const ROLE_MAP: Record<string, string> = {
-  victim: "student.cases.iAmVictim",
-  witness: "student.cases.iAmTheWitness",
-};
-
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
@@ -1081,7 +1076,7 @@ export default function AdminDashboard() {
                       loadNotes(report.id))
                     }
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                       <div className="flex-1">
                         <span className="card-title">
                             {t(TYPE_MAP[report.type] ?? report.type)} - {" "}
@@ -1094,7 +1089,7 @@ export default function AdminDashboard() {
                             ? `${report.description.substring(0, 120)}...`
                             : report.description}
                         </p>
-                        <div className="flex gap-4 card-meta">
+                        <div className="flex flex-col md:flex-row text-xs justify-between items-start md:items-center gap-3">
                           <span>
                             {report.isAnonymous
                               ? t("admin.detail.anonymousLabel")
@@ -1121,7 +1116,7 @@ export default function AdminDashboard() {
                       </div>
                       <Badge
                         variant={report.status as BadgeVariant}
-                        className="ml-4"
+                        className="w-full md:w-auto md:ml-4 text-center"
                       />
                     </div>
                   </li>
