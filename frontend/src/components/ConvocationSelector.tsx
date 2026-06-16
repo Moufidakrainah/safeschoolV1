@@ -10,7 +10,6 @@ interface ConvocationSelectorProps {
 
 export default function ConvocationSelector({ selected, checkedIds, onToggle }: ConvocationSelectorProps) {
   const { t } = useTranslation();
-
   if (!selected) return null;
 
   const people: { id: string; role: string; fullName: string }[] = [];
@@ -39,11 +38,11 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
     });
   });
 
-  // Suspects liés uniquement
+  // Suspects liés uniquement — utilise s.id pour éviter les doublons
   const linkedSuspects = selected.suspects?.filter((s) => s.resolvedUser) ?? [];
   linkedSuspects.forEach((s, i: number) => {
     people.push({
-      id: `suspect_${s.resolvedUser?.id ?? ''}`,
+      id: `suspect_${s.id}`,
       role: linkedSuspects.length > 1
         ? `${t('admin.convocation.suspect')} ${i + 1}`
         : t('admin.convocation.suspect'),

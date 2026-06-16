@@ -151,16 +151,27 @@ export default function AdminDashboard() {
     catch { setSuspectResults([]); }
   };
 
-  const handleResolveSuspect = async (suspectId: string, userId: string | null) => {
-    setResolving(true);
-    try {
-      await resolveSuspect(suspectId, userId);
-      const updated = await getAllReports();
-      setReports(updated);
-      setSelected((updated as Report[]).find((r: Report) => r.id === selected?.id) ?? null);
+  // ✅ Après
+const handleResolveSuspect = async (suspectId: string, userId: string | null) => {
+  // Bloquer si cet utilisateur est déjà associé à un autre suspect
+  if (userId && selected) {
+    const alreadyLinked = selected.suspects?.some(
+      s => s.id !== suspectId && s.resolvedUser?.id === userId
+    );
+    if (alreadyLinked) {
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-    } finally { setResolving(false); }
-  };
+      return;
+    }
+  }
+  setResolving(true);
+  try {
+    await resolveSuspect(suspectId, userId);
+    const updated = await getAllReports();
+    setReports(updated);
+    setSelected((updated as Report[]).find((r: Report) => r.id === selected?.id) ?? null);
+    setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+  } finally { setResolving(false); }
+};
 
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
@@ -348,12 +359,21 @@ export default function AdminDashboard() {
           onAddNote={handleAddNote}
           onResolveSuspect={handleResolveSuspect}
           onResolveVictim={async (victimId, userId) => {
-            await resolveVictim(victimId, userId);
-            const updated = await getAllReports();
-            setReports(updated);
-            setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
-            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-          }}
+  if (userId && selected) {
+    const alreadyLinked = selected.victims?.some(
+      v => v.id !== victimId && v.resolvedUser?.id === userId
+    );
+    if (alreadyLinked) {
+      setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+      return;
+    }
+  }
+  await resolveVictim(victimId, userId);
+  const updated = await getAllReports();
+  setReports(updated);
+  setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
+  setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+}}
           onSetActiveSuspect={setActiveSuspect}
           onSuspectSearch={handleSuspectSearch}
           onSetNewNote={setNewNote}

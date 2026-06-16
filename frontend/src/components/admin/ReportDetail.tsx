@@ -362,7 +362,7 @@ export default function ReportDetail({
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
-            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} />)}
+            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} isAdmin={isAdmin} />)}
           </div>
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
@@ -396,8 +396,16 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
+                    ? (() => {
+                        const uid = personId.slice('victim_'.length);
+                        const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid);
+                        return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim');
+                      })()
+                    : (() => {
+                        const suspectId = personId.slice('suspect_'.length);
+                        const s = selected.suspects?.find((s: ReportSuspect) => s.id === suspectId);
+                        return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects');
+                      })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -432,8 +440,16 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim'); })()
-                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects'); })();
+                          ? (() => {
+                              const uid = personId.slice('victim_'.length);
+                              const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid);
+                              return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim');
+                            })()
+                          : (() => {
+                              const suspectId = personId.slice('suspect_'.length);
+                              const s = selected.suspects?.find((s: ReportSuspect) => s.id === suspectId);
+                              return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects');
+                            })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);
