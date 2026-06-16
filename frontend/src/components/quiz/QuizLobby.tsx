@@ -27,7 +27,7 @@ export default function QuizLobby({
     <div className="flex items-center justify-center flex-1 bg-surface py-8 px-4 overflow-y-auto">
       <div className="w-full max-w-sm rounded-[1.5rem] border border-gray-200 bg-white p-8 shadow-sm flex flex-col gap-5">
         <h1 className="text-center text-2xl font-black text-gray-900">{t('quiz.room', { code: joinedRoom })}</h1>
-        {socketError && <p className="text-sm text-red-500 text-center">{socketError}</p>}
+        {socketError && <p className="text-sm text-red-500 text-center">{t(socketError)}</p>}
         {players.length > 0 && (
           <ul className="space-y-1">
             {players.map((p) => {

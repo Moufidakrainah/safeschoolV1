@@ -4,8 +4,8 @@ import { io, Socket } from 'socket.io-client';
 // Chaque question arrive traduite dans toutes les langues supportées ; le client choisit
 // librement laquelle afficher selon la langue active (voir QuizPlaying)
 export type QuizLocale = 'fr' | 'en' | 'de';
-export type LocalizedText = Record<QuizLocale, string>;
-export type LocalizedOptions = Record<QuizLocale, string[]>;
+type LocalizedText = Record<QuizLocale, string>;
+type LocalizedOptions = Record<QuizLocale, string[]>;
 
 type QuestionPayload = {
   roomId: string;
@@ -75,7 +75,6 @@ export type QuestionState = {
   correctIndex: number | null;
   revealEndsAt: number | null;
   answerStatistics: RevealPayload['answerStatistics'];
-  answerResult: string;
   lastAnswerCorrect: boolean | null;
   pointsEarned: number | null;
   basePoints: number | null;
@@ -127,8 +126,6 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const [myStreak, setMyStreak] = useState(0);
   const nextStreakRef = useRef(0);
 
-  // "Moi" est désormais l'id utilisateur stable (correspond à l'identité du joueur côté backend), donc
-  // il survit aux reconnexions du socket où socket.id aurait changé
   const myClientId = selfId ?? null;
   const selfIdRef = useRef<string | undefined>(selfId);
   selfIdRef.current = selfId;
@@ -156,6 +153,17 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       }
     }
 
+    function startGiveUpTimer() {
+      if (giveUpTimer !== null) return;
+      giveUpTimer = window.setTimeout(() => {
+        giveUpTimer = null;
+        socketRef.current?.disconnect();
+        setReconnecting(false);
+        setSocketError('quiz.errors.reconnectFailed');
+        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
+      }, RECONNECT_WINDOW_MS);
+    }
+
     function connectSocket() {
       const socket = io(SOCKET_URL, {
         transports: ['polling', 'websocket'],
@@ -179,9 +187,6 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setConnected(true);
         setReconnecting(false);
         setSocketError('');
-        // Si on était dans une salle, on la rejoint de façon transparente. Le backend nous reconnaît
-        // via notre id stable et restaure la partie en cours (dans sa fenêtre de
-        // grâce) ; sinon c'est simplement un nouveau join sans conséquence
         if (joinedRoomRef.current) {
           socket.emit('quiz:join', {
             roomId: joinedRoomRef.current,
@@ -194,29 +199,20 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setConnected(false);
         // Déconnexion intentionnelle (on quitte / démontage) : pas de fenêtre de reconnexion
         if (reason === 'io client disconnect') return;
-        // Démarre la fenêtre de reconnexion d'1 minute. Si on n'est toujours pas connecté
-        // à son expiration, on arrête d'essayer et on retire le joueur de la partie
-        if (giveUpTimer === null) {
-          giveUpTimer = window.setTimeout(() => {
-            giveUpTimer = null;
-            socket.disconnect();
-            setReconnecting(false);
-            setSocketError('Reconnexion impossible. Veuillez recharger la page.');
-            resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
-          }, RECONNECT_WINDOW_MS);
-        }
+        startGiveUpTimer();
       });
 
       socket.on('connect_error', () => {
         setConnected(false);
         if (typeof navigator !== 'undefined' && !navigator.onLine) return;
-        setSocketError('Impossible de se connecter au serveur.');
+        setReconnecting(true);
+        startGiveUpTimer();
       });
 
       socket.on('quiz:unauthorized', () => {
         clearGiveUpTimer();
         setConnected(false);
-        setSocketError('Vous devez être connecté pour accéder au quiz.');
+        setSocketError('quiz.errors.unauthorized');
         socket.disconnect();
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
@@ -232,17 +228,15 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       });
 
       socket.on('quiz:joined', (data: { roomId: string; hostId: string; status?: string; selfId?: string }) => {
+        if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
+          resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
+          setSocketError('quiz.errors.gameInterrupted');
+          return;
+        }
+
         setJoinedRoom(data.roomId);
         setSocketError('');
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
-
-        if (data.status === 'waiting' && gamePhaseRef.current === 'playing') {
-          setGamePhase('lobby');
-          setQuestionState(null);
-          setTimeLeftMs(0);
-          setFinalLeaderboard(null);
-          setSocketError('La partie a été interrompue pendant la déconnexion.');
-        }
       });
 
       socket.on('quiz:game:started', () => {
@@ -276,7 +270,6 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
             correctIndex: null,
             revealEndsAt: null,
             answerStatistics: [],
-            answerResult: '',
             lastAnswerCorrect: null,
             pointsEarned: null,
             basePoints: null,
@@ -318,7 +311,6 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
           prev
             ? {
                 ...prev,
-                answerResult: data.isCorrect ? 'Bonne réponse !' : 'Mauvaise réponse.',
                 lastAnswerCorrect: data.isCorrect,
                 pointsEarned: data.pointsEarned,
                 basePoints: data.basePoints,
@@ -329,10 +321,10 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       });
 
       socket.on('quiz:join:ignored', (data: { reason: string }) => {
-        if (data.reason === 'quiz-already-started') setSocketError('Le quiz a déjà commencé.');
-        else if (data.reason === 'room-is-full') setSocketError('Cette salle est pleine.');
-        else if (data.reason === 'already-in-room') setSocketError('Vous êtes déjà connecté à une salle dans un autre onglet ou une autre fenêtre. Quittez-la avant d\'en rejoindre une autre.');
-        else setSocketError('Impossible de rejoindre la salle.');
+        if (data.reason === 'quiz-already-started') setSocketError('quiz.errors.alreadyStarted');
+        else if (data.reason === 'room-is-full') setSocketError('quiz.errors.roomFull');
+        else if (data.reason === 'already-in-room') setSocketError('quiz.errors.alreadyInRoom');
+        else setSocketError('quiz.errors.joinFailed');
       });
 
       socket.on('quiz:room:update', (data: RoomSnapshot) => {
@@ -341,7 +333,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       });
 
       socket.on('quiz:room:closed', () => {
-        setSocketError('La salle a été fermée.');
+        setSocketError('quiz.errors.roomClosed');
         resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
       });
     }
@@ -358,6 +350,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         socket.io.reconnection(false);
         socket.disconnect();
       }
+      if (joinedRoomRef.current) startGiveUpTimer();
     };
 
     const handleOnline = () => {
@@ -401,10 +394,10 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   }, [activeDeadline, gamePhase]);
 
   function joinRoom(roomCode: string) {
-    if (!connected) { setSocketError('Socket non connecté.'); return; }
+    if (!connected) { setSocketError('quiz.errors.notConnected'); return; }
     const trimmed = roomCode.trim();
     if (!trimmed || trimmed.length < 3 || trimmed.length > 10) {
-      setSocketError('Le code doit faire entre 3 et 10 caractères.');
+      setSocketError('quiz.errors.invalidCode');
       return;
     }
     socketRef.current?.emit('quiz:join', { roomId: trimmed, playerName: playerName || undefined });
@@ -418,7 +411,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
   function startGame() {
     if (!joinedRoom) return;
-    if (!connected) { setSocketError('Socket non connecté.'); return; }
+    if (!connected) { setSocketError('quiz.errors.notConnected'); return; }
     socketRef.current?.emit('quiz:start', { roomId: joinedRoom });
   }
 
