@@ -160,39 +160,45 @@ export function useUsers(): UseUsersReturn {
   }, [fetchUsers, t]);
 
   const handleSaveUser = useCallback(async () => {
-    try {
-      if (editingUser) {
-        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
-        if (userForm.role === 'teacher') {
-          try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
-          catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
-        }
-      } else {
-        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
-        if (userForm.role === 'teacher') {
-          await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
-        }
-        if (userForm.role === 'student' && userForm.parents.length > 0) {
-          for (const parent of userForm.parents) {
-            if (parent.firstName && parent.lastName && parent.email) {
-              await createParent({ ...parent, studentIds: [created.studentProfile?.id ?? created.id] });
-            }
+  try {
+    if (editingUser) {
+      await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
+      if (userForm.role === 'teacher') {
+        try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
+        catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
+      }
+    } else {
+      //  Vérifier l'email avant d'appeler l'API pour éviter le 409
+      const existing = allUsers.find(u => u.email.toLowerCase() === userForm.email.toLowerCase());
+      if (existing) {
+        setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
+        return;
+      }
+      const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
+      if (userForm.role === 'teacher') {
+        await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
+      }
+      if (userForm.role === 'student' && userForm.parents.length > 0) {
+        for (const parent of userForm.parents) {
+          if (parent.firstName && parent.lastName && parent.email) {
+            await createParent({ ...parent, studentIds: [created.studentProfile?.id ?? created.id] });
           }
         }
       }
-      await fetchUsers();
-      setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
-      toast.success(editingUser ? t('toast.userUpdated') : t('toast.userCreated'));
-    } catch (err: unknown) {
-      const msg = (err as any)?.response?.data?.message ?? '';
-      if (msg === 'Cet email est déjà utilisé') {
-        setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
-      } else {
-        toast.error(t('common.error'));
-      }
     }
-  }, [editingUser, userForm, fetchUsers, t]);
+    await fetchUsers();
+    setShowUserForm(false); setEditingUser(null);
+    setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
+    toast.success(editingUser ? t('toast.userUpdated') : t('toast.userCreated'));
+  } catch (err: unknown) {
+    const msg = (err as any)?.response?.data?.message ?? '';
+    if (msg === 'Cet email est déjà utilisé') {
+      setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
+    } else {
+      toast.error(t('common.error'));
+    }
+  }
+}, [editingUser, userForm, allUsers, fetchUsers, t]);
 
   const handleDeleteUser = useCallback(async (id: string) => {
     const { deletable } = await checkCanDeleteUser(id);
