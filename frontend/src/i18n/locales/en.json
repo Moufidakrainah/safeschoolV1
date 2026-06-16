@@ -686,8 +686,8 @@
     "classUpdated": "Class updated successfully",
     "classDeleted": "Class deleted successfully",
     "userCreated": "User created successfully",
-"userUpdated": "User updated successfully",
-"userDeleted": "User deleted successfully"
+    "userUpdated": "User updated successfully",
+    "userDeleted": "User deleted successfully"
   },
   "severity": {
     "critical": "Critical",

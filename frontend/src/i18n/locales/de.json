@@ -666,8 +666,8 @@
     "classUpdated": "Klasse erfolgreich geändert",
     "classDeleted": "Klasse erfolgreich gelöscht",
     "userCreated": "Benutzer erfolgreich erstellt",
-"userUpdated": "Benutzer erfolgreich aktualisiert",
-"userDeleted": "Benutzer erfolgreich gelöscht"
+    "userUpdated": "Benutzer erfolgreich aktualisiert",
+    "userDeleted": "Benutzer erfolgreich gelöscht"
   },
   "severity": {
     "critical": "Kritisch",

@@ -73,12 +73,12 @@ For the full component inventory, see [`design/components.md`](./components.md).
 
 ## Which layer to use
 
-| Situation | Decision |
-|---|---|
-| **New UI element** | Start with a shadcn primitive from `components/ui/` |
-| **SafeSchool-specific behavior or state** | Build an application component on top |
-| **Feature logic confined to one area** | Place it under the relevant subdirectory (`admin/`, `reporter/`, etc.) |
-| **Reusable across several pages or roles** | Keep it at the top level of `components/` |
+| Situation                                  | Decision                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------- |
+| **New UI element**                         | Start with a shadcn primitive from `components/ui/`                    |
+| **SafeSchool-specific behavior or state**  | Build an application component on top                                  |
+| **Feature logic confined to one area**     | Place it under the relevant subdirectory (`admin/`, `reporter/`, etc.) |
+| **Reusable across several pages or roles** | Keep it at the top level of `components/`                              |
 
 ---
 
@@ -97,5 +97,3 @@ Full component list: https://ui.shadcn.com/docs/components
 - **Name overlap**: `Badge`, `Card`, `Input`, `Select`, `Pagination` exist in both layers. Imports from `@/components/ui/` target the shadcn version; relative imports target the application version.
 - **Brand color**: `bg-primary` uses `var(--primary)` via `@theme inline`. To change the brand color, update `--primary` in `:root` inside `index.css`.
 - **Dark mode**: shadcn variables under `.dark {}` in `index.css`. Not currently activated — the `dark:` suffix is available if needed.
-
-

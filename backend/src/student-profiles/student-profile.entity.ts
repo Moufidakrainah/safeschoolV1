@@ -15,10 +15,14 @@ import { SchoolClass } from "../classes/school-class.entity";
 export class StudentProfile {
   @PrimaryGeneratedColumn("uuid") id: string;
 
-  @Column({ nullable: true, type: 'date' }) dateOfBirth: Date | null;
+  @Column({ nullable: true, type: "date" }) dateOfBirth: Date | null;
 
-  @ManyToOne(() => SchoolClass, { nullable: true, eager: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'classId' })
+  @ManyToOne(() => SchoolClass, {
+    nullable: true,
+    eager: true,
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "classId" })
   schoolClass: SchoolClass | null;
 
   @OneToOne(() => User, (user) => user.studentProfile)

@@ -11,69 +11,80 @@
 
 ## Route Summary
 
-| Method | Route | Access |
-|---|---|---|
-| POST | /auth/login | public |
-| POST | /auth/register | public |
-| GET | /users/search | all roles |
-| GET | /users | admin, director |
-| GET | /users/:id | admin, director, self |
-| POST | /users | admin |
-| PATCH | /users/:id | admin |
-| PATCH | /users/:id/password | admin, self |
-| DELETE | /users/:id | admin |
-| POST | /reports | student, teacher, staff |
-| GET | /reports | student (own) · others (all) |
-| GET | /reports/:id | student (own) · others (all) |
-| PATCH | /reports/:id | teacher, staff, director, admin |
-| PATCH | /reports/:id/escalate | admin |
-| GET | /reports/:id/notes | student (convocations only) · others (all) |
-| POST | /reports/:id/notes | teacher, staff, director, admin |
-| GET | /notifications | self |
-| GET | /notifications/unread-count | self |
-| PATCH | /notifications/:id/read | self |
-| POST | /classes | admin |
-| GET | /classes | all roles |
-| GET | /classes/:id | all roles |
-| PATCH | /classes/:id | admin |
-| DELETE | /classes/:id | admin |
-| POST | /student-profiles | admin, director |
-| GET | /student-profiles | admin, director |
-| GET | /student-profiles/:userId | student (own) · admin, director |
-| PATCH | /student-profiles/:userId | student (own) · admin |
-| POST | /staff-profiles | admin |
-| GET | /staff-profiles | admin, director |
-| GET | /staff-profiles/:id | all roles |
-| PATCH | /staff-profiles/:id | admin |
-| DELETE | /staff-profiles/:id | admin |
-| POST | /parents | admin |
-| GET | /parents | admin, director |
-| GET | /parents/:id | admin, director |
-| PATCH | /parents/:id | admin |
-| DELETE | /parents/:id | admin |
+| Method | Route                       | Access                                     |
+| ------ | --------------------------- | ------------------------------------------ |
+| POST   | /auth/login                 | public                                     |
+| POST   | /auth/register              | public                                     |
+| GET    | /users/search               | all roles                                  |
+| GET    | /users                      | admin, director                            |
+| GET    | /users/:id                  | admin, director, self                      |
+| POST   | /users                      | admin                                      |
+| PATCH  | /users/:id                  | admin                                      |
+| PATCH  | /users/:id/password         | admin, self                                |
+| DELETE | /users/:id                  | admin                                      |
+| POST   | /reports                    | student, teacher, staff                    |
+| GET    | /reports                    | student (own) · others (all)               |
+| GET    | /reports/:id                | student (own) · others (all)               |
+| PATCH  | /reports/:id                | teacher, staff, director, admin            |
+| PATCH  | /reports/:id/escalate       | admin                                      |
+| GET    | /reports/:id/notes          | student (convocations only) · others (all) |
+| POST   | /reports/:id/notes          | teacher, staff, director, admin            |
+| GET    | /notifications              | self                                       |
+| GET    | /notifications/unread-count | self                                       |
+| PATCH  | /notifications/:id/read     | self                                       |
+| POST   | /classes                    | admin                                      |
+| GET    | /classes                    | all roles                                  |
+| GET    | /classes/:id                | all roles                                  |
+| PATCH  | /classes/:id                | admin                                      |
+| DELETE | /classes/:id                | admin                                      |
+| POST   | /student-profiles           | admin, director                            |
+| GET    | /student-profiles           | admin, director                            |
+| GET    | /student-profiles/:userId   | student (own) · admin, director            |
+| PATCH  | /student-profiles/:userId   | student (own) · admin                      |
+| POST   | /staff-profiles             | admin                                      |
+| GET    | /staff-profiles             | admin, director                            |
+| GET    | /staff-profiles/:id         | all roles                                  |
+| PATCH  | /staff-profiles/:id         | admin                                      |
+| DELETE | /staff-profiles/:id         | admin                                      |
+| POST   | /parents                    | admin                                      |
+| GET    | /parents                    | admin, director                            |
+| GET    | /parents/:id                | admin, director                            |
+| PATCH  | /parents/:id                | admin                                      |
+| DELETE | /parents/:id                | admin                                      |
 
 ---
 
 ## Auth
 
 ### `POST /auth/register`
+
 Creates a user account (self-registration).
 
 **Body**
+
 ```json
-{ "email": "string", "password": "string", "firstName": "string", "lastName": "string" }
+{
+  "email": "string",
+  "password": "string",
+  "firstName": "string",
+  "lastName": "string"
+}
 ```
+
 **Response** `201` — `{ access_token, user: { id, email, role, firstName, lastName } }`
 
 ---
 
 ### `POST /auth/login`
+
 Authenticates a user and returns a JWT.
 
 **Body**
+
 ```json
 { "email": "string", "password": "string" }
 ```
+
 **Response** `200` — `{ access_token, user: { id, email, role, firstName, lastName } }`
 **Errors** `401` invalid credentials
 
@@ -82,6 +93,7 @@ Authenticates a user and returns a JWT.
 ## Users
 
 ### `GET /users`
+
 Lists all users. Filterable by role, paginated.
 
 **Auth** admin, director
@@ -91,6 +103,7 @@ Lists all users. Filterable by role, paginated.
 ---
 
 ### `GET /users/search?q=`
+
 Searches a user by first or last name (min. 2 characters).
 
 **Auth** all roles
@@ -99,6 +112,7 @@ Searches a user by first or last name (min. 2 characters).
 ---
 
 ### `GET /users/:id`
+
 Returns a user by UUID.
 
 **Auth** admin, director, or the user themselves
@@ -108,19 +122,30 @@ Returns a user by UUID.
 ---
 
 ### `POST /users`
+
 Creates a user (admin-initiated creation).
 
 **Auth** admin only
 **Body**
+
 ```json
-{ "email": "string", "password": "string", "firstName": "string", "lastName": "string", "role": "string", "schoolClass?": "string" }
+{
+  "email": "string",
+  "password": "string",
+  "firstName": "string",
+  "lastName": "string",
+  "role": "string",
+  "schoolClass?": "string"
+}
 ```
+
 **Response** `201` `User`
 **Errors** `409` email already in use
 
 ---
 
 ### `PATCH /users/:id`
+
 Updates an existing user (all fields optional).
 
 **Auth** admin only
@@ -131,6 +156,7 @@ Updates an existing user (all fields optional).
 ---
 
 ### `PATCH /users/:id/password`
+
 Changes a user's password.
 
 **Auth** admin (any user) or the user themselves
@@ -140,6 +166,7 @@ Changes a user's password.
 ---
 
 ### `DELETE /users/:id`
+
 Deletes a user.
 
 **Auth** admin only
@@ -150,10 +177,12 @@ Deletes a user.
 ## Reports
 
 ### `POST /reports`
+
 Creates a report.
 
 **Auth** student, teacher, staff
 **Body**
+
 ```json
 {
   "title": "string",
@@ -164,11 +193,13 @@ Creates a report.
   "schoolClass?": "string"
 }
 ```
+
 **Response** `201` `Report`
 
 ---
 
 ### `GET /reports`
+
 Lists reports.
 
 **Auth** all
@@ -178,6 +209,7 @@ Lists reports.
 ---
 
 ### `GET /reports/:id`
+
 Returns a report by UUID.
 
 **Auth** all · student limited to their own reports
@@ -186,6 +218,7 @@ Returns a report by UUID.
 ---
 
 ### `PATCH /reports/:id`
+
 Updates a report's status, grade, or admin note.
 
 **Auth** teacher, staff, director, admin
@@ -197,6 +230,7 @@ Updates a report's status, grade, or admin note.
 ---
 
 ### `PATCH /reports/:id/escalate`
+
 Escalates a report.
 
 **Auth** admin only
@@ -205,6 +239,7 @@ Escalates a report.
 ---
 
 ### `GET /reports/:id/notes`
+
 Lists the notes on a report.
 
 **Auth** all · student: only convocations that concern them
@@ -213,6 +248,7 @@ Lists the notes on a report.
 ---
 
 ### `POST /reports/:id/notes`
+
 Adds a note to a report.
 
 **Auth** teacher, staff, director, admin
@@ -224,6 +260,7 @@ Adds a note to a report.
 ## Notifications
 
 ### `GET /notifications`
+
 Lists the notifications of the authenticated user.
 
 **Auth** all
@@ -232,6 +269,7 @@ Lists the notifications of the authenticated user.
 ---
 
 ### `GET /notifications/unread-count`
+
 Number of unread notifications.
 
 **Auth** all
@@ -240,6 +278,7 @@ Number of unread notifications.
 ---
 
 ### `PATCH /notifications/:id/read`
+
 Marks a notification as read.
 
 **Auth** all
@@ -250,6 +289,7 @@ Marks a notification as read.
 ## Classes
 
 ### `GET /classes`
+
 Lists all classes.
 
 **Auth** all
@@ -258,6 +298,7 @@ Lists all classes.
 ---
 
 ### `GET /classes/:id`
+
 Returns a class by UUID.
 
 **Auth** all
@@ -266,6 +307,7 @@ Returns a class by UUID.
 ---
 
 ### `POST /classes`
+
 Creates a class.
 
 **Auth** admin
@@ -275,6 +317,7 @@ Creates a class.
 ---
 
 ### `PATCH /classes/:id`
+
 Updates a class.
 
 **Auth** admin
@@ -284,6 +327,7 @@ Updates a class.
 ---
 
 ### `DELETE /classes/:id`
+
 Deletes a class.
 
 **Auth** admin
@@ -294,6 +338,7 @@ Deletes a class.
 ## Student Profiles
 
 ### `GET /student-profiles`
+
 Lists all student profiles.
 
 **Auth** admin, director
@@ -301,6 +346,7 @@ Lists all student profiles.
 ---
 
 ### `GET /student-profiles/:userId`
+
 Returns the profile of a student (including their parents).
 
 **Auth** admin, director, or the student themselves
@@ -308,6 +354,7 @@ Returns the profile of a student (including their parents).
 ---
 
 ### `GET /student-profiles/parents/:userId`
+
 Returns only the parents of a student.
 
 **Auth** admin, director, or the student themselves
@@ -315,6 +362,7 @@ Returns only the parents of a student.
 ---
 
 ### `POST /student-profiles`
+
 Creates a student profile.
 
 **Auth** admin
@@ -323,6 +371,7 @@ Creates a student profile.
 ---
 
 ### `PATCH /student-profiles/:userId`
+
 Updates a student profile.
 
 **Auth** admin, or the student themselves
@@ -333,6 +382,7 @@ Updates a student profile.
 ## Staff Profiles
 
 ### `GET /staff-profiles`
+
 Lists all staff profiles.
 
 **Auth** admin, director
@@ -340,6 +390,7 @@ Lists all staff profiles.
 ---
 
 ### `GET /staff-profiles/:id`
+
 Returns a staff profile by profile ID.
 
 **Auth** all
@@ -347,6 +398,7 @@ Returns a staff profile by profile ID.
 ---
 
 ### `GET /staff-profiles/by-user/:userId`
+
 Returns the staff profile of a user by userId.
 
 **Auth** admin, director, or the user themselves
@@ -354,6 +406,7 @@ Returns the staff profile of a user by userId.
 ---
 
 ### `POST /staff-profiles`
+
 Creates a staff profile.
 
 **Auth** admin
@@ -362,6 +415,7 @@ Creates a staff profile.
 ---
 
 ### `PATCH /staff-profiles/:id`
+
 Updates a staff profile.
 
 **Auth** admin
@@ -370,6 +424,7 @@ Updates a staff profile.
 ---
 
 ### `DELETE /staff-profiles/:id`
+
 Deletes a staff profile.
 
 **Auth** admin
@@ -379,6 +434,7 @@ Deletes a staff profile.
 ## Parents
 
 ### `GET /parents`
+
 Lists all parents.
 
 **Auth** admin, director
@@ -386,6 +442,7 @@ Lists all parents.
 ---
 
 ### `GET /parents/:id`
+
 Returns a parent by UUID.
 
 **Auth** admin, director
@@ -393,6 +450,7 @@ Returns a parent by UUID.
 ---
 
 ### `POST /parents`
+
 Creates a parent record.
 
 **Auth** admin
@@ -401,6 +459,7 @@ Creates a parent record.
 ---
 
 ### `PATCH /parents/:id`
+
 Updates a parent record.
 
 **Auth** admin
@@ -409,6 +468,7 @@ Updates a parent record.
 ---
 
 ### `DELETE /parents/:id`
+
 Deletes a parent record.
 
 **Auth** admin
@@ -419,72 +479,77 @@ Deletes a parent record.
 
 **Connection URL**: `ws://localhost:5000` (Socket.io)
 
-| Event emitted (client → server) | Payload | Description |
-|---|---|---|
-| `quiz:room:join` | `{ roomId, playerName? }` | Join a room |
-| `quiz:room:leave` | `{ roomId }` | Leave a room |
-| `quiz:game:start` | `{ roomId }` | Start the game (host only) |
-| `quiz:answer:submit` | `{ roomId, questionId, selectedIndex }` | Submit an answer |
+| Event emitted (client → server) | Payload                                 | Description                |
+| ------------------------------- | --------------------------------------- | -------------------------- |
+| `quiz:room:join`                | `{ roomId, playerName? }`               | Join a room                |
+| `quiz:room:leave`               | `{ roomId }`                            | Leave a room               |
+| `quiz:game:start`               | `{ roomId }`                            | Start the game (host only) |
+| `quiz:answer:submit`            | `{ roomId, questionId, selectedIndex }` | Submit an answer           |
 
-| Event received (server → client) | Payload | Description |
-|---|---|---|
-| `quiz:room:update` | `RoomSnapshot` | Room update (players, status) |
-| `quiz:room:closed` | `{ roomId }` | Room closed (host disconnected) |
-| `quiz:question` | `QuestionSnapshot` | New question |
-| `quiz:question:reveal` | `{ correctIndex, roomSnapshot, revealEndsAt }` | Answer reveal |
-| `quiz:score:update` | `RoomSnapshot` | Score update |
-| `quiz:game:over` | `RoomSnapshot` | Game over with final leaderboard |
+| Event received (server → client) | Payload                                        | Description                      |
+| -------------------------------- | ---------------------------------------------- | -------------------------------- |
+| `quiz:room:update`               | `RoomSnapshot`                                 | Room update (players, status)    |
+| `quiz:room:closed`               | `{ roomId }`                                   | Room closed (host disconnected)  |
+| `quiz:question`                  | `QuestionSnapshot`                             | New question                     |
+| `quiz:question:reveal`           | `{ correctIndex, roomSnapshot, revealEndsAt }` | Answer reveal                    |
+| `quiz:score:update`              | `RoomSnapshot`                                 | Score update                     |
+| `quiz:game:over`                 | `RoomSnapshot`                                 | Game over with final leaderboard |
 
 ---
 
 ## Types
 
 ```ts
-type Role = 'student' | 'teacher' | 'staff' | 'director' | 'admin'
-type ReportStatus = 'pending' | 'in_progress' | 'escalated' | 'closed' | 'rejected'
-type ReportGrade = 'critical' | 'high' | 'medium' | 'low'
+type Role = "student" | "teacher" | "staff" | "director" | "admin";
+type ReportStatus =
+  | "pending"
+  | "in_progress"
+  | "escalated"
+  | "closed"
+  | "rejected";
+type ReportGrade = "critical" | "high" | "medium" | "low";
 
 interface User {
-  id: string        // UUID
-  email: string
-  firstName: string
-  lastName: string
-  role: Role
-  createdAt: string // ISO 8601
+  id: string; // UUID
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: Role;
+  createdAt: string; // ISO 8601
 }
 
 interface Report {
-  id: string
-  title: string
-  description: string
-  isAnonymous: boolean
-  status: ReportStatus
-  grade: ReportGrade | null
-  adminNote: string | null
-  createdAt: string
-  student: User
-  suspects: ReportSuspect[]
-  notes: Note[]
+  id: string;
+  title: string;
+  description: string;
+  isAnonymous: boolean;
+  status: ReportStatus;
+  grade: ReportGrade | null;
+  adminNote: string | null;
+  createdAt: string;
+  student: User;
+  suspects: ReportSuspect[];
+  notes: Note[];
 }
 
 interface Note {
-  id: string
-  content: string
-  type: 'note' | 'convocation'
-  createdAt: string
-  author: { firstName: string; lastName: string }
+  id: string;
+  content: string;
+  type: "note" | "convocation";
+  createdAt: string;
+  author: { firstName: string; lastName: string };
 }
 
 interface Notification {
-  id: string
-  message: string
-  isRead: boolean
-  createdAt: string
+  id: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
 }
 
 interface SchoolClass {
-  id: string
-  level: string
-  section: string
+  id: string;
+  level: string;
+  section: string;
 }
 ```

@@ -1,23 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import RoleHeader from '@/components/layout/Header/RoleHeader';
-import { useQuizSocket } from '@/hooks/useQuizSocket';
-import QuizJoinScreen from '@/components/quiz/QuizJoinScreen';
-import QuizLobby from '@/components/quiz/QuizLobby';
-import QuizLeaderboard from '@/components/quiz/QuizLeaderboard';
-import QuizPlaying from '@/components/quiz/QuizPlaying';
-
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import RoleHeader from "@/components/layout/Header/RoleHeader";
+import { useQuizSocket } from "@/hooks/useQuizSocket";
+import QuizJoinScreen from "@/components/quiz/QuizJoinScreen";
+import QuizLobby from "@/components/quiz/QuizLobby";
+import QuizLeaderboard from "@/components/quiz/QuizLeaderboard";
+import QuizPlaying from "@/components/quiz/QuizPlaying";
 
 export default function Quiz() {
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz' | 'cases'>('quiz');
-  const [roomCode, setRoomCode] = useState('');
+  const [viewSection, setViewSection] = useState<
+    "profile" | "report" | "quiz" | "cases"
+  >("quiz");
+  const [roomCode, setRoomCode] = useState("");
 
   useEffect(() => {
-    if (viewSection === 'quiz') return;
-    const base = user?.role === 'student' ? '/student' : '/reporter';
+    if (viewSection === "quiz") return;
+    const base = user?.role === "student" ? "/student" : "/reporter";
     navigate(`${base}?section=${viewSection}`);
   }, [viewSection, navigate, user?.role]);
 
@@ -41,14 +42,18 @@ export default function Quiz() {
     submitAnswer,
   } = useQuizSocket(user?.firstName, user?.id);
 
-  const headerProps = useMemo(() => ({
-    user,
-    logoutUser,
-    reporterViewSection: viewSection === 'cases' ? ('quiz' as const) : viewSection,
-    reporterSetViewSection: setViewSection,
-    studentViewSection: viewSection,
-    studentSetViewSection: setViewSection,
-  }), [user, logoutUser, viewSection]);
+  const headerProps = useMemo(
+    () => ({
+      user,
+      logoutUser,
+      reporterViewSection:
+        viewSection === "cases" ? ("quiz" as const) : viewSection,
+      reporterSetViewSection: setViewSection,
+      studentViewSection: viewSection,
+      studentSetViewSection: setViewSection,
+    }),
+    [user, logoutUser, viewSection],
+  );
 
   // Sélectionne l'écran selon l'état de la salle / la phase de jeu
   function renderScreen() {
@@ -66,7 +71,7 @@ export default function Quiz() {
       );
     }
 
-    if (gamePhase === 'lobby') {
+    if (gamePhase === "lobby") {
       return (
         <QuizLobby
           joinedRoom={joinedRoom}
@@ -80,7 +85,7 @@ export default function Quiz() {
       );
     }
 
-    if (gamePhase === 'over') {
+    if (gamePhase === "over") {
       return (
         <QuizLeaderboard
           joinedRoom={joinedRoom}

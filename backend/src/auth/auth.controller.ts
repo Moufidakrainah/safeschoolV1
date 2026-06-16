@@ -1,8 +1,8 @@
 import { Controller, Post, Body } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
-import { ThrottlerGuard } from '@nestjs/throttler';
-import { UseGuards } from '@nestjs/common';
+import { ThrottlerGuard } from "@nestjs/throttler";
+import { UseGuards } from "@nestjs/common";
 
 @Controller("auth")
 export class AuthController {
