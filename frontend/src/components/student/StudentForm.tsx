@@ -211,7 +211,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 
 								{/* ── Victimes ── */}
 								<div className="mb-3 mt-6 text-m font-semibold">{t("reporter.step4.victimLabel")}</div>
-								<div className="flex gap-2 items-center">
+								<div className="flex flex-col md:flex-row md:items-center gap-2">
 									<input type="text" value={victimInput} maxLength={50}
 										onChange={e => setVictimInput(e.target.value)}
 										onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddVictim(); } }}
@@ -250,7 +250,7 @@ export default function StudentForm({ user }: StudentFormProps) {
 								{/* ── Suspects ── */}
 								<div className="mt-5" />
 								<label className="block mb-3 mt-6 text-m font-semibold">{t("reporter.step4.suspectsLabel")}</label>
-								<div className="flex gap-2 items-center">
+								<div className="flex flex-col md:flex-row gap-2 md:items-center">
 									<input type="text" value={suspectInput} maxLength={50}
 										onChange={e => setSuspectInput(e.target.value)}
 										onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddSuspect(); } }}

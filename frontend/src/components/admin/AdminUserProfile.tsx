@@ -164,7 +164,7 @@ export default function AdminUserProfile({
           <p className="text-sm text-gray-700 mt-1">{selectedUser.email}</p>
         </div>
         {!editMode && (
-          <div className="flex justify-center gap-3 mt-2">
+          <div className="flex flex-col md:flex-row justify-center gap-3 mt-2 w-full">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
             <label className="cursor-pointer">
                 {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
@@ -244,15 +244,15 @@ export default function AdminUserProfile({
               const { first, last } = formatName(p.firstName, p.lastName);
               return (
                 <div key={p.id} className="bg-surface rounded-lg py-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-semibold text-gray-800">{first} {last}</p>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="default" onClick={() => {
+                <div className="flex flex-col md:flex-row justify-between md:items-center mb-2 gap-2">
+                   <p className="font-semibold text-gray-800">{first} {last}</p>
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                      <Button size="sm" variant="default" className="w-full md:w-auto" onClick={() => {
                         setEditingParent(p);
                         setParentForm({ firstName: p.firstName, lastName: p.lastName, email: p.email, phone: p.phone ?? '', address: p.address ?? '' });
                         setShowParentForm(true);
                       }}>{t('userProfile.editGuardian')}</Button>
-                      <Button size="sm" variant="default" onClick={() => handleDeleteParent(p.id)}>{t('userProfile.deleteGuardian')}</Button>
+                      <Button size="sm" variant="default" className="w-full md:w-auto" onClick={() => handleDeleteParent(p.id)}>{t('userProfile.deleteGuardian')}</Button>
                     </div>
                   </div>
                   <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>

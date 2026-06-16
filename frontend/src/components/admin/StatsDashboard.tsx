@@ -123,10 +123,10 @@ export default function StatsDashboard({ reports }: Props) {
     <section className="page-section">
 
       {/* ── Filtres ── */}
-      <div className="flex flex-wrap gap-3 items-end mb-6">
+     <div className="flex flex-col md:flex-row flex-wrap gap-3 items-start md:items-end mb-6">
 
         <Select value={period} onValueChange={v => { if (v !== null) setPeriod(v); }}>
-          <SelectTrigger className="w-48 bg-white">
+          <SelectTrigger className="w-full md:w-48 bg-white">
             <SelectValue>{periodLabel[period]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -139,7 +139,7 @@ export default function StatsDashboard({ reports }: Props) {
         </Select>
 
         <Select value={filterClass} onValueChange={v => { if (v !== null) setFilterClass(v); }}>
-          <SelectTrigger className="w-48 bg-white">
+          <SelectTrigger className="w-full md:w-48 bg-white">
             <SelectValue>{filterClass === 'all' ? t('stats.allClasses') : filterClass}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -149,7 +149,7 @@ export default function StatsDashboard({ reports }: Props) {
         </Select>
 
         <Select value={filterGrade} onValueChange={v => { if (v !== null) setFilterGrade(v); }}>
-          <SelectTrigger className="w-48 bg-white">
+          <SelectTrigger className="w-full md:w-48 bg-white">
             <SelectValue>
               {filterGrade === 'all' ? t('stats.allGrades') : severityLabel(severityFromApiGrade(filterGrade))}
             </SelectValue>
@@ -162,19 +162,19 @@ export default function StatsDashboard({ reports }: Props) {
           </SelectContent>
         </Select>
 
-        <div className="text-sm px-3 py-2 ml-auto">
+        <div className="text-sm px-3 py-2 md:ml-auto">
           {t('stats.reportsFound', { count: filtered.length })}
         </div>
       </div>
 
       {/* ── Ligne 1 : Grade + Statut ── */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byGrade')}</h3>
           {gradeData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">{t('stats.noData')}</p>
             : (
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie data={gradeData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {gradeData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -190,7 +190,7 @@ export default function StatsDashboard({ reports }: Props) {
           {statusData.length === 0
             ? <p className="text-sm text-gray-400 text-center py-8">{t('stats.noData')}</p>
             : (
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie data={statusData} cx="50%" cy="50%" outerRadius={70} dataKey="value">
                     {statusData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -224,7 +224,7 @@ export default function StatsDashboard({ reports }: Props) {
       </div>
 
       {/* ── Ligne 3 : Type + Évolution ── */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-4">{t('stats.byType')}</h3>
           {typeData.length === 0

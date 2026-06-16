@@ -48,7 +48,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
 	return (
 		<tr
 			data-slot="table-row"
-			className={cn("transition-colors ", className)}
+			className={cn("transition-colors flex flex-col md:table-row border-b md:border-0 py-2", className)}
 			{...props}
 		/>
 	);
@@ -71,7 +71,7 @@ function TableCellLeft({ className, ...props }: React.ComponentProps<"td">) {
 	return (
 		<td
 			data-slot="table-cell"
-			className={cn("p-2 font-semibold text-muted-foreground w-1/2 align-top", className)}
+			className={cn("font-semibold text-muted-foreground w-1/2 align-top", className)}
 			{...props}
 		/>
 	);

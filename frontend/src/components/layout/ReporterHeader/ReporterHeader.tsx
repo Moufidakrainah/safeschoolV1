@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import Header from '@/components/layout/Header/Header';
 import type { AuthUser } from '@/types';
+import { Menu } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type ReporterSection = 'profile' | 'report' | 'quiz';
 
@@ -25,30 +27,64 @@ export default function ReporterHeader({
     { key: 'quiz',     label: t('reporter.nav.quiz') },
   ];
 
+function NavButtons({ isMobile }: { isMobile?: boolean }) {
   return (
-    <header>
-      <Header user={user} logoutUser={logoutUser} />
+    <>
+      {navItems.map(item => (
+        <button
+          key={item.key}
+          onClick={() => setViewSection(item.key)}
+          className={
+            isMobile
+              ? "text-left text-lg font-semibold text-white"
+              : `font-bold text-sm transition-opacity ${
+                  viewSection === item.key
+                    ? "text-white underline underline-offset-4"
+                    : "text-white/80 hover:text-white"
+                }`
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </>
+  );
+}
 
-      <nav
-        className="bg-primary px-8 py-0 flex items-center gap-8"
-        aria-label={t('reporter.nav.ariaLabel')}
-      >
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-16" />
-        {navItems.map(item => (
-          <button
-            key={item.key}
-            onClick={() => setViewSection(item.key)}
-            aria-current={viewSection === item.key ? 'page' : undefined}
-            className={`font-bold text-sm transition-opacity ${
-              viewSection === item.key
-                ? 'text-white underline underline-offset-4'
-                : 'text-white/80 hover:text-white'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
+  return (
+<header className="w-full flex flex-col">
+  <Header  
+  user={user}
+  logoutUser={logoutUser}
+  />
+
+  {/* Mobile menu */}
+  <div className="md:hidden bg-primary px-4 py-2 flex items-center justify-between">
+    <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-10" />
+
+    <Sheet>
+      <SheetTrigger>
+        <Menu className="text-white h-6 w-6" />
+      </SheetTrigger>
+      <SheetContent side="left" className="p-4 bg-primary text-white">
+  
+
+      <nav className="flex flex-col gap-4">
+          <NavButtons isMobile />
+        </nav>
+    </SheetContent>
+  </Sheet>
+</div>
+
+
+  {/* Desktop */}
+  <nav className="bg-primary px-8 py-0 hidden md:flex items-center gap-8">
+    <img src="/logos/safeschool-logo.png" alt="SafeSchool" className="h-10 md:h-14" />
+    <NavButtons />
+  </nav>
+
+
     </header>
   );
 }
+
