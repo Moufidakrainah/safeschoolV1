@@ -79,6 +79,11 @@ const TYPE_MAP: Record<string, string> = {
   sexuel: "reporter.step2.sexual",
 };
 
+const ROLE_MAP: Record<string, string> = {
+  victim: "student.cases.iAmVictim",
+  witness: "student.cases.iAmTheWitness",
+};
+
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
@@ -1079,8 +1084,10 @@ export default function AdminDashboard() {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <span className="card-title">
-                            {t(TYPE_MAP[report.type] ?? report.type)} -{" "}
-                            {t("student.cases.iAmVictim")}
+                            {t(TYPE_MAP[report.type] ?? report.type)} - {" "}
+                            {report.reporter === "victime"
+                            ? t("report.reporter.victime")
+                            : t("report.reporter.temoin")}
                         </span>
                         <p className="card-subtitle mt-1 mb-2">
                           {report.description.length > 120
