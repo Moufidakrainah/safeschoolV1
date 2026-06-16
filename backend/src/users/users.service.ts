@@ -190,15 +190,9 @@ export class UsersService {
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
-
-    if (newPassword.length < 6)
-      throw new ForbiddenException("Le mot de passe doit faire au moins 6 caractères");
-
+    
     const hashed = await bcrypt.hash(newPassword, 10);
-    await this.usersRepository.query(
-      `UPDATE users SET password = $1 WHERE id = $2`,
-      [hashed, id],
-    );
+    await this.usersRepository.update(id, { password:hashed });
   }
 
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {

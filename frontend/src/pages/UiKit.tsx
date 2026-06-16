@@ -34,7 +34,7 @@ import StatCard    from '@/components/StatCard';
 import NoteBlock   from '@/components/NoteBlock';
 
 import { useTranslation } from 'react-i18next';
-import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
+import { SEVERITY_COLORS } from '@/utils/severity';
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 
@@ -118,9 +118,9 @@ const { t } = useTranslation();
             <KitSection label="Badge">
               <PreviewBox className="flex flex-wrap gap-2">
                 <ShadBadge>Default</ShadBadge>
-                <ShadBadge variant="secondary">Secondary</ShadBadge>
-                <ShadBadge variant="outline">Outline</ShadBadge>
-                <ShadBadge variant="destructive">Destructive</ShadBadge>
+                <ShadBadge variant="all">All</ShadBadge>
+                <ShadBadge variant="new">New</ShadBadge>
+                <ShadBadge variant="false_report">False report</ShadBadge>
               </PreviewBox>
             </KitSection>
 

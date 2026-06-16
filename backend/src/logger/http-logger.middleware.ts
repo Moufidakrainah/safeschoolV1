@@ -1,6 +1,7 @@
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import { LoggerService } from "./logger.service";
+import { JwtUser } from '../common/interfaces/jwt-user.interface';
 
 @Injectable()
 export class HttpLoggerMiddleware implements NestMiddleware {
@@ -10,7 +11,7 @@ export class HttpLoggerMiddleware implements NestMiddleware {
     const { method, originalUrl, ip } = req;
     const start = Date.now();
     res.on("finish", () => {
-      const user = (req as any).user;
+      const user = (req as Request & { user?: JwtUser }).user;
       this.logger.http({
         type: "http_request",
         method,

@@ -20,11 +20,11 @@ interface NoteBlockProps {
     author?: { firstName: string; lastName: string };
   };
   severityColor?: string;
+  isAdmin?: boolean;
 }
 
-export default function NoteBlock({ note, severityColor }: NoteBlockProps) {
+export default function NoteBlock({ note, severityColor, isAdmin = false }: NoteBlockProps) {
   const { t } = useTranslation();
-
   const isConvocation  = note.type === 'convocation';
   const isStatusChange = note.type === 'status_change';
   const borderColor = severityColor ?? (isConvocation ? 'var(--color-warning)' : 'var(--color-primary)');
@@ -43,7 +43,10 @@ export default function NoteBlock({ note, severityColor }: NoteBlockProps) {
 
   // ── Traduire le contenu des convocations ──
   // Format backend : "Lina BOUGRINE est convoqué(e) le DATE\n\nMESSAGE"
+  // Admin : affiche le nom complet
+  // Élève : remplace par "Tu es convoqué(e) le"
   const formatConvocation = (content: string): string => {
+    if (isAdmin) return content;
     return content.replace(
       /^.+? est convoqué\(e\) le /,
       t('student.cases.summoned')
@@ -63,9 +66,9 @@ export default function NoteBlock({ note, severityColor }: NoteBlockProps) {
 
   return (
     <div
-      style={{ borderLeft: `3px solid ${borderColor}` }}
-      className="p-3 m-3 bg-gray-50"
-    >
+  style={{ borderLeftColor: borderColor }}
+  className="p-3 m-3 bg-gray-50 border-l-[3px]"
+>
       <div className="flex justify-between mb-1">
         <span className="text-xs font-semibold" style={{ color: borderColor }}>
           {typeLabel}

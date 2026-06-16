@@ -1,3 +1,4 @@
+import type { AdminUser, BadgeVariant, ReportVictim, ReportSuspect } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,7 +52,7 @@ interface ReportDetailProps {
 }
 
 export default function ReportDetail({
-  selected, filtered, notes, isAdmin, _saving, resolving,
+  selected, filtered, notes, isAdmin, resolving,
   checkedConvocIds, convocDetails, sendingConvoc, convocSuccess,
   newNote, activeSuspect, suspectSearch, suspectResults,
   onBack, onPrev, onNext, onUpdateStatus, onAddNote, onResolveSuspect, onResolveVictim,
@@ -109,7 +110,7 @@ export default function ReportDetail({
         {isAdmin && (
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 font-semibold">{t('admin.detail.status')} :</span>
-            <Select value={selected.status} onValueChange={v => onUpdateStatus(v, t(`badge.${v}`))}>
+            <Select value={selected.status} onValueChange={v => { if (v) onUpdateStatus(v, t(`badge.${v}`)); }}>
               <SelectTrigger className="w-auto">
                 <Badge variant={selected.status as BadgeVariant} />
               </SelectTrigger>
@@ -159,7 +160,7 @@ export default function ReportDetail({
                       <button className="text-red-400 hover:underline ml-2"
                         onClick={() => onResolveVictim(mainVictimId, null)}
                         disabled={resolving}>
-                        ✕ {t('admin.detail.unlink')}
+                        {t('admin.detail.unlink')}
                       </button>
                     )}
                   </div>
@@ -212,7 +213,7 @@ export default function ReportDetail({
                         {isAdmin && (
                           <button className="text-red-400 hover:underline ml-2"
                             onClick={() => onResolveVictim(v.id, null)} disabled={resolving}>
-                            ✕ {t('admin.detail.unlink')}
+                            {t('admin.detail.unlink')}
                           </button>
                         )}
                       </div>
@@ -221,7 +222,7 @@ export default function ReportDetail({
                     {isAdmin && !v.resolvedUser && (
                       <button className="text-xs text-blue-500 hover:underline mt-1"
                         onClick={() => { onSetActiveSuspect(activeSuspect === v.id ? null : v.id); onSetSuspectSearch(''); onSetSuspectResults([]); }}>
-                        🔗 {t('admin.detail.link')}
+                        {t('admin.detail.link')}
                       </button>
                     )}
                     {isAdmin && activeSuspect === v.id && (
@@ -294,7 +295,7 @@ export default function ReportDetail({
                               {s.resolvedUser.studentProfile.schoolClass.level} {s.resolvedUser.studentProfile.schoolClass.section}
                             </span>
                           )}
-                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>✕ {t('admin.detail.unlink')}</button>}
+                          {isAdmin && <button className="text-red-400 hover:underline ml-2" onClick={() => onResolveSuspect(s.id, null)} disabled={resolving}>{t('admin.detail.unlink')}</button>}
                         </div>
                       )}
                       {isAdmin && !s.resolvedUser && (
@@ -361,7 +362,7 @@ export default function ReportDetail({
         <p className="text-sm font-semibold text-gray-700 mb-3">{t('admin.notes.title')}</p>
         {notes.length > 0 ? (
           <div className="flex flex-col gap-3 mb-5">
-            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} />)}
+            {notes.map(note => <NoteBlock key={note.id} note={note} severityColor={severityColor} isAdmin={isAdmin} />)}
           </div>
         ) : <p className="text-sm text-gray-400 mb-5">{t('admin.notes.empty')}</p>}
         {isAdmin && (
@@ -395,8 +396,16 @@ export default function ReportDetail({
                 const label = personId === 'alerteur'
                   ? `${selected.student?.firstName} ${selected.student?.lastName}`
                   : personId.startsWith('victim_')
-                    ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return `${v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim')}`; })()
-                    : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return `${s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects')}`; })();
+                    ? (() => {
+                        const uid = personId.slice('victim_'.length);
+                        const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid);
+                        return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim');
+                      })()
+                    : (() => {
+                        const suspectId = personId.slice('suspect_'.length);
+                        const s = selected.suspects?.find((s: ReportSuspect) => s.id === suspectId);
+                        return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects');
+                      })();
                 return (
                   <div key={personId} className="border rounded-lg p-3 bg-gray-50">
                     <p className="text-xs font-semibold text-primary mb-2">{label}</p>
@@ -431,8 +440,16 @@ export default function ReportDetail({
                       const recipientName = personId === 'alerteur'
                         ? `${selected.student?.firstName} ${selected.student?.lastName}`
                         : personId.startsWith('victim_')
-                          ? (() => { const uid = personId.slice('victim_'.length); const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid); return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim'); })()
-                          : (() => { const uid = personId.slice('suspect_'.length); const s = selected.suspects?.find((s: ReportSuspect) => s.resolvedUser?.id === uid); return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects'); })();
+                          ? (() => {
+                              const uid = personId.slice('victim_'.length);
+                              const v = selected.victims?.find((v: ReportVictim) => v.resolvedUser?.id === uid);
+                              return v?.resolvedUser ? `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}` : v?.freeText ?? t('admin.detail.victim');
+                            })()
+                          : (() => {
+                              const suspectId = personId.slice('suspect_'.length);
+                              const s = selected.suspects?.find((s: ReportSuspect) => s.id === suspectId);
+                              return s?.resolvedUser ? `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}` : s?.freeText ?? t('admin.detail.suspects');
+                            })();
                       await onAddNoteRaw(selected.id, `${recipientName} est convoqué(e) le ${f}\n\n${d.message}`, 'convocation', personId);
                     }
                     onLoadNotes(selected.id);

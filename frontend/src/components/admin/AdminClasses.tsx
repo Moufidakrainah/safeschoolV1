@@ -12,7 +12,7 @@ import { API_BASE } from "@/config";
 
 interface SchoolClass { id: string; level: string; section: string; }
 interface StudentUser {
-  id: string; firstName: string; lastName: string; email: string; avatar?: string;
+  id: string; firstName: string; lastName: string; email: string; avatar?: string; role: string;
   studentProfile?: { schoolClass?: { id: string; level: string; section: string } | null };
 }
 
@@ -236,7 +236,7 @@ export default function AdminClasses() {
           )}
           {classes.slice((classPage - 1) * CLASSES_PER_PAGE, classPage * CLASSES_PER_PAGE).map(cls => {
             const count = students.filter(s => s.studentProfile?.schoolClass?.id === cls.id).length;
-            const isSelected = selectedClass?.id === cls.id;
+            const isSelected = (selectedClass as SchoolClass | null)?.id === cls.id;
             return (
               <div key={cls.id} onClick={() => setSelectedClass(isSelected ? null : cls)}
                 className={`${isSelected ? "bg-primary border-primary shadow-md" : "bg-white hover:shadow-sm border-gray-200"}`}>

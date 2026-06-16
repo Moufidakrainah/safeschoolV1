@@ -50,7 +50,7 @@ const descriptionRegex = /^(?!(.)\1{9,})[\s\S]+$/u;
 const personRegex      = /^(?!(.)\1{4,})[\p{L}\s\-']+$/u;
 
 export function useReportForm(
-  userRole: string | undefined,
+  _userRole: string | undefined,
   t: (key: string) => string,
 ): UseReportFormReturn {
 
@@ -111,7 +111,9 @@ export function useReportForm(
     try {
       const fullDescription = `${description} (${t('reporter.step6.frequency')}: ${frequency})`;
       const suspectsData = suspects.map(s => ({ freeText: `${s.firstName} ${s.lastName}` }));
-      const victimsData  = victimName ? [{ freeText: victimName }] : [];
+      const victimsData = victimName
+        ? victimName.split('|').filter(Boolean).map(name => ({ freeText: name }))
+        : [];
       await createReport(type, 'temoin', fullDescription, isAnonymous, suspectsData, victimsData, frequency);
       setStep(6);
     } catch (err) {

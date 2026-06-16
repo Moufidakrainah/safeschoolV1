@@ -55,7 +55,6 @@ export interface UseUsersReturn {
     parents: { firstName: string; lastName: string; email: string; phone: string; address: string }[];
     dateOfBirth: string;
   }>>;
-  // ── Stocke des CLÉS i18n, pas des messages ──
   errors: { firstName: string; lastName: string; email: string; password: string };
   isFormValid: boolean;
   deleteTarget: string | null;
@@ -105,7 +104,6 @@ export function useUsers(): UseUsersReturn {
     dateOfBirth: '',
   });
 
-  // ── Stocke des CLÉS i18n, pas des messages traduits ──
   const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', password: '' });
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -141,58 +139,70 @@ export function useUsers(): UseUsersReturn {
   }, [usersPage, usersSearch]);
 
   const handleAvatarUpload = useCallback(async (userId: string, file: File) => {
-    try {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      const res = await fetch(`${API_BASE}/users/${userId}/avatar`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.avatar) {
-        setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
-        await fetchUsers();
-        setSelectedUser(prev => prev && prev.id === userId ? { ...prev, avatar: data.avatar } : prev);
-        toast.success(t('toast.avatarUpdated'));
-      }
-    } catch { }
-  }, [fetchUsers, t]);
+  // ✅ Vérifier le type avant d'envoyer
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) return;
+
+  try {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const res = await fetch(`${API_BASE}/users/${userId}/avatar`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (data.avatar) {
+      setSelectedUser(prev => prev && prev.id === userId
+        ? { ...prev, avatar: data.avatar }
+        : prev);
+      setAvatarTimestamps(prev => ({ ...prev, [userId]: Date.now() }));
+      await fetchUsers();
+      toast.success(t('toast.avatarUpdated'));
+    }
+  } catch { }
+}, [fetchUsers, t]);
 
   const handleSaveUser = useCallback(async () => {
-    try {
-      if (editingUser) {
-        await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
-        if (userForm.role === 'teacher') {
-          try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
-          catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
-        }
-      } else {
-        const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
-        if (userForm.role === 'teacher') {
-          await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
-        }
-        if (userForm.role === 'student' && userForm.parents.length > 0) {
-          for (const parent of userForm.parents) {
-            if (parent.firstName && parent.lastName && parent.email) {
-              await createParent({ ...parent, studentIds: [created.studentProfile?.id ?? created.id] });
-            }
+  try {
+    if (editingUser) {
+      await updateUser(editingUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, ...(userForm.password && { password: userForm.password }), role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
+      if (userForm.role === 'teacher') {
+        try { const e = await getStaffProfile(editingUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); }
+        catch { await createStaffProfile({ userId: editingUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); }
+      }
+    } else {
+      //  Vérifier l'email avant d'appeler l'API pour éviter le 409
+      const existing = allUsers.find(u => u.email.toLowerCase() === userForm.email.toLowerCase());
+      if (existing) {
+        setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
+        return;
+      }
+      const created = await createUser({ firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, password: userForm.password, role: userForm.role, ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
+      if (userForm.role === 'teacher') {
+        await createStaffProfile({ userId: created.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds });
+      }
+      if (userForm.role === 'student' && userForm.parents.length > 0) {
+        for (const parent of userForm.parents) {
+          if (parent.firstName && parent.lastName && parent.email) {
+            await createParent({ ...parent, studentIds: [created.studentProfile?.id ?? created.id] });
           }
         }
       }
-      await fetchUsers();
-      setShowUserForm(false); setEditingUser(null);
-      setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
-      toast.success(editingUser ? t('toast.parentUpdated') : t('toast.parentAdded'));
-    } catch (err: unknown) {
-      const msg = (err as any)?.response?.data?.message ?? '';
-      if (msg === 'Cet email est déjà utilisé') {
-        setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
-      } else {
-        toast.error(t('common.error'));
-      }
     }
-  }, [editingUser, userForm, fetchUsers, t]);
+    await fetchUsers();
+    setShowUserForm(false); setEditingUser(null);
+    setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
+    toast.success(editingUser ? t('toast.userUpdated') : t('toast.userCreated'));
+  } catch (err: unknown) {
+    const msg = (err as any)?.response?.data?.message ?? '';
+    if (msg === 'Cet email est déjà utilisé') {
+      setErrors(prev => ({ ...prev, email: 'validation.emailExists' }));
+    } else {
+      toast.error(t('common.error'));
+    }
+  }
+}, [editingUser, userForm, allUsers, fetchUsers, t]);
 
   const handleDeleteUser = useCallback(async (id: string) => {
     const { deletable } = await checkCanDeleteUser(id);
@@ -208,7 +218,7 @@ export function useUsers(): UseUsersReturn {
       setDeleteTarget(null);
       setSelectedUser(null);
       navigate('/dashboard?section=users', { replace: true });
-      toast.success(t('toast.parentDeleted'));
+      toast.success(t('toast.userDeleted'));
     } catch (err: unknown) {
       const msg = (err as any)?.response?.data?.message ?? (err as any)?.message ?? '';
       if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);
@@ -216,7 +226,6 @@ export function useUsers(): UseUsersReturn {
     } finally { setIsDeleting(false); }
   }, [deleteTarget, fetchUsers, navigate, t]);
 
-  // ── Validators — retournent des CLÉS i18n ──
   const getFieldErrorKey = useCallback((field: string, value: string, firstName?: string, lastName?: string): string => {
     const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
     if (field === 'firstName' || field === 'lastName') {

@@ -14,7 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import { API_BASE } from "@/config";
 
 interface StaffClass { id: string; level: string; section: string; }
-interface StaffProfile { profession: string; subject?: string; classes?: StaffClass[]; }
+interface StaffProfile { profession: string; subject?: string | null; classes?: StaffClass[]; }
 interface ReporterProfileProps {
 	user: AuthUser | null;
 	staffProfile: StaffProfile | null;
@@ -76,7 +76,7 @@ export default function ReporterProfile({ user, staffProfile, loadingProfile }: 
 
 					<div className="text-center mt-4">
 						{(() => {
-							const { first, last } = formatName(user?.firstName, user?.lastName);
+							const { first, last } = formatName(user?.firstName ?? '', user?.lastName ?? '');
 							return <h2 className="text-2xl font-bold mb-4">{first} {last}</h2>;
 						})()}
 						<span className="text-sm">{t('reporter.roles.teacher')}</span>
