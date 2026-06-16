@@ -15,6 +15,7 @@ function resolveQuizLocale(language: string | undefined): QuizLocale {
 type QuizPlayingProps = {
   joinedRoom: string;
   reconnecting: boolean;
+  offline: boolean;
   questionState: QuestionState;
   timeLeftMs: number;
   players: Player[];
@@ -27,6 +28,7 @@ type QuizPlayingProps = {
 export default function QuizPlaying({
   joinedRoom,
   reconnecting,
+  offline,
   questionState,
   timeLeftMs,
   players,
@@ -72,9 +74,9 @@ export default function QuizPlaying({
           <span>{questionState?.questionNumber ?? '–'} / {questionState?.totalQuestions ?? '–'}</span>
         </div>
 
-        {reconnecting && (
+        {(offline || reconnecting) && (
           <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-center text-sm text-amber-600">
-            {t('quiz.connectionLost')}
+            {offline ? t('offline.message') : t('quiz.connectionLost')}
           </p>
         )}
 

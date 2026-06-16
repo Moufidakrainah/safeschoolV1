@@ -95,6 +95,7 @@ export default function Quiz() {
       <QuizPlaying
         joinedRoom={joinedRoom}
         reconnecting={reconnecting}
+        offline={offline}
         questionState={questionState}
         timeLeftMs={timeLeftMs}
         players={players}
