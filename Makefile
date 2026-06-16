@@ -103,7 +103,7 @@ up-be: check-env ## Démarrer backend et database seulement
 	$(MAKE) seed-if-empty
 
 up-elk: check-env ## Démarrer la stack ELK
-	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup
+	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup-users elasticsearch-setup-kibana
 
 down-elk: ## Arrêter la stack ELK
 	$(COMPOSE) down elasticsearch logstash kibana
@@ -127,7 +127,7 @@ logs-elk: ## Suivre les logs de la stack ELK
 	$(COMPOSE) logs -f elasticsearch logstash kibana
 
 logs-setup: ## Afficher les logs du script de setup ELK
-	$(COMPOSE) logs elasticsearch-setup
+	$(COMPOSE) logs elasticsearch-setup-users elasticsearch-setup-kibana
 
 #  === BASE DE DONNÉES ===
 
