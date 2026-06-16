@@ -415,7 +415,7 @@ export default function AdminDashboard() {
 
         {viewSection === 'reports' && (
           <>
-            <div className="grid grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
               <StatCard label={t('admin.stats.total')}    value={stats.total}    color={SEVERITY_COLORS.all}      active={filterGrade === 'all'}      activeTextColor="var(--foreground)" onClick={() => { setFilterGrade('all'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.critical')} value={stats.critical} color={SEVERITY_COLORS.critical} active={filterGrade === 'critical'} onClick={() => { setFilterGrade('critical'); setCurrentPage(1); }} />
               <StatCard label={t('admin.stats.high')}     value={stats.high}     color={SEVERITY_COLORS.high}     active={filterGrade === 'high'}     onClick={() => { setFilterGrade('high'); setCurrentPage(1); }} />
@@ -423,11 +423,11 @@ export default function AdminDashboard() {
               <StatCard label={t('admin.stats.low')}      value={stats.low}      color={SEVERITY_COLORS.low}      active={filterGrade === 'low'}      onClick={() => { setFilterGrade('low'); setCurrentPage(1); }} />
             </div>
             <div className="mb-5">
-              <Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} />
+              <Input className="w-full md:w-auto max-w-[180px]" type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} />
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
+            <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-2 mb-4">
               <Select value={filterStatus} onValueChange={v => { if (v !== null) setFilterStatus(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.status')}>
+                <SelectTrigger className="w-full md:w-auto">
                   <SelectValue>
                     {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
                   </SelectValue>
@@ -442,7 +442,7 @@ export default function AdminDashboard() {
                 </SelectContent>
               </Select>
               <Select value={filterClass} onValueChange={v => { if (v !== null) setFilterClass(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allClasses')}>
+                <SelectTrigger className="w-full md:w-auto">
                   <SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -451,7 +451,7 @@ export default function AdminDashboard() {
                 </SelectContent>
               </Select>
               <Select value={filterStudent} onValueChange={v => { if (v !== null) setFilterStudent(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allReporters')}>
+                <SelectTrigger className="w-full md:w-auto">
                   <SelectValue>
                     {filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}
                   </SelectValue>
@@ -463,13 +463,13 @@ export default function AdminDashboard() {
                   ))}
                 </SelectContent>
               </Select>
-              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="max-w-[180px]" />
-              <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
-              <div className="w-full flex items-center justify-center gap-2 mt-2">
+              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="w-full md:w-auto max-w-[180px]" />
+              <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="w-full md:w-auto max-w-[180px]"/>
+              <div className="w-full flex flex-col md:flex-row items-center justify-center gap-2 mt-2">
                 <span className="text-gray-600 text-sm">{t('admin.filters.dates')}</span>
-                <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
+                <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="w-full md:w-auto max-w-[150px]" />
                 <span className="text-gray-400">→</span>
-                <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
+                <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="w-full md:w-auto max-w-[150px]" />
               </div>
             </div>
             <div className="flex justify-center mb-4">
