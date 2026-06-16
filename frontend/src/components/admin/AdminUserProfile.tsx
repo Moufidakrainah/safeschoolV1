@@ -117,6 +117,12 @@ export default function AdminUserProfile({
   };
 
   const staffData = profileStaff ?? selectedUser.staffProfile;
+  const hasInfos = !!(
+    selectedUser.studentProfile?.schoolClass ||
+    selectedUser.studentProfile?.dateOfBirth ||
+    staffData?.subject ||
+    (staffData?.classes?.length > 0)
+  );
 
   return (
     <section className="page-section">
@@ -155,14 +161,11 @@ export default function AdminUserProfile({
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
-
-            {/* ── Bouton changer photo — même taille que les autres ── */}
             <label className="cursor-pointer">
                 {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                   onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
               </label>
-
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}
             </Button>
@@ -171,7 +174,7 @@ export default function AdminUserProfile({
       </div>
 
       {/* 3. Infos */}
-      {!editMode && (
+      {!editMode && hasInfos && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
             {selectedUser.studentProfile?.schoolClass && (
@@ -184,12 +187,6 @@ export default function AdminUserProfile({
               <TableRow>
                 <TableCell className="font-semibold text-muted-foreground">{t('userProfile.dob')}</TableCell>
                 <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} {t('userProfile.age')})</TableCell>
-              </TableRow>
-            )}
-            {staffData?.profession && (
-              <TableRow>
-                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.profession')}</TableCell>
-                <TableCell>{staffData.profession}</TableCell>
               </TableRow>
             )}
             {staffData?.subject && (
