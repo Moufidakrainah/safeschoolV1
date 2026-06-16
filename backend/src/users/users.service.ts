@@ -192,10 +192,7 @@ export class UsersService {
     if (!user) throw new NotFoundException("Utilisateur introuvable");
     
     const hashed = await bcrypt.hash(newPassword, 10);
-    await this.usersRepository.query(
-      `UPDATE users SET password = $1 WHERE id = $2`,
-      [hashed, id],
-    );
+    await this.usersRepository.update(id, { password:hashed });
   }
 
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {

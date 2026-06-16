@@ -30,7 +30,7 @@ export class ReportsService {
     reporter: string,
     description: string,
     isAnonymous: boolean,
-    student: User,
+    student: Pick<User, 'id' | 'firstName' | 'lastName'>,
     suspects: { freeText: string }[] = [],
     victims: { freeText: string }[] = [],
     frequency = "",
