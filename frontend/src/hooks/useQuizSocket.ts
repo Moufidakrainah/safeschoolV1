@@ -256,6 +256,15 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setGamePhase('playing');
         setFinalLeaderboard(null);
         setQuestionState((prev) => {
+          if (prev && prev.question.id === data.question.id) {
+            return {
+              ...prev,
+              questionNumber: data.questionNumber,
+              totalQuestions: data.totalQuestions,
+              timeLimitMs: data.timeLimitMs,
+              endsAt,
+            };
+          }
           // Valide la série de la question qui vient de se terminer, maintenant qu'on a
           // dépassé sa révélation — une bonne réponse la conserve, tout le reste la remet à zéro
           if (prev) setMyStreak(prev.hasAnswered ? nextStreakRef.current : 0);

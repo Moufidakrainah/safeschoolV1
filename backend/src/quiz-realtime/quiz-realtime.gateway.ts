@@ -303,6 +303,15 @@ export class QuizRealtimeGateway
 		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
 		if (result.status === 'reconnected') {
 			this.sendReconnectState(client, payload.roomId, playerId);
+
+			if (result.revealPayload) {
+				this.server
+					.to(payload.roomId)
+					.emit('quiz:score:update', result.revealPayload.roomSnapshot);
+				this.server
+					.to(payload.roomId)
+					.emit('quiz:question:reveal', result.revealPayload);
+			}
 		}
 
     return {

@@ -190,6 +190,7 @@ type JoinRoomResult = {
 		| 'room-is-full'
 		| 'server-at-capacity';
 	snapshot: RoomSnapshot;
+	revealPayload?: QuestionRevealPayload | null;
 };
 
 type LeaveRoomResult =
@@ -235,9 +236,20 @@ export class QuizRealtimeService {
 			if (playerName?.trim()) {
 				player.name = playerName.trim();
 			}
+
+			let revealPayload: QuestionRevealPayload | null = null;
+			if (
+				room.status === 'in-progress' &&
+				room.revealEndsAt === null &&
+				this.allConnectedAnswered(room)
+			) {
+				revealPayload = this.enterRevealPhase(room);
+			}
+
 			return {
 				status: 'reconnected',
 				snapshot: this.getRoomSnapshot(roomId),
+				revealPayload,
 			};
 		}
 
