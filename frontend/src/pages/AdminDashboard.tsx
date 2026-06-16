@@ -71,6 +71,14 @@ const buildUserForm = (u: AdminUser) => ({
   dateOfBirth: u.studentProfile?.dateOfBirth ?? "",
 });
 
+const TYPE_MAP: Record<string, string> = {
+  physique: "reporter.step2.physical",
+  verbal: "reporter.step2.verbal",
+  cyber: "reporter.step2.cyber",
+  exclusion: "reporter.step2.exclusion",
+  sexuel: "reporter.step2.sexual",
+};
+
 export default function AdminDashboard() {
   const { user, logoutUser } = useAuth();
   const [searchParams] = useSearchParams();
@@ -1071,7 +1079,8 @@ export default function AdminDashboard() {
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <span className="card-title">
-                          {report.type} — {report.reporter}
+                            {t(TYPE_MAP[report.type] ?? report.type)} -{" "}
+                            {t("student.cases.iAmVictim")}
                         </span>
                         <p className="card-subtitle mt-1 mb-2">
                           {report.description.length > 120
