@@ -149,7 +149,6 @@ export function useUsers(): UseUsersReturn {
       });
       const data = await res.json();
       if (data.avatar) {
-        // ✅ Mettre à jour selectedUser AVANT fetchUsers pour éviter le 404
         setSelectedUser(prev => prev && prev.id === userId
           ? { ...prev, avatar: data.avatar }
           : prev);
@@ -184,7 +183,7 @@ export function useUsers(): UseUsersReturn {
       await fetchUsers();
       setShowUserForm(false); setEditingUser(null);
       setUserForm({ firstName: '', lastName: '', email: '', password: '', role: 'student', classId: '', subject: '', classIds: [], parents: [], dateOfBirth: '' });
-      toast.success(editingUser ? t('toast.parentUpdated') : t('toast.parentAdded'));
+      toast.success(editingUser ? t('toast.userUpdated') : t('toast.userCreated'));
     } catch (err: unknown) {
       const msg = (err as any)?.response?.data?.message ?? '';
       if (msg === 'Cet email est déjà utilisé') {
@@ -209,7 +208,7 @@ export function useUsers(): UseUsersReturn {
       setDeleteTarget(null);
       setSelectedUser(null);
       navigate('/dashboard?section=users', { replace: true });
-      toast.success(t('toast.parentDeleted'));
+      toast.success(t('toast.userDeleted'));
     } catch (err: unknown) {
       const msg = (err as any)?.response?.data?.message ?? (err as any)?.message ?? '';
       if (msg === 'USER_HAS_REPORTS') setIsBlocked(true);

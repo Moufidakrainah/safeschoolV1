@@ -663,7 +663,10 @@
     "parentError": "Ein Fehler ist aufgetreten",
     "classCreated": "Klasse erfolgreich erstellt",
     "classUpdated": "Klasse erfolgreich geändert",
-    "classDeleted": "Klasse erfolgreich gelöscht"
+    "classDeleted": "Klasse erfolgreich gelöscht",
+    "userCreated": "Benutzer erfolgreich erstellt",
+"userUpdated": "Benutzer erfolgreich aktualisiert",
+"userDeleted": "Benutzer erfolgreich gelöscht"
   },
   "severity": {
     "critical": "Kritisch",

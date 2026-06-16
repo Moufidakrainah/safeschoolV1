@@ -717,7 +717,10 @@
     "parentError": "Une erreur est survenue",
     "classCreated": "Classe créée avec succès",
     "classUpdated": "Classe modifiée avec succès",
-    "classDeleted": "Classe supprimée avec succès"
+    "classDeleted": "Classe supprimée avec succès",
+    "userCreated": "Utilisateur créé avec succès",
+"userUpdated": "Utilisateur modifié avec succès",
+"userDeleted": "Utilisateur supprimé avec succès"
   },
   "severity": {
     "critical": "Critique",
