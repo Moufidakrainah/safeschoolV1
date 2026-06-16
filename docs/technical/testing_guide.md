@@ -26,7 +26,7 @@ Open `https://localhost:8443/login` in a browser. Enter a valid account (teacher
 In a terminal:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/api/auth/login \
+curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"any@safeschool.fr","password":"wrongpassword"}' -k
 ```
@@ -38,20 +38,18 @@ curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/api/auth/l
 
 ### 1.3 Brute force protection → 429
 
-> ⚠️ **Not yet implemented.** `@nestjs/throttler` is not configured — this check will currently fail. See [Known issues](#known-issues).
-
-Once implemented, run this script:
+Login attempts are rate-limited globally (`@nestjs/throttler`: 20 requests / 60s per IP). Beyond the limit, the API returns `429 Too Many Requests`. Failed logins are **also** logged as `WARN` events in Kibana, so brute-force patterns are both blocked and monitored.
 
 ```bash
-for i in $(seq 1 11); do
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/api/auth/login \
+for i in $(seq 1 25); do
+  STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/auth/login \
     -H "Content-Type: application/json" \
     -d '{"email":"test@safeschool.fr","password":"wrong"}' -k)
   echo "Attempt $i: $STATUS"
 done
 ```
 
-**Expected:** attempts 1–10 → `401`, attempt 11 → `429`
+**Expected:** the first attempts return `401`; once the 60s limit is exceeded the API returns `429`. Failed attempts also appear in Kibana Discover at `level: WARN` (filter `type: "auth_event"`). See [`elk.md`](./elk.md).
 
 ---
 
@@ -73,7 +71,7 @@ docker compose exec database psql -U postgres -d safeschool \
 Any API route that requires login should reject requests with no token:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/api/reports -k
+curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/reports -k
 ```
 
 **Expected:** `401`
@@ -84,12 +82,12 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/api/reports -k
 First log in to get a token, then use it:
 
 ```bash
-TOKEN=$(curl -s -X POST https://localhost:8443/api/auth/login \
+TOKEN=$(curl -s -X POST https://localhost:8443/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@safeschool.fr","password":"YourPassword"}' -k \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
 
-curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/api/reports \
+curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/reports \
   -H "Authorization: Bearer $TOKEN" -k
 ```
 
@@ -104,7 +102,7 @@ Generate a login event, then verify it landed in Kibana:
 
 ```bash
 # Step 1 — trigger an auth event
-curl -s -X POST https://localhost:8443/api/auth/login \
+curl -s -X POST https://localhost:8443/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@safeschool.com","password":"admin123123+"}' -k > /dev/null
 ```

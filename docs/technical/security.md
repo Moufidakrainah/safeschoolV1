@@ -49,6 +49,14 @@ In TypeORM, the `password` column is marked `{ select: false }` — it is not re
 
 ---
 
+## Brute force — rate limiting
+
+All API routes are rate-limited globally with `@nestjs/throttler`: `ThrottlerModule.forRoot` allows **20 requests per 60 seconds per IP**, enforced by a global `ThrottlerGuard`. Beyond the limit, the API returns `429 Too Many Requests`, which throttles automated password-guessing against `/auth/login`.
+
+Failed logins are **additionally** logged as `WARN` events in the ELK stack, so a brute-force pattern is both blocked (429) and observable (Kibana).
+
+---
+
 ## SQL Injection — TypeORM
 
 SQL injection consists of embedding SQL inside a user-controlled field to manipulate the query:
@@ -68,8 +76,8 @@ this.usersRepository.findOne({ where: { email } })
 **Rule**: never build a SQL query with unsanitized variables. When using `createQueryBuilder`, always use `:param` notation:
 
 ```typescript
-.where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` }) // ✅
-.where(`LOWER(user.firstName) LIKE '%${query}%'`)                            // ❌ injection possible
+.where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` })   // safe
+.where(`LOWER(user.firstName) LIKE '%${query}%'`)                             // injection possible
 ```
 
 ---
@@ -109,7 +117,7 @@ XSS: an attacker causes malicious JavaScript to execute in a victim's browser, t
 ```tsx
 // If userName = "<script>alert('xss')</script>"
 <p>{userName}</p>
-// React renders plain text — the script is NOT executed ✅
+// React renders plain text — the script is NOT executed
 ```
 
 **Exception**: `dangerouslySetInnerHTML` disables this protection. Use only for controlled HTML content (e.g. server-side rendered markdown after sanitization).
@@ -156,8 +164,9 @@ HTTPS is handled by nginx (reverse proxy), which holds the TLS certificate. Inte
 
 | Threat | Protection | Where |
 |---|---|---|
-| Password stolen from DB | bcrypt (irreversible hash) | `auth.service.ts` |
+| Password stolen from DB | bcrypt (irreversible hash + salt) | `users.service.ts` (hash) / `auth.service.ts` (compare) |
 | Forged JWT token | HMAC signature (JWT_SECRET) | `jwt.strategy.ts` |
+| Brute-force login | Rate limiting (429) + WARN logging | `@nestjs/throttler` (global guard) + ELK |
 | SQL injection | TypeORM bound parameters | All DB queries |
 | Malformed input | ValidationPipe + class-validator | NestJS DTOs |
 | XSS | Automatic JSX escaping | React (built-in) |
