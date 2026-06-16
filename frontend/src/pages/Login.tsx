@@ -55,9 +55,15 @@ export default function Login() {
       if (data.user.role === 'student') navigate('/student');
       else if (data.user.role === 'teacher') navigate('/reporter');
       else navigate('/dashboard');
-    } catch (err) {
-      setError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'login.error'));
-    } finally {
+    } catch (err: unknown) {
+  if (isOfflineError(err)) {
+    setError(t('offline.actionUnavailable'));
+  } else if ((err as { response?: { status?: number } })?.response?.status === 429) {
+    setError(t('login.tooManyRequests'));
+  } else {
+    setError(t('login.error'));
+  }
+} finally {
       setLoading(false);
     }
   };
