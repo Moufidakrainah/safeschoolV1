@@ -9,7 +9,7 @@
 
 ```
 frontend/src/components/
-├── ui/                    ← shadcn/ui primitives (generated, Radix-based)
+├── ui/                    ← UI primitives, shadcn/ui pattern (Base UI)
 │   ├── button.tsx
 │   ├── badge.tsx
 │   ├── card.tsx
@@ -56,8 +56,8 @@ frontend/src/components/
 
 ### `components/ui/` — shadcn/ui primitives
 
-- Copied into the project via `npx shadcn@latest add <component>` — **owned code**, not an npm dependency.
-- Built on **Radix UI**: keyboard navigation, focus management, and ARIA compliance out of the box.
+- Copied into the project as **owned code**, not an npm dependency.
+- Built on **Base UI** headless primitives: keyboard navigation, focus management, and ARIA compliance out of the box.
 - Styled through Tailwind + CSS variables (`--primary`, `--border`, etc. defined in `index.css`).
 - Do not modify these files directly — adjust `index.css` to change global appearance.
 
