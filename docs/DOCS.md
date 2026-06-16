@@ -42,7 +42,6 @@ These documents are useful to show how the team worked and how decisions were tr
 | Meetings and follow-up | [`meetings/`](./meetings/) |
 | Git workflow | [`process/git_workflow.md`](./process/git_workflow.md) |
 | Collaboration rules | [`process/collaboration-guidelines.md`](./process/collaboration-guidelines.md) |
-| Final sprint parallelization | [`process/git_worktrees.md`](./process/git_worktrees.md) |
 
 ## Reference Library
 
