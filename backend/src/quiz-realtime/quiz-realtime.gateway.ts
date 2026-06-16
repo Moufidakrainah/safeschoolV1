@@ -195,17 +195,6 @@ export class QuizRealtimeGateway
 		}
 	}
 
-  @SubscribeMessage("quiz:ping")
-  handlePing(
-    @MessageBody() payload: string,
-    @ConnectedSocket() client: Socket,
-  ) {
-    return {
-      event: "quiz:pong",
-      data: this.quizRealtimeService.createPongMessage(payload, client.id),
-    };
-  }
-
 	@SubscribeMessage('quiz:join')
 	handleJoin(
 		@MessageBody() payload: JoinRoomPayload,
