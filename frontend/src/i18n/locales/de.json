@@ -8,7 +8,8 @@
     "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen enthalten.",
     "error": "Falsche Anmeldeinformationen.",
     "errorRequired": "Bitte füllen Sie alle Felder aus.",
-    "keepEmpty": "(leer lassen, um unverändert zu bleiben)"
+    "keepEmpty": "(leer lassen, um unverändert zu bleiben)",
+    "tooManyRequests": "Zu viele Versuche. Bitte warten Sie 1 Minute."
   },
   "nav": {
     "logout": "Abmelden"
@@ -663,7 +664,10 @@
     "parentError": "Ein Fehler ist aufgetreten",
     "classCreated": "Klasse erfolgreich erstellt",
     "classUpdated": "Klasse erfolgreich geändert",
-    "classDeleted": "Klasse erfolgreich gelöscht"
+    "classDeleted": "Klasse erfolgreich gelöscht",
+    "userCreated": "Benutzer erfolgreich erstellt",
+"userUpdated": "Benutzer erfolgreich aktualisiert",
+"userDeleted": "Benutzer erfolgreich gelöscht"
   },
   "severity": {
     "critical": "Kritisch",

@@ -8,7 +8,8 @@
     "errorPasswordLength": "The password must contain at least 6 characters.",
     "error": "Incorrect credentials.",
     "errorRequired": "Please fill in all fields.",
-    "keepEmpty": "(leave empty to keep unchanged)"
+    "keepEmpty": "(leave empty to keep unchanged)",
+    "tooManyRequests": "Too many attempts. Please try again in 1 minute."
   },
   "nav": {
     "logout": "Log out"
@@ -683,7 +684,10 @@
     "parentError": "An error occurred",
     "classCreated": "Class created successfully",
     "classUpdated": "Class updated successfully",
-    "classDeleted": "Class deleted successfully"
+    "classDeleted": "Class deleted successfully",
+    "userCreated": "User created successfully",
+"userUpdated": "User updated successfully",
+"userDeleted": "User deleted successfully"
   },
   "severity": {
     "critical": "Critical",
