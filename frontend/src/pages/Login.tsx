@@ -116,7 +116,7 @@ export default function Login() {
           </div>
 
           <div className="min-h-10 w-full">
-            {error && <p className="text-red-300 text-l w-full text-center">{t('login.error')}</p>}
+            {error && <p className="text-red-300 text-l w-full text-center">{error}</p>}
           </div>
 
           <Button type="submit" variant="login" disabled={loading || !isFormValid()}>
