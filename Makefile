@@ -1,4 +1,3 @@
-
 COMPOSE = docker compose
 COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.prod.yml
 CERT_DIR = nginx/certs
@@ -187,7 +186,7 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
+.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role test-throttle
 
 # === TESTS CURL ===
 # Ces tests ciblent http://localhost:5000 (port backend direct).
@@ -236,11 +235,27 @@ test-report-short: ## Tester signalement avec description trop courte (attendu: 
 test-no-token: ## Tester accès sans token (attendu: 401)
 	@curl -s http://localhost:5000/reports | python3 -m json.tool
 
+test-throttle: ## Tester le rate limiting sur /auth/login (attendu: 7x400 puis 429, puis 200 après 60s)
+	@echo "=== Test throttling login (7 tentatives max) ==="
+	@for i in $$(seq 1 10); do \
+		curl -s -o /dev/null -w "Tentative $$i: %{http_code}\n" \
+			-X POST http://localhost:5000/auth/login \
+			-H "Content-Type: application/json" \
+			-d '{"email":"lotfi@safeschool.com","password":"mauvaismdp"}'; \
+	done
+	@echo "Attente 60 secondes avant reset..."
+	@sleep 60
+	@echo "Tentative après reset :"
+	@curl -s -o /dev/null -w "Login valide: %{http_code}\n" \
+		-X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"ELEVEeleve123123+"}'
+
 test-auth: test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok ## Lancer tous les tests auth
 
 test-reports: test-report-spam test-report-short test-no-token ## Lancer tous les tests reports
 
-test-all: test-auth test-reports ## Lancer tous les tests curl
+test-all: test-auth test-reports test-throttle ## Lancer tous les tests curl
 
 test-decode-token: ## Décoder le payload du token JWT de Lotfi
 	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
