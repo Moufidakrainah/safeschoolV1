@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    UI Kit — SafeSchool Design System
-   Showcase des composants shadcn/ui (primitives Radix) + composants app custom.
+   Showcase des composants UI (primitives Base UI, pattern shadcn/ui) + composants app custom.
    Voir docs/design/design-system.md pour la stratégie complète.
 ───────────────────────────────────────────────────────────────────────────── */
 
@@ -84,7 +84,7 @@ const { t } = useTranslation();
           <p className="text-xs font-bold uppercase tracking-widest text-white/70">SafeSchool — Design System</p>
           <h1 className="mt-2 text-3xl font-black">UI Kit</h1>
           <p className="mt-1 text-sm text-white/80">
-            Catalogue des composants. Primitives shadcn/ui (Radix) + composants app métier.
+            Catalogue des composants. Primitives Base UI (pattern shadcn/ui) + composants app métier.
           </p>
         </header>
 
