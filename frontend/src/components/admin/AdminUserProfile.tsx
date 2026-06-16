@@ -32,13 +32,13 @@ interface AdminUserProfileProps {
   onHandleAvatarUpload: (userId: string, file: File) => void;
   onHandleDeleteUser: (id: string) => void;
   onSaveUser: () => void;
-  renderUserForm: (isEdit: boolean) => JSX.Element;
+  renderUserForm: (isEdit: boolean) => React.ReactElement;
   calcAge: (dateOfBirth: string) => number;
 }
 
 export default function AdminUserProfile({
   selectedUser, filteredUsers,
-  avatarTimestamps, classes, userForm, _errors,
+  avatarTimestamps, classes, userForm,
   isFormValid, originReportId,
   onBack, onPrev, onNextUser, onHandleAvatarUpload,
   onHandleDeleteUser, onSaveUser,
@@ -71,6 +71,11 @@ export default function AdminUserProfile({
   }, [selectedUser?.id, selectedUser?.staffProfile]);
 
   const handleAvatarChange = async (file: File) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    toast.error(t('toast.avatarError'));
+    return;
+  }
     setUploadingAvatarId(selectedUser.id);
     try {
       await onHandleAvatarUpload(selectedUser.id, file);
@@ -117,6 +122,12 @@ export default function AdminUserProfile({
   };
 
   const staffData = profileStaff ?? selectedUser.staffProfile;
+  const hasInfos = !!(
+    selectedUser.studentProfile?.schoolClass ||
+    selectedUser.studentProfile?.dateOfBirth ||
+    staffData?.subject ||
+    (staffData?.classes?.length > 0)
+  );
 
   return (
     <section className="page-section">
@@ -155,16 +166,11 @@ export default function AdminUserProfile({
         {!editMode && (
           <div className="flex justify-center gap-3 mt-2">
             <Button onClick={() => setEditMode(true)}>{t('admin.users.edit')}</Button>
-
-            {/* ── Bouton changer photo — même taille que les autres ── */}
-            <Button asChild className={uploadingAvatarId === selectedUser.id ? 'opacity-50 pointer-events-none' : ''}>
-              <label className="cursor-pointer">
+            <label className="cursor-pointer">
                 {uploadingAvatarId === selectedUser.id ? t('userProfile.uploading') : t('userProfile.changePhoto')}
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                   onChange={async e => { const f = e.target.files?.[0]; if (f) await handleAvatarChange(f); }} />
               </label>
-            </Button>
-
             <Button variant="default" onClick={e => { e.stopPropagation(); onHandleDeleteUser(selectedUser.id); }}>
               {t('admin.users.delete')}
             </Button>
@@ -173,7 +179,7 @@ export default function AdminUserProfile({
       </div>
 
       {/* 3. Infos */}
-      {!editMode && (
+      {!editMode && hasInfos && (
         <div className="bg-surface shadow-sm rounded-sm px-6 py-4 mb-3">
           <Table className="[&_tr]:border-0 [&_tr:hover]:bg-transparent"><TableBody>
             {selectedUser.studentProfile?.schoolClass && (
@@ -186,12 +192,6 @@ export default function AdminUserProfile({
               <TableRow>
                 <TableCell className="font-semibold text-muted-foreground">{t('userProfile.dob')}</TableCell>
                 <TableCell>{new Date(selectedUser.studentProfile.dateOfBirth).toLocaleDateString('fr-FR')} ({calcAge(selectedUser.studentProfile.dateOfBirth)} {t('userProfile.age')})</TableCell>
-              </TableRow>
-            )}
-            {staffData?.profession && (
-              <TableRow>
-                <TableCell className="font-semibold text-muted-foreground">{t('userProfile.profession')}</TableCell>
-                <TableCell>{staffData.profession}</TableCell>
               </TableRow>
             )}
             {staffData?.subject && (

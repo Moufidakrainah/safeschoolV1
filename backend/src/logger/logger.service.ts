@@ -77,7 +77,7 @@ export class LoggerService implements NestLoggerService {
 
   auth(data: {
     type: "auth_event";
-    action: "login_success" | "login_failure" | "register";
+    action: "login_success" | "login_failure" ;
     email: string;
     userId?: string;
     userRole?: string;

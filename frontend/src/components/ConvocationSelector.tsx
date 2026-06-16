@@ -10,7 +10,6 @@ interface ConvocationSelectorProps {
 
 export default function ConvocationSelector({ selected, checkedIds, onToggle }: ConvocationSelectorProps) {
   const { t } = useTranslation();
-
   if (!selected) return null;
 
   const people: { id: string; role: string; fullName: string }[] = [];
@@ -31,23 +30,23 @@ export default function ConvocationSelector({ selected, checkedIds, onToggle }: 
     ?.filter((v) => v.resolvedUser && v.resolvedUser.id !== selected.student?.id) ?? [];
   extraVictims.forEach((v, i: number) => {
     people.push({
-      id: `victim_${v.resolvedUser.id}`,
+      id: `victim_${v.resolvedUser?.id ?? ''}`,
       role: extraVictims.length > 1
         ? `${t('admin.convocation.victim')} ${i + 1}`
         : t('admin.convocation.victim'),
-      fullName: `${v.resolvedUser.firstName} ${v.resolvedUser.lastName}`,
+      fullName: `${v.resolvedUser?.firstName ?? ''} ${v.resolvedUser?.lastName ?? ''}`,
     });
   });
 
-  // Suspects liés uniquement
+  // Suspects liés uniquement — utilise s.id pour éviter les doublons
   const linkedSuspects = selected.suspects?.filter((s) => s.resolvedUser) ?? [];
   linkedSuspects.forEach((s, i: number) => {
     people.push({
-      id: `suspect_${s.resolvedUser.id}`,
+      id: `suspect_${s.id}`,
       role: linkedSuspects.length > 1
         ? `${t('admin.convocation.suspect')} ${i + 1}`
         : t('admin.convocation.suspect'),
-      fullName: `${s.resolvedUser.firstName} ${s.resolvedUser.lastName}`,
+      fullName: `${s.resolvedUser?.firstName ?? ''} ${s.resolvedUser?.lastName ?? ''}`,
     });
   });
 

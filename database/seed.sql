@@ -34,12 +34,12 @@ INSERT INTO classes (id, level, section) VALUES
 -- ══════════════════════════════════════════════════════════
 INSERT INTO users (id, email, password, "firstName", "lastName", role, "createdAt", avatar) VALUES
   ('4a0f185a-d3b7-4403-a9d2-3ffbdfcdb1c0', 'admin@safeschool.com',  '$2b$10$ZlV/HvmWiTwVyGWfItPjXO1cM4uFwMYdDs5SAz.fMQRHtOj0/mZs6', 'Sophie',  'MARTIN',   'admin',   NOW(), NULL),
-  ('d3a33eb4-71e7-4d86-8bcc-bdd25ee1382d', 'prof@safeschool.com',   '$2b$10$mHT5tlxMzIpUxBSDqejVAuijCX3vmtLMo8idHOpxBn93h3FJ9dpWq', 'Marie',   'LEROY',    'teacher', NOW(), 'leroy.marie.jpg'),
+  ('d3a33eb4-71e7-4d86-8bcc-bdd25ee1382d', 'prof@safeschool.com',   '$2b$10$mHT5tlxMzIpUxBSDqejVAuijCX3vmtLMo8idHOpxBn93h3FJ9dpWq', 'Marie',   'LEROY',    'teacher', NOW(), NULL),
   ('0a246544-f2f6-42b4-9028-e51bb96c846c', 'prof2@safeschool.com',  '$2b$10$mHT5tlxMzIpUxBSDqejVAuijCX3vmtLMo8idHOpxBn93h3FJ9dpWq', 'Pierre',  'DURAND',   'teacher', NOW(), NULL),
   ('cb43ce40-e5e3-4aa7-8609-e6f8c9b1e98f', 'lotfi@safeschool.com',  '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Lotfi',   'BOUGRINE', 'student', NOW(), 'bougrine.lotfi.jpg'),
   ('dee345e7-2e64-48d2-9ed9-07a84ab342a5', 'danya@safeschool.com',  '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Danya',   'BOUGRINE', 'student', NOW(), 'bougrine.danya.jpg'),
   ('77df6cdc-cfe3-4fbd-b741-8476b8f2840d', 'lina@safeschool.com',   '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Lina',    'BOUGRINE', 'student', NOW(), 'bougrine.lina.jpg'),
-  ('d94e92d5-4f02-4197-9ed9-a6330cc027af', 'lucas@safeschool.com',  '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Lucas',   'BERNARD',  'student', NOW(), 'bernard.lucas.jpg'),
+  ('d94e92d5-4f02-4197-9ed9-a6330cc027af', 'lucas@safeschool.com',  '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Lucas',   'BERNARD',  'student', NOW(), NULL),
   ('f3c61912-5404-4fe2-ac09-a3539a306f46', 'emma@safeschool.com',   '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Emma',    'PETIT',    'student', NOW(), NULL),
   ('a03f6870-c5df-4d66-b735-b16f72c5dd78', 'kevin@safeschool.com',  '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Kevin',   'THOMAS',   'student', NOW(), NULL),
   ('216f54a0-bea2-497a-8c4f-f283c6f2cde2', 'sara@safeschool.com',   '$2b$10$qO85lleK19YaU2JiD2S1re8w/ObulwT4/6Z02FJxjoGVcmMRk.cqW', 'Sara',    'MOULIN',   'student', NOW(), NULL);

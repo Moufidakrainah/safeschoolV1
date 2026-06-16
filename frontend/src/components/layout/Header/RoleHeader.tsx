@@ -1,3 +1,4 @@
+import type { AuthUser } from '@/types';
 import { memo } from 'react';
 import AdminHeader from '@/components/layout/AdminHeader/AdminHeader';
 import StudentHeader from '@/components/layout/StudentHeader/StudentHeader';
@@ -27,9 +28,7 @@ function RoleHeader({
 }: RoleHeaderProps) {
   if (!user) return null;
   switch (user.role) {
-    case 'admin':
-    case 'director':
-      return (
+    case 'admin':      return (
         <AdminHeader
           user={user} logoutUser={logoutUser}
           viewSection={adminViewSection!} setViewSection={adminSetViewSection!}

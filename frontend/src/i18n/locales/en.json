@@ -1,10 +1,4 @@
 {
-  "offline": {
-    "message": "You are offline",
-    "actionUnavailable": "This action is unavailable while you are offline. Please try again once you are reconnected.",
-    "contentUnavailable": "This content cannot be loaded while you are offline. It will load automatically once you are reconnected.",
-    "retry": "Retry"
-  },
   "login": {
     "labelEmail": "Username",
     "labelPassword": "Password",
@@ -14,7 +8,8 @@
     "errorPasswordLength": "The password must contain at least 6 characters.",
     "error": "Incorrect credentials.",
     "errorRequired": "Please fill in all fields.",
-    "keepEmpty": "(leave empty to keep unchanged)"
+    "keepEmpty": "(leave empty to keep unchanged)",
+    "tooManyRequests": "Too many attempts. Please try again in 1 minute."
   },
   "nav": {
     "logout": "Log out"
@@ -112,8 +107,8 @@
       "reporterTemoin": "Witness",
       "unidentified": "Unidentified",
       "unlinked": "Identity not linked",
-      "unlink": "Unlink",
-      "link": "Link",
+      "unlink": "Dissociate",
+      "link": "Associate",
       "searchStudent": "Search for a student...",
       "title": "Report {{caseNumber}}",
       "back": "Back to all reports"
@@ -137,7 +132,7 @@
       "dateTime": "Date and time",
       "placeholder": "Summons message...",
       "messagePlaceholder": "Summons message...",
-      "send": "📤 Send {{count}} summons",
+      "send": "Send {{count}} summons",
       "sending": "Sending...",
       "success": "Summons sent successfully!",
       "hint": "Select the people to summon and set a date and message for each.",
@@ -228,7 +223,7 @@
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Summons",
+    "convocation": "Summons",
     "statusChange": "Status updated",
     "by": "by"
   },
@@ -589,9 +584,9 @@
     "last90": "Last 3 months",
     "last365": "1 year",
     "allClasses": "All classes",
-    "allGrades": "All grades",
+    "allGrades": "All severities",
     "reportsFound": "{{count}} report(s) found",
-    "byGrade": "By grade",
+    "byGrade": "By severity",
     "byStatus": "By status",
     "byClass": "Reports by class (victim)",
     "byType": "Reports by type",
@@ -600,11 +595,15 @@
     "statusInProgress": "In progress",
     "statusResolved": "Resolved",
     "statusPending": "Pending",
-    "statusFalseReport": "False report"
+    "statusFalseReport": "False report",
+    "noData": "No data",
+    "total": "Total",
+    "statusRejected": "False report",
+    "reportsLabel": "Reports"
   },
   "classes": {
     "loading": "Loading...",
-    "backToClasses": "← Back to classes",
+    "backToClasses": "Back to classes",
     "studentsEnrolled": "Enrolled students",
     "noStudentInClass": "No students in this class.",
     "assignStudents": "Assign students from the Users section.",
@@ -632,8 +631,8 @@
   "userProfile": {
     "backToReport": "Back to report",
     "backToList": "Back to list",
-    "prev": "← Previous",
-    "next": "Next →",
+    "prev": "Previous",
+    "next": "Next",
     "changePhoto": "Change photo",
     "uploading": "Uploading...",
     "class": "Class",
@@ -685,6 +684,15 @@
     "parentError": "An error occurred",
     "classCreated": "Class created successfully",
     "classUpdated": "Class updated successfully",
-    "classDeleted": "Class deleted successfully"
+    "classDeleted": "Class deleted successfully",
+    "userCreated": "User created successfully",
+"userUpdated": "User updated successfully",
+"userDeleted": "User deleted successfully"
+  },
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
   }
 }

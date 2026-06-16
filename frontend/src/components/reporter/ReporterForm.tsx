@@ -74,10 +74,12 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 		if (!victimInput.trim() || victimFull) return;
 		const errKey = validateNameKey(victimInput.trim());
 		if (errKey) { setVictimErrorKey(errKey); return; }
+		const existing = victimName ? victimName.split('|').filter(Boolean) : [];
+		if (existing.includes(victimInput.trim())) return;
 		setVictimErrorKey('');
 		setVictimName(prev => prev ? prev + '|' + victimInput.trim() : victimInput.trim());
 		setVictimInput('');
-	};
+		};
 
 	const handleAddSuspect = () => {
 		if (!suspectInput.trim() || suspectFull) return;
@@ -150,11 +152,13 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 								/>
 								<p className="text-xs text-gray-400 text-right mt-1">{description.length}/2000</p>
 								{/* t(clé) au rendu → se met à jour au changement de langue */}
-								{descriptionErrorKey && (
-									<p role="alert" className="mb-4 text-sm text-critical">{t(descriptionErrorKey)}</p>
-								)}
+								{(descriptionErrorKey || (showErrors && !description.trim())) && (
+									<p role="alert" className="mb-4 text-sm text-critical">
+										{descriptionErrorKey ? t(descriptionErrorKey) : t('validation.descRequired')}
+									</p>
+									)}
 								<label className="block mb-2 mt-4 text-m font-semibold">{t("reporter.step3.frequencyLabel")}</label>
-								<Select value={frequency} onValueChange={v => setFrequency(v)}>
+								<Select value={frequency} onValueChange={v => { if (v !== null) setFrequency(v); }}>
 									<SelectTrigger id="frequency" className="bg-white">
 										<SelectValue>
 											{{ "Une fois": t("reporter.step3.freq1"), "Deux fois": t("reporter.step3.freq2"), "Trois fois ou plus": t("reporter.step3.freq3"), "Tous les jours": t("reporter.step3.freq4") }[frequency] || t("reporter.step3.frequencyPlaceholder")}
@@ -167,9 +171,11 @@ export default function ReporterForm({ user }: ReporterFormProps) {
 										<SelectItem value="Tous les jours">{t("reporter.step3.freq4")}</SelectItem>
 									</SelectContent>
 								</Select>
-								{frequencyErrorKey && (
-									<p role="alert" className="mt-2 text-sm text-critical">{t(frequencyErrorKey)}</p>
-								)}
+								{(frequencyErrorKey || (showErrors && !frequency)) && (
+									<p role="alert" className="mt-2 text-sm text-critical">
+										{frequencyErrorKey ? t(frequencyErrorKey) : t('reporter.validation.frequencyRequired')}
+									</p>
+									)}
 							</div>
 						)}
 

@@ -37,15 +37,15 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/';
     }
+    if (error.response?.status === 429) {
+      // L'erreur sera catchée dans le composant Login
+    }
     return Promise.reject(error);
   }
 );
 
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
-
-export const register = async (email: string, password: string, firstName: string, lastName: string) =>
-  (await api.post('/auth/register', { email, password, firstName, lastName })).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
 
@@ -127,7 +127,7 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
 export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
 
-export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentProfileId: string }) =>
+export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentIds: string[] }) =>
   (await api.post('/parents', dto)).data;
 export const updateParent = async (id: string, dto: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string }) =>
   (await api.patch(`/parents/${id}`, dto)).data;

@@ -1,3 +1,4 @@
+import type { SchoolClass } from '@/types';
 import type { AdminUser } from '@/types';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ interface AdminUsersListProps {
     onSetShowUserForm: (v: boolean) => void;                  // afficher/cacher le formulaire
     onSaveUser: () => void;                                   // sauvegarder un utilisateur
     onValidateAll: () => boolean;                             // valider tous les champs du formulaire
-    renderUserForm: (isEdit: boolean) => JSX.Element;  // le formulaire d'ajout
+    renderUserForm: (isEdit: boolean) => React.ReactElement;  // le formulaire d'ajout
 }
 
 export default function AdminUserList({
@@ -46,7 +47,7 @@ export default function AdminUserList({
   avatarTimestamps,
   usersTotalPages,
   showUserForm,
-  isFormValid,
+  isFormValid: _isFormValid,
   onSetUsersSearch,
   onSetUsersSort,
   onSetUsersRoleFilter,

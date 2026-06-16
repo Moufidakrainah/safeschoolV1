@@ -55,9 +55,15 @@ export default function Login() {
       if (data.user.role === 'student') navigate('/student');
       else if (data.user.role === 'teacher') navigate('/reporter');
       else navigate('/dashboard');
-    } catch (err) {
-      setError(t(isOfflineError(err) ? 'offline.actionUnavailable' : 'login.error'));
-    } finally {
+    } catch (err: unknown) {
+  if (isOfflineError(err)) {
+    setError(t('offline.actionUnavailable'));
+  } else if ((err as { response?: { status?: number } })?.response?.status === 429) {
+    setError(t('login.tooManyRequests'));
+  } else {
+    setError(t('login.error'));
+  }
+} finally {
       setLoading(false);
     }
   };
@@ -110,7 +116,7 @@ export default function Login() {
           </div>
 
           <div className="min-h-10 w-full">
-            {error && <p className="text-red-300 text-l w-full text-center">{t('login.error')}</p>}
+            {error && <p className="text-red-300 text-l w-full text-center">{error}</p>}
           </div>
 
           <Button type="submit" variant="login" disabled={loading || !isFormValid()}>
