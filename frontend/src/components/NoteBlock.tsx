@@ -66,9 +66,9 @@ export default function NoteBlock({ note, severityColor, isAdmin = false }: Note
 
   return (
     <div
-      style={{ borderLeft: `3px solid ${borderColor}` }}
-      className="p-3 m-3 bg-gray-50"
-    >
+  style={{ borderLeftColor: borderColor }}
+  className="p-3 m-3 bg-gray-50 border-l-[3px]"
+>
       <div className="flex justify-between mb-1">
         <span className="text-xs font-semibold" style={{ color: borderColor }}>
           {typeLabel}

@@ -71,6 +71,11 @@ export default function AdminUserProfile({
   }, [selectedUser?.id, selectedUser?.staffProfile]);
 
   const handleAvatarChange = async (file: File) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowedTypes.includes(file.type)) {
+    toast.error(t('toast.avatarError'));
+    return;
+  }
     setUploadingAvatarId(selectedUser.id);
     try {
       await onHandleAvatarUpload(selectedUser.id, file);

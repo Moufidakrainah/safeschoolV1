@@ -37,6 +37,9 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/';
     }
+    if (error.response?.status === 429) {
+      // L'erreur sera catchée dans le composant Login
+    }
     return Promise.reject(error);
   }
 );
