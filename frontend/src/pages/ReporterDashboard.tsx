@@ -11,21 +11,21 @@
  */
 
 // React & libs
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Contexts & hooks
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/context/AuthContext";
 
 // API services
-import { getStaffProfile } from '@/services/api';
-import type { StaffProfile } from '@/types';
+import { getStaffProfile } from "@/services/api";
+import type { StaffProfile } from "@/types";
 
 // UI components
 // import ReporterHeader from '@/components/layout/ReporterHeader/ReporterHeader';
-import ReporterProfile from '@/components/reporter/ReporterProfile';
-import ReporterForm from '@/components/reporter/ReporterForm';
-import RoleHeader from '@/components/layout/Header/RoleHeader';
+import ReporterProfile from "@/components/reporter/ReporterProfile";
+import ReporterForm from "@/components/reporter/ReporterForm";
+import RoleHeader from "@/components/layout/Header/RoleHeader";
 
 export default function ReporterDashboard() {
   const { user, logoutUser } = useAuth();
@@ -33,8 +33,8 @@ export default function ReporterDashboard() {
 
   // Lecture du query param ?section= pour la prise en charge des liens directs
   const [searchParams] = useSearchParams();
-  const [viewSection, setViewSection] = useState<'profile' | 'report' | 'quiz'>(
-    (searchParams.get('section') as 'profile' | 'report' | 'quiz') ?? 'report'
+  const [viewSection, setViewSection] = useState<"profile" | "report" | "quiz">(
+    (searchParams.get("section") as "profile" | "report" | "quiz") ?? "report",
   );
 
   // Profil professionnel — chargé une seule fois à l'arrivée sur la page
@@ -45,41 +45,37 @@ export default function ReporterDashboard() {
     if (user?.id) {
       setLoadingProfile(true);
       getStaffProfile(user.id)
-        .then(data => setStaffProfile(data))
+        .then((data) => setStaffProfile(data))
         .catch(() => setStaffProfile(null))
         .finally(() => setLoadingProfile(false));
     }
   }, [user?.id]);
 
   useEffect(() => {
-    if (viewSection === 'quiz') navigate('/quiz');
+    if (viewSection === "quiz") navigate("/quiz");
   }, [viewSection, navigate]);
-
 
   return (
     <>
       {/* <ReporterHeader {...headerProps} /> */}
-    <main className="bg-gray-50 font-sans">
-
-		<RoleHeader
-			user={user}
-			logoutUser={logoutUser}
-			reporterViewSection={viewSection}
-			reporterSetViewSection={setViewSection}
-			/>
-      <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
-
-      {viewSection === 'profile' && (
-        <ReporterProfile
+      <main className="bg-gray-50 font-sans">
+        <RoleHeader
           user={user}
-          staffProfile={staffProfile}
-          loadingProfile={loadingProfile}
+          logoutUser={logoutUser}
+          reporterViewSection={viewSection}
+          reporterSetViewSection={setViewSection}
         />
-      )}
-      {viewSection === 'report' && <ReporterForm user={user} />}
-
-      </div>
-    </main>
+        <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+          {viewSection === "profile" && (
+            <ReporterProfile
+              user={user}
+              staffProfile={staffProfile}
+              loadingProfile={loadingProfile}
+            />
+          )}
+          {viewSection === "report" && <ReporterForm user={user} />}
+        </div>
+      </main>
     </>
   );
 }

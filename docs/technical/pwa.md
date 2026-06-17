@@ -8,36 +8,49 @@ Built using `vite-plugin-pwa` on top of the existing Vite configuration.
 
 ```ts
 // vite.config.ts
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      registerType: "autoUpdate",
+      injectRegister: "auto",
       manifest: {
-        name: 'Safe School',
-        short_name: 'Safe School',
-        theme_color: '#0f5a63',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
+        name: "Safe School",
+        short_name: "Safe School",
+        theme_color: "#0f5a63",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
         icons: [
-          { src: '/logos/safeschool-logo.png', sizes: '192x192', type: 'image/png' },
-          { src: '/logos/safeschool-logo.png', sizes: '512x512', type: 'image/png' },
-          { src: '/logos/safeschool-logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: "/logos/safeschool-logo.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "/logos/safeschool-logo.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "/logos/safeschool-logo.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
       workbox: {
         // Precache the build; serve index.html offline except for the API and WebSocket
-        navigateFallback: '/index.html',
+        navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api/, /^\/socket\.io/],
       },
     }),
   ],
-})
+});
 ```
 
 ## Features
@@ -59,8 +72,8 @@ SafeSchool is used in a school environment where students and staff may rely on 
 
 This project ships a **self-signed** TLS certificate (no public domain or trusted CA). That makes two otherwise-related things behave differently, which is a common source of confusion:
 
-- **Installing** the app only requires a *secure context*. The browser grants `localhost` a secure context automatically, even with a self-signed (untrusted) certificate — so the install prompt appears, and the page renders, on the host machine.
-- **Registering the service worker** — the part that actually caches the app shell and makes it load offline — requires the certificate to be *trusted*. The service worker script (`sw.js`) is fetched over a connection that must have **no certificate error**. Clicking "Proceed anyway" on the browser warning works for normal page navigation and subresources, but the service worker fetch ignores that bypass and keeps failing with:
+- **Installing** the app only requires a _secure context_. The browser grants `localhost` a secure context automatically, even with a self-signed (untrusted) certificate — so the install prompt appears, and the page renders, on the host machine.
+- **Registering the service worker** — the part that actually caches the app shell and makes it load offline — requires the certificate to be _trusted_. The service worker script (`sw.js`) is fetched over a connection that must have **no certificate error**. Clicking "Proceed anyway" on the browser warning works for normal page navigation and subresources, but the service worker fetch ignores that bypass and keeps failing with:
 
   ```
   An SSL certificate error occurred when fetching the script.
@@ -72,15 +85,15 @@ This project ships a **self-signed** TLS certificate (no public domain or truste
 
 ### Behaviour per environment
 
-| Environment | Secure context? | Certificate valid? | Service worker registers? | Offline works? |
-|---|---|---|---|---|
-| `make dev` over `http://localhost` | Yes (`localhost` waiver) | n/a — no TLS | Yes | Yes |
-| Prod `https://localhost:8443`, cert **untrusted** | Yes (`localhost`) | No (click-through only) | No | No |
-| Prod `https://localhost:8443`, cert **trusted** | Yes | Yes | Yes | Yes |
-| Other device over LAN IP, cert **untrusted** | No | No | No | No |
-| Other device over LAN IP, cert **trusted** | Yes | Yes | Yes | Yes |
+| Environment                                       | Secure context?          | Certificate valid?      | Service worker registers? | Offline works? |
+| ------------------------------------------------- | ------------------------ | ----------------------- | ------------------------- | -------------- |
+| `make dev` over `http://localhost`                | Yes (`localhost` waiver) | n/a — no TLS            | Yes                       | Yes            |
+| Prod `https://localhost:8443`, cert **untrusted** | Yes (`localhost`)        | No (click-through only) | No                        | No             |
+| Prod `https://localhost:8443`, cert **trusted**   | Yes                      | Yes                     | Yes                       | Yes            |
+| Other device over LAN IP, cert **untrusted**      | No                       | No                      | No                        | No             |
+| Other device over LAN IP, cert **trusted**        | Yes                      | Yes                     | Yes                       | Yes            |
 
-The takeaway: to get real offline support — on the host machine *or* on a phone/tablet/other computer — that device must **trust the certificate** (`nginx/certs/fullchain.pem`). In `make dev` over HTTP it works out of the box because there is no certificate to validate.
+The takeaway: to get real offline support — on the host machine _or_ on a phone/tablet/other computer — that device must **trust the certificate** (`nginx/certs/fullchain.pem`). In `make dev` over HTTP it works out of the box because there is no certificate to validate.
 
 ### Trusting the certificate in Chrome (GUI, no terminal)
 

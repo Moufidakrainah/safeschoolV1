@@ -17,10 +17,12 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,  // fenêtre de 60 secondes
-      limit: 20,   // max 20 requêtes par fenêtre
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // fenêtre de 60 secondes
+        limit: 20, // max 20 requêtes par fenêtre
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.DB_HOST,

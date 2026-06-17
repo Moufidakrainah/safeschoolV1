@@ -10,17 +10,17 @@ The module requires a minimum of 10 reusable components with a consistent design
 
 These components are copied into the project as owned code (not a runtime dependency). They are built on **Base UI** headless primitives, which provide keyboard navigation, focus management, and ARIA compliance out of the box.
 
-| Component | File | Base UI primitive | Usage in SafeSchool |
-|---|---|---|---|
-| Button | `ui/button.tsx` | `@base-ui/react/button` | Generic action buttons, form submits, icon buttons |
-| Badge | `ui/badge.tsx` | — | Semantic status labels |
-| Input | `ui/input.tsx` | `@base-ui/react/input` | Basic text form fields |
-| Label | `ui/label.tsx` | — | Accessible labels for form fields |
-| Select | `ui/select.tsx` | `@base-ui/react/select` | Accessible dropdown selectors |
-| Card | `ui/card.tsx` | — | Content containers with Header / Content / Footer slots |
-| Separator | `ui/separator.tsx` | `@base-ui/react/separator` | Horizontal and vertical visual dividers |
-| Avatar | `ui/avatar.tsx` | `@base-ui/react/avatar` | User profile pictures with initials fallback |
-| Tabs | `ui/tabs.tsx` | `@base-ui/react/tabs` | Tabbed navigation panels |
+| Component | File               | Base UI primitive          | Usage in SafeSchool                                     |
+| --------- | ------------------ | -------------------------- | ------------------------------------------------------- |
+| Button    | `ui/button.tsx`    | `@base-ui/react/button`    | Generic action buttons, form submits, icon buttons      |
+| Badge     | `ui/badge.tsx`     | —                          | Semantic status labels                                  |
+| Input     | `ui/input.tsx`     | `@base-ui/react/input`     | Basic text form fields                                  |
+| Label     | `ui/label.tsx`     | —                          | Accessible labels for form fields                       |
+| Select    | `ui/select.tsx`    | `@base-ui/react/select`    | Accessible dropdown selectors                           |
+| Card      | `ui/card.tsx`      | —                          | Content containers with Header / Content / Footer slots |
+| Separator | `ui/separator.tsx` | `@base-ui/react/separator` | Horizontal and vertical visual dividers                 |
+| Avatar    | `ui/avatar.tsx`    | `@base-ui/react/avatar`    | User profile pictures with initials fallback            |
+| Tabs      | `ui/tabs.tsx`      | `@base-ui/react/tabs`      | Tabbed navigation panels                                |
 
 ---
 
@@ -30,17 +30,17 @@ Application-specific components built for SafeSchool's domain. They wrap or exte
 
 The practical rule is simple: if a component could be reused in another product without knowing anything about reports, roles, or quiz flows, it belongs in `components/ui/`. If it encodes SafeSchool-specific vocabulary, states, or workflows, it belongs in the application layer.
 
-| Component | File | Description |
-|---|---|---|
-| AppButton | `Button.tsx` | Extended button with application variants: `primary`, `danger`, `warning`, `success`, `login` |
-| AppBadge | `Badge.tsx` | Badge with severity variants (`critical` / `high` / `medium` / `low`) and report status variants (`pending` / `in_progress` / `closed` / …) |
-| AppCard | `Card.tsx` | White card with optional colored left border accent, used for report summaries and dashboard panels |
-| AppInput | `Input.tsx` | Text field with integrated label and light/dark theme variants |
-| AppSelect | `Select.tsx` | Styled native select for role and status filter controls |
-| StatCard | `StatCard.tsx` | Statistics card showing a numeric metric with a color accent and active state |
-| NoteBlock | `NoteBlock.tsx` | Administrative note or convocation block with author name and timestamp |
-| StepBar | `StepBar.tsx` | Multi-step progress bar for the report submission flow |
-| Pagination | `Pagination.tsx` | Page navigation controls for paginated lists (reports, users) |
+| Component  | File             | Description                                                                                                                                 |
+| ---------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| AppButton  | `Button.tsx`     | Extended button with application variants: `primary`, `danger`, `warning`, `success`, `login`                                               |
+| AppBadge   | `Badge.tsx`      | Badge with severity variants (`critical` / `high` / `medium` / `low`) and report status variants (`pending` / `in_progress` / `closed` / …) |
+| AppCard    | `Card.tsx`       | White card with optional colored left border accent, used for report summaries and dashboard panels                                         |
+| AppInput   | `Input.tsx`      | Text field with integrated label and light/dark theme variants                                                                              |
+| AppSelect  | `Select.tsx`     | Styled native select for role and status filter controls                                                                                    |
+| StatCard   | `StatCard.tsx`   | Statistics card showing a numeric metric with a color accent and active state                                                               |
+| NoteBlock  | `NoteBlock.tsx`  | Administrative note or convocation block with author name and timestamp                                                                     |
+| StepBar    | `StepBar.tsx`    | Multi-step progress bar for the report submission flow                                                                                      |
+| Pagination | `Pagination.tsx` | Page navigation controls for paginated lists (reports, users)                                                                               |
 
 ---
 
@@ -59,13 +59,15 @@ Full visual specification: [`design/graphic-charter.md`](../design/graphic-chart
 ## Import Convention
 
 UI primitives are imported from `@/components/ui/`:
+
 ```tsx
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 ```
 
 Application components are imported by relative path:
+
 ```tsx
-import AppBadge from '../components/Badge'
+import AppBadge from "../components/Badge";
 ```
 
 Both `Badge` and `Card` and `Input` and `Select` exist in both layers. The import path determines which version is used.
@@ -76,7 +78,7 @@ This separation keeps the design system maintainable: primitives stay generic an
 
 ## Additional Frontend Libraries
 
-| Library | Packages | Usage |
-|---|---|---|
+| Library                  | Packages                                                         | Usage                                                                                                                                               |
+| ------------------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Internationalisation** | `i18next` · `react-i18next` · `i18next-browser-languagedetector` | Three languages (fr / en / de) in `src/i18n/`. Language is detected automatically from the browser. Hook `useTranslation()` used in each component. |
-| **Charts** | `recharts` | Declarative chart components (`<BarChart>`, `<LineChart>`, etc.) used in `StatsDashboard.tsx`. |
+| **Charts**               | `recharts`                                                       | Declarative chart components (`<BarChart>`, `<LineChart>`, etc.) used in `StatsDashboard.tsx`.                                                      |

@@ -6,9 +6,9 @@
 // Ce fichier expose cn(), un helper qui fusionne des classes Tailwind :
 //   cn("px-4", condition && "bg-primary")  →  "px-4 bg-primary" (ou "px-4")
 // Il est importé par tous les composants shadcn dans src/components/ui/.
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }

@@ -57,7 +57,11 @@ export default function StudentDashboard() {
         )}
         {viewSection === "report" && <StudentForm user={user} />}
         {viewSection === "cases" && (
-          <StudentCases user={user} onNotifRefresh={handleNotifRefresh} refreshKey={notifRefreshKey} />
+          <StudentCases
+            user={user}
+            onNotifRefresh={handleNotifRefresh}
+            refreshKey={notifRefreshKey}
+          />
         )}
       </div>
     </main>

@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response, NextFunction } from "express";
 import { LoggerService } from "./logger.service";
-import { JwtUser } from '../common/interfaces/jwt-user.interface';
+import { JwtUser } from "../common/interfaces/jwt-user.interface";
 
 @Injectable()
 export class HttpLoggerMiddleware implements NestMiddleware {

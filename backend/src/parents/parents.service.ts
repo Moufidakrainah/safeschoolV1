@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In } from "typeorm";
 import { Parent } from "./parent.entity";
@@ -10,7 +14,8 @@ import { UpdateParentDto } from "./dto/update-parent.dto";
 export class ParentsService {
   constructor(
     @InjectRepository(Parent) private parentsRepo: Repository<Parent>,
-    @InjectRepository(StudentProfile) private studentRepo: Repository<StudentProfile>,
+    @InjectRepository(StudentProfile)
+    private studentRepo: Repository<StudentProfile>,
   ) {}
 
   // Création d'un parent
@@ -20,10 +25,10 @@ export class ParentsService {
       for (const studentId of dto.studentIds) {
         const student = await this.studentRepo.findOne({
           where: { id: studentId },
-          relations: ['parents'],
+          relations: ["parents"],
         });
         if (student && student.parents?.length >= 2) {
-          throw new BadRequestException('MAX_PARENTS_REACHED');
+          throw new BadRequestException("MAX_PARENTS_REACHED");
         }
       }
     }
@@ -47,16 +52,16 @@ export class ParentsService {
 
   // Récupération de tous les parents
   async findAll(): Promise<Parent[]> {
-    return this.parentsRepo.find({ relations: ['students', 'students.user'] });
+    return this.parentsRepo.find({ relations: ["students", "students.user"] });
   }
 
   // Récupération d'un parent par son id
   async findOne(id: string): Promise<Parent> {
     const parent = await this.parentsRepo.findOne({
       where: { id },
-      relations: ['students', 'students.user'],
+      relations: ["students", "students.user"],
     });
-    if (!parent) throw new NotFoundException('Parent introuvable');
+    if (!parent) throw new NotFoundException("Parent introuvable");
     return parent;
   }
 

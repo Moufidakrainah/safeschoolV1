@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { SchoolClass } from "./school-class.entity";
@@ -11,7 +16,7 @@ export class ClassesService {
 
   // Création d'une nouvelle classe
   async create(level: string, section: string): Promise<SchoolClass> {
-    const trimmedLevel   = level.trim();
+    const trimmedLevel = level.trim();
     const trimmedSection = section.trim().toUpperCase();
 
     // ── Vérification doublon ──
@@ -19,11 +24,11 @@ export class ClassesService {
       where: { level: trimmedLevel, section: trimmedSection },
     });
     if (existing) {
-      throw new ConflictException('CLASS_ALREADY_EXISTS');
+      throw new ConflictException("CLASS_ALREADY_EXISTS");
     }
 
     const schoolClass = this.classRepo.create({
-      level:   trimmedLevel,
+      level: trimmedLevel,
       section: trimmedSection,
     });
     return this.classRepo.save(schoolClass);
@@ -45,21 +50,26 @@ export class ClassesService {
   }
 
   // Modification d'une classe
-  async update(id: string, dto: { level?: string; section?: string }): Promise<SchoolClass> {
+  async update(
+    id: string,
+    dto: { level?: string; section?: string },
+  ): Promise<SchoolClass> {
     const schoolClass = await this.findOne(id);
 
-    const newLevel   = dto.level   ? dto.level.trim()                    : schoolClass.level;
-    const newSection = dto.section ? dto.section.trim().toUpperCase()     : schoolClass.section;
+    const newLevel = dto.level ? dto.level.trim() : schoolClass.level;
+    const newSection = dto.section
+      ? dto.section.trim().toUpperCase()
+      : schoolClass.section;
 
     // ── Vérification doublon (exclure la classe en cours de modification) ──
     const existing = await this.classRepo.findOne({
       where: { level: newLevel, section: newSection },
     });
     if (existing && existing.id !== id) {
-      throw new ConflictException('CLASS_ALREADY_EXISTS');
+      throw new ConflictException("CLASS_ALREADY_EXISTS");
     }
 
-    schoolClass.level   = newLevel;
+    schoolClass.level = newLevel;
     schoolClass.section = newSection;
     return this.classRepo.save(schoolClass);
   }
@@ -68,13 +78,13 @@ export class ClassesService {
   async remove(id: string): Promise<void> {
     const schoolClass = await this.findOne(id);
     const studentCount = await this.classRepo
-      .createQueryBuilder('class')
-      .leftJoin('student_profiles', 'sp', 'sp."classId" = class.id')
-      .where('class.id = :id', { id })
-      .andWhere('sp.id IS NOT NULL')
+      .createQueryBuilder("class")
+      .leftJoin("student_profiles", "sp", 'sp."classId" = class.id')
+      .where("class.id = :id", { id })
+      .andWhere("sp.id IS NOT NULL")
       .getCount();
     if (studentCount > 0) {
-      throw new BadRequestException('CLASS_HAS_STUDENTS');
+      throw new BadRequestException("CLASS_HAS_STUDENTS");
     }
     await this.classRepo.remove(schoolClass);
   }

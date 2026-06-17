@@ -19,23 +19,29 @@ my-module/
 The application bootstrap does three things:
 
 **1. Create the NestJS application**
+
 ```ts
 const app = await NestFactory.create<NestExpressApplication>(AppModule);
 ```
+
 `AppModule` is the root module that imports and connects all other modules.
 
 **2. Configure CORS**
+
 ```ts
 app.enableCors({ origin: process.env.FRONTEND_URL, ... })
 ```
+
 Required because the frontend (Vite dev server) and the backend run on different ports. Without this, the browser's same-origin policy would block API calls.
 
 In development, `http://localhost:5173` and `http://localhost:5000` are considered two different origins by the browser. `FRONTEND_URL` explicitly tells NestJS which frontend origin is allowed to call the API.
 
 **3. Serve static files (avatars)**
+
 ```ts
-app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' })
+app.useStaticAssets(join(__dirname, "..", "uploads"), { prefix: "/uploads" });
 ```
+
 Uploaded avatar files are stored in `backend/uploads/avatars/`. This line tells the server to serve them directly when a request hits `/uploads/avatars/<filename>`.
 
 ---
@@ -45,17 +51,20 @@ Uploaded avatar files are stored in `backend/uploads/avatars/`. This line tells 
 The root module wires the application together. Two key configurations happen here:
 
 **Database connection (TypeORM)**
+
 ```ts
 TypeOrmModule.forRoot({
   type: "postgres",
   entities: [__dirname + "/**/*.entity{.ts,.js}"],
   synchronize: true,
-})
+});
 ```
+
 - `entities` — NestJS scans all `*.entity.ts` files automatically and creates the corresponding tables.
 - `synchronize: true` — on startup, TypeORM compares entities against the real database and applies changes. Appropriate for development; should be replaced with migrations in production.
 
 **Global HTTP logging middleware**
+
 ```ts
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
@@ -63,9 +72,11 @@ export class AppModule implements NestModule {
   }
 }
 ```
+
 Every incoming HTTP request passes through `HttpLoggerMiddleware` before reaching any controller. This is where logs are sent to Logstash (ELK stack).
 
 **Expected console output on startup**
+
 ```
 [NestFactory] Starting Nest application...
 [InstanceLoader] TypeOrmModule dependencies initialized
@@ -85,6 +96,7 @@ Every incoming HTTP request passes through `HttpLoggerMiddleware` before reachin
 ## Authentication
 
 ### `user.entity.ts`
+
 ```ts
 @Entity("users")
 export class User {
@@ -94,12 +106,15 @@ export class User {
   @Column({ type: "enum", enum: UserRole }) role: UserRole;
 }
 ```
+
 Key points:
+
 - `@PrimaryGeneratedColumn("uuid")` — TypeORM generates a UUID for each new user automatically.
 - `{ select: false }` on `password` — the password hash is never returned by default `SELECT` queries, even `SELECT *`.
 - `UserRole` is a TypeScript enum that becomes a PostgreSQL enum in the database.
 
 ### `auth.service.ts` — login flow
+
 ```
 POST /auth/login
   → AuthController.login()
@@ -109,9 +124,11 @@ POST /auth/login
     → jwtService.sign(payload)                ← generate the token
   ← returns { access_token, user }
 ```
+
 Passwords are never stored in plain text. `bcrypt.hash()` generates an irreversible hash on registration; `bcrypt.compare()` verifies the submitted password against the stored hash on login.
 
 ### `jwt.strategy.ts` — token verification
+
 ```ts
 export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload) {
@@ -119,7 +136,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 }
 ```
+
 On every protected request:
+
 1. NestJS reads the `Authorization: Bearer <token>` header
 2. Verifies the signature against `JWT_SECRET`
 3. Decodes the payload `{ sub, email, role }`
@@ -135,11 +154,16 @@ Controllers do not need to decode the token manually. Once the guard and strateg
 TypeORM offers two ways to query the database:
 
 **Simple (built-in methods)**
+
 ```ts
-this.usersRepository.findOne({ where: { email }, relations: ['studentProfile'] })
+this.usersRepository.findOne({
+  where: { email },
+  relations: ["studentProfile"],
+});
 ```
 
 **Complex (QueryBuilder)**
+
 ```ts
 this.usersRepository
   .createQueryBuilder("user")
@@ -148,6 +172,7 @@ this.usersRepository
   .limit(5)
   .getMany();
 ```
+
 QueryBuilder supports complex SQL (JOIN, LIKE, filters) while staying in TypeScript. Always use named parameters (`:param`) — never string concatenation — to prevent SQL injection.
 
 ---
