@@ -13,6 +13,7 @@ interface AdminHeaderProps {
   setSelected: (r: Report | null) => void;
   setView: (v: "list" | "detail") => void;
   fetchUsers: () => void;
+  onLogoClick?: () => void;
 }
 
 export default function AdminHeader({
@@ -23,6 +24,7 @@ export default function AdminHeader({
   setSelected,
   setView,
   fetchUsers,
+  onLogoClick,
 }: AdminHeaderProps) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -106,8 +108,10 @@ export default function AdminHeader({
         <img
           src="/logos/safeschool-logo.png"
           alt="SafeSchool"
-          className="h-10"
-		  onClick={() => setViewSection('reports')}
+          className="h-10 cursor-pointer"
+          onClick={() =>
+            onLogoClick ? onLogoClick() : setViewSection("reports")
+          }
         />
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -127,8 +131,10 @@ export default function AdminHeader({
         <img
           src="/logos/safeschool-logo.png"
           alt="SafeSchool"
-          className="h-10 md:h-14"
-		  onClick={() => setViewSection('reports')}
+          className="h-10 md:h-14 cursor-pointer"
+          onClick={() =>
+            onLogoClick ? onLogoClick() : setViewSection("reports")
+          }
         />
         <NavButtons />
       </nav>

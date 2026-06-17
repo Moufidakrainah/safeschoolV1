@@ -12,6 +12,7 @@ interface RoleHeaderProps {
   adminFetchUsers?: () => void;
   adminSetSelected?: (r: Report | null) => void;
   adminSetView?: (v: "list" | "detail") => void;
+  adminOnLogoClick?: () => void;
   studentViewSection?: "profile" | "report" | "quiz" | "cases";
   studentSetViewSection?: (s: "profile" | "report" | "quiz" | "cases") => void;
   studentNotifRefreshKey?: number;
@@ -28,6 +29,7 @@ function RoleHeader({
   adminFetchUsers,
   adminSetSelected,
   adminSetView,
+  adminOnLogoClick,
   studentViewSection,
   studentSetViewSection,
   studentNotifRefreshKey,
@@ -47,6 +49,7 @@ function RoleHeader({
           fetchUsers={adminFetchUsers!}
           setSelected={adminSetSelected ?? (() => {})}
           setView={adminSetView ?? (() => {})}
+          onLogoClick={adminOnLogoClick}
         />
       );
     case "student":

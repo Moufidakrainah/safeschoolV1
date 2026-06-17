@@ -86,6 +86,7 @@ export default function StudentHeader({
   }, [reconnectKey, fetchNotifs]);
 
   const handleNotifClick = async (notif: Notification) => {
+    setViewSection("cases");
     if (!notif.isRead) {
       try {
         await markNotificationRead(notif.id);

@@ -132,7 +132,7 @@ export default function Header({
                   className="
                   fixed inset-0 z-50 flex items-start justify-center pt-24
                   bg-black/30
-                  md:absolute md:inset-auto md:right-0
+                  md:absolute md:inset-auto md:right-0 md:top-full md:pt-2
                   md:flex md:items-start md:justify-end md:bg-transparent
                   "
                 >
