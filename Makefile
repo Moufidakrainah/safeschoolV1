@@ -1,4 +1,3 @@
-
 COMPOSE = docker compose
 COMPOSE_PROD = docker compose -f docker-compose.yml -f docker-compose.prod.yml
 CERT_DIR = nginx/certs
@@ -161,8 +160,10 @@ wait-schema: # Attendre que TypeORM crée le schéma
 
 seed: wait-schema ## Injecter les données de démonstration
 	$(COMPOSE) exec -T database sh -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < $(SEED_FILE)
-	@mkdir -p backend/uploads/avatars
-	@cp database/avatars/* backend/uploads/avatars/
+	@$(COMPOSE) exec -T backend sh -c 'mkdir -p /app/uploads/avatars'
+	@$(COMPOSE) cp database/avatars/bougrine.danya.jpg backend:/app/uploads/avatars/
+	@$(COMPOSE) cp database/avatars/bougrine.lina.jpg backend:/app/uploads/avatars/
+	@$(COMPOSE) cp database/avatars/bougrine.lotfi.jpg backend:/app/uploads/avatars/
 	@echo "Avatars copiés."
 
 seed-if-empty: wait-schema ## Seeder seulement si la base est vide
@@ -254,11 +255,27 @@ test-report-short: ## Tester signalement avec description trop courte (attendu: 
 test-no-token: ## Tester accès sans token (attendu: 401)
 	@curl -s http://localhost:5000/reports | python3 -m json.tool
 
+test-throttle: ## Tester le rate limiting sur /auth/login (attendu: 7x400 puis 429, puis 200 après 60s)
+	@echo "=== Test throttling login (7 tentatives max) ==="
+	@for i in $$(seq 1 10); do \
+		curl -s -o /dev/null -w "Tentative $$i: %{http_code}\n" \
+			-X POST http://localhost:5000/auth/login \
+			-H "Content-Type: application/json" \
+			-d '{"email":"lotfi@safeschool.com","password":"mauvaismdp"}'; \
+	done
+	@echo "Attente 60 secondes avant reset..."
+	@sleep 60
+	@echo "Tentative après reset :"
+	@curl -s -o /dev/null -w "Login valide: %{http_code}\n" \
+		-X POST http://localhost:5000/auth/login \
+		-H "Content-Type: application/json" \
+		-d '{"email":"lotfi@safeschool.com","password":"ELEVEeleve123123+"}'
+
 test-auth: test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok ## Lancer tous les tests auth
 
 test-reports: test-report-spam test-report-short test-no-token ## Lancer tous les tests reports
 
-test-all: test-auth test-reports ## Lancer tous les tests curl
+test-all: test-auth test-reports test-throttle ## Lancer tous les tests curl
 
 test-decode-token: ## Décoder le payload du token JWT de Lotfi
 	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
