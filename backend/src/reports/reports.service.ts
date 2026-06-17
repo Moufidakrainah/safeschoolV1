@@ -41,7 +41,7 @@ export class ReportsService {
         type,
         description,
         frequency,
-        (
+		(
           student as {
             studentProfile?: { schoolClass?: { level?: string } };
           }
@@ -185,7 +185,6 @@ export class ReportsService {
         rejected: "Rejeté",
       };
       const label = statusLabels[updates.status] ?? updates.status;
-      // ── Créer la note avec l'auteur ──
       await this.notesRepository.save(
         this.notesRepository.create({
           report,
@@ -222,7 +221,7 @@ export class ReportsService {
     targetRole?: string,
   ): Promise<ReportNote> {
     const report = await this.findOne(reportId);
-    const note = this.notesRepository.create({
+	const note = this.notesRepository.create({
       report,
       content,
       type,
@@ -251,10 +250,8 @@ export class ReportsService {
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
-        const userId = targetRole.slice("suspect_".length);
-        const suspect = report.suspects?.find(
-          (s) => s.resolvedUser?.id === userId,
-        );
+        const suspectId = targetRole.slice("suspect_".length);
+        const suspect = report.suspects?.find((s) => s.id === suspectId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id,
