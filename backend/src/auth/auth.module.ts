@@ -13,11 +13,11 @@ import { JwtStrategy } from "./jwt.strategy";
     JwtModule.registerAsync({
       useFactory: () => {
         const secret = process.env.JWT_SECRET;
-        if (!secret) throw new Error('JWT_SECRET non défini');
+        if (!secret) throw new Error("JWT_SECRET non défini");
         return {
           secret,
-          signOptions: { expiresIn: '24h', algorithm: 'HS256' },
-          verifyOptions: { algorithms: ['HS256'] },
+          signOptions: { expiresIn: "24h", algorithm: "HS256" },
+          verifyOptions: { algorithms: ["HS256"] },
         };
       },
     }),

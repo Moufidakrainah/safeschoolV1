@@ -27,12 +27,12 @@ Client ←──────────────────→ Server
 
 NestJS handles two types of network entry points:
 
-| | Controller | Gateway |
-|---|---|---|
-| Protocol | HTTP | WebSocket (Socket.IO) |
-| Trigger | Client request | Named event (`emit`) |
-| Decorator | `@Get()`, `@Post()`… | `@SubscribeMessage('name')` |
-| Bidirectional | ❌ | ✅ |
+|               | Controller           | Gateway                     |
+| ------------- | -------------------- | --------------------------- |
+| Protocol      | HTTP                 | WebSocket (Socket.IO)       |
+| Trigger       | Client request       | Named event (`emit`)        |
+| Decorator     | `@Get()`, `@Post()`… | `@SubscribeMessage('name')` |
+| Bidirectional | ❌                   | ✅                          |
 
 A Gateway coexists with HTTP controllers — NestJS runs both in parallel on the same process and the same port. In SafeSchool, the REST API and the quiz Gateway both live in the backend container.
 
@@ -43,7 +43,7 @@ The quiz Gateway is declared in `quiz-realtime.module.ts`, which also wires in `
   imports: [
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      verifyOptions: { algorithms: ['HS256'] },
+      verifyOptions: { algorithms: ["HS256"] },
     }),
   ],
   providers: [QuizRealtimeGateway, QuizRealtimeService],
@@ -65,21 +65,24 @@ The Gateway talks to the Service through callbacks for events that happen on a t
 The quiz is reserved for authenticated users, so the Gateway authenticates the **connection itself**, not each message.
 
 ```typescript
-@WebSocketGateway({ cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' } })
-export class QuizRealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-
+@WebSocketGateway({
+  cors: { origin: process.env.FRONTEND_URL ?? "http://localhost:5173" },
+})
+export class QuizRealtimeGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   handleConnection(client: Socket) {
     const token = this.extractToken(client); // handshake.auth.token or Authorization header
     if (!token) {
-      client.emit('quiz:unauthorized', { reason: 'missing-token' });
+      client.emit("quiz:unauthorized", { reason: "missing-token" });
       client.disconnect(true);
       return;
     }
     try {
-      const payload = this.jwtService.verify(token, { algorithms: ['HS256'] });
+      const payload = this.jwtService.verify(token, { algorithms: ["HS256"] });
       client.data.user = payload; // { sub, email, role }
     } catch {
-      client.emit('quiz:unauthorized', { reason: 'invalid-token' });
+      client.emit("quiz:unauthorized", { reason: "invalid-token" });
       client.disconnect(true);
     }
   }
@@ -107,9 +110,10 @@ In SafeSchool the `roomId` **is the join code** the host shares with other playe
 - Codes must be **3–10 characters** (`roomcode-bad-format` otherwise).
 - A room holds at most **32 players** (`room-is-full`).
 - At most **500 concurrent rooms** server-wide, to stop a client flooding `quiz:join` with unique codes and exhausting memory (`server-at-capacity`).
-- **One active room per account.** If the same user is already connected in another room/tab, a new join is refused with `already-in-room`. Leftover presence from a real disconnection does *not* count, so reconnecting after a drop still works.
+- **One active room per account.** If the same user is already connected in another room/tab, a new join is refused with `already-in-room`. Leftover presence from a real disconnection does _not_ count, so reconnecting after a drop still works.
 
 Targeting helpers used by the Gateway:
+
 - `server.to(roomId).emit(...)` → everyone in the room
 - `client.emit(...)` → that one socket only
 
@@ -133,12 +137,12 @@ finished       final leaderboard, room destroyed   (quiz:game:over)
 
 Key numbers (in `quiz-realtime.service.ts`):
 
-| Constant | Value | Meaning |
-|---|---|---|
-| `QUESTIONS_PER_GAME` | 15 | questions drawn at random per match |
-| `QUESTION_TIME_LIMIT_MS` | 30 000 | answering window per question |
-| `REVEAL_TIME_MS` | 5 000 | how long the correct answer + stats are shown |
-| `RECONNECT_GRACE_MS` | 60 000 | how long a disconnected player is kept for reconnection |
+| Constant                 | Value  | Meaning                                                 |
+| ------------------------ | ------ | ------------------------------------------------------- |
+| `QUESTIONS_PER_GAME`     | 15     | questions drawn at random per match                     |
+| `QUESTION_TIME_LIMIT_MS` | 30 000 | answering window per question                           |
+| `REVEAL_TIME_MS`         | 5 000  | how long the correct answer + stats are shown           |
+| `RECONNECT_GRACE_MS`     | 60 000 | how long a disconnected player is kept for reconnection |
 
 When the host starts the game, the service picks 15 random questions, sets the room to `in-progress` and schedules the first question timer. A question ends in one of two ways:
 
@@ -167,30 +171,30 @@ All event names are namespaced with `quiz:`.
 
 ### Client → server
 
-| Event | Payload | Purpose |
-|---|---|---|
-| `quiz:join` | `{ roomId, playerName? }` | Join (or create, or reconnect to) a room |
-| `quiz:leave` | `{ roomId }` | Leave a room |
-| `quiz:start` | `{ roomId }` | Host starts the game |
+| Event         | Payload                                 | Purpose                                  |
+| ------------- | --------------------------------------- | ---------------------------------------- |
+| `quiz:join`   | `{ roomId, playerName? }`               | Join (or create, or reconnect to) a room |
+| `quiz:leave`  | `{ roomId }`                            | Leave a room                             |
+| `quiz:start`  | `{ roomId }`                            | Host starts the game                     |
 | `quiz:answer` | `{ roomId, questionId, selectedIndex }` | Submit an answer to the current question |
-| `quiz:ping` | `string` | Connectivity check (replies `quiz:pong`) |
+| `quiz:ping`   | `string`                                | Connectivity check (replies `quiz:pong`) |
 
 Each handler validates its payload and returns a Socket.IO **acknowledgement** describing the outcome — `quiz:joined` / `quiz:join:ignored`, `quiz:started` / `quiz:start:ignored`, `quiz:answer:accepted` / `quiz:answer:ignored`, etc. The `*:ignored` acks carry a `reason` (`invalid-payload`, `unauthorized`, `quiz-already-started`, `room-is-full`, `already-in-room`, `already-answered`, `question-mismatch`, …) so the client can show a precise message.
 
 ### Server → client
 
-| Event | Sent to | Purpose |
-|---|---|---|
-| `quiz:room:update` | room | Lobby/player list changed (join, leave, host migration) |
-| `quiz:game:started` | room | Game moved from `waiting` to `in-progress` |
-| `quiz:question` | room | New question (text + options, **no correct index**), number, total, deadline |
-| `quiz:question:reveal` | room | Correct index + per-option answer statistics, with a reveal deadline |
-| `quiz:score:update` | room | Updated room snapshot (player scores) |
-| `quiz:game:over` | room | Final snapshot; the client sorts it into the final leaderboard |
-| `quiz:answer:result` | one client | That player's result: correct?, base points, multiplier, points earned, streak |
-| `quiz:answer:restore` | one client | On reconnection, restores the answer already submitted to the live question |
-| `quiz:room:closed` | room | Room was emptied/destroyed |
-| `quiz:unauthorized` | one client | Missing/invalid token at connection time |
+| Event                  | Sent to    | Purpose                                                                        |
+| ---------------------- | ---------- | ------------------------------------------------------------------------------ |
+| `quiz:room:update`     | room       | Lobby/player list changed (join, leave, host migration)                        |
+| `quiz:game:started`    | room       | Game moved from `waiting` to `in-progress`                                     |
+| `quiz:question`        | room       | New question (text + options, **no correct index**), number, total, deadline   |
+| `quiz:question:reveal` | room       | Correct index + per-option answer statistics, with a reveal deadline           |
+| `quiz:score:update`    | room       | Updated room snapshot (player scores)                                          |
+| `quiz:game:over`       | room       | Final snapshot; the client sorts it into the final leaderboard                 |
+| `quiz:answer:result`   | one client | That player's result: correct?, base points, multiplier, points earned, streak |
+| `quiz:answer:restore`  | one client | On reconnection, restores the answer already submitted to the live question    |
+| `quiz:room:closed`     | room       | Room was emptied/destroyed                                                     |
+| `quiz:unauthorized`    | one client | Missing/invalid token at connection time                                       |
 
 Note that `quiz:question` deliberately omits the correct answer (`toPublicQuestion` strips `correctIndex`) — the correct index only ever reaches clients during the reveal phase, so it cannot be read from the network early.
 
@@ -200,7 +204,7 @@ Note that `quiz:question` deliberately omits the correct answer (`toPublicQuesti
 
 Because players are identified by their stable user id, the service can survive socket drops mid-game.
 
-- **On disconnect during a game** (`markDisconnected`): the player is *not* removed immediately. They are flagged `connected: false`, and a 60s grace timer is started. The remaining connected players may now all have answered, so the question can reveal immediately instead of waiting on someone who left.
+- **On disconnect during a game** (`markDisconnected`): the player is _not_ removed immediately. They are flagged `connected: false`, and a 60s grace timer is started. The remaining connected players may now all have answered, so the question can reveal immediately instead of waiting on someone who left.
 - **On reconnection** (`quiz:join` with the same identity): the grace timer is cancelled, the new socket is attached, and `sendReconnectState` replays the current question, scores, any active reveal and the player's own previous answer (`quiz:answer:restore`) so their UI is back in sync.
 - **If the grace period expires** (`expirePlayer`): the player is removed for good; if that completes the current question, it reveals.
 - **Host migration:** if the host leaves, the service promotes another (preferably connected) player to host.
@@ -218,17 +222,18 @@ The whole client lifecycle lives in one hook ([`frontend/src/hooks/useQuizSocket
 
 ```typescript
 const socket = io(SOCKET_URL, {
-  transports: ['polling', 'websocket'],
+  transports: ["polling", "websocket"],
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
-  auth: { token: localStorage.getItem('token') ?? '' },
+  auth: { token: localStorage.getItem("token") ?? "" },
 });
 
 // on unmount: leave the room, then disconnect
 return () => {
-  if (joinedRoomRef.current) socket.emit('quiz:leave', { roomId: joinedRoomRef.current });
+  if (joinedRoomRef.current)
+    socket.emit("quiz:leave", { roomId: joinedRoomRef.current });
   socket.disconnect();
 };
 ```
@@ -240,8 +245,8 @@ The socket is created **once** (empty dependency array) and kept in a `useRef` s
 ```typescript
 const SOCKET_URL = toSecureUrl(
   import.meta.env.VITE_SOCKET_URL ??
-  import.meta.env.VITE_API_URL ??
-  'http://localhost:5000'
+    import.meta.env.VITE_API_URL ??
+    "http://localhost:5000",
 );
 ```
 
@@ -250,9 +255,9 @@ In development the socket connects to the backend directly (`http://localhost:50
 ### Emitting an event
 
 ```typescript
-socket.emit('quiz:join',   { roomId: 'abc123', playerName });
-socket.emit('quiz:start',  { roomId });
-socket.emit('quiz:answer', { roomId, questionId, selectedIndex });
+socket.emit("quiz:join", { roomId: "abc123", playerName });
+socket.emit("quiz:start", { roomId });
+socket.emit("quiz:answer", { roomId, questionId, selectedIndex });
 ```
 
 The hook keeps a local timer ticking from the `endsAt` / `revealEndsAt` deadlines the server sends, so the countdown stays accurate even though the authoritative clock is server-side.

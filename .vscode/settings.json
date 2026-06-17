@@ -9,9 +9,6 @@
   "tailwindCSS.experimental.configFile": {
     "frontend/src/index.css": "frontend/src/**"
   },
-  "tailwindCSS.classAttributes": [
-    "class",
-    "className"
-  ],
+  "tailwindCSS.classAttributes": ["class", "className"],
   "tailwindCSS.emmetCompletions": true
 }

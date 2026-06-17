@@ -1,12 +1,28 @@
-
 /* Definit report, user, note .., si on change lAPI on met a jour ici en premier */
-export type UserRole = 'student' | 'admin' | 'teacher';
-export type ReportGrade  = 'critical' | 'high' | 'medium' | 'low';
-export type ReportStatus = 'new' | 'pending' | 'in_progress' | 'resolved' | 'false_report';
-export type ReportType   = 'physique' | 'verbal' | 'cyber' | 'exclusion' | 'sexuel';
-export type Reporter     = 'victime' | 'temoin';
-export type BadgeVariant = 'all' | 'new' | 'new_red' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
-export type LanguageCode = 'fr' | 'en' | 'de';
+export type UserRole = "student" | "admin" | "teacher";
+export type ReportGrade = "critical" | "high" | "medium" | "low";
+export type ReportStatus =
+  | "new"
+  | "pending"
+  | "in_progress"
+  | "resolved"
+  | "false_report";
+export type ReportType =
+  | "physique"
+  | "verbal"
+  | "cyber"
+  | "exclusion"
+  | "sexuel";
+export type Reporter = "victime" | "temoin";
+export type BadgeVariant =
+  | "all"
+  | "new"
+  | "new_red"
+  | "in_progress"
+  | "pending"
+  | "resolved"
+  | "false_report";
+export type LanguageCode = "fr" | "en" | "de";
 
 export interface SchoolClass {
   id: string;
@@ -99,7 +115,7 @@ export interface VictimInput {
 
 export interface Note {
   id: string;
-  type: 'note' | 'convocation' | 'status_change';
+  type: "note" | "convocation" | "status_change";
   content: string;
   createdAt: string;
   message?: string;

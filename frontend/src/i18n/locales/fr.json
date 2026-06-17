@@ -1,4 +1,9 @@
 {
+  "offline": {
+    "message": "Vous êtes hors ligne.",
+    "contentUnavailable": "Ce contenu n'est pas disponible hors ligne.",
+    "actionUnavailable": "Cette action n'est pas disponible hors ligne."
+  },
   "login": {
     "labelEmail": "Identifiant",
     "labelPassword": "Mot de passe",
@@ -268,6 +273,18 @@
   "quiz": {
     "title": "Quiz",
     "reconnecting": "Reconnexion en cours…",
+    "errors": {
+      "reconnectFailed": "Reconnexion impossible. Veuillez recharger la page.",
+      "unauthorized": "Vous devez être connecté pour accéder au quiz.",
+      "gameInterrupted": "La partie a été interrompue pendant la déconnexion.",
+      "alreadyStarted": "Le quiz a déjà commencé.",
+      "roomFull": "Cette salle est pleine.",
+      "alreadyInRoom": "Vous êtes déjà connecté à une salle dans un autre onglet ou une autre fenêtre. Quittez-la avant d'en rejoindre une autre.",
+      "joinFailed": "Impossible de rejoindre la salle.",
+      "roomClosed": "La salle a été fermée.",
+      "notConnected": "Connexion au serveur indisponible.",
+      "invalidCode": "Le code doit faire entre 3 et 10 caractères."
+    },
     "roomCodeLabel": "Code de salle",
     "roomCodePlaceholder": "Entrez le code",
     "join": "Rejoindre",
@@ -721,8 +738,8 @@
     "classUpdated": "Classe modifiée avec succès",
     "classDeleted": "Classe supprimée avec succès",
     "userCreated": "Utilisateur créé avec succès",
-"userUpdated": "Utilisateur modifié avec succès",
-"userDeleted": "Utilisateur supprimé avec succès"
+    "userUpdated": "Utilisateur modifié avec succès",
+    "userDeleted": "Utilisateur supprimé avec succès"
   },
   "severity": {
     "critical": "Critique",

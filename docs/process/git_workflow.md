@@ -33,42 +33,47 @@ Examples: `feat: add student dashboard layout`, `docs: update meeting minutes`
 ## 2. Process
 
 1. **Sync from `main`**:
-    ```bash
-    git checkout main
-    git pull origin main
-    ```
+
+   ```bash
+   git checkout main
+   git pull origin main
+   ```
 
 2. **Create a working branch**:
-    ```bash
-    git checkout -b feat/my-feature-name
-    ```
+
+   ```bash
+   git checkout -b feat/my-feature-name
+   ```
 
 3. **Work and commit regularly** (one commit = one logical step):
-    ```bash
-    git add <file>
-    git commit -m "feat: description of the change"
-    ```
+
+   ```bash
+   git add <file>
+   git commit -m "feat: description of the change"
+   ```
 
 4. **Push the branch** when the work is ready to share:
-    ```bash
-    git push -u origin feat/my-feature-name
-    ```
+
+   ```bash
+   git push -u origin feat/my-feature-name
+   ```
 
 5. **Open a Pull Request** on GitHub targeting `main`:
-    - Clear title, description of the changes.
-    - Assign a team member for review.
+   - Clear title, description of the changes.
+   - Assign a team member for review.
 
 6. **After merge**: delete the branch on GitHub (use the "Delete branch" button) and locally:
-    ```bash
-    git checkout main
-    git branch -d feat/my-feature-name
-    ```
+   ```bash
+   git checkout main
+   git branch -d feat/my-feature-name
+   ```
 
 ---
 
 ## 3. Managing conflicts
 
 **Prevention**: sync your branch with `main` regularly to catch conflicts early, before opening the PR.
+
 ```bash
 # From your feature branch
 git pull origin main

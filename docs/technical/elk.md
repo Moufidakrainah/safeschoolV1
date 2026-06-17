@@ -4,11 +4,11 @@
 
 The ELK stack (Elasticsearch + Logstash + Kibana) centralizes and visualizes SafeSchool application logs in real time.
 
-| Component | Version | Role |
-|---|---|---|
-| **Elasticsearch** | 8.12.0 | Log storage and indexing |
-| **Logstash** | 8.12.0 | Collection, transformation, forwarding to ES |
-| **Kibana** | 8.12.0 | Visualization — Discover + dashboard |
+| Component         | Version | Role                                         |
+| ----------------- | ------- | -------------------------------------------- |
+| **Elasticsearch** | 8.12.0  | Log storage and indexing                     |
+| **Logstash**      | 8.12.0  | Collection, transformation, forwarding to ES |
+| **Kibana**        | 8.12.0  | Visualization — Discover + Dashboards        |
 
 Only **Kibana** (`5601`) is exposed to the host. Elasticsearch and Logstash are internal to the Docker network.
 
@@ -17,15 +17,18 @@ Only **Kibana** (`5601`) is exposed to the host. Elasticsearch and Logstash are 
 ## Starting the stack
 
 ```bash
-make all         # starts the full application stack, including ELK
-make logs-setup  # follow ELK setup progress (optional, first run only)
+make all       # starts the full application stack, including ELK
+make logs-elk  # follow Elasticsearch / Logstash / Kibana logs
 ```
 
-The `elasticsearch-setup` service runs once on startup and:
-- creates system users (`kibana_system`, `logstash_internal`)
-- creates the ILM retention policy (30 days)
-- creates the `safeschool-logs-*` index template
-- imports the Kibana data view and dashboard automatically
+Two one-shot setup services configure ELK on startup, then exit:
+
+1. **`elasticsearch-setup-users`** — once Elasticsearch is healthy:
+   - creates the system users (`kibana_system`, `logstash_internal`) and the `logstash_writer` role
+   - creates the ILM lifecycle policy (7d hot rollover, 30d retention)
+   - creates the `safeschool-logs-*` index template
+2. **`elasticsearch-setup-kibana`** — once Kibana is healthy:
+   - imports the Kibana data view and the "SafeSchool - Logs Overview" dashboard
 
 No manual configuration in Kibana is required.
 
@@ -45,11 +48,11 @@ The **"SafeSchool - Logs Overview"** dashboard is available immediately in Dashb
 
 `xpack.security` is enabled. Each component authenticates with its own system user:
 
-| User | Role | Usage |
-|---|---|---|
-| `elastic` | superuser | Kibana access, administration |
-| `kibana_system` | built-in | Kibana → Elasticsearch |
-| `logstash_internal` | `logstash_writer` | Logstash → Elasticsearch |
+| User                | Role              | Usage                         |
+| ------------------- | ----------------- | ----------------------------- |
+| `elastic`           | superuser         | Kibana access, administration |
+| `kibana_system`     | built-in          | Kibana → Elasticsearch        |
+| `logstash_internal` | `logstash_writer` | Logstash → Elasticsearch      |
 
 Passwords are generated with `openssl rand -hex 32` and stored in `.env` (not committed). See `.env.example` for required variables.
 
@@ -57,17 +60,23 @@ Passwords are generated with `openssl rand -hex 32` and stored in `.env` (not co
 
 ## What emits what
 
-The NestJS backend sends logs as TCP/JSON to Logstash on port 5044 (internal Docker). Logstash adds tags and indexes into Elasticsearch.
+The NestJS backend sends logs as TCP/JSON to Logstash on port 5044 (Docker internal network). Logstash enriches events with tags and indexes them into Elasticsearch.
 
-| File | Event type | Trigger |
-|---|---|---|
-| `http-logger.middleware.ts` | `http_request` | Automatic — every HTTP request |
-| `auth.service.ts` | `auth_event` | Login success/failure, registration |
-| `reports.service.ts` | `report_event` | Creation, update, note, summons |
-| `scoring.service.ts` | `scoring_event` | Score calculation (5 components + AI) |
-| `main.ts` (useLogger) | `ERROR` level | Unhandled exceptions (500) |
+| File                        | Event type      | Trigger                                     |
+| --------------------------- | --------------- | ------------------------------------------- |
+| `http-logger.middleware.ts` | `http_request`  | Automatic — every HTTP request              |
+| `auth.service.ts`           | `auth_event`    | Login success/failure, registration         |
+| `reports.service.ts`        | `report_event`  | Creation, update, note, summons             |
+| `scoring.service.ts`        | `scoring_event` | Score calculation (5 components + AI)       |
+| `main.ts` (useLogger)       | `ERROR` level   | Unhandled exceptions and application errors |
 
-**Rule:** 1 user action = up to 3 traces in Kibana (`http_request` + `report_event` + `scoring_event` for a report submission).
+A single user action may generate multiple logs.
+
+Example: submitting a report can emit:
+
+- `http_request`
+- `report_event`
+- `scoring_event`
 
 `login_failure` events are emitted as **WARN** (brute force monitoring).
 Unhandled exceptions are emitted as **ERROR** with the `error` tag.
@@ -76,13 +85,13 @@ Unhandled exceptions are emitted as **ERROR** with the `error` tag.
 
 ## Available tags in Discover
 
-| Tag | Content |
-|---|---|
-| `http` | All HTTP requests |
-| `auth` | Authentication events |
-| `report` | Report events |
-| `scoring` | Score calculations |
-| `error` | ERROR level logs |
+| Tag       | Content               |
+| --------- | --------------------- |
+| `http`    | All HTTP requests     |
+| `auth`    | Authentication events |
+| `report`  | Report events         |
+| `scoring` | Score calculations    |
+| `error`   | ERROR level logs      |
 
 Filter syntax (KQL — Kibana Query Language): `tags: "auth"` — `level: "ERROR"` — `type: "auth_event"`
 
@@ -92,12 +101,12 @@ Filter syntax (KQL — Kibana Query Language): `tags: "auth"` — `level: "ERROR
 
 4 pre-configured panels, auto-imported on startup:
 
-| Panel | Type | What it shows |
-|---|---|---|
-| Activity per event type | Line chart | auth/report/scoring volume over time |
-| HTTP Status Codes | Horizontal bars | API response code distribution |
-| App Health Monitoring | Donut | INFO / WARN / ERROR breakdown |
-| Login attempts | Area chart | Successful vs failed logins |
+| Panel                   | Type            | What it shows                           |
+| ----------------------- | --------------- | --------------------------------------- |
+| Activity per event type | Line chart      | auth/report/scoring volume over time    |
+| HTTP Status Codes       | Horizontal bars | API response code distribution          |
+| App Health Monitoring   | Donut           | INFO / WARN / ERROR breakdown           |
+| Authentication activity | Area chart      | Authentication events grouped by action |
 
 Source file: `elk/setup/kibana-dashboard.ndjson`.
 
@@ -115,17 +124,19 @@ docker compose exec backend sh -c \
 
 Wait a few seconds, then check in Discover that the document appears.
 
-> This test only validates the Logstash → ES pipe. The only reliable end-to-end test
-> is performing a real action in the UI and verifying its trace in Discover.
+> This test only validates the Logstash → Elasticsearch pipeline.
+> The most representative end-to-end validation is performing a real user action
+> through the application and verifying its trace in Discover.
 
 ---
 
 ## Retention policy (ILM)
 
 Created automatically by `elk/setup/setup.sh`:
-- **Hot**: 7 days (logs searchable)
-- **Warm**: up to 30 days (compressed)
-- **Delete**: at 30 days
+
+- **Hot**: active index, rolls over after 7 days (or 10 GB)
+- **Warm** (after 7 days): index optimized — shrunk to 1 shard and force-merged
+- **Delete**: after 30 days
 
 Verification: Kibana → Stack Management → Index Lifecycle Policies → `safeschool-logs-policy` should be listed.
 
@@ -141,14 +152,12 @@ Keep Kibana Discover open during test sessions:
 
 → See also `docs/testing_guide.md` section 3 for ELK validation checks.
 
----
+## Module compliance
 
-## Major module compliance (2 pts)
-
-| Requirement | Status | Detail |
-|---|---|---|
-| Elasticsearch — storage and indexing | ✅ | `safeschool-logs-YYYY.MM.DD` index, index template |
-| Logstash — collection and transformation | ✅ | TCP/JSON pipeline, type-based tags, normalized timestamp |
-| Kibana — visualization and dashboards | ✅ | 4-panel dashboard, auto-imported |
-| Retention and archiving policy (ILM) | ✅ | Hot 7d (active) → Warm 30d (compressed, read-only) → Delete, created automatically |
-| Security — authenticated access | ✅ | xpack.security, 3 system users, ports closed |
+| Requirement                              | Status | Detail                                                                                      |
+| ---------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| Elasticsearch — storage and indexing     | ✅     | `safeschool-logs-YYYY.MM.DD` index, index template                                          |
+| Logstash — collection and transformation | ✅     | TCP/JSON pipeline, type-based tags, normalized timestamp                                    |
+| Kibana — visualization and dashboards    | ✅     | 4-panel dashboard, auto-imported                                                            |
+| Retention and archiving policy (ILM)     | ✅     | Hot (rollover 7d) → Warm (shrink + forcemerge) → Delete 30d, created automatically          |
+| Security — authenticated access          | ✅     | xpack.security, 3 system users, Elasticsearch and Logstash restricted to the Docker network |

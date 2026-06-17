@@ -14,12 +14,12 @@ The platform is designed for middle schools, where harassment situations involve
 
 ## Users
 
-| Role | What they can do |
-|---|---|
-| Student | Submit a harassment report (anonymously or not), follow its status |
-| Teacher / Staff | Submit a report on behalf of a student or third party, handle assigned cases, add notes |
-| Director / Admin | Full case management, user and organization administration, analytics |
-| Parent | Linked to a student profile; visible to admin for contact purposes |
+| Role             | What they can do                                                                        |
+| ---------------- | --------------------------------------------------------------------------------------- |
+| Student          | Submit a harassment report (anonymously or not), follow its status                      |
+| Teacher / Staff  | Submit a report on behalf of a student or third party, handle assigned cases, add notes |
+| Director / Admin | Full case management, user and organization administration, analytics                   |
+| Parent           | Linked to a student profile; visible to admin for contact purposes                      |
 
 ## Core Features
 
