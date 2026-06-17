@@ -31,7 +31,6 @@ Docker, Docker Compose, Make, Git.
 
 `.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own:
 
-
 | Variable | Purpose |
 |----------|---------|
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | PostgreSQL connection |
@@ -76,7 +75,6 @@ make prod-down   # Stop the production (nginx) stack
 make fclean      # Down + remove volumes, images and build cache
 ```
 
-
 ### Access URLs
 
 **Development (`make dev`):**
@@ -103,9 +101,16 @@ If the sample dataset has been seeded, the following accounts can be used for de
 
 | Email | Password | Role | Main area |
 |-------|----------|------|-----------|
-| `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
 | `admin@safeschool.com` | `ADMINadmin123123+` | admin | `/dashboard` |
 | `prof@safeschool.com` | `PROFprof123123+` | teacher | `/reporter` |
+| `prof2@safeschool.com` | `PROFprof123123+` | teacher | `/reporter` |
+| `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `danya@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `lina@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `lucas@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `emma@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `kevin@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
+| `sara@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
 
 ---
 ## Resources
@@ -191,7 +196,6 @@ To improve coordination in a team that was discovering full-stack web developmen
 ---
 ## Technical Stack
 
-
 ### Frontend
 
 | Technology | Version | Purpose |
@@ -241,7 +245,7 @@ To improve coordination in a team that was discovering full-stack web developmen
 ### Technical Choices
 
 - **React** — the subject requires a modern JavaScript frontend framework, and React gave us a widely used ecosystem with solid TypeScript support and accessible documentation.
-- **NestJS** —  provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
+- **NestJS** — provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
 - **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
 - **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
 - **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
@@ -259,25 +263,7 @@ All tables use UUID primary keys and are managed through TypeORM entities.
 
 ### ER Diagram
 
-```mermaid
-erDiagram
-  USERS ||--o| STUDENT_PROFILES : has
-  USERS ||--o| STAFF_PROFILES : has
-  USERS ||--o{ REPORTS : submits
-  USERS ||--o{ REPORT_SUSPECTS : resolves
-  USERS ||--o{ REPORT_VICTIMS : resolves
-  USERS ||--o{ REPORT_NOTES : writes
-  USERS ||--o{ NOTIFICATIONS : receives
-
-  CLASSES ||--o{ STUDENT_PROFILES : contains
-  CLASSES }o--o{ STAFF_PROFILES : assigned_to
-  PARENTS }o--o{ STUDENT_PROFILES : linked_to
-
-  REPORTS ||--o{ REPORT_SUSPECTS : includes
-  REPORTS ||--o{ REPORT_VICTIMS : includes
-  REPORTS ||--o{ REPORT_NOTES : contains
-  REPORTS ||--o{ NOTIFICATIONS : triggers
-```
+![Database Schema](docs/safeschool_erd.svg)
 
 ### Tables and Relationships
 
@@ -317,12 +303,12 @@ reports
   └── 1—N → report_victims   (cascade delete)
 
 report_suspects / report_victims
-  ├── id (PK), freeText, ...
+  ├── id (PK), freeText
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (resolvedUserId, nullable, set null on delete)
 
 report_notes
-  ├── id (PK), content, type
+  ├── id (PK), content, type (enum: note | convocation | status_change)
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (author, nullable, set null on delete)
 
@@ -343,7 +329,7 @@ notifications
 | reports | grade | enum (`ReportGrade`) | Severity grade computed from the AI scoring service |
 | reports | status | enum (`ReportStatus`) | Lifecycle state of a report (default: `NEW`) |
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
-| classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
+| classes | level / section | varchar | e.g. "6eme" / "A" — identifies a school class |
 
 
 Note that the role director is defined in the code with the same permissions as admin, but reserved for future use — no seeded account and not offered in the user-creation form, so the demo ships with student, teacher and admin only.
@@ -452,7 +438,6 @@ Technical Lead / Realtime Developer
 - Handled the hard multiplayer cases so several players on different devices can play the same match reliably: JWT authentication on the socket handshake, a reconnection grace period that restores a player's in-progress state, host migration when the host leaves, single-room-per-account enforcement and room-capacity limits.
 - Contributed to the Progressive Web App so the frontend can be installed and offers limited offline support.
 - Main challenge: this was my first time with NestJS and Socket.IO, so the hardest part was understanding the tech stack — how NestJS gateways, dependency injection and Socket.IO rooms/events fit together — and then using it to keep every client's game state synchronized in real time. I worked through it by reading the documentation, building the game flow incrementally, and testing it with several simultaneous clients.
-
 
 ---
 ## Additional Information
