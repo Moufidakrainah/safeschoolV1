@@ -260,30 +260,6 @@ export function useQuizSocket(
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
       });
 
-      socket.on(
-        "quiz:joined",
-        (data: {
-          roomId: string;
-          hostId: string;
-          status?: string;
-          selfId?: string;
-        }) => {
-          setJoinedRoom(data.roomId);
-          setSocketError("");
-          setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
-
-          if (data.status === "waiting" && gamePhaseRef.current === "playing") {
-            setGamePhase("lobby");
-            setQuestionState(null);
-            setTimeLeftMs(0);
-            setFinalLeaderboard(null);
-            setSocketError(
-              "La partie a été interrompue pendant la déconnexion.",
-            );
-          }
-        },
-      );
-
       socket.on("quiz:game:started", () => {
         setMyStreak(0);
         nextStreakRef.current = 0;
