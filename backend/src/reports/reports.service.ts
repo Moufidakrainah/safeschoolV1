@@ -146,7 +146,6 @@ export class ReportsService {
         rejected:     'Rejeté',
       };
       const label = statusLabels[updates.status] ?? updates.status;
-      // ── Créer la note avec l'auteur ──
       await this.notesRepository.save(
         this.notesRepository.create({
           report,
@@ -201,8 +200,9 @@ export class ReportsService {
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
-        const userId = targetRole.slice("suspect_".length);
-        const suspect = report.suspects?.find(s => s.resolvedUser?.id === userId);
+        // ✅ On cherche par s.id (id du suspect) et non par resolvedUser.id
+        const suspectId = targetRole.slice("suspect_".length);
+        const suspect = report.suspects?.find(s => s.id === suspectId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id, reportId, `Convocation : ${content}`,
