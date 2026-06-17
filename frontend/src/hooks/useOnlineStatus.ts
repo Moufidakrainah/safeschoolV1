@@ -1,21 +1,21 @@
 /* Suit l'état de la connexion réseau du navigateur (en ligne / hors ligne) */
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useOnlineStatus(): boolean {
   const [online, setOnline] = useState<boolean>(
-    typeof navigator !== 'undefined' ? navigator.onLine : true,
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
 
   useEffect(() => {
     const goOnline = () => setOnline(true);
     const goOffline = () => setOnline(false);
 
-    window.addEventListener('online', goOnline);
-    window.addEventListener('offline', goOffline);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
 
     return () => {
-      window.removeEventListener('online', goOnline);
-      window.removeEventListener('offline', goOffline);
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
     };
   }, []);
 
@@ -29,8 +29,8 @@ export function useReconnectKey(): number {
 
   useEffect(() => {
     const onOnline = () => setKey((k) => k + 1);
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
   }, []);
 
   return key;

@@ -1,4 +1,9 @@
 {
+  "offline": {
+    "message": "Du bist offline.",
+    "contentUnavailable": "Dieser Inhalt ist offline nicht verfügbar.",
+    "actionUnavailable": "Diese Aktion ist offline nicht verfügbar."
+  },
   "login": {
     "labelEmail": "Benutzername",
     "labelPassword": "Passwort",
@@ -260,6 +265,18 @@
   "quiz": {
     "title": "Quiz",
     "reconnecting": "Verbindung wird wiederhergestellt…",
+    "errors": {
+      "reconnectFailed": "Wiederverbindung fehlgeschlagen. Bitte lade die Seite neu.",
+      "unauthorized": "Du musst angemeldet sein, um auf das Quiz zuzugreifen.",
+      "gameInterrupted": "Das Spiel wurde während der Trennung unterbrochen.",
+      "alreadyStarted": "Das Quiz hat bereits begonnen.",
+      "roomFull": "Dieser Raum ist voll.",
+      "alreadyInRoom": "Du bist bereits in einem anderen Tab oder Fenster mit einem Raum verbunden. Verlasse ihn, bevor du einem anderen beitrittst.",
+      "joinFailed": "Beitritt zum Raum nicht möglich.",
+      "roomClosed": "Der Raum wurde geschlossen.",
+      "notConnected": "Keine Verbindung zum Server.",
+      "invalidCode": "Der Code muss zwischen 3 und 10 Zeichen lang sein."
+    },
     "roomCodeLabel": "Raumcode",
     "roomCodePlaceholder": "Code eingeben",
     "join": "Beitreten",
@@ -537,6 +554,7 @@
       "address": "Adresse"
     },
     "nav": {
+      "ariaLabel": "Schülernavigation",
       "profile": "Mein Profil",
       "quiz": "Quiz",
       "report": "Meldung erstellen",
@@ -667,8 +685,8 @@
     "classUpdated": "Klasse erfolgreich geändert",
     "classDeleted": "Klasse erfolgreich gelöscht",
     "userCreated": "Benutzer erfolgreich erstellt",
-"userUpdated": "Benutzer erfolgreich aktualisiert",
-"userDeleted": "Benutzer erfolgreich gelöscht"
+    "userUpdated": "Benutzer erfolgreich aktualisiert",
+    "userDeleted": "Benutzer erfolgreich gelöscht"
   },
   "severity": {
     "critical": "Kritisch",

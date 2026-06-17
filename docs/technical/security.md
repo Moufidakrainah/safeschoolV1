@@ -49,9 +49,18 @@ In TypeORM, the `password` column is marked `{ select: false }` — it is not re
 
 ---
 
+## Brute force — rate limiting
+
+All API routes are rate-limited globally with `@nestjs/throttler`: `ThrottlerModule.forRoot` allows **20 requests per 60 seconds per IP**, enforced by a global `ThrottlerGuard`. Beyond the limit, the API returns `429 Too Many Requests`, which throttles automated password-guessing against `/auth/login`.
+
+Failed logins are **additionally** logged as `WARN` events in the ELK stack, so a brute-force pattern is both blocked (429) and observable (Kibana).
+
+---
+
 ## SQL Injection — TypeORM
 
 SQL injection consists of embedding SQL inside a user-controlled field to manipulate the query:
+
 ```
 email: "admin'--"  →  SELECT * FROM users WHERE email = 'admin'--' AND password = ...
                                                                     ^ everything after is ignored
@@ -61,15 +70,15 @@ TypeORM prevents this automatically via **bound parameters** (prepared statement
 
 ```typescript
 // TypeORM translates this into a parameterized query, never string concatenation
-this.usersRepository.findOne({ where: { email } })
+this.usersRepository.findOne({ where: { email } });
 // → SELECT * FROM users WHERE email = $1  (email passed separately)
 ```
 
 **Rule**: never build a SQL query with unsanitized variables. When using `createQueryBuilder`, always use `:param` notation:
 
 ```typescript
-.where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` }) // ✅
-.where(`LOWER(user.firstName) LIKE '%${query}%'`)                            // ❌ injection possible
+.where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` })   // safe
+.where(`LOWER(user.firstName) LIKE '%${query}%'`)                             // injection possible
 ```
 
 ---
@@ -109,7 +118,7 @@ XSS: an attacker causes malicious JavaScript to execute in a victim's browser, t
 ```tsx
 // If userName = "<script>alert('xss')</script>"
 <p>{userName}</p>
-// React renders plain text — the script is NOT executed ✅
+// React renders plain text — the script is NOT executed
 ```
 
 **Exception**: `dangerouslySetInnerHTML` disables this protection. Use only for controlled HTML content (e.g. server-side rendered markdown after sanitization).
@@ -144,6 +153,7 @@ Access in NestJS via `ConfigModule`: `process.env.JWT_SECRET`.
 ## HTTPS — subject requirement
 
 Subject section III.3 requires:
+
 > "Any connection to the backend, from a browser, from a script, from an external API, etc., must use HTTPS."
 
 Without HTTPS, JWT tokens travel in plain text on the network — anyone in a MITM position (same WiFi network) can read them and impersonate the user.
@@ -154,14 +164,15 @@ HTTPS is handled by nginx (reverse proxy), which holds the TLS certificate. Inte
 
 ## Summary — protection by layer
 
-| Threat | Protection | Where |
-|---|---|---|
-| Password stolen from DB | bcrypt (irreversible hash) | `auth.service.ts` |
-| Forged JWT token | HMAC signature (JWT_SECRET) | `jwt.strategy.ts` |
-| SQL injection | TypeORM bound parameters | All DB queries |
-| Malformed input | ValidationPipe + class-validator | NestJS DTOs |
-| XSS | Automatic JSX escaping | React (built-in) |
-| CSRF | JWT in headers (not cookies) | Axios interceptor |
-| Exposed credentials | Environment variables | `.env` + `.gitignore` |
-| Network interception | HTTPS via nginx | Infrastructure |
-| Unauthenticated route access | JwtAuthGuard | NestJS controllers |
+| Threat                       | Protection                         | Where                                                   |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------- |
+| Password stolen from DB      | bcrypt (irreversible hash + salt)  | `users.service.ts` (hash) / `auth.service.ts` (compare) |
+| Forged JWT token             | HMAC signature (JWT_SECRET)        | `jwt.strategy.ts`                                       |
+| Brute-force login            | Rate limiting (429) + WARN logging | `@nestjs/throttler` (global guard) + ELK                |
+| SQL injection                | TypeORM bound parameters           | All DB queries                                          |
+| Malformed input              | ValidationPipe + class-validator   | NestJS DTOs                                             |
+| XSS                          | Automatic JSX escaping             | React (built-in)                                        |
+| CSRF                         | JWT in headers (not cookies)       | Axios interceptor                                       |
+| Exposed credentials          | Environment variables              | `.env` + `.gitignore`                                   |
+| Network interception         | HTTPS via nginx                    | Infrastructure                                          |
+| Unauthenticated route access | JwtAuthGuard                       | NestJS controllers                                      |

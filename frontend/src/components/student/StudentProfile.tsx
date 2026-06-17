@@ -2,120 +2,123 @@ import { useState } from "react";
 import type { AuthUser } from "@/types";
 import { formatName } from "@/utils/formatName";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableCellLeft,
-	TableRow,
-	TableCellParent,
+  Table,
+  TableBody,
+  TableCell,
+  TableCellLeft,
+  TableRow,
+  TableCellParent,
 } from "@/components/ui/table";
 import React from "react";
 import { API_BASE } from "@/config";
 
 interface Parent {
-	id: string;
-	firstName: string;
-	lastName: string;
-	email: string;
-	phone?: string | null;
-	address?: string | null;
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  address?: string | null;
 }
 
 interface StudentProfileProps {
-	user: AuthUser | null;
-	parents: Parent[];
-	loadingParents: boolean;
+  user: AuthUser | null;
+  parents: Parent[];
+  loadingParents: boolean;
 }
 
 const AVATAR_BASE = `${API_BASE}/uploads/avatars/`;
 
-export default function StudentProfile({
-	user,
-	parents,
-}: StudentProfileProps) {
-	const { t } = useTranslation();
-	const { updateUser: _updateUser } = useAuth();
-	const [avatar, _setAvatar] = useState<string | null>(user?.avatar ?? null);
+export default function StudentProfile({ user, parents }: StudentProfileProps) {
+  const { t } = useTranslation();
+  const { updateUser: _updateUser } = useAuth();
+  const [avatar, _setAvatar] = useState<string | null>(user?.avatar ?? null);
+  // Jeton anti-cache calculé une seule fois au montage (Date.now() ne doit pas
+  // être appelé pendant le rendu).
+  const [cacheBust] = useState(() => Date.now());
 
-	const calcAge = (dateOfBirth: string): number => {
-		const dob = new Date(dateOfBirth);
-		const today = new Date();
-		let age = today.getFullYear() - dob.getFullYear();
-		const m = today.getMonth() - dob.getMonth();
-		if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-		return age;
-	};
+  const calcAge = (dateOfBirth: string): number => {
+    const dob = new Date(dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+    return age;
+  };
 
-	return (
-		<section className="page-section">
-			{/* Avatar + nom + bouton */}
-			<div className="bg-surface shadow-sm py-8 mb-3">
-				<div className="flex flex-col items-center gap-3">
-					{avatar ? (
-						<img
-							className="w-56 h-56 rounded-full object-cover border-4 border-primary"
-							src={`${AVATAR_BASE}${avatar}?t=${Date.now()}`}
-							alt={`${user?.firstName} ${user?.lastName}`}
-						/>
-					) : (
-						<div className="w-56 h-56 rounded-full border-4 border-primary flex items-center justify-center text-8xl">
-							{user?.firstName?.[0]}
-							{user?.lastName?.[0]}
-						</div>
-					)}
+  return (
+    <section className="page-section">
+      {/* Avatar + nom + bouton */}
+      <div className="bg-surface shadow-sm py-8 mb-3">
+        <div className="flex flex-col items-center gap-3">
+          {avatar ? (
+            <img
+              className="w-56 h-56 rounded-full object-cover border-4 border-primary"
+              src={`${AVATAR_BASE}${avatar}?t=${cacheBust}`}
+              alt={`${user?.firstName} ${user?.lastName}`}
+            />
+          ) : (
+            <div className="w-56 h-56 rounded-full border-4 border-primary flex items-center justify-center text-8xl">
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
+            </div>
+          )}
 
-					<div className="text-center mt-4">
-						{(() => {
-							const { first, last } = formatName(user?.firstName ?? '', user?.lastName ?? '');
-							return (
-								<h2 className="text-2xl font-bold mb-4">
-									{first} {last}
-								</h2>
-							);
-						})()}
-						<span className="text-sm ">
-							{t(`student.profile.role`)}
-						</span>
-						<p className="text-sm mt-4">{user?.email}</p>
-					</div>
-				</div>
-			</div>
+          <div className="text-center mt-4">
+            {(() => {
+              const { first, last } = formatName(
+                user?.firstName ?? "",
+                user?.lastName ?? "",
+              );
+              return (
+                <h2 className="text-2xl font-bold mb-4">
+                  {first} {last}
+                </h2>
+              );
+            })()}
+            <span className="text-sm ">{t(`student.profile.role`)}</span>
+            <p className="text-sm mt-4">{user?.email}</p>
+          </div>
+        </div>
+      </div>
 
-			{/* Informations */}
-			<div className="bg-surface shadow-sm px-8 py-4 mb-3">
-				<Table>
-					<TableBody>
-						{user?.studentProfile?.schoolClass && (
-							<TableRow>
-								<TableCellLeft>{t(`student.profile.class`)}</TableCellLeft>
-								<TableCell>
-									{user.studentProfile.schoolClass.level}{" "}
-									{user.studentProfile.schoolClass.section}
-								</TableCell>
-							</TableRow>
-						)}
-						{user?.studentProfile?.dateOfBirth && (
-							<TableRow>
-								<TableCellLeft>{t(`student.profile.dob`)}</TableCellLeft>
-								<TableCell>
-									{new Date(user.studentProfile.dateOfBirth).toLocaleDateString(
-										"fr-FR",
-									)}{" "}
-									({calcAge(user.studentProfile.dateOfBirth)} ans)
-								</TableCell>
-							</TableRow>
-						)}
-					</TableBody>
-				</Table>
-			</div>
+      {/* Informations */}
+      <div className="bg-surface shadow-sm px-8 py-4 mb-3">
+        <Table>
+          <TableBody>
+            {user?.studentProfile?.schoolClass && (
+              <TableRow>
+                <TableCellLeft>{t(`student.profile.class`)}</TableCellLeft>
+                <TableCell>
+                  {user.studentProfile.schoolClass.level}{" "}
+                  {user.studentProfile.schoolClass.section}
+                </TableCell>
+              </TableRow>
+            )}
+            {user?.studentProfile?.dateOfBirth && (
+              <TableRow>
+                <TableCellLeft>{t(`student.profile.dob`)}</TableCellLeft>
+                <TableCell>
+                  {new Date(user.studentProfile.dateOfBirth).toLocaleDateString(
+                    "fr-FR",
+                  )}{" "}
+                  ({calcAge(user.studentProfile.dateOfBirth)} ans)
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-			{/* Parents */}
-			<div className="bg-surface shadow-sm px-8 py-4">
-				<div className="p-2 text-sm font-semibold text-muted-foreground">{t(`student.profile.officialParents`)}</div>
+      {/* Parents */}
+      <div className="bg-surface shadow-sm px-8 py-4">
+        <div className="p-2 text-sm font-semibold text-muted-foreground">
+          {t(`student.profile.officialParents`)}
+        </div>
 
-				{/* {loadingParents ? (
+        {/* {loadingParents ? (
 					<div className="text-sm text-center py-4">
 						{t(`student.profile.loading`)}
 					</div>
@@ -124,42 +127,42 @@ export default function StudentProfile({
 						{t(`student.profile.noParent`)}
 					</div>
 				) : ( */}
-					<Table>
-						<TableBody>
-							{parents.map((p) => {
-								const { first, last } = formatName(p.firstName, p.lastName);
-								return (
-									<React.Fragment key={p.id}>
-										<TableRow>
-											<TableCellParent>
-												{first} {last}
-											</TableCellParent>
-											<TableCell></TableCell>
-										</TableRow>
+        <Table>
+          <TableBody>
+            {parents.map((p) => {
+              const { first, last } = formatName(p.firstName, p.lastName);
+              return (
+                <React.Fragment key={p.id}>
+                  <TableRow>
+                    <TableCellParent>
+                      {first} {last}
+                    </TableCellParent>
+                    <TableCell></TableCell>
+                  </TableRow>
 
-										{[
-											{ label: t(`student.profile.email`), value: p.email },
-											{
-												label: t(`student.profile.phone`),
-												value: p.phone ?? "—",
-											},
-											{
-												label: t(`student.profile.address`),
-												value: p.address ?? "—",
-											},
-										].map((row) => (
-											<TableRow key={`${p.id}-${row.label}`}>
-												<TableCellLeft>{row.label}</TableCellLeft>
-												<TableCell>{row.value}</TableCell>
-											</TableRow>
-										))}
-									</React.Fragment>
-								);
-							})}
-						</TableBody>
-					</Table>
-				{/* )} */}
-			</div>
-		</section>
-	);
+                  {[
+                    { label: t(`student.profile.email`), value: p.email },
+                    {
+                      label: t(`student.profile.phone`),
+                      value: p.phone ?? "—",
+                    },
+                    {
+                      label: t(`student.profile.address`),
+                      value: p.address ?? "—",
+                    },
+                  ].map((row) => (
+                    <TableRow key={`${p.id}-${row.label}`}>
+                      <TableCellLeft>{row.label}</TableCellLeft>
+                      <TableCell>{row.value}</TableCell>
+                    </TableRow>
+                  ))}
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+        {/* )} */}
+      </div>
+    </section>
+  );
 }

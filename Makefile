@@ -4,48 +4,56 @@ CERT_DIR = nginx/certs
 # IP intégrée au certificat (SAN). Auto-détectée ; surchargeable :
 #   make certs CERT_IP=192.168.1.42
 CERT_IP ?= $(shell hostname -I 2>/dev/null | awk '{print $$1}')
+# Nom d'hôte intégré au certificat (SAN). Auto-détecté ; surchargeable :
+#   make certs CERT_HOST=k0r4p2
+CERT_HOST ?= $(shell hostname -s 2>/dev/null)
 ENV_FILE = .env
 SEED_FILE = database/seed.sql
 SCHEMA_WAIT_RETRIES = 45
 SCHEMA_WAIT_DELAY = 2
 
 
-# == COMMANDES PRINCIPALES ==
+##@ Principales
 
-all: prod ## Par défaut : démarrage en mode production (nginx + HTTPS)
+all: up-prod ## Démarrage par défaut : mode production (nginx + HTTPS)
 
 help: ## Afficher les cibles disponibles
-	@echo "\nCibles :"
-	@grep -E '^[a-zA-Z0-9_.-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*## "} {printf "  \033[34m%-14s\033[0m %s\n", $$1, $$2}'
+	@echo "\nCibles disponibles :"
+	@awk 'BEGIN {FS = ":.*## "} /^##@/ {printf "\n\033[1m%s\033[0m\n", substr($$0, 5); next} /^[a-zA-Z0-9_.-]+:.*## / {printf "  \033[34m%-24s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	@echo ""
 
 check-env: ## Vérifier que le fichier .env existe
 	@test -f $(ENV_FILE) || { echo "$(ENV_FILE) manquant."; exit 1; }
 
-up: check-env ## Construire, démarrer et injecter les données si base vide
+up-dev: check-env ## Démarrer en développement (hot reload, sans nginx)
 	@start=$$(date +%s); \
-	$(COMPOSE) up -d --build; \
+	$(COMPOSE) up -d --build --remove-orphans; \
 	$(MAKE) seed-if-empty; \
 	end=$$(date +%s); \
 	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
-dev: up ## Mode développement (hot reload, sans nginx) — alias de up
+dev: up-dev ## Alias de up-dev
 
-down: ## Arrêter tous les services
-	$(COMPOSE) down
+down: ## Arrêter TOUT (dev + prod), sans laisser d'orphelin
+	$(COMPOSE_PROD) down --remove-orphans
 
 
-# == PRODUCTION (nginx + HTTPS) ==
+##@ Production
 
-prod: check-env certs ## Construire et démarrer en mode production (nginx + TLS)
+up-prod: check-env certs ## Démarrer en production (nginx + TLS)
 	@start=$$(date +%s); \
-	$(COMPOSE_PROD) up -d --build; \
+	$(COMPOSE_PROD) up -d --build --remove-orphans; \
 	$(MAKE) seed-if-empty; \
 	end=$$(date +%s); \
 	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"; \
 	echo "Prod démarrée : https://localhost (certificat auto-signé, à accepter dans le navigateur)"
 
-prod-down: ## Arrêter la stack de production
+prod: up-prod ## Alias de up-prod
+
+down-dev: ## Arrêter uniquement la stack de développement
+	$(COMPOSE) down
+
+down-prod: ## Arrêter uniquement la stack de production
 	$(COMPOSE_PROD) down
 
 prod-logs: ## Suivre les logs de la stack de production
@@ -57,20 +65,28 @@ certs: ## Générer des certificats TLS auto-signés (SAN: localhost + IP LAN) s
 certs-renew: ## (Re)générer les certificats TLS, en écrasant les existants
 	@mkdir -p $(CERT_DIR); \
 	ip="$(CERT_IP)"; [ -z "$$ip" ] && ip="127.0.0.1"; \
-	echo "Génération du certificat (CN=localhost, SAN=localhost,127.0.0.1,$$ip)"; \
+	san="DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
+	host="$(CERT_HOST)"; [ -n "$$host" ] && [ "$$host" != "localhost" ] && san="$$san,DNS:$$host"; \
+	echo "Génération du certificat (CN=localhost, SAN=$$san)"; \
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 		-keyout $(CERT_DIR)/privkey.pem \
 		-out $(CERT_DIR)/fullchain.pem \
 		-subj "/CN=localhost" \
-		-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
+		-addext "subjectAltName=$$san"; \
 	echo "Certificats générés dans $(CERT_DIR)/"
 
-re: ## Remettre à zéro et redémarrer
-	$(MAKE) prune
-	$(MAKE) up
+##@ Réinitialisation
+
+re-dev: ## Reset (volumes inclus) + redémarrage en dev
+	$(COMPOSE) down -v --remove-orphans
+	$(MAKE) up-dev
+
+re-prod: ## Reset (volumes inclus) + redémarrage en prod
+	$(COMPOSE_PROD) down -v --remove-orphans
+	$(MAKE) up-prod
 
 
-# == BUILD ==
+##@ Build
 
 build: check-env ## Construire les images sans démarrer
 	$(COMPOSE) build
@@ -85,7 +101,7 @@ rebuild: check-env ## Reconstruire sans cache et redémarrer
 	echo "Temps de build : $$(((end - start) / 60))m $$(((end - start) % 60))s"
 
 
-# == SERVICE PAR SERVICE ==
+##@ Service par service
 
 up-app: check-env ## Démarrer uniquement frontend, backend et database
 	@start=$$(date +%s); \
@@ -102,13 +118,13 @@ up-be: check-env ## Démarrer backend et database seulement
 	$(MAKE) seed-if-empty
 
 up-elk: check-env ## Démarrer la stack ELK
-	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup
+	$(COMPOSE) up -d elasticsearch logstash kibana elasticsearch-setup-users elasticsearch-setup-kibana
 
 down-elk: ## Arrêter la stack ELK
-	$(COMPOSE) down elasticsearch logstash kibana
+	$(COMPOSE) stop elasticsearch logstash kibana
 
 
-# === LOGS ===
+##@ Logs
 
 logs: ## Suivre les logs de tous les services
 	$(COMPOSE) logs -f
@@ -125,10 +141,11 @@ logs-db: ## Suivre les logs de la base de données
 logs-elk: ## Suivre les logs de la stack ELK
 	$(COMPOSE) logs -f elasticsearch logstash kibana
 
-logs-setup: ## Afficher les logs du script de setup ELK
-	$(COMPOSE) logs elasticsearch-setup
+logs-elk-setup: ## Afficher les logs des conteneurs de setup ELK (one-shot, sans -f)
+	$(COMPOSE) logs elasticsearch-setup-users elasticsearch-setup-kibana
 
-#  === BASE DE DONNÉES ===
+
+##@ Base de données
 
 wait-schema: # Attendre que TypeORM crée le schéma
 	@attempt=0; \
@@ -159,7 +176,7 @@ seed-if-empty: wait-schema ## Seeder seulement si la base est vide
 	fi
 
 
-# === NETTOYAGE ===
+##@ Nettoyage
 
 clean: ## Supprimer les conteneurs
 	$(COMPOSE) down --remove-orphans
@@ -171,7 +188,7 @@ fclean: prune ## Nettoyage complet : conteneurs, volumes, images, cache
 	docker system prune -af
 
 
-# === UTILITAIRES ===
+##@ Utilitaires
 
 ps: ## Afficher l'état des conteneurs
 	$(COMPOSE) ps
@@ -188,11 +205,12 @@ stats: ## Afficher les statistiques des conteneurs
 top: ## Afficher les processus dans les conteneurs
 	$(COMPOSE) top
 
-.PHONY: all help check-env up dev down prod prod-down prod-logs certs certs-renew re build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role test-throttle
+.PHONY: all help check-env up-dev up-prod dev down down-dev down-prod prod prod-logs certs certs-renew re-dev re-prod build rebuild up-app start up-be up-elk down-elk logs logs-fe logs-be logs-db logs-elk logs-elk-setup wait-schema seed seed-if-empty clean prune fclean ps images volumes stats top test-login-invalid-email test-login-bad-password test-login-unknown-email test-login-ok test-report-spam test-report-short test-no-token test-auth test-reports test-all test-decode-token test-verify-token test-wrong-role
 
-# === TESTS CURL ===
+
+##@ Tests curl
 # Ces tests ciblent http://localhost:5000 (port backend direct).
-# Ils fonctionnent uniquement en mode dev (make dev), pas en prod (make all / nginx sur 8443).
+# Ils fonctionnent uniquement en mode dev, pas en prod.
 
 test-login-invalid-email: ## Tester login avec email mal formé (attendu: 400)
 	@curl -s -X POST http://localhost:5000/auth/login \

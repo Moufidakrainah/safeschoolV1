@@ -1,5 +1,5 @@
-import { IsOptional, IsEnum } from 'class-validator';
-import { ReportGrade, ReportStatus } from '../report.entity';
+import { IsOptional, IsEnum } from "class-validator";
+import { ReportGrade, ReportStatus } from "../report.entity";
 
 export class UpdateReportDto {
   @IsOptional()

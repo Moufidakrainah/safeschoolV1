@@ -1,17 +1,17 @@
 # Team Collaboration Guidelines
 
-This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git_workflow.md`](./git_workflow.md). For working on multiple branches in parallel, see [`git_worktrees.md`](./git_worktrees.md).
+This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git_workflow.md`](./git_workflow.md). For working on multiple branches in parallel, see
 
 ---
 
 ## Roles
 
-| Role | Member | Focus |
-|---|---|---|
-| PM / Scrum Master | eguthman | Workflow coordination, board maintenance, meeting facilitation, documentation lead |
-| Product Owner | mdoan | Feature scope, frontend, design |
-| Technical Lead — Backend | mobougri | Backend architecture, database, API |
-| Technical Lead — WebSockets | quclaque | Real-time quiz, WebSocket gateway |
+| Role                        | Member   | Focus                                                                              |
+| --------------------------- | -------- | ---------------------------------------------------------------------------------- |
+| PM / Scrum Master           | eguthman | Workflow coordination, board maintenance, meeting facilitation, documentation lead |
+| Product Owner               | mdoan    | Feature scope, frontend, design                                                    |
+| Technical Lead — Backend    | mobougri | Backend architecture, database, API                                                |
+| Technical Lead — WebSockets | quclaque | Real-time quiz, WebSocket gateway                                                  |
 
 One functional role applies to PR ownership: **Documentation Lead** — approves and merges all PRs targeting `DOC/main` (eguthman). For code PRs targeting `main`, the author merges their own work once they have the required approvals — see Pull Requests below.
 
@@ -21,20 +21,20 @@ One functional role applies to PR ownership: **Documentation Lead** — approves
 
 The repository uses three integration branches:
 
-| Branch | Purpose | Owned by |
-|---|---|---|
-| `main` | All application code | All (see PR rules) |
-| `frontend/main` | Frontend integration branch — used as a shared base during peak frontend development | PM |
-| `DOC/main` | All project documentation (`docs/`) | Documentation Lead |
+| Branch          | Purpose                                                                              | Owned by           |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------ |
+| `main`          | All application code                                                                 | All (see PR rules) |
+| `frontend/main` | Frontend integration branch — used as a shared base during peak frontend development | PM                 |
+| `DOC/main`      | All project documentation (`docs/`)                                                  | Documentation Lead |
 
 Working branches are short-lived by design — one topic, merged and deleted. They follow the naming conventions in [`git_workflow.md`](./git_workflow.md):
 
-| Prefix | Use | Target |
-|---|---|---|
-| `feat/<topic>` | New feature | `main` |
-| `fix/<topic>` | Bug fix or corrective improvement | `main` |
-| `refactor/<topic>` | Rewrite with no behavior change | `main` |
-| `docs/<topic>` | Documentation only | `DOC/main` |
+| Prefix             | Use                               | Target     |
+| ------------------ | --------------------------------- | ---------- |
+| `feat/<topic>`     | New feature                       | `main`     |
+| `fix/<topic>`      | Bug fix or corrective improvement | `main`     |
+| `refactor/<topic>` | Rewrite with no behavior change   | `main`     |
+| `docs/<topic>`     | Documentation only                | `DOC/main` |
 
 ---
 
@@ -48,10 +48,10 @@ GitHub branch protection is active on both `main` and `DOC/main`: at least one r
 
 The author **self-assigns** the PR — they know their changes best. They then choose their reviewers and, once the required approvals are in, **merge their own PR**.
 
-| PR targets | Reviewers | Who merges |
-|---|---|---|
-| `main` | Author's choice (see below) | Author, once approved |
-| `DOC/main` | Documentation Lead | Documentation Lead |
+| PR targets | Reviewers                   | Who merges            |
+| ---------- | --------------------------- | --------------------- |
+| `main`     | Author's choice (see below) | Author, once approved |
+| `DOC/main` | Documentation Lead          | Documentation Lead    |
 
 For PRs targeting `main`, the author decides how many reviewers to add based on the nature and scope of the change. A small isolated fix can go with one reviewer and a quick turnaround. A change touching shared infrastructure, auth, or multiple modules warrants more eyes and more time. The minimum enforced by branch protection is one approval — the author's judgment determines whether that is enough.
 
@@ -88,7 +88,6 @@ Reviews are done using GitHub's inline review feature: comments are left on spec
 8. Merge your own PR once approved; delete the branch.
 
 Full Git command reference: [`git_workflow.md`](./git_workflow.md).
-Parallel branch work: [`git_worktrees.md`](./git_worktrees.md).
 
 ---
 
@@ -101,7 +100,7 @@ Structure:
 - **Issues** for each task or bug, linked to branches and PRs
 - **Labels** by area (frontend, backend, ELK, quiz, docs) and module type (major / minor)
 - **Columns** tracking status: Backlog → In Progress → In Review → Done
-- **Two views**: *ISSUES ONLY* (all non-module work) and *MODULES ONLY* (subject module delivery tracking), kept separate to avoid noise
+- **Two views**: _ISSUES ONLY_ (all non-module work) and _MODULES ONLY_ (subject module delivery tracking), kept separate to avoid noise
 - **Deadline and priority fields** to surface near-term work and blockers at a glance
 
 Ticket conventions:
@@ -132,10 +131,10 @@ Sessions involved the full team or a subset depending on the topic. Knowledge-sh
 
 ## Communication
 
-| Channel | Use |
-|---|---|
-| **Slack** | Day-to-day coordination, quick questions, technical tips, urgent updates |
-| **GitHub Issues / PR comments** | Traceable technical discussions, inline review feedback, bug notes |
-| **Meeting minutes** | Decision records and cross-session continuity |
+| Channel                         | Use                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| **Slack**                       | Day-to-day coordination, quick questions, technical tips, urgent updates |
+| **GitHub Issues / PR comments** | Traceable technical discussions, inline review feedback, bug notes       |
+| **Meeting minutes**             | Decision records and cross-session continuity                            |
 
 Substantive decisions — architecture choices, scope changes, breaking API changes — were recorded in GitHub or meeting minutes rather than left in Slack threads.

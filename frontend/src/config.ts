@@ -6,4 +6,4 @@
 //        ce qui donne des URLs *relatives* servies sur la même origine et
 //        proxifiées vers le backend par nginx. Plus de localhost en dur,
 //        donc l'app fonctionne quel que soit l'hôte (LAN, domaine, etc.).
-export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000';
+export const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
