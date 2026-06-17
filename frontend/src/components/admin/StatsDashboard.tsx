@@ -74,14 +74,18 @@ export default function StatsDashboard({ reports }: Props) {
   }, [allClasses, filtered]);
 
   const typeData = useMemo(() => {
-    const types = ['physique', 'verbal', 'cyber', 'exclusion', 'sexuel'];
-    return types
+    const TYPE_KEYS: Record<string, string> = {
+      physique: 'reporter.step2.physical', verbal: 'reporter.step2.verbal',
+      cyber: 'reporter.step2.cyber', exclusion: 'reporter.step2.exclusion',
+      sexuel: 'reporter.step2.sexual',
+    };
+    return Object.keys(TYPE_KEYS)
       .map(tp => ({
-        type: tp.charAt(0).toUpperCase() + tp.slice(1),
+        type: t(TYPE_KEYS[tp]),
         count: filtered.filter(r => r.type?.toLowerCase() === tp).length,
       }))
       .filter(d => d.count > 0);
-  }, [filtered]);
+  }, [filtered, t]);
 
   const statusData = useMemo(() => {
     const statuses = [

@@ -553,6 +553,7 @@
       "address": "Adresse"
     },
     "nav": {
+      "ariaLabel": "Schülernavigation",
       "profile": "Mein Profil",
       "quiz": "Quiz",
       "report": "Meldung erstellen",
