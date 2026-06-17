@@ -31,7 +31,7 @@ export default function Login() {
 
   const validatePassword = (value: string): string => {
     if (!value) return t("validation.passwordRequired");
-    if (value.length < 6) return t("validation.passwordMin");
+    if (value.length < 12) return t("validation.passwordMin");
     return "";
   };
   // ───────────────────────────────────────────
