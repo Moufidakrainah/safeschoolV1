@@ -244,7 +244,7 @@ export function useUsers(): UseUsersReturn {
         /* échec d'upload silencieux : l'UI reste sur l'avatar courant */
       }
     },
-    [fetchUsers, t],
+    [fetchUsers],
   );
 
   const handleSaveUser = useCallback(async () => {
