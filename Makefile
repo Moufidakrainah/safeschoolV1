@@ -161,9 +161,9 @@ wait-schema: # Attendre que TypeORM crée le schéma
 seed: wait-schema ## Injecter les données de démonstration
 	$(COMPOSE) exec -T database sh -c 'psql -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"' < $(SEED_FILE)
 	@$(COMPOSE) exec -T backend sh -c 'mkdir -p /app/uploads/avatars'
-	@$(COMPOSE) cp database/avatars/bougrine.danya.jpg backend:/app/uploads/avatars/
-	@$(COMPOSE) cp database/avatars/bougrine.lina.jpg backend:/app/uploads/avatars/
-	@$(COMPOSE) cp database/avatars/bougrine.lotfi.jpg backend:/app/uploads/avatars/
+	@$(COMPOSE) exec -T backend sh -c 'cat > /app/uploads/avatars/bougrine.danya.jpg' < database/avatars/bougrine.danya.jpg
+	@$(COMPOSE) exec -T backend sh -c 'cat > /app/uploads/avatars/bougrine.lina.jpg' < database/avatars/bougrine.lina.jpg
+	@$(COMPOSE) exec -T backend sh -c 'cat > /app/uploads/avatars/bougrine.lotfi.jpg' < database/avatars/bougrine.lotfi.jpg
 	@echo "Avatars copiés."
 
 seed-if-empty: wait-schema ## Seeder seulement si la base est vide
