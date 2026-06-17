@@ -5,6 +5,9 @@ CERT_DIR = nginx/certs
 # IP intégrée au certificat (SAN). Auto-détectée ; surchargeable :
 #   make certs CERT_IP=192.168.1.42
 CERT_IP ?= $(shell hostname -I 2>/dev/null | awk '{print $$1}')
+# Nom d'hôte intégré au certificat (SAN). Auto-détecté ; surchargeable :
+#   make certs CERT_HOST=k0r4p2
+CERT_HOST ?= $(shell hostname -s 2>/dev/null)
 ENV_FILE = .env
 SEED_FILE = database/seed.sql
 SCHEMA_WAIT_RETRIES = 45
@@ -58,12 +61,14 @@ certs: ## Générer des certificats TLS auto-signés (SAN: localhost + IP LAN) s
 certs-renew: ## (Re)générer les certificats TLS, en écrasant les existants
 	@mkdir -p $(CERT_DIR); \
 	ip="$(CERT_IP)"; [ -z "$$ip" ] && ip="127.0.0.1"; \
-	echo "Génération du certificat (CN=localhost, SAN=localhost,127.0.0.1,$$ip)"; \
+	san="DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
+	host="$(CERT_HOST)"; [ -n "$$host" ] && [ "$$host" != "localhost" ] && san="$$san,DNS:$$host"; \
+	echo "Génération du certificat (CN=localhost, SAN=$$san)"; \
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 		-keyout $(CERT_DIR)/privkey.pem \
 		-out $(CERT_DIR)/fullchain.pem \
 		-subj "/CN=localhost" \
-		-addext "subjectAltName=DNS:localhost,IP:127.0.0.1,IP:$$ip"; \
+		-addext "subjectAltName=$$san"; \
 	echo "Certificats générés dans $(CERT_DIR)/"
 
 re: ## Remettre à zéro et redémarrer
