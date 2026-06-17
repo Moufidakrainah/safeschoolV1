@@ -1,0 +1,265 @@
+<svg width="1500" height="1050" xmlns="http://www.w3.org/2000/svg" style="background:#ffffff;font-family:Arial,sans-serif">
+<defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    <path d="M1 1L9 5L1 9" fill="none" stroke="#555" stroke-width="1.5" stroke-linecap="round"/>
+  </marker>
+</defs>
+
+<rect x="20" y="20" width="200" height="105" rx="6" fill="white" stroke="#888" stroke-width="1"/>
+<text x="120" y="40" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">Legende</text>
+<rect x="30" y="50" width="14" height="12" fill="#ffe0b2" stroke="#e65100" stroke-width="1"/>
+<text x="50" y="61" font-size="11" fill="#333">Cle primaire (PK)</text>
+<rect x="30" y="70" width="14" height="12" fill="#e3f2fd" stroke="#1565c0" stroke-width="1"/>
+<text x="50" y="81" font-size="11" fill="#333">Cle etrangere (FK)</text>
+<line x1="30" y1="96" x2="55" y2="96" stroke="#555" stroke-width="1.5"/>
+<text x="60" y="100" font-size="11" fill="#333">Relation directe</text>
+<line x1="30" y1="115" x2="55" y2="115" stroke="#555" stroke-width="1.5" stroke-dasharray="5,3"/>
+<text x="60" y="119" font-size="11" fill="#333">Table de jointure N-N</text>
+
+<rect x="590" y="30" width="230" height="210" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="590" y="30" width="230" height="26" rx="6" fill="#37474f"/>
+<rect x="590" y="50" width="230" height="6" fill="#37474f"/>
+<text x="705" y="48" text-anchor="middle" font-size="13" font-weight="bold" fill="white">users</text>
+<rect x="590" y="56" width="230" height="18" fill="#ffe0b2"/>
+<text x="600" y="69" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="590" y="74" width="230" height="18" fill="white"/>
+<text x="600" y="87" font-size="11" fill="#333">email : string UNIQUE</text>
+<rect x="590" y="92" width="230" height="18" fill="#f5f5f5"/>
+<text x="600" y="105" font-size="11" fill="#333">password : string bcrypt</text>
+<rect x="590" y="110" width="230" height="18" fill="white"/>
+<text x="600" y="123" font-size="11" fill="#333">firstName : string</text>
+<rect x="590" y="128" width="230" height="18" fill="#f5f5f5"/>
+<text x="600" y="141" font-size="11" fill="#333">lastName : string</text>
+<rect x="590" y="146" width="230" height="18" fill="white"/>
+<text x="600" y="159" font-size="11" fill="#333">role : enum admin|teacher|student</text>
+<rect x="590" y="164" width="230" height="18" fill="#f5f5f5"/>
+<text x="600" y="177" font-size="11" fill="#333">avatar : string nullable</text>
+<rect x="590" y="182" width="230" height="18" fill="white"/>
+<text x="600" y="195" font-size="11" fill="#333">createdAt : timestamp</text>
+
+<rect x="80" y="330" width="220" height="110" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="80" y="330" width="220" height="26" rx="6" fill="#1565c0"/>
+<rect x="80" y="350" width="220" height="6" fill="#1565c0"/>
+<text x="190" y="348" text-anchor="middle" font-size="13" font-weight="bold" fill="white">student_profiles</text>
+<rect x="80" y="356" width="220" height="18" fill="#ffe0b2"/>
+<text x="90" y="369" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="80" y="374" width="220" height="18" fill="white"/>
+<text x="90" y="387" font-size="11" fill="#333">dateOfBirth : date</text>
+<rect x="80" y="392" width="220" height="18" fill="#e3f2fd"/>
+<text x="90" y="405" font-size="11" fill="#333">userId : uuid FK vers users</text>
+<rect x="80" y="410" width="220" height="18" fill="#e3f2fd"/>
+<text x="90" y="423" font-size="11" fill="#333">classId : uuid FK vers classes</text>
+
+<rect x="530" y="330" width="250" height="260" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="530" y="330" width="250" height="26" rx="6" fill="#b71c1c"/>
+<rect x="530" y="350" width="250" height="6" fill="#b71c1c"/>
+<text x="655" y="348" text-anchor="middle" font-size="13" font-weight="bold" fill="white">reports</text>
+<rect x="530" y="356" width="250" height="18" fill="#ffe0b2"/>
+<text x="540" y="369" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="530" y="374" width="250" height="18" fill="white"/>
+<text x="540" y="387" font-size="11" fill="#333">caseNumber : string UNIQUE</text>
+<rect x="530" y="392" width="250" height="18" fill="#f5f5f5"/>
+<text x="540" y="405" font-size="11" fill="#333">type : enum physique|verbal|cyber...</text>
+<rect x="530" y="410" width="250" height="18" fill="white"/>
+<text x="540" y="423" font-size="11" fill="#333">reporter : enum victime|temoin</text>
+<rect x="530" y="428" width="250" height="18" fill="#f5f5f5"/>
+<text x="540" y="441" font-size="11" fill="#333">description : text</text>
+<rect x="530" y="446" width="250" height="18" fill="white"/>
+<text x="540" y="459" font-size="11" fill="#333">grade : enum critical|high|medium|low</text>
+<rect x="530" y="464" width="250" height="18" fill="#f5f5f5"/>
+<text x="540" y="477" font-size="11" fill="#333">status : enum new|in_progress...</text>
+<rect x="530" y="482" width="250" height="18" fill="white"/>
+<text x="540" y="495" font-size="11" fill="#333">aiScore : int</text>
+<rect x="530" y="500" width="250" height="18" fill="#f5f5f5"/>
+<text x="540" y="513" font-size="11" fill="#333">isAnonymous : boolean</text>
+<rect x="530" y="518" width="250" height="18" fill="#e3f2fd"/>
+<text x="540" y="531" font-size="11" fill="#333">studentId : uuid FK vers users</text>
+<rect x="530" y="536" width="250" height="18" fill="white"/>
+<text x="540" y="549" font-size="11" fill="#333">createdAt : timestamp</text>
+
+<rect x="870" y="330" width="220" height="110" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="870" y="330" width="220" height="26" rx="6" fill="#1565c0"/>
+<rect x="870" y="350" width="220" height="6" fill="#1565c0"/>
+<text x="980" y="348" text-anchor="middle" font-size="13" font-weight="bold" fill="white">staff_profiles</text>
+<rect x="870" y="356" width="220" height="18" fill="#ffe0b2"/>
+<text x="880" y="369" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="870" y="374" width="220" height="18" fill="white"/>
+<text x="880" y="387" font-size="11" fill="#333">profession : string</text>
+<rect x="870" y="392" width="220" height="18" fill="white"/>
+<text x="880" y="405" font-size="11" fill="#333">subject : string</text>
+<rect x="870" y="410" width="220" height="18" fill="#e3f2fd"/>
+<text x="880" y="423" font-size="11" fill="#333">userId : uuid FK vers users</text>
+
+<rect x="1160" y="330" width="230" height="148" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="1160" y="330" width="230" height="26" rx="6" fill="#00695c"/>
+<rect x="1160" y="350" width="230" height="6" fill="#00695c"/>
+<text x="1275" y="348" text-anchor="middle" font-size="13" font-weight="bold" fill="white">notifications</text>
+<rect x="1160" y="356" width="230" height="18" fill="#ffe0b2"/>
+<text x="1170" y="369" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="1160" y="374" width="230" height="18" fill="white"/>
+<text x="1170" y="387" font-size="11" fill="#333">message : string</text>
+<rect x="1160" y="392" width="230" height="18" fill="#f5f5f5"/>
+<text x="1170" y="405" font-size="11" fill="#333">read : boolean</text>
+<rect x="1160" y="410" width="230" height="18" fill="#e3f2fd"/>
+<text x="1170" y="423" font-size="11" fill="#333">userId : uuid FK vers users</text>
+<rect x="1160" y="428" width="230" height="18" fill="#e3f2fd"/>
+<text x="1170" y="441" font-size="11" fill="#333">reportId : uuid FK vers reports</text>
+<rect x="1160" y="446" width="230" height="18" fill="white"/>
+<text x="1170" y="459" font-size="11" fill="#333">createdAt : timestamp</text>
+
+<rect x="80" y="580" width="210" height="92" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="80" y="580" width="210" height="26" rx="6" fill="#2e7d32"/>
+<rect x="80" y="600" width="210" height="6" fill="#2e7d32"/>
+<text x="185" y="598" text-anchor="middle" font-size="13" font-weight="bold" fill="white">classes</text>
+<rect x="80" y="606" width="210" height="18" fill="#ffe0b2"/>
+<text x="90" y="619" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="80" y="624" width="210" height="18" fill="white"/>
+<text x="90" y="637" font-size="11" fill="#333">level : string 3eme|4eme...</text>
+<rect x="80" y="642" width="210" height="18" fill="#f5f5f5"/>
+<text x="90" y="655" font-size="11" fill="#333">section : string A|B|C...</text>
+
+<rect x="870" y="580" width="230" height="74" rx="6" fill="white" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3"/>
+<rect x="870" y="580" width="230" height="26" rx="6" fill="#880e4f"/>
+<rect x="870" y="600" width="230" height="6" fill="#880e4f"/>
+<text x="985" y="598" text-anchor="middle" font-size="13" font-weight="bold" fill="white">staff_classes [N-N]</text>
+<rect x="870" y="606" width="230" height="18" fill="#e3f2fd"/>
+<text x="880" y="619" font-size="11" fill="#333">staffProfilesId : uuid FK</text>
+<rect x="870" y="624" width="230" height="18" fill="#e3f2fd"/>
+<text x="880" y="637" font-size="11" fill="#333">classesId : uuid FK</text>
+
+<rect x="20" y="780" width="200" height="148" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="20" y="780" width="200" height="26" rx="6" fill="#6a1b9a"/>
+<rect x="20" y="800" width="200" height="6" fill="#6a1b9a"/>
+<text x="120" y="798" text-anchor="middle" font-size="13" font-weight="bold" fill="white">parents</text>
+<rect x="20" y="806" width="200" height="18" fill="#ffe0b2"/>
+<text x="30" y="819" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="20" y="824" width="200" height="18" fill="white"/>
+<text x="30" y="837" font-size="11" fill="#333">firstName : string</text>
+<rect x="20" y="842" width="200" height="18" fill="#f5f5f5"/>
+<text x="30" y="855" font-size="11" fill="#333">lastName : string</text>
+<rect x="20" y="860" width="200" height="18" fill="white"/>
+<text x="30" y="873" font-size="11" fill="#333">email : string</text>
+<rect x="20" y="878" width="200" height="18" fill="#f5f5f5"/>
+<text x="30" y="891" font-size="11" fill="#333">phone : string</text>
+<rect x="20" y="896" width="200" height="18" fill="white"/>
+<text x="30" y="909" font-size="11" fill="#333">address : string</text>
+
+<rect x="250" y="780" width="230" height="74" rx="6" fill="white" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3"/>
+<rect x="250" y="780" width="230" height="26" rx="6" fill="#880e4f"/>
+<rect x="250" y="800" width="230" height="6" fill="#880e4f"/>
+<text x="365" y="798" text-anchor="middle" font-size="13" font-weight="bold" fill="white">student_parents [N-N]</text>
+<rect x="250" y="806" width="230" height="18" fill="#e3f2fd"/>
+<text x="260" y="819" font-size="11" fill="#333">studentProfilesId : uuid FK</text>
+<rect x="250" y="824" width="230" height="18" fill="#e3f2fd"/>
+<text x="260" y="837" font-size="11" fill="#333">parentsId : uuid FK</text>
+
+<rect x="510" y="780" width="230" height="110" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="510" y="780" width="230" height="26" rx="6" fill="#e65100"/>
+<rect x="510" y="800" width="230" height="6" fill="#e65100"/>
+<text x="625" y="798" text-anchor="middle" font-size="13" font-weight="bold" fill="white">report_suspects</text>
+<rect x="510" y="806" width="230" height="18" fill="#ffe0b2"/>
+<text x="520" y="819" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="510" y="824" width="230" height="18" fill="white"/>
+<text x="520" y="837" font-size="11" fill="#333">freeText : string</text>
+<rect x="510" y="842" width="230" height="18" fill="#e3f2fd"/>
+<text x="520" y="855" font-size="11" fill="#333">resolvedUserId : uuid FK nullable</text>
+<rect x="510" y="860" width="230" height="18" fill="#e3f2fd"/>
+<text x="520" y="873" font-size="11" fill="#333">reportId : uuid FK vers reports</text>
+
+<rect x="760" y="780" width="230" height="110" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="760" y="780" width="230" height="26" rx="6" fill="#e65100"/>
+<rect x="760" y="800" width="230" height="6" fill="#e65100"/>
+<text x="875" y="798" text-anchor="middle" font-size="13" font-weight="bold" fill="white">report_victims</text>
+<rect x="760" y="806" width="230" height="18" fill="#ffe0b2"/>
+<text x="770" y="819" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="760" y="824" width="230" height="18" fill="white"/>
+<text x="770" y="837" font-size="11" fill="#333">freeText : string</text>
+<rect x="760" y="842" width="230" height="18" fill="#e3f2fd"/>
+<text x="770" y="855" font-size="11" fill="#333">resolvedUserId : uuid FK nullable</text>
+<rect x="760" y="860" width="230" height="18" fill="#e3f2fd"/>
+<text x="770" y="873" font-size="11" fill="#333">reportId : uuid FK vers reports</text>
+
+<rect x="1010" y="780" width="250" height="166" rx="6" fill="white" stroke="#333" stroke-width="1.5"/>
+<rect x="1010" y="780" width="250" height="26" rx="6" fill="#4527a0"/>
+<rect x="1010" y="800" width="250" height="6" fill="#4527a0"/>
+<text x="1135" y="798" text-anchor="middle" font-size="13" font-weight="bold" fill="white">report_notes</text>
+<rect x="1010" y="806" width="250" height="18" fill="#ffe0b2"/>
+<text x="1020" y="819" font-size="11" fill="#333">id : uuid PK</text>
+<rect x="1010" y="824" width="250" height="18" fill="white"/>
+<text x="1020" y="837" font-size="11" fill="#333">content : text</text>
+<rect x="1010" y="842" width="250" height="18" fill="#f5f5f5"/>
+<text x="1020" y="855" font-size="11" fill="#333">type : enum note|convocation|status_change</text>
+<rect x="1010" y="860" width="250" height="18" fill="white"/>
+<text x="1020" y="873" font-size="11" fill="#333">targetRole : string nullable</text>
+<rect x="1010" y="878" width="250" height="18" fill="#e3f2fd"/>
+<text x="1020" y="891" font-size="11" fill="#333">reportId : uuid FK vers reports</text>
+<rect x="1010" y="896" width="250" height="18" fill="#e3f2fd"/>
+<text x="1020" y="909" font-size="11" fill="#333">authorId : uuid FK vers users</text>
+<rect x="1010" y="914" width="250" height="18" fill="white"/>
+<text x="1020" y="927" font-size="11" fill="#333">createdAt : timestamp</text>
+
+<line x1="590" y1="135" x2="300" y2="330" stroke="#1565c0" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="582" y="128" font-size="11" font-weight="bold" fill="#1565c0">1</text>
+<text x="302" y="325" font-size="11" font-weight="bold" fill="#1565c0">0..1</text>
+
+<line x1="820" y1="135" x2="870" y2="330" stroke="#1565c0" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="826" y="128" font-size="11" font-weight="bold" fill="#1565c0">1</text>
+<text x="872" y="325" font-size="11" font-weight="bold" fill="#1565c0">0..1</text>
+
+<line x1="655" y1="240" x2="655" y2="330" stroke="#b71c1c" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="662" y="258" font-size="11" font-weight="bold" fill="#b71c1c">1</text>
+<text x="662" y="322" font-size="11" font-weight="bold" fill="#b71c1c">N</text>
+
+<line x1="820" y1="120" x2="1160" y2="380" stroke="#00695c" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="826" y="115" font-size="11" font-weight="bold" fill="#00695c">1</text>
+<text x="1140" y="375" font-size="11" font-weight="bold" fill="#00695c">N</text>
+
+<line x1="190" y1="440" x2="190" y2="580" stroke="#2e7d32" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="196" y="460" font-size="11" font-weight="bold" fill="#2e7d32">N</text>
+<text x="196" y="572" font-size="11" font-weight="bold" fill="#2e7d32">1</text>
+
+<line x1="190" y1="440" x2="365" y2="780" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+<text x="210" y="460" font-size="11" font-weight="bold" fill="#880e4f">1</text>
+<text x="348" y="773" font-size="11" font-weight="bold" fill="#880e4f">N</text>
+
+<line x1="220" y1="854" x2="250" y2="840" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+<text x="204" y="852" font-size="11" font-weight="bold" fill="#880e4f">1</text>
+<text x="252" y="834" font-size="11" font-weight="bold" fill="#880e4f">N</text>
+
+<line x1="980" y1="440" x2="985" y2="580" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+<text x="990" y="460" font-size="11" font-weight="bold" fill="#880e4f">1</text>
+<text x="990" y="572" font-size="11" font-weight="bold" fill="#880e4f">N</text>
+
+<line x1="290" y1="626" x2="870" y2="620" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arr)"/>
+<text x="296" y="618" font-size="11" font-weight="bold" fill="#880e4f">1</text>
+<text x="848" y="618" font-size="11" font-weight="bold" fill="#880e4f">N</text>
+
+<line x1="610" y1="590" x2="610" y2="780" stroke="#e65100" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="618" y="612" font-size="11" font-weight="bold" fill="#e65100">1</text>
+<text x="618" y="773" font-size="11" font-weight="bold" fill="#e65100">N</text>
+
+<line x1="720" y1="590" x2="875" y2="780" stroke="#e65100" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="728" y="612" font-size="11" font-weight="bold" fill="#e65100">1</text>
+<text x="858" y="773" font-size="11" font-weight="bold" fill="#e65100">N</text>
+
+<line x1="780" y1="590" x2="1135" y2="780" stroke="#4527a0" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="788" y="612" font-size="11" font-weight="bold" fill="#4527a0">1</text>
+<text x="1118" y="773" font-size="11" font-weight="bold" fill="#4527a0">N</text>
+
+<line x1="780" y1="460" x2="1160" y2="430" stroke="#00695c" stroke-width="1.5" marker-end="url(#arr)"/>
+<text x="788" y="455" font-size="11" font-weight="bold" fill="#00695c">1</text>
+<text x="1142" y="425" font-size="11" font-weight="bold" fill="#00695c">N</text>
+
+<line x1="820" y1="200" x2="1135" y2="780" stroke="#4527a0" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+<text x="828" y="200" font-size="10" fill="#4527a0">auteur 1</text>
+<text x="1100" y="776" font-size="10" fill="#4527a0">N</text>
+
+<line x1="590" y1="220" x2="625" y2="780" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+<text x="556" y="218" font-size="10" fill="#e65100">resolu 1</text>
+<text x="628" y="773" font-size="10" fill="#e65100">0..N</text>
+
+<line x1="700" y1="240" x2="875" y2="780" stroke="#e65100" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+<text x="706" y="238" font-size="10" fill="#e65100">resolu 1</text>
+<text x="858" y="773" font-size="10" fill="#e65100">0..N</text>
+
+</svg>

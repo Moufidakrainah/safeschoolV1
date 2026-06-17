@@ -110,7 +110,6 @@ If the sample dataset has been seeded, the following accounts can be used for de
 | `emma@safeschool.com`  | `ELEVEeleve123123+` | student | `/student`   |
 | `kevin@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
 | `sara@safeschool.com`  | `ELEVEeleve123123+` | student | `/student`   |
-| `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
 | `admin@safeschool.com` | `ADMINadmin123123+` | admin   | `/dashboard` |
 | `prof@safeschool.com`  | `PROFprof123123+`   | teacher | `/reporter`  |
 | `prof2@safeschool.com` | `PROFprof123123+`   | teacher | `/reporter`  |
@@ -271,25 +270,7 @@ All tables use UUID primary keys and are managed through TypeORM entities.
 
 ### ER Diagram
 
-```mermaid
-erDiagram
-  USERS ||--o| STUDENT_PROFILES : has
-  USERS ||--o| STAFF_PROFILES : has
-  USERS ||--o{ REPORTS : submits
-  USERS ||--o{ REPORT_SUSPECTS : resolves
-  USERS ||--o{ REPORT_VICTIMS : resolves
-  USERS ||--o{ REPORT_NOTES : writes
-  USERS ||--o{ NOTIFICATIONS : receives
-
-  CLASSES ||--o{ STUDENT_PROFILES : contains
-  CLASSES }o--o{ STAFF_PROFILES : assigned_to
-  PARENTS }o--o{ STUDENT_PROFILES : linked_to
-
-  REPORTS ||--o{ REPORT_SUSPECTS : includes
-  REPORTS ||--o{ REPORT_VICTIMS : includes
-  REPORTS ||--o{ REPORT_NOTES : contains
-  REPORTS ||--o{ NOTIFICATIONS : triggers
-```
+![Database Schema](docs/safeschool_erd.svg)
 
 ### Tables and Relationships
 
@@ -329,12 +310,12 @@ reports
   └── 1—N → report_victims   (cascade delete)
 
 report_suspects / report_victims
-  ├── id (PK), freeText, ...
+  ├── id (PK), freeText
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (resolvedUserId, nullable, set null on delete)
 
 report_notes
-  ├── id (PK), content, type
+  ├── id (PK), content, type (enum: note | convocation | status_change)
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (author, nullable, set null on delete)
 
@@ -355,7 +336,7 @@ notifications
 | reports | grade              | enum (`ReportGrade`)              | Severity grade computed from the AI scoring service       |
 | reports | status             | enum (`ReportStatus`)             | Lifecycle state of a report (default: `NEW`)              |
 | reports | aiScore / aiReason | float / text                      | Output of the AI severity scoring (`scoring.service.ts`)  |
-| classes | level / section    | varchar                           | e.g. "6e" / "A" — identifies a school class               |
+| classes | level / section    | varchar                           | e.g. "6eme" / "A" — identifies a school class             |
 
 Note that the role director is defined in the code with the same permissions as admin, but reserved for future use — no seeded account and not offered in the user-creation form, so the demo ships with student, teacher and admin only.
 
