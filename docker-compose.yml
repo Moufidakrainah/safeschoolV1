@@ -9,8 +9,7 @@
 # ════════════════════════════════════════════════════════════════════
 
 services:
-
-# == BACKEND =================================================
+  # == BACKEND =================================================
   backend:
     build:
       context: ./backend
@@ -32,8 +31,7 @@ services:
       retries: 5
       start_period: 30s
 
-
-# == BASE DE DONNÉES =========================================
+  # == BASE DE DONNÉES =========================================
   database:
     image: postgres:15-alpine
     container_name: safeschool_db
@@ -53,10 +51,9 @@ services:
     networks:
       - safeschool_network
 
+  # == Logs et monitoring ================================
 
-# == Logs et monitoring ================================
-
-### === ELK ===
+  ### === ELK ===
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     container_name: safeschool_elasticsearch
@@ -70,7 +67,11 @@ services:
     networks:
       - safeschool_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f -u elastic:${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1",
+        ]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -157,7 +158,6 @@ volumes:
   kibanadata:
   frontend_node_modules:
   backend_node_modules:
-
 
 # == RÉSEAU ==================================================
 networks:

@@ -65,9 +65,9 @@ export class StaffProfilesService {
   async findByUserId(userId: string): Promise<StaffProfile> {
     const profile = await this.staffRepo.findOne({
       where: { user: { id: userId } },
-      relations: ['user', 'classes'],
+      relations: ["user", "classes"],
     });
-    if (!profile) throw new NotFoundException('Profil introuvable');
+    if (!profile) throw new NotFoundException("Profil introuvable");
     return profile;
   }
 }

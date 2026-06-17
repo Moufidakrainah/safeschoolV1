@@ -60,6 +60,7 @@ Failed logins are **additionally** logged as `WARN` events in the ELK stack, so 
 ## SQL Injection — TypeORM
 
 SQL injection consists of embedding SQL inside a user-controlled field to manipulate the query:
+
 ```
 email: "admin'--"  →  SELECT * FROM users WHERE email = 'admin'--' AND password = ...
                                                                     ^ everything after is ignored
@@ -69,7 +70,7 @@ TypeORM prevents this automatically via **bound parameters** (prepared statement
 
 ```typescript
 // TypeORM translates this into a parameterized query, never string concatenation
-this.usersRepository.findOne({ where: { email } })
+this.usersRepository.findOne({ where: { email } });
 // → SELECT * FROM users WHERE email = $1  (email passed separately)
 ```
 
@@ -152,6 +153,7 @@ Access in NestJS via `ConfigModule`: `process.env.JWT_SECRET`.
 ## HTTPS — subject requirement
 
 Subject section III.3 requires:
+
 > "Any connection to the backend, from a browser, from a script, from an external API, etc., must use HTTPS."
 
 Without HTTPS, JWT tokens travel in plain text on the network — anyone in a MITM position (same WiFi network) can read them and impersonate the user.
@@ -162,15 +164,15 @@ HTTPS is handled by nginx (reverse proxy), which holds the TLS certificate. Inte
 
 ## Summary — protection by layer
 
-| Threat | Protection | Where |
-|---|---|---|
-| Password stolen from DB | bcrypt (irreversible hash + salt) | `users.service.ts` (hash) / `auth.service.ts` (compare) |
-| Forged JWT token | HMAC signature (JWT_SECRET) | `jwt.strategy.ts` |
-| Brute-force login | Rate limiting (429) + WARN logging | `@nestjs/throttler` (global guard) + ELK |
-| SQL injection | TypeORM bound parameters | All DB queries |
-| Malformed input | ValidationPipe + class-validator | NestJS DTOs |
-| XSS | Automatic JSX escaping | React (built-in) |
-| CSRF | JWT in headers (not cookies) | Axios interceptor |
-| Exposed credentials | Environment variables | `.env` + `.gitignore` |
-| Network interception | HTTPS via nginx | Infrastructure |
-| Unauthenticated route access | JwtAuthGuard | NestJS controllers |
+| Threat                       | Protection                         | Where                                                   |
+| ---------------------------- | ---------------------------------- | ------------------------------------------------------- |
+| Password stolen from DB      | bcrypt (irreversible hash + salt)  | `users.service.ts` (hash) / `auth.service.ts` (compare) |
+| Forged JWT token             | HMAC signature (JWT_SECRET)        | `jwt.strategy.ts`                                       |
+| Brute-force login            | Rate limiting (429) + WARN logging | `@nestjs/throttler` (global guard) + ELK                |
+| SQL injection                | TypeORM bound parameters           | All DB queries                                          |
+| Malformed input              | ValidationPipe + class-validator   | NestJS DTOs                                             |
+| XSS                          | Automatic JSX escaping             | React (built-in)                                        |
+| CSRF                         | JWT in headers (not cookies)       | Axios interceptor                                       |
+| Exposed credentials          | Environment variables              | `.env` + `.gitignore`                                   |
+| Network interception         | HTTPS via nginx                    | Infrastructure                                          |
+| Unauthenticated route access | JwtAuthGuard                       | NestJS controllers                                      |

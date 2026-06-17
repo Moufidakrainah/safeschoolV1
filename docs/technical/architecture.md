@@ -51,8 +51,6 @@ flowchart LR
 - Report scoring calls the AI service when the feature is enabled.
 - Logs are sent through Logstash to Elasticsearch and inspected in Kibana.
 
-
-
 ## Network Architecture — Development vs Production
 
 ### Development state (HTTP, direct ports)
@@ -68,14 +66,14 @@ Browser
 
 In development, everything runs over plain HTTP on localhost — convenient for local work, but with no encryption. Production mode puts the whole stack behind nginx with HTTPS (see below).
 
-| Service | Internal port | Host port |
-|---|---|---|
-| Frontend (Vite) | 5173 | 5173 |
-| Backend (NestJS) | 3000 | 5000 |
-| PostgreSQL | 5432 | 5433 |
-| Elasticsearch | 9200 | n/a (internal only) |
-| Logstash (TCP) | 5044 | n/a (internal only) |
-| Kibana | 5601 | 5601 |
+| Service          | Internal port | Host port           |
+| ---------------- | ------------- | ------------------- |
+| Frontend (Vite)  | 5173          | 5173                |
+| Backend (NestJS) | 3000          | 5000                |
+| PostgreSQL       | 5432          | 5433                |
+| Elasticsearch    | 9200          | n/a (internal only) |
+| Logstash (TCP)   | 5044          | n/a (internal only) |
+| Kibana           | 5601          | 5601                |
 
 ### Production state (HTTPS with nginx reverse proxy)
 
@@ -102,6 +100,7 @@ Docker internal network (HTTP, not exposed):
 ## Startup Sequence & Orchestration
 
 `make all` is the default target and starts the **production** stack. It:
+
 - generates the TLS certificates (`make certs`)
 - brings up all services through Docker Compose (production overlay)
 - seeds the database if it is empty (`seed-if-empty`)
@@ -134,15 +133,15 @@ make all
 
 ### Who waits for whom
 
-| Service | Waits for | Condition |
-|---|---|---|
-| backend | database | `service_healthy` |
-| backend | logstash | *`service_started`* |
-| logstash | elasticsearch | `service_healthy` |
-| kibana | elasticsearch | `service_healthy` |
-| elasticsearch-setup-users | elasticsearch | `service_healthy` |
-| elasticsearch-setup-kibana | kibana | `service_healthy` |
-| nginx (prod) | backend | `service_healthy` |
+| Service                    | Waits for     | Condition           |
+| -------------------------- | ------------- | ------------------- |
+| backend                    | database      | `service_healthy`   |
+| backend                    | logstash      | _`service_started`_ |
+| logstash                   | elasticsearch | `service_healthy`   |
+| kibana                     | elasticsearch | `service_healthy`   |
+| elasticsearch-setup-users  | elasticsearch | `service_healthy`   |
+| elasticsearch-setup-kibana | kibana        | `service_healthy`   |
+| nginx (prod)               | backend       | `service_healthy`   |
 
 ### Logging never blocks the application
 
@@ -167,7 +166,6 @@ volumes, so there is no delay.
 
 This was a deliberate choice: a short startup delay that fixes itself, rather
 than a stack that can get stuck if the setup fails.
-
 
 ## End-to-End Walkthrough — a student submits a harassment report
 

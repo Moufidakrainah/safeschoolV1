@@ -1,9 +1,16 @@
-import { Controller, Get, Patch, Param, Request, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Request,
+  UseGuards,
+} from "@nestjs/common";
 import { SkipThrottle } from "@nestjs/throttler";
 import { AuthGuard } from "@nestjs/passport";
 import { NotificationsService } from "./notifications.service";
-import { Request as ExpressRequest } from 'express';
-import { JwtUser } from '../common/interfaces/jwt-user.interface';
+import { Request as ExpressRequest } from "express";
+import { JwtUser } from "../common/interfaces/jwt-user.interface";
 
 @UseGuards(AuthGuard("jwt"))
 @SkipThrottle()

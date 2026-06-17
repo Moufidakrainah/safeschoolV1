@@ -1,24 +1,24 @@
 import {
-	ConnectedSocket,
-	MessageBody,
-	OnGatewayInit,
-	OnGatewayConnection,
-	OnGatewayDisconnect,
-	SubscribeMessage,
-	WebSocketGateway,
-	WebSocketServer,
-} from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
-import { QuizRealtimeService } from './quiz-realtime.service';
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from "@nestjs/websockets";
+import { Logger } from "@nestjs/common";
+import { Server, Socket } from "socket.io";
+import { JwtService } from "@nestjs/jwt";
+import { QuizRealtimeService } from "./quiz-realtime.service";
 
 function isNonEmptyString(value: unknown): value is string {
-	return typeof value === 'string' && value.length > 0;
+  return typeof value === "string" && value.length > 0;
 }
 
 function isInteger(value: unknown): value is number {
-	return typeof value === 'number' && Number.isInteger(value);
+  return typeof value === "number" && Number.isInteger(value);
 }
 
 interface JoinRoomPayload {
@@ -42,8 +42,8 @@ interface SubmitAnswerPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: (process.env.FRONTEND_URL ?? 'http://localhost:5173')
-      .split(',')
+    origin: (process.env.FRONTEND_URL ?? "http://localhost:5173")
+      .split(",")
       .map((o) => o.trim()),
   },
   pingInterval: 10_000,
@@ -52,12 +52,12 @@ interface SubmitAnswerPayload {
 export class QuizRealtimeGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-	constructor(
-		private readonly quizRealtimeService: QuizRealtimeService,
-		private readonly jwtService: JwtService,
-	) {}
+  constructor(
+    private readonly quizRealtimeService: QuizRealtimeService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-	private readonly logger = new Logger(QuizRealtimeGateway.name);
+  private readonly logger = new Logger(QuizRealtimeGateway.name);
 
   @WebSocketServer()
   server: Server;
@@ -103,97 +103,108 @@ export class QuizRealtimeGateway
     );
   }
 
-	handleConnection(client: Socket) {
-		const token = this.extractToken(client);
+  handleConnection(client: Socket) {
+    const token = this.extractToken(client);
 
-		if (!token) {
-			client.emit('quiz:unauthorized', { reason: 'missing-token' });
-			client.disconnect(true);
-			return;
-		}
+    if (!token) {
+      client.emit("quiz:unauthorized", { reason: "missing-token" });
+      client.disconnect(true);
+      return;
+    }
 
-		try {
-			const payload = this.jwtService.verify<{ sub: string; email: string; role: string }>(
-				token,
-				{ algorithms: ['HS256'] },
-			);
-			client.data.user = payload;
-		} catch {
-			client.emit('quiz:unauthorized', { reason: 'invalid-token' });
-			client.disconnect(true);
-			return;
-		}
+    try {
+      const payload = this.jwtService.verify<{
+        sub: string;
+        email: string;
+        role: string;
+      }>(token, { algorithms: ["HS256"] });
+      client.data.user = payload;
+    } catch {
+      client.emit("quiz:unauthorized", { reason: "invalid-token" });
+      client.disconnect(true);
+      return;
+    }
 
-		this.logger.log(`quiz client connected: ${client.id}`);
-	}
+    this.logger.log(`quiz client connected: ${client.id}`);
+  }
 
-	private extractToken(client: Socket): string | undefined {
-		const authToken = client.handshake.auth?.token;
-		if (typeof authToken === 'string' && authToken.length > 0) {
-			return authToken.replace(/^Bearer\s+/i, '');
-		}
+  private extractToken(client: Socket): string | undefined {
+    const authToken = client.handshake.auth?.token;
+    if (typeof authToken === "string" && authToken.length > 0) {
+      return authToken.replace(/^Bearer\s+/i, "");
+    }
 
-		const header = client.handshake.headers?.authorization;
-		if (typeof header === 'string' && header.length > 0) {
-			return header.replace(/^Bearer\s+/i, '');
-		}
+    const header = client.handshake.headers?.authorization;
+    if (typeof header === "string" && header.length > 0) {
+      return header.replace(/^Bearer\s+/i, "");
+    }
 
-		return undefined;
-	}
+    return undefined;
+  }
 
-	handleDisconnect(client: Socket) {
-		this.logger.log(`quiz client disconnected: ${client.id}`);
+  handleDisconnect(client: Socket) {
+    this.logger.log(`quiz client disconnected: ${client.id}`);
 
-		const updates = this.quizRealtimeService.markDisconnected(client.id);
-		for (const update of updates) {
-			if (update.closed) {
-				this.server.to(update.roomId).emit('quiz:room:closed', { roomId: update.roomId });
-				continue;
-			}
+    const updates = this.quizRealtimeService.markDisconnected(client.id);
+    for (const update of updates) {
+      if (update.closed) {
+        this.server
+          .to(update.roomId)
+          .emit("quiz:room:closed", { roomId: update.roomId });
+        continue;
+      }
 
-			if (update.snapshot) {
-				this.server.to(update.roomId).emit('quiz:room:update', update.snapshot);
-			}
+      if (update.snapshot) {
+        this.server.to(update.roomId).emit("quiz:room:update", update.snapshot);
+      }
 
-			if (update.revealPayload) {
-				this.server.to(update.roomId).emit('quiz:score:update', update.revealPayload.roomSnapshot);
-				this.server.to(update.roomId).emit('quiz:question:reveal', update.revealPayload);
-			}
-		}
-	}
+      if (update.revealPayload) {
+        this.server
+          .to(update.roomId)
+          .emit("quiz:score:update", update.revealPayload.roomSnapshot);
+        this.server
+          .to(update.roomId)
+          .emit("quiz:question:reveal", update.revealPayload);
+      }
+    }
+  }
 
-	private getPlayerId(client: Socket): string | undefined {
-		const user = client.data.user as { sub?: string } | undefined;
-		return user?.sub;
-	}
+  private getPlayerId(client: Socket): string | undefined {
+    const user = client.data.user as { sub?: string } | undefined;
+    return user?.sub;
+  }
 
-	// Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
-	// la question en cours, les scores, toute révélation active et sa propre réponse
-	private sendReconnectState(client: Socket, roomId: string, playerId: string) {
-		const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
-		if (!snapshot || snapshot.status !== 'in-progress') return;
+  // Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
+  // la question en cours, les scores, toute révélation active et sa propre réponse
+  private sendReconnectState(client: Socket, roomId: string, playerId: string) {
+    const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
+    if (!snapshot || snapshot.status !== "in-progress") return;
 
-		const questionSnapshot = this.quizRealtimeService.getQuestionSnapshot(roomId);
-		if (questionSnapshot) {
-			client.emit('quiz:question', questionSnapshot);
-		}
+    const questionSnapshot =
+      this.quizRealtimeService.getQuestionSnapshot(roomId);
+    if (questionSnapshot) {
+      client.emit("quiz:question", questionSnapshot);
+    }
 
-		client.emit('quiz:score:update', snapshot);
+    client.emit("quiz:score:update", snapshot);
 
-		const revealSnapshot = this.quizRealtimeService.getRevealSnapshot(roomId);
-		if (revealSnapshot) {
-			client.emit('quiz:question:reveal', revealSnapshot);
-		}
+    const revealSnapshot = this.quizRealtimeService.getRevealSnapshot(roomId);
+    if (revealSnapshot) {
+      client.emit("quiz:question:reveal", revealSnapshot);
+    }
 
-		const answerState = this.quizRealtimeService.getPlayerAnswerState(roomId, playerId);
-		if (answerState?.hasAnswered && answerState.questionId !== null) {
-			client.emit('quiz:answer:restore', {
-				questionId: answerState.questionId,
-				selectedIndex: answerState.selectedIndex,
-				hasAnswered: true,
-			});
-		}
-	}
+    const answerState = this.quizRealtimeService.getPlayerAnswerState(
+      roomId,
+      playerId,
+    );
+    if (answerState?.hasAnswered && answerState.questionId !== null) {
+      client.emit("quiz:answer:restore", {
+        questionId: answerState.questionId,
+        selectedIndex: answerState.selectedIndex,
+        hasAnswered: true,
+      });
+    }
+  }
 
 	@SubscribeMessage('quiz:join')
 	handleJoin(
@@ -285,20 +296,24 @@ export class QuizRealtimeGateway
       };
     }
 
-		if (result.status === 'server-at-capacity') {
-			return {
-				event: 'quiz:join:ignored',
-				data: { roomId: payload.roomId, reason: 'server-at-capacity', snapshot: result.snapshot },
-			};
-		}
+    if (result.status === "server-at-capacity") {
+      return {
+        event: "quiz:join:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "server-at-capacity",
+          snapshot: result.snapshot,
+        },
+      };
+    }
 
-		if (result.status === 'joined' || result.status === 'reconnected') {
-			void client.join(payload.roomId);
-		}
+    if (result.status === "joined" || result.status === "reconnected") {
+      void client.join(payload.roomId);
+    }
 
-		if (result.snapshot) {
-			this.server.to(payload.roomId).emit('quiz:room:update', result.snapshot);
-		}
+    if (result.snapshot) {
+      this.server.to(payload.roomId).emit("quiz:room:update", result.snapshot);
+    }
 
 		// Reconnexion en pleine partie : rejoue l'état actuel de la partie à ce client
 		if (result.status === 'reconnected') {
@@ -320,43 +335,47 @@ export class QuizRealtimeGateway
     };
   }
 
-	@SubscribeMessage('quiz:leave')
-	handleLeave(
-		@MessageBody() payload: LeaveRoomPayload,
-		@ConnectedSocket() client: Socket,
-	) {
-		if (!payload || !isNonEmptyString(payload.roomId)) {
-			return {
-				event: 'quiz:leave:ignored',
-				data: { roomId: null, reason: 'invalid-payload' },
-			};
-		}
+  @SubscribeMessage("quiz:leave")
+  handleLeave(
+    @MessageBody() payload: LeaveRoomPayload,
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!payload || !isNonEmptyString(payload.roomId)) {
+      return {
+        event: "quiz:leave:ignored",
+        data: { roomId: null, reason: "invalid-payload" },
+      };
+    }
 
-		const playerId = this.getPlayerId(client);
-		if (!playerId) {
-			return {
-				event: 'quiz:leave:ignored',
-				data: { roomId: payload.roomId, reason: 'unauthorized' },
-			};
-		}
+    const playerId = this.getPlayerId(client);
+    if (!playerId) {
+      return {
+        event: "quiz:leave:ignored",
+        data: { roomId: payload.roomId, reason: "unauthorized" },
+      };
+    }
 
-		const result = this.quizRealtimeService.leaveRoom(payload.roomId, playerId);
+    const result = this.quizRealtimeService.leaveRoom(payload.roomId, playerId);
 
-		if (result.status === 'room-not-found') {
-			return {
-				event: 'quiz:leave:ignored',
-				data: { roomId: payload.roomId, reason: 'room-not-found' },
-			};
-		}
+    if (result.status === "room-not-found") {
+      return {
+        event: "quiz:leave:ignored",
+        data: { roomId: payload.roomId, reason: "room-not-found" },
+      };
+    }
 
-		if (result.status === 'not-in-room') {
-			return {
-				event: 'quiz:leave:ignored',
-				data: { roomId: payload.roomId, reason: 'not-in-room', snapshot: result.snapshot },
-			};
-		}
+    if (result.status === "not-in-room") {
+      return {
+        event: "quiz:leave:ignored",
+        data: {
+          roomId: payload.roomId,
+          reason: "not-in-room",
+          snapshot: result.snapshot,
+        },
+      };
+    }
 
-		void client.leave(payload.roomId);
+    void client.leave(payload.roomId);
 
     if (result.status === "room-closed") {
       this.server
@@ -378,34 +397,34 @@ export class QuizRealtimeGateway
     };
   }
 
-	@SubscribeMessage('quiz:start')
-	handleStart(
-		@MessageBody() payload: StartGamePayload,
-		@ConnectedSocket() client: Socket,
-	) {
-		if (!payload || !isNonEmptyString(payload.roomId)) {
-			return {
-				event: 'quiz:start:ignored',
-				data: { roomId: null, reason: 'invalid-payload' },
-			};
-		}
+  @SubscribeMessage("quiz:start")
+  handleStart(
+    @MessageBody() payload: StartGamePayload,
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!payload || !isNonEmptyString(payload.roomId)) {
+      return {
+        event: "quiz:start:ignored",
+        data: { roomId: null, reason: "invalid-payload" },
+      };
+    }
 
-		const playerId = this.getPlayerId(client);
-		if (!playerId) {
-			return {
-				event: 'quiz:start:ignored',
-				data: { roomId: payload.roomId, reason: 'unauthorized' },
-			};
-		}
+    const playerId = this.getPlayerId(client);
+    if (!playerId) {
+      return {
+        event: "quiz:start:ignored",
+        data: { roomId: payload.roomId, reason: "unauthorized" },
+      };
+    }
 
-		const result = this.quizRealtimeService.startGame(payload.roomId, playerId);
+    const result = this.quizRealtimeService.startGame(payload.roomId, playerId);
 
-		if (result.status !== 'started') {
-			return {
-				event: 'quiz:start:ignored',
-				data: { roomId: payload.roomId, reason: result.status },
-			};
-		}
+    if (result.status !== "started") {
+      return {
+        event: "quiz:start:ignored",
+        data: { roomId: payload.roomId, reason: result.status },
+      };
+    }
 
     this.server.to(payload.roomId).emit("quiz:game:started", result.snapshot);
 
@@ -422,51 +441,51 @@ export class QuizRealtimeGateway
     };
   }
 
-	@SubscribeMessage('quiz:answer')
-	handleAnswer(
-		@MessageBody() payload: SubmitAnswerPayload,
-		@ConnectedSocket() client: Socket,
-	) {
-		const playerId = this.getPlayerId(client);
-		if (
-			!playerId ||
-			!payload ||
-			!isNonEmptyString(payload.roomId) ||
-			!isInteger(payload.questionId) ||
-			!isInteger(payload.selectedIndex) ||
-			payload.selectedIndex < 0
-		) {
-			return {
-				event: 'quiz:answer:ignored',
-				data: {
-					roomId: payload?.roomId ?? null,
-					playerId: playerId ?? null,
-					questionId: payload?.questionId ?? null,
-					reason: playerId ? 'invalid-payload' : 'unauthorized',
-					snapshot: null,
-				},
-			};
-		}
+  @SubscribeMessage("quiz:answer")
+  handleAnswer(
+    @MessageBody() payload: SubmitAnswerPayload,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const playerId = this.getPlayerId(client);
+    if (
+      !playerId ||
+      !payload ||
+      !isNonEmptyString(payload.roomId) ||
+      !isInteger(payload.questionId) ||
+      !isInteger(payload.selectedIndex) ||
+      payload.selectedIndex < 0
+    ) {
+      return {
+        event: "quiz:answer:ignored",
+        data: {
+          roomId: payload?.roomId ?? null,
+          playerId: playerId ?? null,
+          questionId: payload?.questionId ?? null,
+          reason: playerId ? "invalid-payload" : "unauthorized",
+          snapshot: null,
+        },
+      };
+    }
 
-		const result = this.quizRealtimeService.submitAnswer({
-			roomId: payload.roomId,
-			playerId,
-			questionId: payload.questionId,
-			selectedIndex: payload.selectedIndex,
-		});
+    const result = this.quizRealtimeService.submitAnswer({
+      roomId: payload.roomId,
+      playerId,
+      questionId: payload.questionId,
+      selectedIndex: payload.selectedIndex,
+    });
 
-		if (result.status !== 'accepted') {
-			return {
-				event: 'quiz:answer:ignored',
-				data: {
-					roomId: payload.roomId,
-					playerId,
-					questionId: payload.questionId,
-					reason: result.status,
-					snapshot: result.roomSnapshot,
-				},
-			};
-		}
+    if (result.status !== "accepted") {
+      return {
+        event: "quiz:answer:ignored",
+        data: {
+          roomId: payload.roomId,
+          playerId,
+          questionId: payload.questionId,
+          reason: result.status,
+          snapshot: result.roomSnapshot,
+        },
+      };
+    }
 
     client.emit("quiz:answer:result", result.answerResult);
 
@@ -482,13 +501,13 @@ export class QuizRealtimeGateway
         .emit("quiz:question:reveal", result.revealPayload);
     }
 
-		return {
-			event: 'quiz:answer:accepted',
-			data: {
-				roomId: payload.roomId,
-				playerId,
-				questionId: payload.questionId,
-			},
-		};
-	}
+    return {
+      event: "quiz:answer:accepted",
+      data: {
+        roomId: payload.roomId,
+        playerId,
+        questionId: payload.questionId,
+      },
+    };
+  }
 }
