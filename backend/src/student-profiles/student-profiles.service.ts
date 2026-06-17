@@ -13,7 +13,11 @@ export class StudentProfilesService {
     private classesRepository: Repository<SchoolClass>,
   ) {}
 
-  async create(classId: string | null, dateOfBirth: string, userId: string): Promise<StudentProfile> {
+  async create(
+    classId: string | null,
+    dateOfBirth: string,
+    userId: string,
+  ): Promise<StudentProfile> {
     const schoolClass = classId
       ? await this.classesRepository.findOne({ where: { id: classId } })
       : null;
@@ -26,15 +30,17 @@ export class StudentProfilesService {
   }
 
   async findAll(): Promise<StudentProfile[]> {
-    return this.studentProfilesRepository.find({ relations: ["user", "schoolClass"] });
+    return this.studentProfilesRepository.find({
+      relations: ["user", "schoolClass"],
+    });
   }
 
   async findByUserId(userId: string): Promise<StudentProfile> {
     const profile = await this.studentProfilesRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['user', 'parents', 'schoolClass'],
+      relations: ["user", "parents", "schoolClass"],
     });
-    if (!profile) throw new NotFoundException('Profil introuvable');
+    if (!profile) throw new NotFoundException("Profil introuvable");
     return profile;
   }
 
@@ -44,19 +50,22 @@ export class StudentProfilesService {
   ): Promise<StudentProfile> {
     const profile = await this.findByUserId(userId);
     if (updates.classId) {
-      const schoolClass = await this.classesRepository.findOne({ where: { id: updates.classId } });
+      const schoolClass = await this.classesRepository.findOne({
+        where: { id: updates.classId },
+      });
       if (schoolClass) profile.schoolClass = schoolClass;
     }
-    if (updates.dateOfBirth) profile.dateOfBirth = new Date(updates.dateOfBirth);
+    if (updates.dateOfBirth)
+      profile.dateOfBirth = new Date(updates.dateOfBirth);
     return this.studentProfilesRepository.save(profile);
   }
 
   async getParents(userId: string): Promise<any[]> {
     const profile = await this.studentProfilesRepository.findOne({
       where: { user: { id: userId } },
-      relations: ['parents'],
+      relations: ["parents"],
     });
-    if (!profile) throw new NotFoundException('Profil introuvable');
+    if (!profile) throw new NotFoundException("Profil introuvable");
     return profile.parents ?? [];
   }
 }

@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+} from "typeorm";
 import { Report } from "./report.entity";
 import { User } from "../users/user.entity";
 
@@ -9,11 +15,10 @@ export class ReportSuspect {
   @ManyToOne(() => Report, (report) => report.suspects, { onDelete: "CASCADE" })
   report: Report;
 
-  @Column() 
+  @Column()
   freeText: string;
 
   @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "resolvedUserId" })
   resolvedUser: User;
-  
 }

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 // Chaque question arrive traduite dans toutes les langues supportées ; le client choisit
 // librement laquelle afficher selon la langue active (voir QuizPlaying)
@@ -62,10 +62,10 @@ type RoomSnapshot = {
 // Reflète la fenêtre de grâce de reconnexion du backend
 const RECONNECT_WINDOW_MS = 60_000;
 
-export type GamePhase = 'lobby' | 'playing' | 'over';
+export type GamePhase = "lobby" | "playing" | "over";
 
 export type QuestionState = {
-  question: QuestionPayload['question'];
+  question: QuestionPayload["question"];
   questionNumber: number;
   totalQuestions: number;
   timeLimitMs: number;
@@ -83,13 +83,13 @@ export type QuestionState = {
 
 function toSecureUrl(url: string): string {
   if (/localhost|127\.0\.0\.1/.test(url)) return url;
-  return url.replace(/^http:\/\//, 'https://').replace(/^ws:\/\//, 'wss://');
+  return url.replace(/^http:\/\//, "https://").replace(/^ws:\/\//, "wss://");
 }
 
 const SOCKET_URL = toSecureUrl(
   import.meta.env.VITE_SOCKET_URL ??
-  import.meta.env.VITE_API_URL ??
-  'http://localhost:5000'
+    import.meta.env.VITE_API_URL ??
+    "http://localhost:5000",
 );
 
 function resetRoomState(
@@ -104,25 +104,32 @@ function resetRoomState(
   setJoinedRoom(null);
   setQuestionState(null);
   setTimeLeftMs(0);
-  setGamePhase('lobby');
+  setGamePhase("lobby");
   setPlayers([]);
   setFinalLeaderboard(null);
   setIsHost(false);
 }
 
-export function useQuizSocket(playerName: string | undefined, selfId: string | undefined) {
+export function useQuizSocket(
+  playerName: string | undefined,
+  selfId: string | undefined,
+) {
   const socketRef = useRef<Socket | null>(null);
   const [isHost, setIsHost] = useState(false);
   const [joinedRoom, setJoinedRoom] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
-  const [offline, setOffline] = useState(typeof navigator !== 'undefined' ? !navigator.onLine : false);
-  const [socketError, setSocketError] = useState('');
-  const [gamePhase, setGamePhase] = useState<GamePhase>('lobby');
+  const [offline, setOffline] = useState(
+    typeof navigator !== "undefined" ? !navigator.onLine : false,
+  );
+  const [socketError, setSocketError] = useState("");
+  const [gamePhase, setGamePhase] = useState<GamePhase>("lobby");
   const [questionState, setQuestionState] = useState<QuestionState>(null);
   const [timeLeftMs, setTimeLeftMs] = useState(0);
   const [players, setPlayers] = useState<Player[]>([]);
-  const [finalLeaderboard, setFinalLeaderboard] = useState<Player[] | null>(null);
+  const [finalLeaderboard, setFinalLeaderboard] = useState<Player[] | null>(
+    null,
+  );
   const [myStreak, setMyStreak] = useState(0);
   const nextStreakRef = useRef(0);
 
@@ -135,7 +142,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const joinedRoomRef = useRef<string | null>(null);
   const playerNameRef = useRef<string | undefined>(playerName);
   playerNameRef.current = playerName;
-  const gamePhaseRef = useRef<GamePhase>('lobby');
+  const gamePhaseRef = useRef<GamePhase>("lobby");
   gamePhaseRef.current = gamePhase;
 
   useEffect(() => {
@@ -166,13 +173,13 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
     function connectSocket() {
       const socket = io(SOCKET_URL, {
-        transports: ['polling', 'websocket'],
+        transports: ["polling", "websocket"],
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 5000,
-        auth: { token: localStorage.getItem('token') ?? '' },
+        auth: { token: localStorage.getItem("token") ?? "" },
       });
 
       if (cancelled) {
@@ -182,44 +189,52 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
       socketRef.current = socket;
 
-      socket.on('connect', () => {
+      socket.on("connect", () => {
         clearGiveUpTimer();
         setConnected(true);
         setReconnecting(false);
         setSocketError('');
         if (joinedRoomRef.current) {
-          socket.emit('quiz:join', {
+          socket.emit("quiz:join", {
             roomId: joinedRoomRef.current,
             playerName: playerNameRef.current || undefined,
           });
         }
       });
 
-      socket.on('disconnect', (reason) => {
+      socket.on("disconnect", (reason) => {
         setConnected(false);
         // Déconnexion intentionnelle (on quitte / démontage) : pas de fenêtre de reconnexion
         if (reason === 'io client disconnect') return;
         startGiveUpTimer();
       });
 
-      socket.on('connect_error', () => {
+      socket.on("connect_error", () => {
         setConnected(false);
         if (typeof navigator !== 'undefined' && !navigator.onLine) return;
         setReconnecting(true);
         startGiveUpTimer();
       });
 
-      socket.on('quiz:unauthorized', () => {
+      socket.on("quiz:unauthorized", () => {
         clearGiveUpTimer();
         setConnected(false);
         setSocketError('quiz.errors.unauthorized');
         socket.disconnect();
-        resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
+        resetRoomState(
+          setJoinedRoom,
+          setQuestionState,
+          setTimeLeftMs,
+          setGamePhase,
+          setPlayers,
+          setFinalLeaderboard,
+          setIsHost,
+        );
       });
 
-      socket.io.on('reconnect_attempt', () => {
+      socket.io.on("reconnect_attempt", () => {
         // On n'annonce une reconnexion que si elle est réellement possible (réseau présent)
-        if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+        if (typeof navigator !== "undefined" && !navigator.onLine) return;
         setReconnecting(true);
       });
 
@@ -239,21 +254,45 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
       });
 
-      socket.on('quiz:game:started', () => {
+      socket.on(
+        "quiz:joined",
+        (data: {
+          roomId: string;
+          hostId: string;
+          status?: string;
+          selfId?: string;
+        }) => {
+          setJoinedRoom(data.roomId);
+          setSocketError("");
+          setIsHost(data.hostId === (data.selfId ?? selfIdRef.current));
+
+          if (data.status === "waiting" && gamePhaseRef.current === "playing") {
+            setGamePhase("lobby");
+            setQuestionState(null);
+            setTimeLeftMs(0);
+            setFinalLeaderboard(null);
+            setSocketError(
+              "La partie a été interrompue pendant la déconnexion.",
+            );
+          }
+        },
+      );
+
+      socket.on("quiz:game:started", () => {
         setMyStreak(0);
         nextStreakRef.current = 0;
-        setGamePhase('playing');
+        setGamePhase("playing");
       });
 
-      socket.on('quiz:score:update', (data: RoomSnapshot) => {
+      socket.on("quiz:score:update", (data: RoomSnapshot) => {
         if (data?.players) setPlayers(data.players);
       });
 
-      socket.on('quiz:question', (data: QuestionPayload) => {
+      socket.on("quiz:question", (data: QuestionPayload) => {
         const endsAt = data.endsAt ?? Date.now() + data.timeLimitMs;
         // Recevoir une question implique que la partie tourne — ça restaure aussi
         // la phase de jeu pour un client qui s'est reconnecté en pleine partie
-        setGamePhase('playing');
+        setGamePhase("playing");
         setFinalLeaderboard(null);
         setQuestionState((prev) => {
           if (prev && prev.question.id === data.question.id) {
@@ -288,33 +327,51 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         setTimeLeftMs(Math.max(0, endsAt - Date.now()));
       });
 
-      socket.on('quiz:question:reveal', (data: RevealPayload) => {
+      socket.on("quiz:question:reveal", (data: RevealPayload) => {
         setQuestionState((prev) =>
           prev && prev.question.id === data.questionId
-            ? { ...prev, correctIndex: data.correctIndex, revealEndsAt: data.revealEndsAt, answerStatistics: data.answerStatistics }
-            : prev
+            ? {
+                ...prev,
+                correctIndex: data.correctIndex,
+                revealEndsAt: data.revealEndsAt,
+                answerStatistics: data.answerStatistics,
+              }
+            : prev,
         );
       });
 
-      socket.on('quiz:game:over', (data: RoomSnapshot) => {
-        const sorted = [...(data?.players ?? [])].sort((a, b) => b.score - a.score);
+      socket.on("quiz:game:over", (data: RoomSnapshot) => {
+        const sorted = [...(data?.players ?? [])].sort(
+          (a, b) => b.score - a.score,
+        );
         setFinalLeaderboard(sorted);
         setQuestionState(null);
         setTimeLeftMs(0);
-        setGamePhase('over');
+        setGamePhase("over");
       });
 
       // Envoyé uniquement à un client qui se reconnecte pour restaurer la réponse qu'il avait déjà
       // envoyée à la question en cours avant de se déconnecter
-      socket.on('quiz:answer:restore', (data: { questionId: number; selectedIndex: number | null; hasAnswered: boolean }) => {
-        setQuestionState((prev) =>
-          prev && prev.question.id === data.questionId
-            ? { ...prev, hasAnswered: data.hasAnswered, selectedIndex: data.selectedIndex }
-            : prev
-        );
-      });
+      socket.on(
+        "quiz:answer:restore",
+        (data: {
+          questionId: number;
+          selectedIndex: number | null;
+          hasAnswered: boolean;
+        }) => {
+          setQuestionState((prev) =>
+            prev && prev.question.id === data.questionId
+              ? {
+                  ...prev,
+                  hasAnswered: data.hasAnswered,
+                  selectedIndex: data.selectedIndex,
+                }
+              : prev,
+          );
+        },
+      );
 
-      socket.on('quiz:answer:result', (data: AnswerResultPayload) => {
+      socket.on("quiz:answer:result", (data: AnswerResultPayload) => {
         nextStreakRef.current = data.streak;
         setQuestionState((prev) =>
           prev
@@ -325,7 +382,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
                 basePoints: data.basePoints,
                 multiplier: data.multiplier,
               }
-            : prev
+            : prev,
         );
       });
 
@@ -336,8 +393,9 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         else setSocketError('quiz.errors.joinFailed');
       });
 
-      socket.on('quiz:room:update', (data: RoomSnapshot) => {
-        if (data?.hostId !== undefined) setIsHost(data.hostId === selfIdRef.current);
+      socket.on("quiz:room:update", (data: RoomSnapshot) => {
+        if (data?.hostId !== undefined)
+          setIsHost(data.hostId === selfIdRef.current);
         if (data?.players) setPlayers(data.players);
       });
 
@@ -353,7 +411,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       setOffline(true);
       setConnected(false);
       setReconnecting(false);
-      setSocketError('');
+      setSocketError("");
       const socket = socketRef.current;
       if (socket) {
         socket.io.reconnection(false);
@@ -371,16 +429,18 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
         socket.connect();
       }
     };
-    window.addEventListener('offline', handleOffline);
-    window.addEventListener('online', handleOnline);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
 
     return () => {
       cancelled = true;
-      window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
       clearGiveUpTimer();
       if (joinedRoomRef.current) {
-        socketRef.current?.emit('quiz:leave', { roomId: joinedRoomRef.current });
+        socketRef.current?.emit("quiz:leave", {
+          roomId: joinedRoomRef.current,
+        });
       }
       socketRef.current?.disconnect();
       socketRef.current = null;
@@ -393,7 +453,7 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
   const activeDeadline = revealEndsAt ?? endsAt;
 
   useEffect(() => {
-    if (!activeDeadline || gamePhase !== 'playing') {
+    if (!activeDeadline || gamePhase !== "playing") {
       const id = window.setTimeout(() => setTimeLeftMs(0), 0);
       return () => window.clearTimeout(id);
     }
@@ -409,13 +469,24 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
       setSocketError('quiz.errors.invalidCode');
       return;
     }
-    socketRef.current?.emit('quiz:join', { roomId: trimmed, playerName: playerName || undefined });
+    socketRef.current?.emit("quiz:join", {
+      roomId: trimmed,
+      playerName: playerName || undefined,
+    });
   }
 
   function leaveRoom() {
     if (!joinedRoom) return;
-    socketRef.current?.emit('quiz:leave', { roomId: joinedRoom });
-    resetRoomState(setJoinedRoom, setQuestionState, setTimeLeftMs, setGamePhase, setPlayers, setFinalLeaderboard, setIsHost);
+    socketRef.current?.emit("quiz:leave", { roomId: joinedRoom });
+    resetRoomState(
+      setJoinedRoom,
+      setQuestionState,
+      setTimeLeftMs,
+      setGamePhase,
+      setPlayers,
+      setFinalLeaderboard,
+      setIsHost,
+    );
   }
 
   function startGame() {
@@ -426,13 +497,20 @@ export function useQuizSocket(playerName: string | undefined, selfId: string | u
 
   function submitAnswer(selectedIndex: number) {
     if (!joinedRoom || !questionState) return;
-    if (questionState.hasAnswered || timeLeftMs <= 0 || questionState.revealEndsAt !== null) return;
-    socketRef.current?.emit('quiz:answer', {
+    if (
+      questionState.hasAnswered ||
+      timeLeftMs <= 0 ||
+      questionState.revealEndsAt !== null
+    )
+      return;
+    socketRef.current?.emit("quiz:answer", {
       roomId: joinedRoom,
       questionId: questionState.question.id,
       selectedIndex,
     });
-    setQuestionState((prev) => prev ? { ...prev, hasAnswered: true, selectedIndex } : prev);
+    setQuestionState((prev) =>
+      prev ? { ...prev, hasAnswered: true, selectedIndex } : prev,
+    );
   }
 
   return {

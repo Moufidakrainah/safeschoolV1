@@ -1,5 +1,5 @@
-import type { LanguageCode } from '@/types';
-import { useTranslation } from 'react-i18next';
+import type { LanguageCode } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();

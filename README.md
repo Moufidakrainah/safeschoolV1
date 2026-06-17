@@ -1,6 +1,7 @@
-*This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque.*
+_This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque._
 
 ---
+
 ## Description
 
 **SafeSchool** is a full-stack web platform designed to help middle schools handle harassment reports more safely and more consistently.
@@ -21,6 +22,7 @@ Students can report situations they witness or experience, while teachers can re
 - Centralized log management and monitoring via the ELK stack (Elasticsearch, Logstash, Kibana)
 
 ---
+
 ## Instructions
 
 ### Prerequisites
@@ -31,19 +33,18 @@ Docker, Docker Compose, Make, Git.
 
 `.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own:
 
-
-| Variable | Purpose |
-|----------|---------|
-| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | PostgreSQL connection |
-| `BACKEND_PORT` | NestJS internal listening port |
-| `FRONTEND_URL` | Frontend origin(s) allowed by the backend CORS / WebSocket layer (used in development; in production nginx serves everything from a single origin) |
-| `JWT_SECRET` | Secret used to sign authentication tokens |
-| `VITE_API_URL` | URL the frontend uses to reach the backend API. In development it points at the backend (`http://localhost:5000`); in production the build is run with it empty so the frontend uses same-origin relative URLs proxied by nginx |
-| `VITE_SOCKET_URL` | Optional override for the WebSocket / quiz endpoint when it differs from `VITE_API_URL` |
-| `GROQ_API_KEY` | API key for the Groq LLM used in AI report scoring/sentiment analysis |
-| `AI_ENABLED` | Toggles the AI scoring feature on/off |
-| `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL` | Log shipping configuration for the ELK stack |
-| `ELASTIC_PASSWORD` | Password for the Elasticsearch `elastic` superuser (also used to log into Kibana) |
+| Variable                                                      | Purpose                                                                                                                                                                                                                         |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USER` / `DB_PASSWORD` | PostgreSQL connection                                                                                                                                                                                                           |
+| `BACKEND_PORT`                                                | NestJS internal listening port                                                                                                                                                                                                  |
+| `FRONTEND_URL`                                                | Frontend origin(s) allowed by the backend CORS / WebSocket layer (used in development; in production nginx serves everything from a single origin)                                                                              |
+| `JWT_SECRET`                                                  | Secret used to sign authentication tokens                                                                                                                                                                                       |
+| `VITE_API_URL`                                                | URL the frontend uses to reach the backend API. In development it points at the backend (`http://localhost:5000`); in production the build is run with it empty so the frontend uses same-origin relative URLs proxied by nginx |
+| `VITE_SOCKET_URL`                                             | Optional override for the WebSocket / quiz endpoint when it differs from `VITE_API_URL`                                                                                                                                         |
+| `GROQ_API_KEY`                                                | API key for the Groq LLM used in AI report scoring/sentiment analysis                                                                                                                                                           |
+| `AI_ENABLED`                                                  | Toggles the AI scoring feature on/off                                                                                                                                                                                           |
+| `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL`               | Log shipping configuration for the ELK stack                                                                                                                                                                                    |
+| `ELASTIC_PASSWORD`                                            | Password for the Elasticsearch `elastic` superuser (also used to log into Kibana)                                                                                                                                               |
 
 ### Run the Project
 
@@ -76,24 +77,23 @@ make prod-down   # Stop the production (nginx) stack
 make fclean      # Down + remove volumes, images and build cache
 ```
 
-
 ### Access URLs
 
 **Development (`make dev`):**
 
-| URL | Service |
-|-----|---------|
+| URL                     | Service                    |
+| ----------------------- | -------------------------- |
 | `http://localhost:5173` | Frontend (Vite dev server) |
-| `http://localhost:5000` | Backend API |
-| `http://localhost:5601` | Kibana (log monitoring) |
+| `http://localhost:5000` | Backend API                |
+| `http://localhost:5601` | Kibana (log monitoring)    |
 
 **Production (`make all` / `make prod`):**
 
-| URL | Service |
-|-----|---------|
+| URL                      | Service                                                              |
+| ------------------------ | -------------------------------------------------------------------- |
 | `https://localhost:8443` | Application — frontend, API and WebSocket served by nginx over HTTPS |
-| `http://localhost:8080` | HTTP entry point (redirects to HTTPS) |
-| `http://localhost:5601` | Kibana |
+| `http://localhost:8080`  | HTTP entry point (redirects to HTTPS)                                |
+| `http://localhost:5601`  | Kibana                                                               |
 
 Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
 
@@ -116,6 +116,7 @@ If the sample dataset has been seeded, the following accounts can be used for de
 | `prof2@safeschool.com` | `PROFprof123123+`   | teacher | `/reporter`  |
 
 ---
+
 ## Resources
 
 ### Official Documentation
@@ -163,18 +164,20 @@ AI tools were used during this project both **as a feature of the application** 
   - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
 
 ---
+
 ## Team Information
 
 This section summarizes each member's assigned role and core responsibilities. More detailed implementation work is listed later in Individual Contributions.
 
-| Member | Assigned role(s) | Responsibilities |
-|--------|------------------|------------------|
-| eguthman | Project Manager / DevOps & Documentation Lead | Coordinated the workflow and led the project's technical documentation, ELK integration, Docker/Makefile reliability work, and delivery-readiness. |
-| mdoan | Product Owner, Frontend Developer | Defined and prioritized business requirements, validated delivered features, and contributed to the frontend, design system, forms, and user journeys. |
-| mobougri | Technical Lead, Backend Developer | Led backend architecture, database design, authentication, API design, data integration, and Dockerization of the application stack. |
-| quclaque | Technical Lead, Realtime Developer | Led the multiplayer quiz, WebSocket protocol, synchronization logic, reconnection handling, and Progressive Web App implementation. |
+| Member   | Assigned role(s)                              | Responsibilities                                                                                                                                       |
+| -------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| eguthman | Project Manager / DevOps & Documentation Lead | Coordinated the workflow and led the project's technical documentation, ELK integration, Docker/Makefile reliability work, and delivery-readiness.     |
+| mdoan    | Product Owner, Frontend Developer             | Defined and prioritized business requirements, validated delivered features, and contributed to the frontend, design system, forms, and user journeys. |
+| mobougri | Technical Lead, Backend Developer             | Led backend architecture, database design, authentication, API design, data integration, and Dockerization of the application stack.                   |
+| quclaque | Technical Lead, Realtime Developer            | Led the multiplayer quiz, WebSocket protocol, synchronization logic, reconnection handling, and Progressive Web App implementation.                    |
 
 ---
+
 ## Project Management
 
 ### Organization
@@ -197,70 +200,71 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **Meeting agendas and minutes** — written support for coordination, follow-up and decision traceability across the project
 
 ---
-## Technical Stack
 
+## Technical Stack
 
 ### Frontend
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| React | 19 | UI framework |
-| TypeScript | 5 | Type safety |
-| Vite | 8 | Build tool & dev server |
-| Tailwind CSS | 4 | Styling |
-| shadcn/ui | — | Component library and UI patterns |
-| react-router-dom | 7 | Client-side routing |
-| Axios | 1 | HTTP client |
-| socket.io-client | 4 | Real-time communication |
-| i18next | 26 | Internationalization |
-| recharts | 3 | Charts & data visualization |
-| lucide-react | 1 | Icon library |
+| Technology       | Version | Purpose                           |
+| ---------------- | ------- | --------------------------------- |
+| React            | 19      | UI framework                      |
+| TypeScript       | 5       | Type safety                       |
+| Vite             | 8       | Build tool & dev server           |
+| Tailwind CSS     | 4       | Styling                           |
+| shadcn/ui        | —       | Component library and UI patterns |
+| react-router-dom | 7       | Client-side routing               |
+| Axios            | 1       | HTTP client                       |
+| socket.io-client | 4       | Real-time communication           |
+| i18next          | 26      | Internationalization              |
+| recharts         | 3       | Charts & data visualization       |
+| lucide-react     | 1       | Icon library                      |
 
 ### Backend
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| NestJS | 11 | Backend framework (modules, controllers, services, guards, pipes, dependency injection) |
-| TypeScript | 5 | Type safety |
-| TypeORM | 0.3 | ORM used to map TypeScript entities to PostgreSQL tables |
-| socket.io | 4 | Real-time communication (quiz, notifications) |
-| Passport / @nestjs/jwt | 11 / 4 | Authentication (JWT strategy + guards) |
-| bcrypt | 6 | Secure password hashing |
-| class-validator / class-transformer | — | Validation of incoming request data |
-| Winston | 3 | Structured logging sent to the ELK stack |
-| Multer | — | File upload handling (avatars) |
+| Technology                          | Version | Purpose                                                                                 |
+| ----------------------------------- | ------- | --------------------------------------------------------------------------------------- |
+| NestJS                              | 11      | Backend framework (modules, controllers, services, guards, pipes, dependency injection) |
+| TypeScript                          | 5       | Type safety                                                                             |
+| TypeORM                             | 0.3     | ORM used to map TypeScript entities to PostgreSQL tables                                |
+| socket.io                           | 4       | Real-time communication (quiz, notifications)                                           |
+| Passport / @nestjs/jwt              | 11 / 4  | Authentication (JWT strategy + guards)                                                  |
+| bcrypt                              | 6       | Secure password hashing                                                                 |
+| class-validator / class-transformer | —       | Validation of incoming request data                                                     |
+| Winston                             | 3       | Structured logging sent to the ELK stack                                                |
+| Multer                              | —       | File upload handling (avatars)                                                          |
 
 ### Database
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| PostgreSQL | 15 | Main relational database |
+| Technology | Version | Purpose                  |
+| ---------- | ------- | ------------------------ |
+| PostgreSQL | 15      | Main relational database |
 
 ### Infrastructure & Logging
 
-| Technology | Purpose |
-|-----------|---------|
-| Docker / Docker Compose | Containerization |
-| nginx | Production reverse proxy, TLS termination and static frontend serving |
-| Elasticsearch 8.12 | Log storage & search |
-| Logstash 8.12 | Log ingestion pipeline |
-| Kibana 8.12 | Log visualization |
+| Technology              | Purpose                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| Docker / Docker Compose | Containerization                                                      |
+| nginx                   | Production reverse proxy, TLS termination and static frontend serving |
+| Elasticsearch 8.12      | Log storage & search                                                  |
+| Logstash 8.12           | Log ingestion pipeline                                                |
+| Kibana 8.12             | Log visualization                                                     |
 
 ### Technical Choices
 
 - **React** — the subject requires a modern JavaScript frontend framework, and React gave us a widely used ecosystem with solid TypeScript support and accessible documentation.
-- **NestJS** —  provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
+- **NestJS** — provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
 - **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
 - **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
 - **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
 - **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process. A base file is shared by both modes, with a dev overlay (hot reload, direct ports) and a prod overlay (compiled backend + nginx).
 - **nginx** — in production nginx serves the built frontend, terminates TLS and reverse-proxies the API, uploads and WebSocket traffic to the backend, so the whole application runs behind a single HTTPS origin instead of exposing the dev servers directly. Same-origin serving also keeps the frontend free of hard-coded backend hosts (it uses relative URLs), so it works over localhost, a LAN IP or a domain without rebuilding.
 - **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
-- **Internationalization (i18n)** — We chose to integrate an internationalization system from the outset of the project to make the application accessible to the widest possible audience. 
-The application is currently available in French, English, and German. Thanks to the i18n library, adding a new language is now very simple: each language is centralized in a dedicated translation file, which facilitates maintenance and project development. 
-- **Quiz** — To raise students' awareness of bullying, we chose to develop an interactive quiz inspired by platforms such as Kahoot. The goal was to offer a more engaging educational tool than simply providing information. 
+- **Internationalization (i18n)** — We chose to integrate an internationalization system from the outset of the project to make the application accessible to the widest possible audience.
+  The application is currently available in French, English, and German. Thanks to the i18n library, adding a new language is now very simple: each language is centralized in a dedicated translation file, which facilitates maintenance and project development.
+- **Quiz** — To raise students' awareness of bullying, we chose to develop an interactive quiz inspired by platforms such as Kahoot. The goal was to offer a more engaging educational tool than simply providing information.
 
 ---
+
 ## Database Schema
 
 All tables use UUID primary keys and are managed through TypeORM entities.
@@ -342,17 +346,16 @@ notifications
 
 ### Key Fields and Data Types
 
-| Table | Field | Type | Description |
-|-------|-------|------|-------------|
-| users | id | UUID | Primary key |
-| users | email | varchar, unique | Login identifier |
-| users | password | varchar (hashed, `select: false`) | bcrypt hash, never returned by default queries |
-| users | role | enum (`UserRole`) | student / teacher / director / admin — drives permissions |
-| reports | grade | enum (`ReportGrade`) | Severity grade computed from the AI scoring service |
-| reports | status | enum (`ReportStatus`) | Lifecycle state of a report (default: `NEW`) |
-| reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
-| classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
-
+| Table   | Field              | Type                              | Description                                               |
+| ------- | ------------------ | --------------------------------- | --------------------------------------------------------- |
+| users   | id                 | UUID                              | Primary key                                               |
+| users   | email              | varchar, unique                   | Login identifier                                          |
+| users   | password           | varchar (hashed, `select: false`) | bcrypt hash, never returned by default queries            |
+| users   | role               | enum (`UserRole`)                 | student / teacher / director / admin — drives permissions |
+| reports | grade              | enum (`ReportGrade`)              | Severity grade computed from the AI scoring service       |
+| reports | status             | enum (`ReportStatus`)             | Lifecycle state of a report (default: `NEW`)              |
+| reports | aiScore / aiReason | float / text                      | Output of the AI severity scoring (`scoring.service.ts`)  |
+| classes | level / section    | varchar                           | e.g. "6e" / "A" — identifies a school class               |
 
 Note that the role director is defined in the code with the same permissions as admin, but reserved for future use — no seeded account and not offered in the user-creation form, so the demo ships with student, teacher and admin only.
 
@@ -360,52 +363,54 @@ Note that the role director is defined in the code with the same permissions as 
 
 This section lists the delivered product features from a user and platform perspective. The next section, Modules, maps those outcomes to the official subject modules and explains how each was justified and implemented.
 
-| Feature | Description | Team member(s) |
-|---------|-------------|---------------|
-| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | mobougri |
-| Report submission and follow-up | Students and teachers can submit harassment reports, optionally anonymously then follow the progress of their case if they are victims. | mdoan |
-| Report review workflow | Admin users can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | mdoan |
-| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | mobougri |
-| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | mobougri |
-| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | mobougri |
-| Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | quclaque |
-| Notification system | The platform notifies users about report updates, quiz events and other important actions. | mobougri |
-| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | mdoan |
-| Internationalization | The interface is available in French, English and German through a language switcher. | eguthman + mdoan |
-| Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | quclaque |
-| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | mobougri + mdoan |
-| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | eguthman |
-| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | mobougri |
-| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | eguthman |
+| Feature                         | Description                                                                                                                                     | Team member(s)   |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Authentication                  | Users sign in securely and are routed to role-specific areas of the application depending on their permissions.                                 | mobougri         |
+| Report submission and follow-up | Students and teachers can submit harassment reports, optionally anonymously then follow the progress of their case if they are victims.         | mdoan            |
+| Report review workflow          | Admin users can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards.                                 | mdoan            |
+| AI-assisted report analysis     | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | mobougri         |
+| User and role administration    | Admin users can manage accounts, update roles and maintain access control across the platform.                                                  | mobougri         |
+| School organization management  | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application.                           | mobougri         |
+| Real-time multiplayer quiz      | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates.                                         | quclaque         |
+| Notification system             | The platform notifies users about report updates, quiz events and other important actions.                                                      | mobougri         |
+| Design system and reusable UI   | The frontend relies on reusable interface components to keep the application consistent across pages and roles.                                 | mdoan            |
+| Internationalization            | The interface is available in French, English and German through a language switcher.                                                           | eguthman + mdoan |
+| Progressive Web App             | The frontend can be installed as a PWA and provides limited offline support.                                                                    | quclaque         |
+| Search and filtering            | Users can search, filter and sort reports or administrative data more efficiently.                                                              | mobougri + mdoan |
+| Legal information pages         | Privacy Policy and Terms of Service pages are accessible directly from the application.                                                         | eguthman         |
+| Activity analytics              | Dashboards provide visual summaries of platform activity through charts and key indicators.                                                     | mobougri         |
+| Centralized logging             | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting.                                       | eguthman         |
 
 ---
+
 ## Modules
 
 Each entry below maps one chosen subject module to its concrete implementation in the project. The justification is intentionally module-specific so evaluators can see why it was selected and how it is demonstrable in the delivered product.
 
-| Module | Category | Type | Points | Description / justification | Team member(s) |
-|--------|----------|------|--------|------------------------------|---------------|
-| Use a framework for both frontend and backend | Web | Major | 2 | Chosen to structure a large team project on both sides of the stack. React organizes the client into reusable routed views and components, while NestJS organizes the backend into modules, controllers, services and guards; both choices are directly visible in the delivered codebase. | mobougri + mdoan |
-| Real-time features — WebSockets (Quiz) | Web | Major | 2 | Chosen because the quiz depends on synchronized live gameplay between several connected users. Implemented with Socket.IO rooms, server-authoritative game state, live score updates, answer reveals and reconnection handling, all demonstrable during a multiplayer session. | quclaque |
-| ORM database (TypeORM) | Web | Minor | 1 | Chosen because the platform relies on many related entities and role-based data flows. Implemented with TypeORM entities, repositories and relations mapped to PostgreSQL, which makes the schema and persistence layer directly demonstrable from the code and database model. | mobougri |
-| Advanced search functionality | Web | Minor | 1 | Chosen to keep report and administration views usable as the dataset grows. Implemented with filtering, sorting and search controls on the relevant dashboards so users can narrow down records efficiently during real usage. | mobougri + mdoan |
-| Progressive Web App (PWA) | Web | Minor | 1 | Chosen to make the frontend installable and more resilient on school devices. Implemented with a web app manifest, service worker registration and static shell caching, which can be demonstrated directly from the browser and installation flow. | quclaque |
-| 10 reusable components — Custom design system | Web | Minor | 1 | Reusable component set built on Base UI primitives with Tailwind and class-variance-authority — centralized color palette (oklch) and typography tokens, `lucide-react` icons, and 16 components in `components/ui/`, with a `/ui-kit` styleguide page. | mdoan |
-| Notification system | Web | Minor | 1 | Chosen so users receive visible feedback when important events occur in the application. Implemented as in-app notifications tied to report updates and other key user actions, making the feature demonstrable from normal product flows without relying on external tooling. | mobougri |
-| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | mobougri |
-| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Chosen to make the platform usable by a broader school audience. Implemented with dedicated translation files and a language switcher for French, English and German, so the multilingual behavior can be demonstrated immediately in the interface. | eguthman + mdoan |
-| Support 3 browsers | Accessibility & i18n | Minor | 1 | Chosen because the application is meant to be used on heterogeneous school and home devices. Implemented by testing and adjusting the main application flows for Chrome, Firefox and Edge, while documenting the browser-specific difference that Firefox does not expose the PWA install prompt used in Chrome and Edge. | mobougri + mdoan |
-| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | mobougri |
-| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | mobougri |
-| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | mobougri |
-| Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Chosen to turn harassment awareness into an interactive activity rather than a static information page. Implemented as a full browser-based quiz with lobby, question flow, timing, scoring, reveal phases and final leaderboard, which makes the game loop fully demonstrable. | quclaque |
-| Remote players | Gaming & UX | Major | 2 | Chosen so the quiz can be played by users on separate devices instead of a single local machine. Implemented through networked quiz rooms joined by code, with synchronized state shared across connected clients over WebSockets. | quclaque |
-| Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Chosen to satisfy a true multiplayer experience rather than a duel-only mode. Implemented with quiz rooms supporting multiple simultaneous players, live ranking updates and host-managed progression, and can be demonstrated with more than two connected users. | quclaque |
-| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | eguthman |
+| Module                                        | Category                | Type  | Points | Description / justification                                                                                                                                                                                                                                                                                                                   | Team member(s)   |
+| --------------------------------------------- | ----------------------- | ----- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Use a framework for both frontend and backend | Web                     | Major | 2      | Chosen to structure a large team project on both sides of the stack. React organizes the client into reusable routed views and components, while NestJS organizes the backend into modules, controllers, services and guards; both choices are directly visible in the delivered codebase.                                                    | mobougri + mdoan |
+| Real-time features — WebSockets (Quiz)        | Web                     | Major | 2      | Chosen because the quiz depends on synchronized live gameplay between several connected users. Implemented with Socket.IO rooms, server-authoritative game state, live score updates, answer reveals and reconnection handling, all demonstrable during a multiplayer session.                                                                | quclaque         |
+| ORM database (TypeORM)                        | Web                     | Minor | 1      | Chosen because the platform relies on many related entities and role-based data flows. Implemented with TypeORM entities, repositories and relations mapped to PostgreSQL, which makes the schema and persistence layer directly demonstrable from the code and database model.                                                               | mobougri         |
+| Advanced search functionality                 | Web                     | Minor | 1      | Chosen to keep report and administration views usable as the dataset grows. Implemented with filtering, sorting and search controls on the relevant dashboards so users can narrow down records efficiently during real usage.                                                                                                                | mobougri + mdoan |
+| Progressive Web App (PWA)                     | Web                     | Minor | 1      | Chosen to make the frontend installable and more resilient on school devices. Implemented with a web app manifest, service worker registration and static shell caching, which can be demonstrated directly from the browser and installation flow.                                                                                           | quclaque         |
+| 10 reusable components — Custom design system | Web                     | Minor | 1      | Reusable component set built on Base UI primitives with Tailwind and class-variance-authority — centralized color palette (oklch) and typography tokens, `lucide-react` icons, and 16 components in `components/ui/`, with a `/ui-kit` styleguide page.                                                                                       | mdoan            |
+| Notification system                           | Web                     | Minor | 1      | Chosen so users receive visible feedback when important events occur in the application. Implemented as in-app notifications tied to report updates and other key user actions, making the feature demonstrable from normal product flows without relying on external tooling.                                                                | mobougri         |
+| Sentiment analysis on report descriptions     | Artificial Intelligence | Minor | 1      | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | mobougri         |
+| Support 3 languages (i18n — fr/en/de)         | Accessibility & i18n    | Minor | 1      | Chosen to make the platform usable by a broader school audience. Implemented with dedicated translation files and a language switcher for French, English and German, so the multilingual behavior can be demonstrated immediately in the interface.                                                                                          | eguthman + mdoan |
+| Support 3 browsers                            | Accessibility & i18n    | Minor | 1      | Chosen because the application is meant to be used on heterogeneous school and home devices. Implemented by testing and adjusting the main application flows for Chrome, Firefox and Edge, while documenting the browser-specific difference that Firefox does not expose the PWA install prompt used in Chrome and Edge.                     | mobougri + mdoan |
+| Advanced permissions system (CRUD)            | User Management         | Major | 2      | Implemented with role-based access control and administrative CRUD actions adapted to each user type.                                                                                                                                                                                                                                         | mobougri         |
+| Organization system                           | User Management         | Major | 2      | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows.                                                                                                                                                                                                        | mobougri         |
+| User activity analytics dashboard             | User Management         | Minor | 1      | Implemented with dashboard views and charts summarizing activity and platform data.                                                                                                                                                                                                                                                           | mobougri         |
+| Implement a complete web-based game (Quiz)    | Gaming & UX             | Major | 2      | Chosen to turn harassment awareness into an interactive activity rather than a static information page. Implemented as a full browser-based quiz with lobby, question flow, timing, scoring, reveal phases and final leaderboard, which makes the game loop fully demonstrable.                                                               | quclaque         |
+| Remote players                                | Gaming & UX             | Major | 2      | Chosen so the quiz can be played by users on separate devices instead of a single local machine. Implemented through networked quiz rooms joined by code, with synchronized state shared across connected clients over WebSockets.                                                                                                            | quclaque         |
+| Multiplayer game (3+ players)                 | Gaming & UX             | Major | 2      | Chosen to satisfy a true multiplayer experience rather than a duel-only mode. Implemented with quiz rooms supporting multiple simultaneous players, live ranking updates and host-managed progression, and can be demonstrated with more than two connected users.                                                                            | quclaque         |
+| Infrastructure for log management (ELK)       | Devops                  | Major | 2      | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack.                                                                                                                                                                                                 | eguthman         |
 
 **Total: 8 Major × 2 + 9 Minor × 1 = 25 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
 
 ---
+
 ## Individual Contributions
 
 ### eguthman
@@ -461,8 +466,8 @@ Technical Lead / Realtime Developer
 - Contributed to the Progressive Web App so the frontend can be installed and offers limited offline support.
 - Main challenge: this was my first time with NestJS and Socket.IO, so the hardest part was understanding the tech stack — how NestJS gateways, dependency injection and Socket.IO rooms/events fit together — and then using it to keep every client's game state synchronized in real time. I worked through it by reading the documentation, building the game flow incrementally, and testing it with several simultaneous clients.
 
-
 ---
+
 ## Additional Information
 
 For deeper documentation beyond what is required here — architecture overview, API map, WebSocket quiz flow, ELK, PWA, design-system material, meeting minutes and workflow notes — start with [`docs/DOCS.md`](docs/DOCS.md).
@@ -470,7 +475,7 @@ For deeper documentation beyond what is required here — architecture overview,
 ### Known Limitations
 
 - Firefox is supported for normal use of the application, but it does not expose the `beforeinstallprompt` event used by our in-browser PWA install flow. As a result, the app runs normally in Firefox, but the install prompt is only available in Chrome and Edge.
-- The PWA's **offline mode depends on a trusted TLS certificate**, and this project ships a **self-signed** one (no public domain / trusted CA). Two things must be distinguished: *installing* the app only needs a "secure context" (which `localhost` is granted automatically, even with a self-signed cert), but *registering the service worker* — the part that makes the app load offline — requires the certificate to actually be **trusted**. Clicking "proceed anyway" on the browser warning lets the page render but does **not** satisfy the service worker, which keeps failing with an SSL certificate error. As a result:
+- The PWA's **offline mode depends on a trusted TLS certificate**, and this project ships a **self-signed** one (no public domain / trusted CA). Two things must be distinguished: _installing_ the app only needs a "secure context" (which `localhost` is granted automatically, even with a self-signed cert), but _registering the service worker_ — the part that makes the app load offline — requires the certificate to actually be **trusted**. Clicking "proceed anyway" on the browser warning lets the page render but does **not** satisfy the service worker, which keeps failing with an SSL certificate error. As a result:
   - On the **host machine** over `https://localhost:8443`, you can install the app, but the service worker only registers (and offline truly works) once you import the certificate into the browser/OS trust store.
   - **Other devices** (phones, tablets, other computers) reach the app over the LAN IP, which is not even a secure origin until the certificate is trusted — so neither install nor offline works there until that device trusts `nginx/certs/fullchain.pem` as a CA.
   - In **dev mode** (`make dev`) over `http://localhost`, there is no certificate to validate and `localhost` is a secure context, so the service worker registers and offline works out of the box.

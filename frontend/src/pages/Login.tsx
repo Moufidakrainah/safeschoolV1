@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { login, isOfflineError } from '@/services/api';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { login, isOfflineError } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const { loginUser } = useAuth();
@@ -23,24 +23,25 @@ export default function Login() {
 
   // ── Validators ici pour avoir accès à t() ──
   const validateEmail = (value: string): string => {
-    if (!value) return t('validation.emailRequired');
-    if (value.length > 50) return t('validation.emailTooLong');
-    if (!emailRegex.test(value)) return t('validation.emailInvalid');
-    return '';
+    if (!value) return t("validation.emailRequired");
+    if (value.length > 50) return t("validation.emailTooLong");
+    if (!emailRegex.test(value)) return t("validation.emailInvalid");
+    return "";
   };
 
   const validatePassword = (value: string): string => {
-    if (!value) return t('validation.passwordRequired');
-    if (value.length < 6) return t('validation.passwordMin');
-    return '';
+    if (!value) return t("validation.passwordRequired");
+    if (value.length < 6) return t("validation.passwordMin");
+    return "";
   };
   // ───────────────────────────────────────────
 
-  const isFormValid = () => !validateEmail(email) && !validatePassword(password);
+  const isFormValid = () =>
+    !validateEmail(email) && !validatePassword(password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     const eErr = validateEmail(email);
     const pErr = validatePassword(password);
@@ -52,35 +53,43 @@ export default function Login() {
     try {
       const data = await login(email, password);
       loginUser(data.access_token, data.user);
-      if (data.user.role === 'student') navigate('/student');
-      else if (data.user.role === 'teacher') navigate('/reporter');
-      else navigate('/dashboard');
+      if (data.user.role === "student") navigate("/student");
+      else if (data.user.role === "teacher") navigate("/reporter");
+      else navigate("/dashboard");
     } catch (err: unknown) {
-  if (isOfflineError(err)) {
-    setError(t('offline.actionUnavailable'));
-  } else if ((err as { response?: { status?: number } })?.response?.status === 429) {
-    setError(t('login.tooManyRequests'));
-  } else {
-    setError(t('login.error'));
-  }
-} finally {
+      if (isOfflineError(err)) {
+        setError(t("offline.actionUnavailable"));
+      } else if (
+        (err as { response?: { status?: number } })?.response?.status === 429
+      ) {
+        setError(t("login.tooManyRequests"));
+      } else {
+        setError(t("login.error"));
+      }
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <main className="flex flex-1 flex-col md:flex-row font-sans">
-
       <div className="flex flex-col items-center justify-center gap-8 w-full md:w-1/2 bg-surface px-12 py-10 md:self-stretch">
-        <img src="/logos/safeschool-logo.png" alt="SafeSchool logo" className="w-80 h-80 object-contain" />
+        <img
+          src="/logos/safeschool-logo.png"
+          alt="SafeSchool logo"
+          className="w-80 h-80 object-contain"
+        />
       </div>
 
       <div className="flex flex-col items-center justify-center gap-8 w-full md:w-1/2 bg-primary px-8 md:px-16 py-10 md:self-stretch">
-
-        <form onSubmit={handleSubmit} className="flex flex-col items-center gap-6 w-full max-w-sm">
-
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col items-center gap-6 w-full max-w-sm"
+        >
           <div className="flex flex-col gap-1 w-full">
-            <Label className="text-white text-sm font-medium">{t('login.labelEmail')}</Label>
+            <Label className="text-white text-sm font-medium">
+              {t("login.labelEmail")}
+            </Label>
             <Input
               type="email"
               value={email}
@@ -93,12 +102,16 @@ export default function Login() {
               className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
             />
             <div className="min-h-5">
-              {emailError && <p className="text-red-300 text-xs text-left">{emailError}</p>}
+              {emailError && (
+                <p className="text-red-300 text-xs text-left">{emailError}</p>
+              )}
             </div>
           </div>
 
           <div className="flex flex-col gap-1 w-full">
-            <Label className="text-white text-sm font-medium">{t('login.labelPassword')}</Label>
+            <Label className="text-white text-sm font-medium">
+              {t("login.labelPassword")}
+            </Label>
             <Input
               type="password"
               value={password}
@@ -111,21 +124,29 @@ export default function Login() {
               className="rounded-full bg-white text-gray-800 border-none px-4 py-3 h-auto text-sm"
             />
             <div className="min-h-5">
-              {passwordError && <p className="text-red-300 text-xs text-left">{passwordError}</p>}
+              {passwordError && (
+                <p className="text-red-300 text-xs text-left">
+                  {passwordError}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="min-h-10 w-full">
-            {error && <p className="text-red-300 text-l w-full text-center">{error}</p>}
+            {error && (
+              <p className="text-red-300 text-l w-full text-center">{error}</p>
+            )}
           </div>
 
-          <Button type="submit" variant="login" disabled={loading || !isFormValid()}>
-            {loading ? t('login.loading') : t('login.submit')}
+          <Button
+            type="submit"
+            variant="login"
+            disabled={loading || !isFormValid()}
+          >
+            {loading ? t("login.loading") : t("login.submit")}
           </Button>
-
         </form>
       </div>
-
     </main>
   );
 }

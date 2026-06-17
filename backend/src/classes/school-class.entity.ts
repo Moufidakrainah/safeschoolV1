@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+} from "typeorm";
 import { StaffProfile } from "../staff/staff-profile.entity";
 import { StudentProfile } from "../student-profiles/student-profile.entity";
 
@@ -8,7 +14,7 @@ export class SchoolClass {
   @Column() level: string;
   @Column() section: string;
 
-  @OneToMany(() => StudentProfile, student => student.schoolClass)
+  @OneToMany(() => StudentProfile, (student) => student.schoolClass)
   students: StudentProfile[];
 
   @ManyToMany(() => StaffProfile, (staff) => staff.classes)

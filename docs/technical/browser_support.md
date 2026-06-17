@@ -4,11 +4,11 @@ SafeSchool is supported on three browsers: Chrome (primary target), Firefox, and
 
 ## Tested Browsers
 
-| Browser | Version | Platform | Result |
-|---|---|---|---|
-| Google Chrome | Latest stable | Desktop / Mobile | ✅ Primary target — full support |
-| Mozilla Firefox | Latest stable | Desktop | ✅ Core application supported |
-| Microsoft Edge | Latest stable | Desktop | ✅ Full support |
+| Browser         | Version       | Platform         | Result                           |
+| --------------- | ------------- | ---------------- | -------------------------------- |
+| Google Chrome   | Latest stable | Desktop / Mobile | ✅ Primary target — full support |
+| Mozilla Firefox | Latest stable | Desktop          | ✅ Core application supported    |
+| Microsoft Edge  | Latest stable | Desktop          | ✅ Full support                  |
 
 ## Testing Scope
 

@@ -1,14 +1,14 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 // Map labels FR statut backend → clés badge i18n
 const STATUS_FR_TO_KEY: Record<string, string> = {
-  'Nouveau':          'badge.new',
-  'En cours':         'badge.in_progress',
-  'En attente':       'badge.pending',
-  'Résolu':           'badge.resolved',
-  'Faux signalement': 'badge.false_report',
-  'Clôturé':          'badge.closed',
-  'Rejeté':           'badge.rejected',
+  Nouveau: "badge.new",
+  "En cours": "badge.in_progress",
+  "En attente": "badge.pending",
+  Résolu: "badge.resolved",
+  "Faux signalement": "badge.false_report",
+  Clôturé: "badge.closed",
+  Rejeté: "badge.rejected",
 };
 
 interface NoteBlockProps {
@@ -23,11 +23,17 @@ interface NoteBlockProps {
   isAdmin?: boolean;
 }
 
-export default function NoteBlock({ note, severityColor, isAdmin = false }: NoteBlockProps) {
+export default function NoteBlock({
+  note,
+  severityColor,
+  isAdmin = false,
+}: NoteBlockProps) {
   const { t } = useTranslation();
-  const isConvocation  = note.type === 'convocation';
-  const isStatusChange = note.type === 'status_change';
-  const borderColor = severityColor ?? (isConvocation ? 'var(--color-warning)' : 'var(--color-primary)');
+  const isConvocation = note.type === "convocation";
+  const isStatusChange = note.type === "status_change";
+  const borderColor =
+    severityColor ??
+    (isConvocation ? "var(--color-warning)" : "var(--color-primary)");
 
   // ── Traduire le contenu des notes de statut ──
   // Format backend : "Statut mis à jour : LABEL — DATE"
@@ -38,7 +44,7 @@ export default function NoteBlock({ note, severityColor, isAdmin = false }: Note
     const [, labelFR, date] = match;
     const badgeKey = STATUS_FR_TO_KEY[labelFR.trim()];
     const translatedStatus = badgeKey ? t(badgeKey) : labelFR;
-    return t('student.cases.statusUpdate', { status: translatedStatus, date });
+    return t("student.cases.statusUpdate", { status: translatedStatus, date });
   };
 
   // ── Traduire le contenu des convocations ──
@@ -49,7 +55,7 @@ export default function NoteBlock({ note, severityColor, isAdmin = false }: Note
     if (isAdmin) return content;
     return content.replace(
       /^.+? est convoqué\(e\) le /,
-      t('student.cases.summoned')
+      t("student.cases.summoned"),
     );
   };
 
@@ -59,26 +65,33 @@ export default function NoteBlock({ note, severityColor, isAdmin = false }: Note
 
   // ── Label du type de note ──
   const typeLabel = isConvocation
-    ? t('noteblock.convocation')
+    ? t("noteblock.convocation")
     : isStatusChange
-    ? t('noteblock.statusChange')
-    : t('noteblock.note');
+      ? t("noteblock.statusChange")
+      : t("noteblock.note");
 
   return (
     <div
-  style={{ borderLeftColor: borderColor }}
-  className="p-3 m-3 bg-gray-50 border-l-[3px]"
->
+      style={{ borderLeftColor: borderColor }}
+      className="p-3 m-3 bg-gray-50 border-l-[3px]"
+    >
       <div className="flex justify-between mb-1">
         <span className="text-xs font-semibold" style={{ color: borderColor }}>
           {typeLabel}
         </span>
         <span className="text-xs text-gray-400">
-          {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          {note.author && ` - ${note.author.firstName} ${note.author.lastName?.toUpperCase()}`}
+          {new Date(note.createdAt).toLocaleDateString()}{" "}
+          {new Date(note.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          {note.author &&
+            ` - ${note.author.firstName} ${note.author.lastName?.toUpperCase()}`}
         </span>
       </div>
-      <p className="text-sm text-gray-700 m-0 text-left whitespace-pre-line">{displayContent}</p>
+      <p className="text-sm text-gray-700 m-0 text-left whitespace-pre-line">
+        {displayContent}
+      </p>
     </div>
   );
 }
