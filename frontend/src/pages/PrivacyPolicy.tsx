@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../context/AuthContext';
-import RoleHeader from '../components/layout/Header/RoleHeader';
+import { useAuth } from '@/context/AuthContext';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
 import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicy()
@@ -10,12 +10,12 @@ export default function PrivacyPolicy()
   const { user, logoutUser } = useAuth();
 const navigate = useNavigate();
 
-  const goToAdminSection = (section: 'reports' | 'users' | 'stats') => {
+  const goToAdminSection = (section: 'reports' | 'users' | 'stats' | 'classes') => {
     navigate(`/dashboard?section=${section}`);
   };
 
   const goToStudentSection = (
-    section: 'profile' | 'report' | 'notifications' | 'quiz'
+    section: 'profile' | 'report' | 'quiz' | 'cases'
   ) => {
     navigate(`/student?section=${section}`);
   };
@@ -35,7 +35,7 @@ const navigate = useNavigate();
         logoutUser={logoutUser}
         {...(user?.role === 'admin' && {
           adminViewSection: 'reports',
-          adminSetViewSection: (section: 'reports' | 'users' | 'stats') =>
+          adminSetViewSection: (section: 'reports' | 'users' | 'stats' | 'classes') =>
             goToAdminSection(section),
           adminSetSelected: () => {},
           adminFetchUsers: () => {},
@@ -43,11 +43,11 @@ const navigate = useNavigate();
         {...(user?.role === 'student' && {
           studentViewSection: 'profile',
           studentSetViewSection: (
-            section: 'profile' | 'report' | 'notifications' | 'quiz'
+            section: 'profile' | 'report' | 'quiz' | 'cases'
           ) => goToStudentSection(section),
           studentNotifRefreshKey: 0,
         })}
-        {...((user?.role === 'teacher' || user?.role === 'reporter') && {
+        {...((user?.role === 'teacher') && {
           reporterViewSection: 'report',
           reporterSetViewSection: (section: 'profile' | 'report' | 'quiz') =>
             goToReporterSection(section),
@@ -55,12 +55,13 @@ const navigate = useNavigate();
       />
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
-        <Link
+       {!user && ( <Link
           to="/login"
           className="text-primary hover:underline text-sm inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary rounded"
         >
           ← {t('footer.backToApp')}
         </Link>
+		)}
 
         <header className="mb-10">
           <h1 className="text-3xl font-bold text-primary">{t('footer.privacy')}</h1>

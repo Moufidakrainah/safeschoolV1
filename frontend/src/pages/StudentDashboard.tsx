@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { getStudentParents } from "@/services/api";
@@ -12,7 +11,6 @@ import RoleHeader from "@/components/layout/Header/RoleHeader";
 type StudentSection = "profile" | "report" | "quiz" | "cases";
 
 export default function StudentDashboard() {
-  const { t } = useTranslation();
   const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -40,7 +38,7 @@ export default function StudentDashboard() {
   const handleNotifRefresh = () => setNotifRefreshKey((k) => k + 1);
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <main className="flex-1 bg-gray-50 font-sans">
       <RoleHeader
         user={user}
         logoutUser={logoutUser}
@@ -49,11 +47,11 @@ export default function StudentDashboard() {
         studentNotifRefreshKey={notifRefreshKey}
         studentOnNotifRefresh={handleNotifRefresh}
       />
-      <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
+      <div className="max-w-5xl mx-auto mt-2 px-5 pb-0">
         {viewSection === "profile" && (
           <StudentProfile
             user={user}
-            parents={parents}
+            parents={parents as Parent[]}
             loadingParents={loadingParents}
           />
         )}

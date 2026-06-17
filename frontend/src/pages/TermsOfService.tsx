@@ -1,22 +1,71 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+import { useAuth } from '@/context/AuthContext';
+import RoleHeader from '@/components/layout/Header/RoleHeader';
+import { useNavigate } from 'react-router-dom';
+
 export default function TermsOfService()
 {
   const { t } = useTranslation();
+  const { user, logoutUser } = useAuth();
+const navigate = useNavigate();
+
+  const goToAdminSection = (section: 'reports' | 'users' | 'stats' | 'classes') => {
+    navigate(`/dashboard?section=${section}`);
+  };
+
+  const goToStudentSection = (
+    section: 'profile' | 'report' | 'quiz' | 'cases'
+  ) => {
+    navigate(`/student?section=${section}`);
+  };
+
+  const goToReporterSection = (
+    section: 'profile' | 'report' | 'quiz'
+  ) => {
+    navigate(`/reporter?section=${section}`);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-surface font-sans">
     {/* flex-1 flex flex-col : s'étire dans le layout App (div.flex-1.flex.flex-col) — pas de min-h-screen ici, App gère la hauteur */}
       {/* flex-1 : grandit pour pousser le Footer en bas — fonctionne car le parent est flex-col */}
+	   <RoleHeader
+			  user={user}
+			  logoutUser={logoutUser}
+			  {...(user?.role === 'admin' && {
+				adminViewSection: 'reports',
+				adminSetViewSection: (section: 'reports' | 'users' | 'stats' | 'classes') =>
+				  goToAdminSection(section),
+				adminSetSelected: () => {},
+				adminFetchUsers: () => {},
+			  })}
+			  {...(user?.role === 'student' && {
+				studentViewSection: 'profile',
+				studentSetViewSection: (
+				  section: 'profile' | 'report' | 'quiz' | 'cases'
+				) => goToStudentSection(section),
+				studentNotifRefreshKey: 0,
+			  })}
+			  {...((user?.role === 'teacher') && {
+				reporterViewSection: 'report',
+				reporterSetViewSection: (section: 'profile' | 'report' | 'quiz') =>
+				  goToReporterSection(section),
+			  })}
+			/>
+	  
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
 
+
+{!user && (
         <Link
           to="/login"
           className="text-primary hover:underline text-sm inline-block mb-8 focus:outline-none focus:ring-2 focus:ring-primary rounded"
         >
           ← {t('footer.backToApp')}
         </Link>
+		)}
 
         <header className="mb-10">
           <h1 className="text-3xl font-bold text-primary">{t('footer.terms')}</h1>

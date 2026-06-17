@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────────
    UI Kit — SafeSchool Design System
-   Showcase des composants shadcn/ui (primitives Radix) + composants app custom.
+   Showcase des composants UI (primitives Base UI, pattern shadcn/ui) + composants app custom.
    Voir docs/design/design-system.md pour la stratégie complète.
 ───────────────────────────────────────────────────────────────────────────── */
 
@@ -29,12 +29,12 @@ import {
 } from '@/components/ui/select';
 
 // Composants app custom
-// import AppBadge    from '../components/ASupprimerBadge';
-import StatCard    from '../components/StatCard';
-import NoteBlock   from '../components/NoteBlock';
+// import AppBadge    from '@/components/ASupprimerBadge';
+import StatCard    from '@/components/StatCard';
+import NoteBlock   from '@/components/NoteBlock';
 
 import { useTranslation } from 'react-i18next';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
+import { SEVERITY_COLORS } from '@/utils/severity';
 
 // ─── Données statiques ────────────────────────────────────────────────────────
 
@@ -84,7 +84,7 @@ const { t } = useTranslation();
           <p className="text-xs font-bold uppercase tracking-widest text-white/70">SafeSchool — Design System</p>
           <h1 className="mt-2 text-3xl font-black">UI Kit</h1>
           <p className="mt-1 text-sm text-white/80">
-            Catalogue des composants. Primitives shadcn/ui (Radix) + composants app métier.
+            Catalogue des composants. Primitives Base UI (pattern shadcn/ui) + composants app métier.
           </p>
         </header>
 
@@ -118,9 +118,9 @@ const { t } = useTranslation();
             <KitSection label="Badge">
               <PreviewBox className="flex flex-wrap gap-2">
                 <ShadBadge>Default</ShadBadge>
-                <ShadBadge variant="secondary">Secondary</ShadBadge>
-                <ShadBadge variant="outline">Outline</ShadBadge>
-                <ShadBadge variant="destructive">Destructive</ShadBadge>
+                <ShadBadge variant="all">All</ShadBadge>
+                <ShadBadge variant="new">New</ShadBadge>
+                <ShadBadge variant="false_report">False report</ShadBadge>
               </PreviewBox>
             </KitSection>
 

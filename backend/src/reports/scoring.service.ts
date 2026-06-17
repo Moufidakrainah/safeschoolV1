@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Report, ReportGrade } from "./report.entity";
 import { ReportSuspect } from "./report-suspect.entity";
+import { LoggerService } from "../logger/logger.service";
 
 @Injectable()
 export class ScoringService {
@@ -10,6 +11,7 @@ export class ScoringService {
     @InjectRepository(Report) private reportsRepository: Repository<Report>,
     @InjectRepository(ReportSuspect)
     private suspectsRepository: Repository<ReportSuspect>,
+    private logger: LoggerService,
   ) {}
 
   private scoreType(type: string): number {
@@ -223,7 +225,7 @@ Signalement : "${description}"`,
         urgency: parsed.urgency ?? false,
         reason: parsed.reason ?? "",
       };
-    } catch (err) {
+    } catch {
       return this.scoreAIFallback(description);
     }
   }
@@ -259,6 +261,19 @@ Signalement : "${description}"`,
     else if (finalScore >= 40) grade = ReportGrade.HIGH;
     else if (finalScore >= 20) grade = ReportGrade.MEDIUM;
     else grade = ReportGrade.LOW;
+
+    this.logger.scoring({
+      type: "scoring_event",
+      typeScore,
+      frequencyScore,
+      classScore,
+      recidiveScore,
+      aiScore,
+      finalScore,
+      grade,
+      aiReason,
+      urgency,
+    });
 
     return { finalScore, grade, aiScore, aiReason };
   }

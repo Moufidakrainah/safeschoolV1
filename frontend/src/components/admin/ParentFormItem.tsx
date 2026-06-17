@@ -1,9 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 
-// ── Types ──
 interface ParentForm {
   firstName: string;
   lastName: string;
@@ -13,50 +12,50 @@ interface ParentForm {
 }
 
 interface ParentFormItemProps {
-  parent: ParentForm;       // données du parent
-  idx: number;              // index (0 ou 1) → "Parent 1" ou "Parent 2"
-  onChange: (updated: ParentForm) => void; // appelée quand un champ change
-  onRemove: () => void;     // appelée quand on clique "Supprimer"
-  dark?: boolean;           // true = fond sombre (dans renderUserForm), false = fond clair (dans AdminUserProfile)
+  parent: ParentForm;
+  idx: number;
+  onChange: (updated: ParentForm) => void;
+  onRemove: () => void;
+  dark?: boolean;
 }
 
-// ── Validation ──
-function validateField(field: string, value: string): string {
-  const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
-  if (field === 'firstName') {
-    if (!value.trim()) return 'Prénom obligatoire';
-    if (!nameRegex.test(value)) return 'Prénom invalide (lettres et tirets, 2-20 caractères)';
-  } else if (field === 'lastName') {
-    if (!value.trim()) return 'Nom obligatoire';
-    if (!nameRegex.test(value)) return 'Nom invalide (lettres et tirets, 2-20 caractères)';
-  } else if (field === 'email') {
-    if (!value.trim()) return 'Email obligatoire';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Format email invalide';
-    if (value.length > 50) return 'Email trop long (max 50 caractères)';
-  } else if (field === 'phone' && value.length > 0) {
-    if (!/^[0-9+\s]{0,15}$/.test(value)) return 'Téléphone invalide (chiffres, + et espaces)';
-  }
-  return '';
-}
-
-// ── Composant ──
 export default function ParentFormItem({ parent, idx, onChange, onRemove, dark = false }: ParentFormItemProps) {
+  const { t } = useTranslation();
 
-  // État local des erreurs — possible car c'est un composant !
-  const [errors, setErrors] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  // ── Stocke des CLÉS i18n, pas des messages ──
+  const [errorKeys, setErrorKeys] = useState({ firstName: '', lastName: '', email: '', phone: '' });
 
-  // Couleurs selon le contexte (sombre dans renderUserForm, clair dans AdminUserProfile)
+  function validateFieldKey(field: string, value: string): string {
+    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
+    if (field === 'firstName') {
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!nameRegex.test(value)) return 'admin.users.name';
+    } else if (field === 'lastName') {
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!nameRegex.test(value)) return 'admin.users.name';
+    } else if (field === 'email') {
+      if (!value.trim()) return 'admin.users.errorRequired';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) return 'admin.users.errorEmailFormat';
+      if (value.length > 50) return 'admin.users.tooLong';
+    } else if (field === 'phone' && value.length > 0) {
+      if (!/^[0-9+\s]{0,15}$/.test(value)) return 'validation.emailInvalid';
+    }
+    return '';
+  }
+
   const labelClass = dark ? 'text-white/80 text-xs' : 'text-xs';
   const inputClass = dark ? 'bg-white mt-1 h-8 text-sm' : 'mt-1';
   const errorClass = dark ? 'text-red-300 text-xs mt-1' : 'text-red-500 text-xs mt-1';
-  const containerClass = dark ? 'bg-white/10 rounded-lg p-3 mb-2 flex flex-col gap-2' : 'bg-gray-50 rounded-lg p-3 mb-2 flex flex-col gap-2';
+  const containerClass = dark
+    ? 'bg-white/10 rounded-lg p-3 mb-2 flex flex-col gap-2'
+    : 'bg-gray-50 rounded-lg p-3 mb-2 flex flex-col gap-2';
 
   return (
     <div className={containerClass}>
-      {/* En-tête : Parent 1/2 + bouton Supprimer */}
+      {/* En-tête */}
       <div className="flex justify-between items-center">
         <span className={dark ? 'text-white text-xs font-semibold' : 'text-xs font-semibold text-gray-700'}>
-          Parent {idx + 1}
+          {t('userProfile.guardians')} {idx + 1}
         </span>
         <span
           role="button"
@@ -65,79 +64,84 @@ export default function ParentFormItem({ parent, idx, onChange, onRemove, dark =
           onClick={onRemove}
           onKeyDown={e => e.key === 'Enter' && onRemove()}
         >
-          ✕ Supprimer
+          ✕ {t('userProfile.deleteGuardian')}
         </span>
       </div>
 
       {/* Prénom + Nom */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label className={labelClass}>Prénom</Label>
+          <Label className={labelClass}>{t('userProfile.firstName')}</Label>
           <Input
             value={parent.firstName}
             onChange={e => {
               const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '');
               const normalized = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
               onChange({ ...parent, firstName: normalized });
-              setErrors(prev => ({ ...prev, firstName: validateField('firstName', normalized) }));
+              setErrorKeys(prev => ({ ...prev, firstName: validateFieldKey('firstName', normalized) }));
             }}
             maxLength={20}
             className={inputClass}
           />
-          {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
+          {/* t(clé) au rendu → se met à jour au changement de langue */}
+          {errorKeys.firstName && <p className={errorClass}>{t(errorKeys.firstName)}</p>}
         </div>
         <div>
-          <Label className={labelClass}>Nom</Label>
+          <Label className={labelClass}>{t('userProfile.lastName')}</Label>
           <Input
             value={parent.lastName}
             onChange={e => {
               const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, '').toUpperCase();
               onChange({ ...parent, lastName: val });
-              setErrors(prev => ({ ...prev, lastName: validateField('lastName', val) }));
+              setErrorKeys(prev => ({ ...prev, lastName: validateFieldKey('lastName', val) }));
             }}
             maxLength={20}
             className={inputClass}
           />
-          {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
+          {errorKeys.lastName && <p className={errorClass}>{t(errorKeys.lastName)}</p>}
         </div>
       </div>
 
       {/* Email */}
       <div>
-        <Label className={labelClass}>Email</Label>
+        <Label className={labelClass}>{t('userProfile.email')}</Label>
         <Input
           type="email"
           value={parent.email}
           onChange={e => {
             onChange({ ...parent, email: e.target.value });
-            setErrors(prev => ({ ...prev, email: validateField('email', e.target.value) }));
+            setErrorKeys(prev => ({ ...prev, email: validateFieldKey('email', e.target.value) }));
           }}
           maxLength={50}
           className={inputClass}
         />
-        {errors.email && <p className={errorClass}>{errors.email}</p>}
+        {errorKeys.email && <p className={errorClass}>{t(errorKeys.email)}</p>}
       </div>
 
       {/* Téléphone */}
       <div>
-        <Label className={labelClass}>Téléphone <span className="opacity-60">(optionnel)</span></Label>
+        <Label className={labelClass}>
+          {t('userProfile.phone')} <span className="opacity-60">({t('common.optional')})</span>
+        </Label>
         <Input
           value={parent.phone}
           onChange={e => {
             const val = e.target.value.replace(/[^0-9+\s]/g, '');
             onChange({ ...parent, phone: val });
-            setErrors(prev => ({ ...prev, phone: validateField('phone', val) }));
+            setErrorKeys(prev => ({ ...prev, phone: validateFieldKey('phone', val) }));
           }}
           maxLength={15}
           placeholder="ex: +33 6 12 34 56 78"
           className={inputClass}
         />
-        {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+        {errorKeys.phone && <p className={errorClass}>{t(errorKeys.phone)}</p>}
       </div>
 
       {/* Adresse */}
       <div>
-        <Label className={labelClass}>Adresse <span className="opacity-60">(optionnel)</span></Label>
+        <Label className={labelClass}>
+          {t('userProfile.address')} <span className="opacity-60">({t('common.optional')})</span>
+        </Label>
         <Input
           value={parent.address}
           onChange={e => onChange({ ...parent, address: e.target.value })}

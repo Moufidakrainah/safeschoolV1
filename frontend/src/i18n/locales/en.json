@@ -4,10 +4,12 @@
     "labelPassword": "Password",
     "submit": "Log in",
     "loading": "Logging in...",
-    "errorRequired": "Please fill in all fields.",
     "errorEmailFormat": "Invalid email format.",
     "errorPasswordLength": "The password must contain at least 6 characters.",
-    "error": "Incorrect credentials."
+    "error": "Incorrect credentials.",
+    "errorRequired": "Please fill in all fields.",
+    "keepEmpty": "(leave empty to keep unchanged)",
+    "tooManyRequests": "Too many attempts. Please try again in 1 minute."
   },
   "nav": {
     "logout": "Log out"
@@ -36,7 +38,8 @@
       "ariaLabel": "Main navigation",
       "reports": "Reports",
       "users": "Users",
-      "stats": "Statistics"
+      "stats": "Statistics",
+      "classes": "Classes"
     },
     "topbar": {
       "role": "{{role}} space"
@@ -64,7 +67,9 @@
       "dateFrom": "From date",
       "dateTo": "To date",
       "reset": "Reset",
-      "victimPlaceholder": "Victim name..."
+      "victimPlaceholder": "Victim name...",
+      "status": "Status",
+      "dates": "Dates:"
     },
     "status": {
       "pending": "Pending",
@@ -79,7 +84,8 @@
       "class": "Class",
       "aiScore": "AI Score",
       "aiReason": "AI Analysis",
-      "anonymous": "Anonymous",
+      "aiAnalysis": "AI Analysis",
+      "anonymous": "Anonymous report (identity visible to admin)",
       "yes": "Yes",
       "no": "No",
       "people": "People involved",
@@ -90,12 +96,22 @@
       "noSuspect": "No suspect indicated",
       "suspectsCount": "suspect(s)",
       "type": "Type",
-      "reporter": "Reported as",
+      "reporter": "Reporter",
+      "involved": "People involved",
+      "report": "Report",
+      "status": "Status",
       "victims": "Victim(s)",
       "noVictim": "No victim indicated",
       "victimLinked": "Linked to",
       "reporterVictime": "Victim",
-      "reporterTemoin": "Witness"
+      "reporterTemoin": "Witness",
+      "unidentified": "Unidentified",
+      "unlinked": "Identity not linked",
+      "unlink": "Dissociate",
+      "link": "Associate",
+      "searchStudent": "Search for a student...",
+      "title": "Report {{caseNumber}}",
+      "back": "Back to all reports"
     },
     "actions": {
       "groupLabel": "Report actions",
@@ -113,8 +129,20 @@
     "convocation": {
       "title": "Summon people involved",
       "dateLabel": "Date and time",
+      "dateTime": "Date and time",
       "placeholder": "Summons message...",
-      "send": "Send summons"
+      "messagePlaceholder": "Summons message...",
+      "send": "Send {{count}} summons",
+      "sending": "Sending...",
+      "success": "Summons sent successfully!",
+      "hint": "Select the people to summon and set a date and message for each.",
+      "dateError": "The date must be in the future",
+      "selectRecipients": "Select recipients:",
+      "victimReporter": "Victim / Reporter",
+      "suspect": "Suspect",
+      "victim": "Victim",
+      "noRecipient": "No one to summon — first link suspects/victims to a student.",
+      "reporter": "Reporter"
     },
     "users": {
       "title": "User management",
@@ -130,24 +158,52 @@
       "edit": "Edit",
       "delete": "Delete",
       "selectClass": "Select a class",
+      "searchPlaceholder": "Search by first or last name...",
+      "roleStudent": "Students",
+      "roleTeacher": "Teachers",
+      "roleAdmin": "Admins",
+      "sortDate": "Creation date",
       "roles": {
         "label": "Role",
         "student": "Student",
         "teacher": "Teacher",
         "staff": "Staff",
         "admin": "Admin",
-        "director": "Director"
+        "director": "Director",
+        "choose": "Select a role"
       },
       "errorEmailFormat": "Invalid email format.",
       "errorPasswordLength": "The password must contain at least 6 characters.",
       "deleteConfirm": "Do you really want to delete this user?",
       "deleteBlocked": "This user cannot be deleted because they are linked to one or more reports..",
       "deleteError": "An error occurred during deletion.",
-      "deleteSelf": "You cannot delete your own account"
+      "deleteSelf": "You cannot delete your own account",
+      "name": "Letters, hyphens and apostrophes only (2-20 characters)",
+      "errorRequired": "This field is required",
+      "tooLong": "Too long (max 50 characters)",
+      "atLeast": "Minimum 12 characters",
+      "atLeastOneNumber": "At least one digit required",
+      "atLeastOneMinus": "At least one lowercase letter required",
+      "atLeastOneMajor": "At least one uppercase letter required",
+      "atLeastOneSpecial": "At least one special character required",
+      "noFirstName": "Password must not contain first name",
+      "noLastName": "Password must not contain last name",
+      "class": "Class",
+      "dateOfBirth": "Date of birth",
+      "ageMin": "The student must be at least 9 years old",
+      "ageMax": "The student cannot be more than 16 years old",
+      "classesTeacher": "Classes they teach",
+      "noClass": "No class available",
+      "charsCount": "{{count}}/50 characters",
+      "maxChars": "Maximum 50 characters reached",
+      "confirmStatus": "Confirm status change to {{label}}?"
     },
     "title": {
       "oneReport": "Details of a report",
       "allReports": "All reports"
+    },
+    "teacher": {
+      "subjectTeached": "Subject taught"
     }
   },
   "badge": {
@@ -161,11 +217,15 @@
     "resolved": " Resolved",
     "false_report": " False report",
     "closed": " Closed",
-    "rejected": " Rejected"
+    "rejected": " Rejected",
+    "total": "Total",
+    "all": "All statuses"
   },
   "noteblock": {
-    "note": " Note",
-    "convocation": " Summons"
+    "note": "Note",
+    "convocation": "Summons",
+    "statusChange": "Status updated",
+    "by": "by"
   },
   "pagination": {
     "nav": "Pagination",
@@ -183,7 +243,61 @@
     "next": "Next",
     "error": "An error occurred",
     "close": "Close",
-    "back": "Back"
+    "back": "Back",
+    "reset": "Reset",
+    "limitReached": "Limit reached",
+    "optional": "optional",
+    "confirm": "Confirm",
+    "inProgress": "In progress..."
+  },
+  "report": {
+    "reporter": {
+      "victime": "Victim",
+      "temoin": "Witness"
+    }
+  },
+  "quiz": {
+    "title": "Quiz",
+    "reconnecting": "Reconnecting…",
+    "roomCodeLabel": "Room code",
+    "roomCodePlaceholder": "Enter the code",
+    "join": "Join",
+    "howToPlay": "How to play",
+    "joinHelp": "Enter a room code (3 to 10 characters). If you are the first to join this room, you become the host and can start the game whenever you want.",
+    "room": "Room: {{code}}",
+    "you": "(you)",
+    "disconnected": "(disconnected)",
+    "rules": {
+      "questions": "15 questions, 2 possible answers — only one is correct",
+      "time": "You have 30 seconds to answer each question",
+      "speed": "The faster you answer, the more you score: ≤3s = 3 pts, ≤7s = 2 pts, otherwise 1 pt",
+      "combo": "Combo: each correct answer in a row increases the multiplier (up to ×5)",
+      "reset": "A wrong answer (or no answer) resets the combo to zero",
+      "oneTry": "Only one try per question, no changes",
+      "winner": "Whoever has the most points at the end wins!"
+    },
+    "startGame": "Start the quiz",
+    "waitingHost": "Waiting for the host…",
+    "leaveRoom": "Leave the room",
+    "leave": "Leave",
+    "finalResults": "Final results",
+    "noScore": "No score available.",
+    "points": "{{score}} pts",
+    "connectionLost": "Connection lost — reconnecting…",
+    "combo": "Combo",
+    "multiplier": "Multiplier",
+    "correctAnswer": "Correct answer!",
+    "speed": "Speed",
+    "pointsLabel": "Points",
+    "wrongAnswer": "Wrong answer",
+    "comboLost": "Combo lost",
+    "answerSent": "Answer sent. Waiting for the other players…",
+    "timeUp": "Time's up. Next question…",
+    "noAnswer": "You didn't answer.",
+    "nextQuestion": "Next question in {{seconds}}s",
+    "results": "Results",
+    "liveRanking": "Live ranking",
+    "waitingQuestion": "Waiting for the question…"
   },
   "reporter": {
     "nav": {
@@ -200,7 +314,14 @@
       "email": "Email",
       "role": "Occupation",
       "subject": "Subject",
-      "subjectUnknown": "Unknown"
+      "subjectUnknown": "Unknown",
+      "job": "Job",
+      "change": "Change photo",
+      "upload": "Upload",
+      "loading": "Loading...",
+      "noProfile": "No professional profile registered",
+      "classes": "Classes",
+      "occupation": "Occupation"
     },
     "roles": {
       "teacher": "Teacher",
@@ -256,7 +377,12 @@
       "sexual": "Sexual",
       "sexualSub": "Gestures, remarks",
       "other": "Other",
-      "otherSub": "Describe below"
+      "otherSub": "Describe below",
+      "iAmTheVictim": "I am a victim",
+      "iAmTheWitness": "I am a witness",
+      "iWasHarassed": "I was bullied",
+      "iSawHarassed": "I saw someone being bullied",
+      "chooseOne": "Please select your situation"
     },
     "step3": {
       "title": "Describe the facts",
@@ -280,7 +406,14 @@
       "addFreeText": "Add",
       "suspectsAdded": "Suspects added",
       "removeSuspect": "Remove",
-      "noSuspect": "No suspect added — you can skip this step"
+      "noSuspect": "No suspect added — you can skip this step",
+      "peoplePlaceholder": "E.g. First name + Last name",
+      "add+Victim": "Press `Enter` or click `Add this victim`",
+      "add+Suspect": "Press `Enter` or click `Add this bully`",
+      "addVictim": "Add this victim",
+      "addSuspect": "Add this bully",
+      "maxVictims": "Maximum 5 victims reached",
+      "maxSuspects": "Maximum 5 suspects reached"
     },
     "step5": {
       "title": "Evidence",
@@ -294,18 +427,20 @@
       "type": "Type",
       "description": "Description",
       "frequency": "Frequency",
-      "victim": "Victim",
+      "victim": "I am a victim",
       "suspects": "Suspects",
-      "anonymous": "Anonymous report",
-      "anonymousDesc": "my name will not be visible"
+      "anonymous": "Check this box if you don't want to be contacted about this report",
+      "anonymousDesc": "my name will not be visible",
+      "victims": "Victim(s)",
+      "suspect": "I am a witness"
     },
     "submitting": "Sending...",
     "submit": "Submit report",
     "submitError": "Submission failed. Check your connection and try again.",
     "validation": {
       "typeRequired": "Please select a type of bullying to continue.",
-      "descriptionRequired": "Please describe the facts to continue.",
-      "frequencyRequired": "Please indicate the frequency to continue."
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     },
     "workshop": {
       "title": "Workshops",
@@ -326,14 +461,22 @@
       "profile": "My profile",
       "report": "Make a report",
       "workshop": "Workshops",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "cases": "My cases"
     },
     "profile": {
       "title": "My profile",
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
-      "role": "Role"
+      "role": "Student",
+      "class": "Class",
+      "dob": "Date of birth",
+      "officialParents": "Parents",
+      "loading": "Loading...",
+      "noParent": "No legal guardian registered",
+      "phone": "Phone",
+      "address": "Address"
     },
     "workshop": {
       "title": "Workshops",
@@ -342,6 +485,19 @@
     "quiz": {
       "title": "Quiz",
       "soon": "This section will be available soon."
+    },
+    "cases": {
+      "summoned": "You are summoned on ",
+      "iAmVictim": "I am a victim",
+      "noUpdate": "No updates for this case",
+      "loading": "Loading...",
+      "noReport": "No reports found",
+      "meeting": "A meeting took place on ",
+      "statusUpdate": "Status updated: {{status}} — {{date}}"
+    },
+    "validation": {
+      "descriptionRequired": "Description must contain at least 20 characters",
+      "frequencyRequired": "Frequency is required"
     }
   },
   "privacy": {
@@ -410,5 +566,133 @@
       "title": "6. Amendments to These Terms",
       "body": "These terms of use may be updated at any time by the administration. Users will be notified of any material changes. Continued use of the application after notification constitutes acceptance of the revised terms."
     }
+  },
+  "notifications": {
+    "notifs": "Notifications",
+    "loading": "Loading",
+    "no": "No notifications",
+    "report": "Report",
+    "read": "Read",
+    "statusUpdate": "Status of your case {{caseNumber}} updated: {{status}}"
+  },
+  "all": "All",
+  "section": "Section",
+  "stats": {
+    "allPeriod": "All time",
+    "last7": "Last 7 days",
+    "last30": "Last 30 days",
+    "last90": "Last 3 months",
+    "last365": "1 year",
+    "allClasses": "All classes",
+    "allGrades": "All severities",
+    "reportsFound": "{{count}} report(s) found",
+    "byGrade": "By severity",
+    "byStatus": "By status",
+    "byClass": "Reports by class (victim)",
+    "byType": "Reports by type",
+    "evolution": "Evolution (last 7 days)",
+    "statusNew": "New",
+    "statusInProgress": "In progress",
+    "statusResolved": "Resolved",
+    "statusPending": "Pending",
+    "statusFalseReport": "False report",
+    "noData": "No data",
+    "total": "Total",
+    "statusRejected": "False report",
+    "reportsLabel": "Reports"
+  },
+  "classes": {
+    "loading": "Loading...",
+    "backToClasses": "Back to classes",
+    "studentsEnrolled": "Enrolled students",
+    "noStudentInClass": "No students in this class.",
+    "assignStudents": "Assign students from the Users section.",
+    "addClass": "+ Add a class",
+    "editClass": "Edit class",
+    "addClassTitle": "Add a class",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noClass": "No classes",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "student": "student",
+    "students": "students",
+    "deleteBlocked": "Cannot delete {{level}} {{section}}: {{count}} student(s) enrolled. Reassign them first.",
+    "deleteConfirm": "Are you sure you want to delete class {{level}} {{section}}?",
+    "level": "Level",
+    "section": "Section",
+    "levelRequired": "Level is required",
+    "levelInvalid": "Level must be 3eme, 4eme, 5eme or 6eme",
+    "sectionRequired": "Section is required",
+    "sectionInvalid": "Section must be a single uppercase letter (A, B, C...)",
+    "alreadyExists": "This class already exists"
+  },
+  "userProfile": {
+    "backToReport": "Back to report",
+    "backToList": "Back to list",
+    "prev": "Previous",
+    "next": "Next",
+    "changePhoto": "Change photo",
+    "uploading": "Uploading...",
+    "class": "Class",
+    "dob": "Date of birth",
+    "age": "years",
+    "profession": "Profession",
+    "subject": "Subject",
+    "classes": "Classes",
+    "guardians": "Legal guardians",
+    "addGuardian": "+ Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "editGuardian": "Edit",
+    "deleteGuardian": "Delete",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "confirmTitle": "Confirm changes",
+    "confirmBtn": "Confirm",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "role": "Role",
+    "password": "Password",
+    "passwordChanged": "changed"
+  },
+  "validation": {
+    "descRequired": "Description is required",
+    "descMin": "Description must contain at least 20 characters",
+    "descMax": "Description cannot exceed 2000 characters",
+    "descInvalid": "Description seems invalid (repetitive characters detected)",
+    "nameRequired": "Name is required",
+    "nameMin": "Name must contain at least 2 characters",
+    "nameMax": "Name cannot exceed 50 characters",
+    "nameInvalid": "Name contains invalid or repetitive characters",
+    "freqRequired": "Frequency is required",
+    "emailRequired": "Email required",
+    "emailTooLong": "Email too long (50 characters max)",
+    "emailInvalid": "Invalid email format",
+    "passwordRequired": "Password required",
+    "passwordMin": "Password too short",
+    "emailExists": "This email address is already in use"
+  },
+  "toast": {
+    "avatarUpdated": "Photo updated successfully",
+    "avatarError": "Error updating photo",
+    "parentAdded": "Legal guardian added successfully",
+    "parentUpdated": "Legal guardian updated successfully",
+    "parentDeleted": "Legal guardian deleted successfully",
+    "parentError": "An error occurred",
+    "classCreated": "Class created successfully",
+    "classUpdated": "Class updated successfully",
+    "classDeleted": "Class deleted successfully",
+    "userCreated": "User created successfully",
+"userUpdated": "User updated successfully",
+"userDeleted": "User deleted successfully"
+  },
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low"
   }
 }

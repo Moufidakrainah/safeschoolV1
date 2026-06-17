@@ -13,8 +13,8 @@ export class LoggerService implements NestLoggerService {
           winston.format.colorize(),
           winston.format.timestamp({ format: "HH:mm:ss" }),
           winston.format.printf(({ timestamp, level, message, type }) => {
-            const tag = type ? `[${type}] ` : "";
-            return `${timestamp} ${level}: ${tag}${message}`;
+            const tag = type ? `[${type as string}] ` : "";
+            return `${String(timestamp)} ${level}: ${tag}${String(message)}`;
           }),
         ),
       }),
@@ -77,7 +77,7 @@ export class LoggerService implements NestLoggerService {
 
   auth(data: {
     type: "auth_event";
-    action: "login_success" | "login_failure" | "register";
+    action: "login_success" | "login_failure" ;
     email: string;
     userId?: string;
     userRole?: string;
@@ -111,7 +111,6 @@ export class LoggerService implements NestLoggerService {
     frequencyScore: number;
     classScore: number;
     recidiveScore: number;
-    suspectRoleScore: number;
     aiScore: number;
     finalScore: number;
     grade: string;

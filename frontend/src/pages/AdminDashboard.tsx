@@ -1,3 +1,4 @@
+import type { AdminUser } from '@/types';
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -5,30 +6,33 @@ import { useAuth } from '@/context/AuthContext';
 import {
   getAllReports, updateReport, getNotes, addNote,
   getUserById, searchUsers, resolveSuspect, resolveVictim,
-  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser,
-} from '../services/api';
+  getStaffProfile, createStaffProfile, updateStaffProfile, updateUser, createParent,
+  isOfflineError,
+} from '@/services/api';
+import OfflineNotice from '@/components/OfflineNotice';
+import { useReconnectKey } from '@/hooks/useOnlineStatus';
 import { useUsers } from '@/hooks/useUsers';
-import StatsDashboard from '../components/admin/StatsDashboard';
-import { SEVERITY_COLORS, severityFromApiGrade } from '../utils/severity';
-import { Button } from '../components/ui/button';
+import StatsDashboard from '@/components/admin/StatsDashboard';
+import { SEVERITY_COLORS, severityFromApiGrade } from '@/utils/severity';
+import { Button } from '@/components/ui/button';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import StatCard from '../components/StatCard';
-import Pagination from '../components/Pagination';
-import AdminClasses from '../components/admin/AdminClasses';
-import ReportDetail from '../components/admin/ReportDetail';
-import type { Report, Note } from '../types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import StatCard from '@/components/StatCard';
+import { Pagination as PaginationShadcn, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+
+import AdminClasses from '@/components/admin/AdminClasses';
+import ReportDetail from '@/components/admin/ReportDetail';
+import type { Report, Note } from '@/types';
 import RoleHeader from '@/components/layout/Header/RoleHeader';
 import AdminUsersList from '@/components/admin/AdminUsersList';
 import AdminUserProfile from '@/components/admin/AdminUserProfile';
-import ParentFormItem from '@/components/admin/ParentFormItem';
+
 
 interface SchoolClass { id: string; level: string; section: string; }
 
-// Helper pour construire le userForm depuis un utilisateur
-const buildUserForm = (u: any) => ({
+const buildUserForm = (u: AdminUser) => ({
   firstName: u.firstName,
   lastName: u.lastName,
   email: u.email,
@@ -36,7 +40,7 @@ const buildUserForm = (u: any) => ({
   role: u.role,
   classId: u.studentProfile?.schoolClass?.id || '',
   subject: u.staffProfile?.subject || '',
-  classIds: u.staffProfile?.classes?.map((c: any) => c.id) || [],
+  classIds: u.staffProfile?.classes?.map((c: SchoolClass) => c.id) || [],
   parents: [],
   dateOfBirth: u.studentProfile?.dateOfBirth ?? '',
 });
@@ -50,7 +54,7 @@ export default function AdminDashboard() {
   const isAdmin = user?.role === 'admin';
 
   const {
-    users, loadingUsers,
+    loadingUsers, usersFailedOffline,
     usersPage, setUsersPage, usersTotalPages,
     usersSearch, setUsersSearch,
     usersSort, setUsersSort,
@@ -61,13 +65,15 @@ export default function AdminDashboard() {
     deleteTarget, setDeleteTarget, isDeleting, isBlocked, deleteError,
     filteredUsers,
     fetchUsers, fetchClassesList,
-    handleSaveUser, handleDeleteUser, confirmDelete,
+    handleSaveUser, handleDeleteUser, confirmDelete, validateAll,
     handleAvatarUpload, updateField, toggleClassId,
     navigateToUser, calcAge,
   } = useUsers();
 
   const [reports, setReports]   = useState<Report[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [reportsFailedOffline, setReportsFailedOffline] = useState(false);
+  const reconnectKey = useReconnectKey();
   const [selected, setSelected] = useState<Report | null>(null);
   const [saving, setSaving]     = useState(false);
   const [view, setView]         = useState<'list' | 'detail'>('list');
@@ -104,55 +110,68 @@ export default function AdminDashboard() {
   const selectedUserId = searchParams.get('userId');
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
   const [suspectSearch, setSuspectSearch] = useState('');
-  const [suspectResults, setSuspectResults] = useState<any[]>([]);
+  const [suspectResults, setSuspectResults] = useState<AdminUser[]>([]);
   const [resolving, setResolving]       = useState(false);
   const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
   const [originReportId, setOriginReportId] = useState<string | null>(null);
 
   const itemsPerPage = 5;
 
-  useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, []);
+  // Rechargé au montage et à chaque retour de connexion
+  useEffect(() => { fetchReports(); fetchClassesList(); if (selectedUserId) fetchUsers(); }, [reconnectKey]);
 
   useEffect(() => {
     if (selectedUserId) {
       getUserById(selectedUserId).then(u => {
-        if (u) {
-          setSelectedUser(u);
-          setUserForm(buildUserForm(u));
-        }
+        if (u) { setSelectedUser(u); setUserForm(buildUserForm(u)); }
       }).catch(() => {});
     }
   }, [selectedUserId]);
 
-  useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection]);
+  useEffect(() => { if (viewSection === 'users' && !searchParams.get('userId')) fetchUsers(); }, [viewSection, reconnectKey]);
+
+
 
   const fetchReports = async () => {
-    try { setReports(await getAllReports()); } catch {} finally { setLoading(false); }
+    try { setReports(await getAllReports()); setReportsFailedOffline(false); }
+    catch (err) { setReportsFailedOffline(isOfflineError(err)); }
+    finally { setLoading(false); }
   };
 
   const handleUpdateStatus = async (id: string, status: string) => {
     setSaving(true);
-    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: any) => r.id === id) ?? null); }
+    try { await updateReport(id, { status }); const updated = await getAllReports(); setReports(updated); setSelected(updated.find((r: Report) => r.id === id) ?? null); await loadNotes(id); }
     catch {} finally { setSaving(false); }
   };
 
   const handleSuspectSearch = async (query: string) => {
     setSuspectSearch(query);
     if (query.length < 2) { setSuspectResults([]); return; }
-    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: any) => u.role === 'student')); }
+    try { const r = await searchUsers(query); setSuspectResults(r.filter((u: AdminUser) => u.role === 'student')); }
     catch { setSuspectResults([]); }
   };
 
-  const handleResolveSuspect = async (suspectId: string, userId: string | null) => {
-    setResolving(true);
-    try {
-      await resolveSuspect(suspectId, userId);
-      const updated = await getAllReports();
-      setReports(updated);
-      setSelected(updated.find((r: any) => r.id === selected?.id) ?? null);
+  // ✅ Après
+const handleResolveSuspect = async (suspectId: string, userId: string | null) => {
+  // Bloquer si cet utilisateur est déjà associé à un autre suspect
+  if (userId && selected) {
+    const alreadyLinked = selected.suspects?.some(
+      s => s.id !== suspectId && s.resolvedUser?.id === userId
+    );
+    if (alreadyLinked) {
       setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-    } finally { setResolving(false); }
-  };
+      return;
+    }
+  }
+  setResolving(true);
+  try {
+    await resolveSuspect(suspectId, userId);
+    const updated = await getAllReports();
+    setReports(updated);
+    setSelected((updated as Report[]).find((r: Report) => r.id === selected?.id) ?? null);
+    setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+  } finally { setResolving(false); }
+};
 
   const filtered = useMemo(() => {
     return reports.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).filter((r: Report) => {
@@ -184,7 +203,7 @@ export default function AdminDashboard() {
 
   const handleReset = () => { setFilterGrade('all'); setFilterStatus('all'); setFilterClass('all'); setFilterStudent('all'); setFilterDateFrom(''); setFilterDateTo(''); setFilterSuspect(''); setFilterVictim(''); setSearch(''); setCurrentPage(1); setResetKey(k => k + 1); };
 
-  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch {} };
+  const loadNotes = async (reportId: string) => { try { setNotes(await getNotes(reportId)); } catch { } };
   const goTo = (report: typeof selected) => { setSelected(report); if (report) { loadNotes(report.id); setCheckedConvocIds([]); } };
 
   const handleAddNote = async (type = 'note') => {
@@ -192,7 +211,7 @@ export default function AdminDashboard() {
     let content = type === 'convocation' ? convocationMessage : newNote;
     if (!content.trim()) return;
     if (type === 'convocation' && convocationDate) { const f = new Date(convocationDate).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' }); content = `${f}\n\n${content}`; }
-    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch {}
+    try { await addNote(selected.id, content, type); await loadNotes(selected.id); if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); } else setNewNote(''); } catch { }
   };
 
   const renderUserForm = (isEdit = false) => (
@@ -200,26 +219,26 @@ export default function AdminDashboard() {
       <div>
         <Label className="text-[var(--text-light)] text-sm">{t('admin.users.firstName')}</Label>
         <Input value={userForm.firstName} onChange={e => updateField('firstName', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.firstName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.firstName}</p>}
+        {errors.firstName && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.firstName)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.lastName')}</Label>
         <Input value={userForm.lastName} onChange={e => updateField('lastName', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.lastName && <p className="text-[var(--text-error)] text-xs mt-1">{errors.lastName}</p>}
+        {errors.lastName && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.lastName)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.email')}</Label>
         <Input value={userForm.email} onChange={e => updateField('email', e.target.value)} className="bg-[var(--background)] mt-1" />
-        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t('admin.users.errorEmailFormat')}</p>}
+        {errors.email && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.email)}</p>}
       </div>
       <div>
         <Label className="text-[var(--text-light)]">{t('admin.users.password')}{isEdit ? t('login.keepEmpty') : ''}</Label>
         <Input type="password" value={userForm.password} onChange={e => updateField('password', e.target.value)} className="bg-[var(--background)] mt-1" maxLength={20} />
-        {errors.password && <p className="text-[var(--text-error)] text-xs mt-1">{errors.password}</p>}
+        {errors.password && <p className="text-[var(--text-error)] text-xs mt-1">{t(errors.password)}</p>}
       </div>
       <Select
         value={userForm.role}
-        onValueChange={v => setUserForm(prev => ({ ...prev, role: v, classId: '', subject: '', classIds: [] }))}
+        onValueChange={v => setUserForm(prev => ({ ...prev, role: v ?? prev.role, classId: '', subject: '', classIds: [] }))}
         disabled={isEdit}
       >
         <SelectTrigger className={`bg-white ${isEdit ? 'opacity-60 cursor-not-allowed' : ''}`}>
@@ -237,21 +256,26 @@ export default function AdminDashboard() {
           <SelectItem value="admin">{t('admin.users.roles.admin')}</SelectItem>
         </SelectContent>
       </Select>
+
       {userForm.role === 'student' && (
         <>
           <div>
-            <Label className="text-white text-sm">Classe</Label>
-            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v }))}>
+            <Label className="text-white text-sm">{t('admin.users.class')}</Label>
+            <Select value={userForm.classId} onValueChange={v => setUserForm(prev => ({ ...prev, classId: v ?? prev.classId }))}>
               <SelectTrigger className="bg-white mt-1">
                 <SelectValue placeholder={t('admin.users.selectClass')}>
-                  {classes.find(c => c.id === userForm.classId) ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}` : t('admin.users.selectClass')}
+                  {classes.find(c => c.id === userForm.classId)
+                    ? `${classes.find(c => c.id === userForm.classId)?.level} ${classes.find(c => c.id === userForm.classId)?.section}`
+                    : t('admin.users.selectClass')}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                {classes.map(c => <SelectItem key={c.id} value={c.id}>{c.level} {c.section}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div>
-            <Label className="text-white text-sm">Date de naissance</Label>
+            <Label className="text-white text-sm">{t('admin.users.dateOfBirth')}</Label>
             <Input
               type="date"
               value={userForm.dateOfBirth}
@@ -262,62 +286,45 @@ export default function AdminDashboard() {
             />
             {userForm.dateOfBirth && (
               new Date(userForm.dateOfBirth) > new Date(new Date().setFullYear(new Date().getFullYear() - 9))
-                ? <p className="text-red-300 text-xs mt-1">L'élève doit avoir au moins 9 ans</p>
+                ? <p className="text-red-300 text-xs mt-1">{t('admin.users.ageMin')}</p>
                 : new Date(userForm.dateOfBirth) < new Date(new Date().setFullYear(new Date().getFullYear() - 16))
-                ? <p className="text-red-300 text-xs mt-1">L'élève ne peut pas avoir plus de 16 ans</p>
+                ? <p className="text-red-300 text-xs mt-1">{t('admin.users.ageMax')}</p>
                 : null
             )}
           </div>
-          <div className="mt-2">
-            <div className="flex justify-between items-center mb-2">
-              <Label className="text-white text-sm">Responsables légaux</Label>
-              {userForm.parents.length < 2 && (
-                <button
-                  type="button"
-                  className="text-xs text-white/80 hover:text-white underline"
-                  onClick={() => setUserForm(prev => ({
-                    ...prev,
-                    parents: [...prev.parents, { firstName: '', lastName: '', email: '', phone: '', address: '' }]
-                  }))}
-                >
-                  + Ajouter un parent
-                </button>
-              )}
-            </div>
-            {userForm.parents.map((parent, idx) => (
-              <ParentFormItem
-                key={idx}
-                parent={parent}
-                idx={idx}
-                dark={true}
-                onChange={(updated) => setUserForm(prev => ({
-                  ...prev,
-                  parents: prev.parents.map((p, i) => i === idx ? updated : p)
-                }))}
-                onRemove={() => setUserForm(prev => ({
-                  ...prev,
-                  parents: prev.parents.filter((_, i) => i !== idx)
-                }))}
-              />
-            ))}
-          </div>
         </>
       )}
+
       {userForm.role === 'teacher' && (
         <>
           <div>
             <Label className="text-white text-sm">{t('admin.teacher.subjectTeached')}</Label>
-            <Input value={userForm.subject} onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))} placeholder="ex: Mathématiques" className="bg-white mt-1" maxLength={50} />
-            <p className="text-white/60 text-xs mt-0.5">{userForm.subject.length}/50 caractères</p>
-            {userForm.subject.length === 50 && <p className="text-red-300 text-xs mt-0.5">Maximum 50 caractères atteint</p>}
+            <Input
+              value={userForm.subject}
+              onChange={e => setUserForm(prev => ({ ...prev, subject: e.target.value.slice(0, 50) }))}
+              placeholder="ex: Mathématiques"
+              className="bg-white mt-1"
+              maxLength={50}
+            />
+            <p className="text-white/60 text-xs mt-0.5">
+              {t('admin.users.charsCount', { count: userForm.subject.length })}
+            </p>
+            {userForm.subject.length === 50 && (
+              <p className="text-red-300 text-xs mt-0.5">{t('admin.users.maxChars')}</p>
+            )}
           </div>
           <div>
-            <Label className="text-white text-sm mb-2 block">Classes où il intervient</Label>
+            <Label className="text-white text-sm mb-2 block">{t('admin.users.classesTeacher')}</Label>
             <div className="flex flex-wrap gap-2">
               {classes.map(c => (
-                <button key={c.id} type="button" onClick={() => toggleClassId(c.id)} className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${userForm.classIds.includes(c.id) ? 'bg-white text-primary border-white' : 'bg-transparent text-white border-white/50 hover:border-white'}`}>{c.level} {c.section}</button>
+                <button key={c.id} type="button" onClick={() => toggleClassId(c.id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${userForm.classIds.includes(c.id) ? 'bg-white text-primary border-white' : 'bg-transparent text-white border-white/50 hover:border-white'}`}>
+                  {c.level} {c.section}
+                </button>
               ))}
-              {classes.length === 0 && <p className="text-white/60 text-xs">Aucune classe disponible</p>}
+              {classes.length === 0 && (
+                <p className="text-white/60 text-xs">{t('admin.users.noClass')}</p>
+              )}
             </div>
           </div>
         </>
@@ -327,15 +334,15 @@ export default function AdminDashboard() {
 
   if (view === 'detail' && selected) {
     return (
-      <main className="min-h-screen bg-gray-50 font-sans">
+      <main className="flex-1 bg-gray-50 font-sans">
         <h1 className="sr-only">{t('admin.title.oneReport')}</h1>
-        <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
+        <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={(r) => setSelected(r as Report | null)} adminFetchUsers={fetchUsers} />
         <ReportDetail
           selected={selected}
           filtered={filtered}
           notes={notes}
           isAdmin={isAdmin}
-          saving={saving}
+          _saving={saving}
           resolving={resolving}
           checkedConvocIds={checkedConvocIds}
           convocDetails={convocDetails}
@@ -352,12 +359,21 @@ export default function AdminDashboard() {
           onAddNote={handleAddNote}
           onResolveSuspect={handleResolveSuspect}
           onResolveVictim={async (victimId, userId) => {
-            await resolveVictim(victimId, userId);
-            const updated = await getAllReports();
-            setReports(updated);
-            setSelected(updated.find((r) => r.id === selected?.id) ?? null);
-            setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
-          }}
+  if (userId && selected) {
+    const alreadyLinked = selected.victims?.some(
+      v => v.id !== victimId && v.resolvedUser?.id === userId
+    );
+    if (alreadyLinked) {
+      setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+      return;
+    }
+  }
+  await resolveVictim(victimId, userId);
+  const updated = await getAllReports();
+  setReports(updated);
+  setSelected(updated.find((r: Report) => r.id === selected?.id) ?? null);
+  setActiveSuspect(null); setSuspectSearch(''); setSuspectResults([]);
+}}
           onSetActiveSuspect={setActiveSuspect}
           onSuspectSearch={handleSuspectSearch}
           onSetNewNote={setNewNote}
@@ -371,6 +387,7 @@ export default function AdminDashboard() {
           onSetSuspectSearch={setSuspectSearch}
           onSetSuspectResults={setSuspectResults}
           onAddNoteRaw={addNote}
+          onSendConvocations={async () => {}}
           onLoadNotes={loadNotes}
           onNavigateToUser={async (userId) => {
             const currentReportId = selected?.id ?? '';
@@ -379,10 +396,7 @@ export default function AdminDashboard() {
             setSelected(null);
             setSelectedUser(null);
             const u = await getUserById(userId);
-            if (u) {
-              setSelectedUser(u);
-              setUserForm(buildUserForm(u));
-            }
+            if (u) { setSelectedUser(u); setUserForm(buildUserForm(u)); }
             setViewSection('users');
             navigate(`/dashboard?section=users&userId=${userId}&from=report&reportId=${currentReportId}`, { replace: true });
           }}
@@ -390,10 +404,20 @@ export default function AdminDashboard() {
         {confirmAction && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-              <p className="text-sm text-gray-700 mb-4">Confirmer le changement de statut vers <strong>{confirmAction.label}</strong> ?</p>
+              <p className="text-sm text-gray-700 mb-4">
+                {t('admin.users.confirmStatus', { label: confirmAction.label })}
+              </p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => setConfirmAction(null)} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">Annuler</button>
-                <button onClick={async () => { await handleUpdateStatus(selected!.id, confirmAction.status); setConfirmAction(null); }} disabled={saving} className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">{saving ? 'En cours...' : 'Confirmer'}</button>
+                <button onClick={() => setConfirmAction(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 text-sm">
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={async () => { await handleUpdateStatus(selected!.id, confirmAction.status); setConfirmAction(null); }}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 text-sm disabled:opacity-50">
+                  {saving ? t('common.inProgress') : t('common.confirm')}
+                </button>
               </div>
             </div>
           </div>
@@ -403,9 +427,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 font-sans">
+    <div className="bg-gray-50 font-sans">
       <h1 className="sr-only">{t('admin.title.allReports')}</h1>
-      <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={setSelected} adminFetchUsers={fetchUsers} />
+      <RoleHeader user={user} logoutUser={logoutUser} adminViewSection={viewSection} adminSetViewSection={setViewSection} adminSetSelected={(r) => setSelected(r as Report | null)} adminFetchUsers={fetchUsers} />
 
       <div className="max-w-5xl mx-auto mt-8 px-5 pb-10">
 
@@ -422,28 +446,47 @@ export default function AdminDashboard() {
               <Input type="search" value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} placeholder={t('admin.search.placeholder')} />
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-              <Select value={filterStatus} onValueChange={v => { setFilterStatus(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.status')} className="w-auto">
-                  <Badge variant={filterStatus as BadgeVariant} />
+              <Select value={filterStatus} onValueChange={v => { if (v !== null) setFilterStatus(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.status')}>
+                  <SelectValue>
+                    {filterStatus === 'all' ? t('admin.filters.allStatuses') : t(`badge.${filterStatus}`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {(['all', 'new', 'in_progress', 'pending', 'resolved', 'false_report'] as (BadgeVariant | 'all')[]).map(status => (
-                    <SelectItem key={status} value={status}><Badge variant={status as BadgeVariant} /></SelectItem>
+                  <SelectItem value="all">{t('admin.filters.allStatuses')}</SelectItem>
+                  <SelectItem value="new">{t('badge.new')}</SelectItem>
+                  <SelectItem value="in_progress">{t('badge.in_progress')}</SelectItem>
+                  <SelectItem value="pending">{t('badge.pending')}</SelectItem>
+                  <SelectItem value="resolved">{t('badge.resolved')}</SelectItem>
+                  <SelectItem value="false_report">{t('badge.false_report')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filterClass} onValueChange={v => { if (v !== null) setFilterClass(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.allClasses')}>
+                  <SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>
+                  {classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterStudent} onValueChange={v => { if (v !== null) setFilterStudent(v); setCurrentPage(1); }}>
+                <SelectTrigger aria-label={t('admin.filters.allReporters')}>
+                  <SelectValue>
+                    {filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>
+                  {[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => (
+                    <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={filterClass} onValueChange={v => { setFilterClass(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allClasses')}><SelectValue>{filterClass === 'all' ? t('admin.filters.allClasses') : filterClass}</SelectValue></SelectTrigger>
-                <SelectContent><SelectItem value="all">{t('admin.filters.allClasses')}</SelectItem>{classOptions.map(cls => <SelectItem key={cls} value={cls}>{cls}</SelectItem>)}</SelectContent>
-              </Select>
-              <Select value={filterStudent} onValueChange={v => { setFilterStudent(v); setCurrentPage(1); }}>
-                <SelectTrigger aria-label={t('admin.filters.allReporters')}><SelectValue>{filterStudent === 'all' ? t('admin.filters.allReporters') : (() => { const s = reports.find(r => r.student?.id === filterStudent)?.student; return s ? `${s.firstName} ${s.lastName}` : t('admin.filters.allReporters'); })()}</SelectValue></SelectTrigger>
-                <SelectContent><SelectItem value="all">{t('admin.filters.allReporters')}</SelectItem>{[...new Map(reports.filter(r => r.student && !r.isAnonymous).map(r => [r.student!.id, r.student!])).values()].map(s => <SelectItem key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.role})</SelectItem>)}</SelectContent>
-              </Select>
-              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder') || 'Nom de la victime...'} className="max-w-[180px]" />
+              <Input type="search" value={filterVictim} onChange={e => { setFilterVictim(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.victimPlaceholder')} className="max-w-[180px]" />
               <Input type="search" value={filterSuspect} onChange={e => { setFilterSuspect(e.target.value); setCurrentPage(1); }} placeholder={t('admin.filters.suspectPlaceholder')} className="max-w-[180px]" />
               <div className="w-full flex items-center justify-center gap-2 mt-2">
-                <span className="text-gray-600 text-sm">Dates :</span>
+                <span className="text-gray-600 text-sm">{t('admin.filters.dates')}</span>
                 <Input key={`from-${resetKey}`} type="date" value={filterDateFrom} onChange={e => { setFilterDateFrom(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
                 <span className="text-gray-400">→</span>
                 <Input key={`to-${resetKey}`} type="date" value={filterDateTo} onChange={e => { setFilterDateTo(e.target.value); setCurrentPage(1); }} className="max-w-[150px]" />
@@ -454,6 +497,8 @@ export default function AdminDashboard() {
             </div>
             {loading ? (
               <p className="text-center py-16 text-gray-400">{t('admin.loading')}</p>
+            ) : reportsFailedOffline && reports.length === 0 ? (
+              <OfflineNotice />
             ) : filtered.length === 0 ? (
               <p className="text-center py-16 text-gray-400">{t('admin.noReports')}</p>
             ) : (
@@ -483,7 +528,26 @@ export default function AdminDashboard() {
                 ))}
               </ul>
             )}
-            <Pagination currentPage={currentPage} totalPages={totalPages} totalItems={filtered.length} onPageChange={setCurrentPage} />
+
+            {totalPages > 1 && (
+              <PaginationShadcn className="mt-4">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious text={t('common.previous')} onClick={() => { if (currentPage > 1) setCurrentPage(currentPage - 1); }}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                    <PaginationItem key={p}>
+                      <PaginationLink isActive={p === currentPage} onClick={() => setCurrentPage(p)} className="cursor-pointer">{p}</PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext text={t('common.next')} onClick={() => { if (currentPage < totalPages) setCurrentPage(currentPage + 1); }}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+                  </PaginationItem>
+                </PaginationContent>
+              </PaginationShadcn>
+            )}
           </>
         )}
 
@@ -494,16 +558,16 @@ export default function AdminDashboard() {
             avatarTimestamps={avatarTimestamps}
             classes={classes}
             userForm={userForm}
-            errors={errors}
+            _errors={errors}
             isFormValid={!!isFormValid}
             originReportId={originReportId}
             onBack={() => {
               setSelectedUser(null);
               if (originReportId) {
                 const report = reports.find(r => r.id === originReportId);
-                const goToReport = (r: any) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
+                const goToReport = (r: Report) => { setSelected(r); setView('detail'); loadNotes(r.id); setOriginReportId(null); };
                 if (report) { goToReport(report); }
-                else { getAllReports().then(all => { const r = all.find((r: any) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
+                else { getAllReports().then(all => { const r = all.find((r: Report) => r.id === originReportId); if (r) { setReports(all); goToReport(r); } }); }
                 setViewSection('reports');
               } else {
                 navigate('/dashboard?section=users', { replace: true });
@@ -516,11 +580,19 @@ export default function AdminDashboard() {
             onSaveUser={async () => {
               await updateUser(selectedUser.id, { firstName: userForm.firstName, lastName: userForm.lastName, email: userForm.email, role: userForm.role, ...(userForm.password && { password: userForm.password }), ...(userForm.role === 'student' && { classId: userForm.classId, dateOfBirth: userForm.dateOfBirth || undefined }) });
               if (userForm.role === 'teacher') { try { const e = await getStaffProfile(selectedUser.id); await updateStaffProfile(e.id, { subject: userForm.subject, classIds: userForm.classIds }); } catch { await createStaffProfile({ userId: selectedUser.id, profession: 'teacher', subject: userForm.subject, classIds: userForm.classIds }); } }
-              const u = await getUserById(selectedUser.id);
-              if (u) {
-                setSelectedUser(u);
-                setUserForm(buildUserForm(u));
+              if (userForm.role === 'student' && userForm.parents.length > 0) {
+                const freshU = await getUserById(selectedUser.id);
+                const studentProfileId = freshU?.studentProfile?.id;
+                if (studentProfileId) {
+                  for (const parent of userForm.parents) {
+                    if (parent.firstName && parent.lastName && parent.email) {
+                      await createParent({ ...parent, studentIds: [studentProfileId] });
+                    }
+                  }
+                }
               }
+              const u = await getUserById(selectedUser.id);
+              if (u) { setSelectedUser(null); setTimeout(() => { setSelectedUser(u); setUserForm(buildUserForm(u)); }, 50); }
               await fetchUsers();
             }}
             renderUserForm={renderUserForm}
@@ -536,6 +608,7 @@ export default function AdminDashboard() {
             usersSort={usersSort}
             usersRoleFilter={usersRoleFilter}
             loadingUsers={loadingUsers}
+            usersFailedOffline={usersFailedOffline}
             avatarTimestamps={avatarTimestamps}
             usersTotalPages={usersTotalPages}
             showUserForm={showUserForm}
@@ -551,6 +624,7 @@ export default function AdminDashboard() {
               setShowUserForm(v);
             }}
             onSaveUser={handleSaveUser}
+            onValidateAll={validateAll}
             renderUserForm={renderUserForm}
           />
         )}
@@ -562,15 +636,25 @@ export default function AdminDashboard() {
         {deleteTarget && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl p-6 shadow-xl w-full max-w-sm">
-              <p className="text-sm text-gray-600 mb-4">{deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}</p>
+              <p className="text-sm text-gray-600 mb-4">
+                {deleteError ? deleteError : isBlocked ? t('admin.users.deleteBlocked') : t('admin.users.deleteConfirm')}
+              </p>
               <div className="flex justify-end gap-3">
-                <button onClick={() => { setDeleteTarget(null); setIsBlocked(false); setDeleteError(''); }} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">{isBlocked ? t('common.close') : t('common.cancel')}</button>
-                {!isBlocked && <button onClick={confirmDelete} disabled={isDeleting} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">{isDeleting ? t('common.loading') : t('common.delete')}</button>}
+                <button onClick={() => { setDeleteTarget(null); }}
+                  className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300">
+                  {isBlocked ? t('common.close') : t('common.cancel')}
+                </button>
+                {!isBlocked && (
+                  <button onClick={confirmDelete} disabled={isDeleting}
+                    className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+                    {isDeleting ? t('common.loading') : t('common.delete')}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,19 +1,51 @@
 import axios from 'axios';
-import type { SuspectInput, VictimInput } from '../types';
+import type { SuspectInput, VictimInput } from '@/types';
+import { API_BASE } from '@/config';
 
-const api = axios.create({ baseURL: 'http://localhost:5000' });
+/* Erreur levée quand une requête est tentée hors ligne — rejetée avant
+   d'atteindre le réseau pour éviter les erreurs GET dans la console */
+export class OfflineError extends Error {
+  readonly isOffline = true;
+  constructor() {
+    super('OFFLINE');
+    this.name = 'OfflineError';
+  }
+}
+
+/* Vrai si l'erreur est due à l'absence de connexion (hors ligne ou serveur injoignable) */
+export function isOfflineError(err: unknown): boolean {
+  if (err instanceof OfflineError) return true;
+  return axios.isAxiosError(err) && err.code === 'ERR_NETWORK';
+}
+
+const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
+  // Hors ligne : échec immédiat, sans tenter la requête
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return Promise.reject(new OfflineError());
+  }
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
+      localStorage.removeItem('token');
+      window.location.href = '/';
+    }
+    if (error.response?.status === 429) {
+      // L'erreur sera catchée dans le composant Login
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const login = async (email: string, password: string) =>
   (await api.post('/auth/login', { email, password })).data;
-
-export const register = async (email: string, password: string, firstName: string, lastName: string) =>
-  (await api.post('/auth/register', { email, password, firstName, lastName })).data;
 
 export const getAllReports = async () => (await api.get('/reports')).data;
 
@@ -59,8 +91,8 @@ export const updateUser = async (id: string, dto: Record<string, string>) =>
 export const deleteUser = async (id: string) => {
   try {
     return (await api.delete(`/users/${id}`)).data;
-  } catch (err: any) {
-    const message = err.response?.data?.message || 'DELETE_FAILED';
+  } catch (err: unknown) {
+    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'DELETE_FAILED';
     throw new Error(message);
   }
 };
@@ -95,17 +127,17 @@ export const resolveSuspect = async (suspectId: string, resolvedUserId: string |
 export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
   (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
 
-export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentProfileId: string }) =>
+export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentIds: string[] }) =>
   (await api.post('/parents', dto)).data;
 export const updateParent = async (id: string, dto: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string }) =>
   (await api.patch(`/parents/${id}`, dto)).data;
 export const deleteParent = async (id: string) =>
   (await api.delete(`/parents/${id}`)).data;
 
-export const createStaffProfile = async (dto: Record<string, any>) =>
+export const createStaffProfile = async (dto: Record<string, string | string[]>) =>
   (await api.post('/staff-profiles', dto)).data;
 
-export const updateStaffProfile = async (id: string, dto: Record<string, any>) =>
+export const updateStaffProfile = async (id: string, dto: Record<string, string | string[]>) =>
   (await api.patch(`/staff-profiles/${id}`, dto)).data;
 
 export default api;

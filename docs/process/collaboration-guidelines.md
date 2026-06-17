@@ -1,6 +1,6 @@
 # Team Collaboration Guidelines
 
-This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git_workflow.md`](./git_workflow.md). For working on multiple branches in parallel, see [`git-worktrees.md`](./git-worktrees.md).
+This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git_workflow.md`](./git_workflow.md). For working on multiple branches in parallel, see 
 
 ---
 
@@ -88,7 +88,6 @@ Reviews are done using GitHub's inline review feature: comments are left on spec
 8. Merge your own PR once approved; delete the branch.
 
 Full Git command reference: [`git_workflow.md`](./git_workflow.md).
-Parallel branch work: [`git-worktrees.md`](./git-worktrees.md).
 
 ---
 

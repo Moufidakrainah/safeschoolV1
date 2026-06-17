@@ -1,17 +1,19 @@
+
 /* Definit report, user, note .., si on change lAPI on met a jour ici en premier */
-export type UserRole = 'student' | 'admin' | 'director' | 'teacher';
+export type UserRole = 'student' | 'admin' | 'teacher';
 export type ReportGrade  = 'critical' | 'high' | 'medium' | 'low';
-export type ReportStatus = 'pending' | 'in_progress' | 'closed' | 'rejected';
+export type ReportStatus = 'new' | 'pending' | 'in_progress' | 'resolved' | 'false_report';
 export type ReportType   = 'physique' | 'verbal' | 'cyber' | 'exclusion' | 'sexuel';
 export type Reporter     = 'victime' | 'temoin';
+export type BadgeVariant = 'all' | 'new' | 'new_red' | 'in_progress' | 'pending' | 'resolved' | 'false_report';
+export type LanguageCode = 'fr' | 'en' | 'de';
 
 export interface SchoolClass {
   id: string;
-  level: string;    
-  section: string;  
+  level: string;
+  section: string;
 }
 
-/* Utilisateur connecte (retourne par /auth/login) */
 export interface AuthUser {
   id: string;
   email: string;
@@ -31,7 +33,6 @@ export interface AuthUser {
   } | null;
 }
 
-/* Utilisateur dans la liste admin */
 export interface AdminUser {
   id: string;
   firstName: string;
@@ -53,7 +54,6 @@ export interface AdminUser {
   } | null;
 }
 
-/*Resultat de recherche utilisateur (autocomplete) */
 export interface UserSearchResult {
   id: string;
   firstName: string;
@@ -61,7 +61,6 @@ export interface UserSearchResult {
   role: UserRole;
 }
 
-/*Suspect dans un signalement */
 export interface ReportSuspect {
   id: string;
   freeText: string;
@@ -70,10 +69,13 @@ export interface ReportSuspect {
     firstName: string;
     lastName: string;
     email?: string;
+    avatar?: string | null;
+    studentProfile?: {
+      schoolClass?: { id: string; level: string; section: string } | null;
+    } | null;
   } | null;
 }
 
-/* Victime dans un signalement */
 export interface ReportVictim {
   id: string;
   freeText: string;
@@ -81,13 +83,13 @@ export interface ReportVictim {
     id: string;
     firstName: string;
     lastName: string;
+    avatar?: string | null;
     studentProfile?: {
       schoolClass?: { id: string; level: string; section: string } | null;
     } | null;
   } | null;
 }
 
-/* Payload envoye a l API lors de la creation */
 export interface SuspectInput {
   freeText: string;
 }
@@ -95,51 +97,52 @@ export interface VictimInput {
   freeText: string;
 }
 
-/* Note administrative */
 export interface Note {
   id: string;
-  type: 'note' | 'convocation';
+  type: 'note' | 'convocation' | 'status_change';
   content: string;
   createdAt: string;
+  message?: string;
+  isRead?: boolean;
   author?: { firstName: string; lastName: string };
+  report?: { id: string; caseNumber: string };
 }
 
-/* Profil staff/enseignant */
 export interface StaffProfile {
   id: string;
   profession: string;
   subject: string | null;
 }
 
-/* Parent d un eleve */
 export interface Parent {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string | null;
-  address: string | null;
+  phone?: string | null;
+  address?: string | null;
 }
 
-/* Signalement */
 export interface Report {
   id: string;
   caseNumber: string;
   type: ReportType;
   reporter: Reporter;
   description: string;
-  status: ReportStatus
+  status: ReportStatus;
   grade: ReportGrade;
   isAnonymous: boolean;
   createdAt: string;
   aiScore?: number;
   aiReason?: string;
   adminNote?: string;
+  frequency?: string;
   student?: {
     id: string;
     firstName: string;
     lastName: string;
     role: UserRole;
+    avatar?: string | null;
     studentProfile?: {
       schoolClass: SchoolClass | null;
     } | null;

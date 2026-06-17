@@ -1,8 +1,4 @@
-# Architecture — SafeSchool
-
-> School harassment report management platform
-
----
+# Architecture
 
 ## System Overview
 
@@ -26,27 +22,26 @@ flowchart LR
     DB[(PostgreSQL)]
   end
 
-  subgraph Observability
+  subgraph Monitoring
     LS[Logstash]
     ES[Elasticsearch]
     Kibana[Kibana]
   end
 
-  Browser -->|HTTP / UI| ReactApp
+  Browser -->|HTTPS / UI| ReactApp
   ReactApp -->|REST API calls| API
   ReactApp <-->|Realtime quiz events| WS
   API --> Auth
   API --> AI
   API --> DB
   WS --> DB
+  WS --> Auth
   API --> Logger
   WS --> Logger
   Logger --> LS
   LS --> ES
   Kibana --> ES
 ```
-
-### Quick read
 
 - The browser loads the React frontend and interacts with the application through the UI.
 - Standard application actions go through the NestJS HTTP API.
@@ -56,11 +51,11 @@ flowchart LR
 - Report scoring calls the AI service when the feature is enabled.
 - Logs are sent through Logstash to Elasticsearch and inspected in Kibana.
 
----
 
-## Current vs Target Network Architecture
 
-### Current state (dev, HTTP)
+## Network Architecture — Development vs Production
+
+### Development state (HTTP, direct ports)
 
 Each service exposes its port directly to the host. The browser talks to several different servers:
 
@@ -71,50 +66,110 @@ Browser
   └── port 5601 → Kibana container    (logs)
 ```
 
-Everything runs over plain HTTP. JWT tokens, passwords, and student data are readable on the network.
+In development, everything runs over plain HTTP on localhost — convenient for local work, but with no encryption. Production mode puts the whole stack behind nginx with HTTPS (see below).
 
 | Service | Internal port | Host port |
 |---|---|---|
 | Frontend (Vite) | 5173 | 5173 |
 | Backend (NestJS) | 3000 | 5000 |
 | PostgreSQL | 5432 | 5433 |
-| Elasticsearch | 9200 | 9201 |
-| Logstash (TCP) | 5044 | 5044 |
+| Elasticsearch | 9200 | n/a (internal only) |
+| Logstash (TCP) | 5044 | n/a (internal only) |
 | Kibana | 5601 | 5601 |
 
-### Target state (prod, HTTPS with nginx reverse proxy)
+### Production state (HTTPS with nginx reverse proxy)
 
-A single entry point: nginx. The browser only talks to nginx. nginx then forwards requests internally over the private Docker network.
+In production, the browser only ever talks to nginx, over HTTPS. nginx serves the React build directly and forwards API and WebSocket traffic to the backend over the private Docker network.
 
 ```
 Browser
-  └── port 443 (HTTPS) → nginx (reverse proxy)
-                              ├── /          → frontend (React)
-                              ├── /api/      → backend (NestJS)
-                              └── /ws/       → backend WebSocket (quiz)
+  └── port 8443 (HTTPS) → nginx (reverse proxy + static file server)
+            ├── /auth, /users, /reports, /classes, ...  → backend (NestJS REST API)
+            ├── /socket.io/                             → backend WebSocket (quiz)
+            └── /  (everything else)                    → static React build, served by nginx
 
 Docker internal network (HTTP, not exposed):
-  nginx → frontend:5173
-  nginx → backend:3000
+  nginx → backend:3000   (REST API + WebSocket)
+  nginx serves the compiled frontend itself — no frontend container in production
 ```
 
-**Why nginx and not direct service exposure?**
+**nginx plays three roles in production**
 
-A reverse proxy sits in front of all other services:
 - **TLS termination**: it handles the HTTPS certificate. Internal services stay on plain HTTP (the Docker network is private — this is acceptable).
 - **Single entry point**: one exposed port instead of several.
 - **WebSocket headers**: nginx forwards the `Upgrade` and `Connection` headers required for WebSocket connections (real-time quiz).
 
-**Subject requirement** (section III.3):
-> *"Any connection to the backend, from a browser, from a script, from an external API, etc., must use HTTPS."*
+## Startup Sequence & Orchestration
 
-This is a rejection condition, not an optional module.
+`make all` is the default target and starts the **production** stack. It:
+- generates the TLS certificates (`make certs`)
+- brings up all services through Docker Compose (production overlay)
+- seeds the database if it is empty (`seed-if-empty`)
 
----
+(`make dev` starts the lighter development stack instead — Vite + backend in watch mode, no nginx, no TLS.)
 
-## End-to-End Walkthrough
+Startup order is enforced through `depends_on` conditions, each backed by a
+healthcheck: a service starts only once its dependencies report healthy.
 
-> **A student submits a harassment report**
+```
+make all
+  ├── make certs                     generate the self-signed TLS cert if absent
+  │
+  ├── docker compose up (prod)
+  │     1. database  +  elasticsearch        start in parallel
+  │           │                  │
+  │           │ (healthy)        │ (healthy)
+  │           │                  ├── elasticsearch-setup-users    create system users, ILM, index template (runs once)
+  │           │                  ├── logstash                     listen for logs on port 5044
+  │           │                  └── kibana                       web UI
+  │           │                            │ (healthy)
+  │           │                            └── elasticsearch-setup-kibana    import data view + dashboard (runs once)
+  │           │
+  │           └── backend         starts when database is healthy AND logstash is started
+  │                 │ (healthy)
+  │                 └── nginx      reverse proxy + serves the static frontend build (prod only)
+  │
+  └── seed-if-empty                inject demo data only if the users table is empty
+```
+
+### Who waits for whom
+
+| Service | Waits for | Condition |
+|---|---|---|
+| backend | database | `service_healthy` |
+| backend | logstash | *`service_started`* |
+| logstash | elasticsearch | `service_healthy` |
+| kibana | elasticsearch | `service_healthy` |
+| elasticsearch-setup-users | elasticsearch | `service_healthy` |
+| elasticsearch-setup-kibana | kibana | `service_healthy` |
+| nginx (prod) | backend | `service_healthy` |
+
+### Logging never blocks the application
+
+The backend waits for logstash with `service_started`, not `service_healthy`.
+Logging must never block startup: if the backend waited for logstash to be fully
+healthy, a slow or broken log pipeline could prevent the whole application from
+coming up.
+
+### ELK warm-up on the first boot
+
+logstash and kibana need two accounts (`kibana_system` and `logstash_internal`)
+created by `elasticsearch-setup-users` when the stack starts. We chose not to
+make logstash and kibana wait for that setup to finish: if the setup ever
+failed, the whole ELK stack would refuse to start. Instead they start right
+away, and `restart: on-failure` relaunches them until the accounts exist. The
+setup script also retries each call to Elasticsearch until it works.
+
+On the first `make all`, Kibana may show an error page
+for a couple of minutes until the setup is done, then it recovers on its own.
+Later starts reuse the accounts already saved in the `esdata` and `kibanadata`
+volumes, so there is no delay.
+
+This was a deliberate choice: a short startup delay that fixes itself, rather
+than a stack that can get stuck if the setup fails.
+
+
+## End-to-End Walkthrough — a student submits a harassment report
 
 ### Step 1 — The student opens the browser
 
@@ -136,21 +191,25 @@ BROWSER
         └── Axios sends:
               POST http://localhost:5000/auth/login
               Body: { email: "student@safeschool.com", password: "..." }
-                          ↕ HTTP
+
+  ────────────────────────  HTTP  ────────────────────────
+
 SERVER
   └── NestJS receives the request on /auth/login
         ├── Passport allows it through (public route, no guard)
         ├── AuthService.login() runs
         │     ├── TypeORM queries: SELECT * FROM users WHERE email = '...'
-        │     │         ↕ SQL
+        │     │   ────  SQL  ────
         │     │   PostgreSQL returns the user record
         │     ├── bcrypt compares the submitted password against the stored hash
-        │     │   → match OK ✅
+        │     │   → match OK
         │     └── JWT signs a token:
         │           "sub:2, email:student@safeschool.com, role:student, exp:24h"
         └── NestJS responds:
               { access_token: "eyJhbG...", user: { id:2, role:"student" } }
-                          ↕ HTTP
+
+  ────────────────────────  HTTP  ────────────────────────
+
 BROWSER
   └── Axios receives the response
         └── React (AuthContext) stores the token in localStorage
@@ -167,8 +226,6 @@ BROWSER
         └── React displays the report submission form
 ```
 
-The student fills in the title, description, and selects whether to report anonymously.
-
 ---
 
 ### Step 4 — Report submission
@@ -180,7 +237,9 @@ BROWSER
               POST http://localhost:5000/reports
               Header: Authorization: Bearer eyJhbG...  ← token added automatically
               Body: { title: "...", description: "...", isAnonymous: false }
-                          ↕ HTTP
+
+  ────────────────────────  HTTP  ────────────────────────
+
 SERVER
   └── NestJS receives the request on POST /reports
         ├── Passport intercepts
@@ -188,8 +247,8 @@ SERVER
         │     ├── JWT verifies the signature
         │     ├── Valid token → extracts { sub:2, role:"student" }
         │     └── TypeORM loads the user: SELECT * FROM users WHERE id = 2
-        │               ↕ SQL
-        │         PostgreSQL returns the student record ✅
+        │         ────  SQL  ────
+        │         PostgreSQL returns the student record
         │
         ├── ReportsController receives the request
         │     └── req.user = the student (injected by Passport)
@@ -201,12 +260,14 @@ SERVER
               ├── TypeORM creates the report:
               │     INSERT INTO reports (title, grade, status, studentId...)
               │     VALUES ("...", "high", "pending", 2)
-              │               ↕ SQL
-              │     PostgreSQL saves → returns id=5 ✅
+              │     ────  SQL  ────
+              │     PostgreSQL saves → returns id=5
               │
               └── NestJS responds:
                     { id:5, grade:"high", status:"pending", ... }
-                          ↕ HTTP
+
+  ────────────────────────  HTTP  ────────────────────────
+
 BROWSER
   └── Axios receives the response
         └── React updates the display:
@@ -215,26 +276,13 @@ BROWSER
 
 ---
 
-### Final result in the browser
+## Where to go next
 
-```
-✅ Report submitted successfully
-AI-assigned grade: High
-Status: Pending review
-```
+For the details of each layer:
 
----
-
-### What is now in the database
-
-**Table `users`**
-
-| id | firstName | lastName | email | role |
-|----|-----------|----------|-------|------|
-| 2 | … | … | student@safeschool.com | student |
-
-**Table `reports`**
-
-| id | title | grade | status | studentId | isAnonymous |
-|----|-------|-------|--------|-----------|-------------|
-| 5 | … | high | pending | 2 | false |
+- **[backend.md](./backend.md)** — NestJS module structure, request lifecycle, TypeORM
+- **[security.md](./security.md)** — authentication, password hashing, input validation, HTTPS
+- **[websocket.md](./websocket.md)** — real-time quiz: Socket.IO gateway, rooms, reconnection
+- **[elk.md](./elk.md)** — log pipeline, Kibana dashboard, retention policy
+- **[pwa.md](./pwa.md)** — installable app and offline support
+- **[api.md](./api.md)** — full REST endpoint reference

@@ -9,7 +9,7 @@
 
 ```
 frontend/src/components/
-├── ui/                    ← shadcn/ui primitives (generated, Radix-based)
+├── ui/                    ← UI primitives, shadcn/ui pattern (Base UI)
 │   ├── button.tsx
 │   ├── badge.tsx
 │   ├── card.tsx
@@ -26,7 +26,6 @@ frontend/src/components/
 │   ├── alert-dialog.tsx
 │   └── pagination.tsx
 │
-├── Autocomplete.tsx       ← shared application components
 ├── ConvocationSelector.tsx
 ├── NoteBlock.tsx
 ├── Pagination.tsx
@@ -57,18 +56,18 @@ frontend/src/components/
 
 ### `components/ui/` — shadcn/ui primitives
 
-- Copied into the project via `npx shadcn@latest add <component>` — **owned code**, not an npm dependency.
-- Built on **Radix UI**: keyboard navigation, focus management, and ARIA compliance out of the box.
+- Copied into the project as **owned code**, not an npm dependency.
+- Built on **Base UI** headless primitives: keyboard navigation, focus management, and ARIA compliance out of the box.
 - Styled through Tailwind + CSS variables (`--primary`, `--border`, etc. defined in `index.css`).
 - Do not modify these files directly — adjust `index.css` to change global appearance.
 
 ### Application components
 
-Generic utilities (`StatCard`, `NoteBlock`, `StepBar`, `Autocomplete`, `Pagination`, `ConvocationSelector`) are shared across features and sit at the top level. Feature-specific components live under `admin/`, `reporter/`, `student/`, and `layout/`.
+Generic utilities (`StatCard`, `NoteBlock`, `StepBar`, `Pagination`, `ConvocationSelector`) are shared across features and sit at the top level. Feature-specific components live under `admin/`, `reporter/`, `student/`, and `layout/`.
 
 The boundary is simple: if a component could exist in another product without knowing about reports, roles, or the quiz, it belongs in `components/ui/`. If it encodes SafeSchool-specific behavior or vocabulary, it belongs in the application layer.
 
-For the full component inventory, see [`technical/components.md`](../technical/components.md).
+For the full component inventory, see [`design/components.md`](./components.md).
 
 ---
 

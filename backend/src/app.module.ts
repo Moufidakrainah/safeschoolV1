@@ -1,6 +1,8 @@
 import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { ReportsModule } from "./reports/reports.module";
@@ -16,12 +18,16 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,  // fenêtre de 60 secondes
+      limit: 20,   // max 20 requêtes par fenêtre
+    }]),
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: process.env.DB_HOST || "database",
+      host: process.env.DB_HOST,
       port: parseInt(process.env.DB_PORT ?? "5432", 10),
-      username: process.env.DB_USER || "postgres",
-      password: process.env.DB_PASSWORD || "changeme",
+      username: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME || "safeschool",
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,
@@ -36,6 +42,9 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
     StaffProfilesModule,
     ParentsModule,
     QuizRealtimeModule,
+  ],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule implements NestModule {

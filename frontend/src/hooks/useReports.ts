@@ -51,10 +51,6 @@ export interface UseReportsReturn {
   setFilterClass:   React.Dispatch<React.SetStateAction<string>>;
   filterStudent:    string;
   setFilterStudent: React.Dispatch<React.SetStateAction<string>>;
-  filterSuspect:    string;
-  setFilterSuspect: React.Dispatch<React.SetStateAction<string>>;
-  filterVictim:    string;
-  setFilterVictim: React.Dispatch<React.SetStateAction<string>>;
   filterDateFrom:   string;
   setFilterDateFrom:React.Dispatch<React.SetStateAction<string>>;
   filterDateTo:     string;
@@ -121,7 +117,6 @@ export function useReports(): UseReportsReturn {
       const data = await getAllReports();
       setReports(data);
     } catch {
-      console.error('Erreur chargement signalements');
     } finally {
       setLoading(false);
     }
@@ -139,7 +134,6 @@ export function useReports(): UseReportsReturn {
       setView('list');
       setSelected(null);
     } catch {
-      console.error('Erreur mise à jour statut');
     } finally {
       setSaving(false);
     }
@@ -151,7 +145,6 @@ export function useReports(): UseReportsReturn {
       const data = await getNotes(reportId);
       setNotes(data);
     } catch {
-      console.error('Erreur chargement notes');
     }
   }, []);
 
@@ -176,7 +169,6 @@ export function useReports(): UseReportsReturn {
       if (type === 'convocation') { setConvocationMessage(''); setConvocationDate(''); }
       else setNewNote('');
     } catch {
-      console.error('Erreur ajout note');
     }
   }, [selected, newNote, convocationMessage, convocationDate, loadNotes]);
 
@@ -209,16 +201,16 @@ export function useReports(): UseReportsReturn {
       if (filterSuspect) {
         const q = filterSuspect.toLowerCase();
         const match = r.suspects?.some(s => {
-          const name = `${s.user?.firstName ?? ''} ${s.user?.lastName ?? ''}`.toLowerCase();
+          const name = `${s.resolvedUser?.firstName ?? ''} ${s.resolvedUser?.lastName ?? ''}`.toLowerCase();
           return name.includes(q) || (s.freeText?.toLowerCase() ?? '').includes(q);
         });
         if (!match) return false;
       }
 	   if (filterVictim) {
         const q = filterVictim.toLowerCase();
-        const match = r.reports?.some(s => {
-          const name = `${s.reports?.description ?? ''} ${s.user?.lastName ?? ''}`.toLowerCase();
-          return name.includes(q) || (s.freeText?.toLowerCase() ?? '').includes(q);
+        const match = r.victims?.some(v => {
+          const name = `${v.resolvedUser?.firstName ?? ''} ${v.resolvedUser?.lastName ?? ''}`.toLowerCase();
+          return name.includes(q) || (v.freeText?.toLowerCase() ?? '').includes(q);
         });
         if (!match) return false;
       }
@@ -267,7 +259,6 @@ export function useReports(): UseReportsReturn {
     filterStatus, setFilterStatus,
     filterClass, setFilterClass,
     filterStudent, setFilterStudent,
-    filterSuspect, setFilterSuspect,
     filterDateFrom, setFilterDateFrom,
     filterDateTo, setFilterDateTo,
     currentPage, setCurrentPage,

@@ -7,18 +7,20 @@
     "errorRequired": "Veuillez remplir tous les champs.",
     "errorEmailFormat": "Format d'email invalide.",
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
-    "error": "Identifiants incorrects.", 
-	"keepEmpty": "(laisser vide pour ne pas changer)"
+    "error": "Identifiant ou mot de passe incorrect.",
+    "keepEmpty": "(laisser vide pour ne pas changer)",
+    "tooManyRequests": "Trop de tentatives. Réessayez dans 1 minute."
   },
   "nav": {
     "logout": "Se déconnecter"
-	},
+  },
   "notifications": {
     "notifs": "Notifications",
-    "loading": "Chargement", 
-	"no": "Aucune notification", 
-	"report": "Signalement", 
-	"read": "Lu"
+    "loading": "Chargement",
+    "no": "Aucune notification",
+    "report": "Signalement",
+    "read": "Lu",
+    "statusUpdate": "Statut de votre dossier {{caseNumber}} mis à jour : {{status}}"
   },
   "footer": {
     "privacy": "Politique de confidentialité",
@@ -47,7 +49,8 @@
       "ariaLabel": "Navigation principale",
       "reports": "Signalements",
       "users": "Utilisateurs",
-      "stats": "Statistiques"
+      "stats": "Statistiques",
+      "classes": "Classes"
     },
     "topbar": {
       "role": "Espace {{role}}"
@@ -75,7 +78,9 @@
       "dateFrom": "Date de début",
       "dateTo": "Date de fin",
       "reset": "Réinitialiser",
-      "victimPlaceholder": "Filtrer par victime..."
+      "victimPlaceholder": "Filtrer par victime...",
+      "status": "Statut",
+      "dates": "Dates :"
     },
     "status": {
       "pending": "En attente",
@@ -90,23 +95,34 @@
       "class": "Classe",
       "aiScore": "Score IA",
       "aiReason": "Analyse IA",
-      "anonymous": "Anonyme",
+      "aiAnalysis": "Analyse IA",
+      "anonymous": "Signalement anonyme (identité visible admin)",
       "yes": "Oui",
       "no": "Non",
       "people": "Qui est concerné par ce signalement ?",
       "reportedBy": "Signalé par",
       "anonymousLabel": "Anonyme",
       "victim": "Victime",
-      "suspects": "Suspect(s)",
+      "suspects": "Harceleur(s)",
       "noSuspect": "Aucun suspect indiqué",
       "suspectsCount": "coupable(s)",
       "type": "Type",
-      "reporter": "Signalé en tant que",
+      "reporter": "Alerteur",
+      "involved": "Personnes impliquées",
+      "report": "Signalement",
+      "status": "Statut",
       "victims": "Victime(s)",
       "noVictim": "Aucune victime indiquée",
       "victimLinked": "Lié à",
       "reporterVictime": "Victime",
-      "reporterTemoin": "Témoin"
+      "reporterTemoin": "Témoin",
+      "unidentified": "Non identifié",
+      "unlinked": "Identité non liée",
+      "unlink": "Rompre",
+      "link": "Associer",
+      "searchStudent": "Rechercher un élève...",
+      "title": "Signalement {{caseNumber}}",
+      "back": "Revenir à tous les signalements"
     },
     "actions": {
       "groupLabel": "Actions sur le signalement",
@@ -124,8 +140,20 @@
     "convocation": {
       "title": "Convoquer les personnes impliquées",
       "dateLabel": "Date et heure",
+      "dateTime": "Date et heure",
       "placeholder": "Message de convocation...",
-      "send": "Envoyer la convocation"
+      "messagePlaceholder": "Message de convocation...",
+      "send": "Envoyer {{count}} convocation(s)",
+      "sending": "Envoi...",
+      "success": "Convocations envoyées avec succès !",
+      "hint": "Sélectionnez les personnes à convoquer et définissez une date et un message pour chacune.",
+      "dateError": "La date doit être dans le futur",
+      "selectRecipients": "Sélectionner les destinataires :",
+      "victimReporter": "Victime / Alerteur",
+      "suspect": "Suspect",
+      "victim": "Victime",
+      "noRecipient": "Aucune personne à convoquer — liez d'abord les suspects/victimes à un élève.",
+      "reporter": "Alerteur"
     },
     "users": {
       "title": "Gestion des utilisateurs",
@@ -141,40 +169,50 @@
       "edit": "Modifier",
       "delete": "Supprimer",
       "selectClass": "Sélectionner une classe",
+      "searchPlaceholder": "Rechercher par nom ou prénom...",
+      "roleStudent": "Élèves",
+      "roleTeacher": "Profs",
+      "roleAdmin": "Admins",
+      "sortDate": "Date création",
       "roles": {
         "label": "Rôle",
-        "choose": "Choisir un rôle",
+        "choose": "Selectionnez un role",
         "student": "Élève",
         "teacher": "Professeur",
         "staff": "Personnel",
         "admin": "Admin",
-        "director": "Directeur", 
-		"choose": "Selectionnez un role"
+        "director": "Directeur"
       },
       "errorEmailFormat": "Format d'email invalide",
       "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères",
       "deleteConfirm": "Voulez-vous vraiment supprimer cet utilisateur ?",
       "deleteBlocked": "Cet utilisateur ne peut pas être supprimé car il est lié à un ou plusieurs signalements",
       "deleteError": "Une erreur est survenue lors de la suppression",
-      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte", 
-	  "name": "Lettres, apostrophes ou tirets uniquement (max 20 caractères)", 
-	  "tooLong":"Email trop long (max 50 caractères)", 
-	  "atLeast": "Minimum 12 caractères", 
-	  "atLeastOneNumber":"Au moins un chiffre requis", 
-	  "atLeastOneMinus":"Au moins une minuscule requise", 
-	  "atLeastOneMajor":"Au moins une majuscule requise",
-	  "atLeastOneSpecial":"Au moins un caractère spécial requis", 
-	  "noFirstName":"Le mot de passe ne doit pas contenir le prénom", 
-	  "noLastName": "Le mot de passe ne doit pas contenir le nom"
-
+      "deleteSelf": "Vous ne pouvez pas supprimer votre propre compte",
+      "errorRequired": "Ce champ est obligatoire",
+      "name": "Lettres, tirets et apostrophes uniquement (2-20 caractères)",
+      "tooLong": "Email trop long (max 50 caractères)",
+      "atLeast": "Minimum 12 caractères",
+      "atLeastOneNumber": "Au moins un chiffre requis",
+      "atLeastOneMinus": "Au moins une minuscule requise",
+      "atLeastOneMajor": "Au moins une majuscule requise",
+      "atLeastOneSpecial": "Au moins un caractère spécial requis",
+      "noFirstName": "Le mot de passe ne doit pas contenir le prénom",
+      "noLastName": "Le mot de passe ne doit pas contenir le nom",
+      "class": "Classe",
+      "dateOfBirth": "Date de naissance",
+      "ageMin": "L'élève doit avoir au moins 9 ans",
+      "ageMax": "L'élève ne peut pas avoir plus de 16 ans",
+      "classesTeacher": "Classes où il intervient",
+      "noClass": "Aucune classe disponible",
+      "charsCount": "{{count}}/50 caractères",
+      "maxChars": "Maximum 50 caractères atteint",
+      "confirmStatus": "Confirmer le changement de statut vers {{label}} ?"
     },
     "title": {
       "oneReport": "Details d'un signalement",
       "allReports": "Tous les signalements"
-    }, 
-	"teacher": {
-		"subjectTeached": "Matière enseignée"
-	}
+    }
   },
   "badge": {
     "all": "Tous les statuts",
@@ -188,11 +226,14 @@
     "resolved": "Résolu",
     "false_report": "Faux signalement",
     "closed": "Clôturé",
-    "rejected": "Rejeté"
+    "rejected": "Rejeté",
+    "total": "Total"
   },
   "noteblock": {
     "note": "Note",
-    "convocation": " Convocation"
+    "convocation": "Convocation",
+    "statusChange": "Statut mis à jour",
+    "by": "par"
   },
   "pagination": {
     "nav": "Pagination",
@@ -210,7 +251,61 @@
     "next": "Suivant",
     "error": "Une erreur est survenue",
     "close": "Fermer",
-    "back": "Retour"
+    "back": "Retour",
+    "reset": "Réinitialiser",
+    "limitReached": "Limite atteinte",
+    "optional": "optionnel",
+    "confirm": "Confirmer",
+    "inProgress": "En cours..."
+  },
+  "report": {
+    "reporter": {
+      "victime": "Victime",
+      "temoin": "Témoin"
+    }
+  },
+  "quiz": {
+    "title": "Quiz",
+    "reconnecting": "Reconnexion en cours…",
+    "roomCodeLabel": "Code de salle",
+    "roomCodePlaceholder": "Entrez le code",
+    "join": "Rejoindre",
+    "howToPlay": "Comment jouer",
+    "joinHelp": "Entrez un code de salle (3 à 10 caractères). Si vous êtes le premier à rejoindre cette salle, vous devenez l'hôte et pourrez lancer la partie quand vous le souhaitez.",
+    "room": "Salle : {{code}}",
+    "you": "(vous)",
+    "disconnected": "(déconnecté)",
+    "rules": {
+      "questions": "15 questions, 2 réponses possibles — une seule est correcte",
+      "time": "Vous avez 30 secondes pour répondre à chaque question",
+      "speed": "Plus vous répondez vite, plus vous marquez : ≤3s = 3 pts, ≤7s = 2 pts, sinon 1 pt",
+      "combo": "Combo : chaque bonne réponse d'affilée augmente le multiplicateur (jusqu'à ×5)",
+      "reset": "Une mauvaise réponse (ou pas de réponse) remet le combo à zéro",
+      "oneTry": "Une seule tentative par question, pas de changement",
+      "winner": "Celui avec le plus de points à la fin gagne !"
+    },
+    "startGame": "Lancer le quiz",
+    "waitingHost": "En attente de l'hôte…",
+    "leaveRoom": "Quitter la salle",
+    "leave": "Quitter",
+    "finalResults": "Résultats finaux",
+    "noScore": "Aucun score disponible.",
+    "points": "{{score}} pts",
+    "connectionLost": "Connexion perdue — reconnexion en cours…",
+    "combo": "Combo",
+    "multiplier": "Multiplicateur",
+    "correctAnswer": "Bonne réponse !",
+    "speed": "Vitesse",
+    "pointsLabel": "Points",
+    "wrongAnswer": "Mauvaise réponse",
+    "comboLost": "Combo perdu",
+    "answerSent": "Réponse envoyée. En attente des autres joueurs…",
+    "timeUp": "Temps écoulé. Prochaine question…",
+    "noAnswer": "Vous n'avez pas répondu.",
+    "nextQuestion": "Prochaine question dans {{seconds}}s",
+    "results": "Résultats",
+    "liveRanking": "Classement en direct",
+    "waitingQuestion": "En attente de la question…"
   },
   "reporter": {
     "nav": {
@@ -226,8 +321,15 @@
       "lastName": "Nom",
       "email": "Email",
       "role": "Rôle",
+      "subjectUnknown": "Non renseignée",
+      "upload": "En cours de chargement",
+      "change": "Modifier la photo",
+      "proProfile": "Profil professionnel",
+      "occupation": "Profession",
       "subject": "Matière",
-      "subjectUnknown": "Non renseignée"
+      "classes": "Classes",
+      "loading": "Chargement...",
+      "noProfile": "Aucun profil professionnel enregistré"
     },
     "workshop": {
       "title": "Ateliers",
@@ -283,6 +385,11 @@
     },
     "step2": {
       "title": "D'après toi, c'est quel type de harcèlement ?",
+      "iAmTheVictim": "Je suis une victime",
+      "iAmTheWitness": "Je suis un témoin",
+      "iWasHarassed": "J'ai subi du harcèlement",
+      "iSawHarassed": "J'ai vu quelqu'un subir du harcèlement",
+      "chooseOne": "Sélectionne ta situation",
       "subtitle": "",
       "physical": "Physique",
       "physicalSub": "Coups, bousculades",
@@ -302,24 +409,31 @@
       "subtitle": "",
       "descriptionLabel": "Donne tous les détails que tu as : le jour, l'heure, le lieu, les personnes impliquées, ce qu'elles ont fait",
       "descriptionPlaceholder": "Donne un maximum de détails",
-  	"frequencyLabel": "Combien de fois cela s'est-il passé ?",
+      "frequencyLabel": "Combien de fois cela s'est-il passé ?",
       "frequencyPlaceholder": "Choisis...",
-      "freq1": "1 fois",
-      "freq2": "2 fois",
-      "freq3": "3 fois et plus",
+      "freq1": "Une fois",
+      "freq2": "Deux fois",
+      "freq3": "Trois fois et plus",
       "freq4": "Tous les jours"
     },
     "step4": {
       "title": "Qui est concerné par ce signalement ?",
       "subtitle": "",
-      "victimLabel": "Donne le nom de toutes les victimes (un par ligne)",
-      "suspectsLabel": "Donne le nom de tous les coupables (un par ligne)",
+      "victimLabel": "Donne le nom de toutes les victimes (une par ligne)",
+      "peoplePlaceholder": "Par exemple : Prénom + Nom",
+      "suspectsLabel": "Donne le nom de tous les harceleurs (un par ligne)",
+      "addVictim": "Ajoute cette victime",
+      "add+Victim": "Appuie sur la touche `Entrée` de ton clavier ou clique sur `Ajoute cette victime`",
+      "addSuspect": "Ajoute ce harceleur",
+      "add+Suspect": "Appuie sur la touche `Entrée` de ton clavier ou clique sur `Ajoute ce harceleur`",
       "searchPlaceholder": "Rechercher par nom ou prénom...",
       "selected": "sélectionné(e)",
       "addFreeText": "Ajouter",
       "suspectsAdded": "Suspects ajoutés",
       "removeSuspect": "Retirer",
-      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
+      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape",
+      "maxVictims": "Maximum 5 victimes atteint",
+      "maxSuspects": "Maximum 5 suspects atteint"
     },
     "step5": {
       "title": "Télécharge tout document utile pour ce signalement",
@@ -330,11 +444,13 @@
       "title": "Encore une étape avant la validation",
       "subtitle": "",
       "who": "Ma situation",
+      "victim": "Je suis une victime",
+      "suspect": "Je suis un témoin",
       "type": "Type",
       "description": "Description",
       "frequency": "Fréquence",
       "victims": "Victime(s)",
-      "suspects": "Suspect(s)",
+      "suspects": "Harceleur(s)",
       "anonymous": "Coche si tu ne veux pas être contacté au sujet de ce signalement",
       "anonymousDesc": ""
     },
@@ -343,8 +459,8 @@
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement",
-      "descriptionRequired": "Décris les faits",
-      "frequencyRequired": "Indique la fréquence "
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     }
   },
   "student": {
@@ -353,14 +469,23 @@
       "profile": "Mon profil",
       "report": "Faire un signalement",
       "workshop": "Ateliers",
-      "quiz": "Quiz"
+      "quiz": "Quiz",
+      "cases": "Mes dossiers"
     },
     "profile": {
       "title": "Mon profil",
       "firstName": "Prénom",
       "lastName": "Nom",
       "email": "Email",
-      "role": "Rôle"
+      "dob": "Date de naissance",
+      "class": "Classe",
+      "role": "Élève",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "officialParents": "Responsables légaux",
+      "loading": "Chargement",
+      "noProfile": "Aucun profil professionnel enregistré",
+      "noParent": "Aucun responsable légal"
     },
     "workshop": {
       "title": "Ateliers",
@@ -379,9 +504,7 @@
       "brand2": "Collège"
     },
     "home": {
-      "school": "Collège Jeanne d'Arc — Dispositif anti-harcèlement",
       "title": "Vous êtes témoin d'une situation de harcèlement ?",
-      "subtitle": "Signalez-le en 5 minutes. Anonymat possible. Notre équipe intervient sous 24h.",
       "cta": "Faire un signalement",
       "statsLabel": "Indicateurs clés",
       "stat1": "Délai de prise en charge",
@@ -396,89 +519,27 @@
       "notice": "",
       "back": "Retour à l'accueil"
     },
-    "steps": {
-      "who": "Ma situation",
-      "type": "Le type",
-      "facts": "Les faits",
-      "people": "Les personnes",
-      "evidence": "Les preuves",
-      "validate": "Validation"
-    },
-    "step1": {
-      "title": "Ma situation",
-      "subtitle": "Sélectionne ta situation",
-      "teacher": "Je signale en tant que professeur",
-      "staff": "Je signale en tant que personnel du collège"
-    },
-    "step2": {
-      "title": "D'apres toi, c'est quel type de ",
-      "subtitle": "",
-      "physical": "Physique",
-      "physicalSub": "Coups, bousculades",
-      "verbal": "Verbal",
-      "verbalSub": "Insultes, moqueries",
-      "cyber": "Cyber",
-      "cyberSub": "Réseaux, SMS",
-      "exclusion": "Exclusion sociale",
-      "exclusionSub": "Mise à l'écart",
-      "sexual": "Sexuel",
-      "sexualSub": "Gestes, remarques",
-      "other": "Autre",
-      "otherSub": "Décrire ci-dessous"
-    },
-    "step3": {
-      "title": "Décris ce qui s'est passé",
-      "subtitle": "",
-      "descriptionLabel": "Donne tous les détails que tu as : le jour, l'heure, le lieu, les personnes impliquées, ce qu'elles ont fait",
-    "descriptionPlaceholder": "Donne un maximum de détails", 
-	"frequencyLabel": "Combien de fois cela s'est-il passé ?",
-      "frequencyPlaceholder": "Choisis...",
-      "freq1": "1 fois",
-      "freq2": "2 fois",
-      "freq3": "3 fois et plus",
-      "freq4": "Tous les jours"
-    },
-    "step4": {
-      "title": "Qui est concerné par ce signalement ?",
-      "subtitle": "",
-      "victimLabel": "Donne le nom de toutes les victimes (un par ligne)",
-      "suspectsLabel": "Donne le nom de tous les coupables (un par ligne)",
-      "searchPlaceholder": "Rechercher par nom ou prénom...",
-      "selected": "sélectionné(e)",
-      "addFreeText": "Ajouter",
-      "suspectsAdded": "Suspects ajoutés",
-      "removeSuspect": "Retirer",
-      "noSuspect": "Aucun suspect ajouté — tu peux passer cette étape"
-    },
-    "step5": {
-      "title": "Télécharge tout document utile pour ce signalement",
-      "subtitle": "Attention, tout abus sera sanctionné",
-      "soon": "Cette fonctionnalité sera disponible prochainement"
-    },
-    "step6": {
-      "title": "Encore une étape avant la validation",
-      "subtitle": "",
-      "who": "Ma situation",
-      "type": "Type",
-      "description": "Description",
-      "frequency": "Fréquence",
-      "victims": "Victime(s)",
-      "suspects": "Suspect(s)",
-      "anonymousDesc": "Tu ne seras pas contacté au sujet de ce signalement"
-
-    },
     "submitting": "Envoi...",
     "submit": "Envoyer le signalement",
     "submitError": "L'envoi a échoué. Vérifie ta connexion et réessaie.",
     "validation": {
       "typeRequired": "Choisis un type de harcèlement pour continuer.",
-      "descriptionRequired": "Décris les faits pour continuer.",
-      "frequencyRequired": "Indique la fréquence pour continuer."
+      "descriptionRequired": "La description doit contenir au moins 20 caractères",
+      "frequencyRequired": "La fréquence est obligatoire"
     },
     "title": {
       "myProfile": "Mon profil",
       "createAReport": "Créér un signalement",
       "reportCreated": "Signalement créé"
+    },
+    "cases": {
+      "loading": "Chargement en cours",
+      "noReport": "Aucun signalement trouvé",
+      "iAmVictim": "Je suis une victime",
+      "noUpdate": "Aucune mise à jour pour ce dossier",
+      "meeting": "Un rendez-vous a eu lieu le",
+      "summoned": "Tu es convoqué(e) le ",
+      "statusUpdate": "Statut mis à jour : {{status}} — {{date}}"
     }
   },
   "privacy": {
@@ -547,5 +608,125 @@
       "title": "6. Modification des présentes conditions",
       "body": "Ces conditions d'utilisation peuvent être mises à jour à tout moment par l'administration. Les utilisateurs seront informés de toute modification substantielle. La poursuite de l'utilisation de l'application après notification vaut acceptation des nouvelles conditions."
     }
+  },
+  "all": "Tous",
+  "section": "Section",
+  "stats": {
+    "allPeriod": "Toute la période",
+    "last7": "7 derniers jours",
+    "last30": "30 derniers jours",
+    "last90": "3 derniers mois",
+    "last365": "1 an",
+    "allClasses": "Toutes les classes",
+    "allGrades": "Toutes les gravités",
+    "reportsFound": "{{count}} signalement(s) trouvé(s)",
+    "byGrade": "Répartition par gravité",
+    "byStatus": "Répartition par statut",
+    "byClass": "Signalements par classe (victime)",
+    "byType": "Signalements par type",
+    "evolution": "Évolution (7 derniers jours)",
+    "statusNew": "Nouveau",
+    "statusInProgress": "En cours",
+    "statusResolved": "Résolu",
+    "statusPending": "En attente",
+    "statusFalseReport": "Faux signalement",
+    "noData": "Aucune donnée",
+    "total": "Total",
+    "statusRejected": "Faux signalement",
+    "reportsLabel": "Signalements"
+  },
+  "classes": {
+    "loading": "Chargement...",
+    "backToClasses": "Retour aux classes",
+    "studentsEnrolled": "Élèves inscrits",
+    "noStudentInClass": "Aucun élève dans cette classe.",
+    "assignStudents": "Assignez des élèves depuis la section Utilisateurs.",
+    "addClass": "+ Ajouter une classe",
+    "editClass": "Modifier la classe",
+    "addClassTitle": "Ajouter une classe",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "noClass": "Aucune classe",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "student": "élève",
+    "students": "élèves",
+    "deleteBlocked": "Impossible de supprimer {{level}} {{section}} : {{count}} élève(s) inscrits. Réassignez-les d'abord.",
+    "deleteConfirm": "Voulez-vous vraiment supprimer la classe {{level}} {{section}} ?",
+    "level": "Niveau",
+    "section": "Section",
+    "levelRequired": "Le niveau est obligatoire",
+    "levelInvalid": "Le niveau doit être 3eme, 4eme, 5eme ou 6eme",
+    "sectionRequired": "La section est obligatoire",
+    "sectionInvalid": "La section doit être une seule lettre majuscule (A, B, C...)",
+    "alreadyExists": "Cette classe existe déjà"
+  },
+  "userProfile": {
+    "backToReport": "Retour au signalement",
+    "backToList": "Retour à la liste",
+    "prev": "Précédent",
+    "next": "Suivant",
+    "changePhoto": "Changer la photo",
+    "uploading": "Upload...",
+    "class": "Classe",
+    "dob": "Date de naissance",
+    "age": "ans",
+    "profession": "Profession",
+    "subject": "Matière",
+    "classes": "Classes",
+    "guardians": "Responsables légaux",
+    "addGuardian": "+ Ajouter",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "editGuardian": "Modifier",
+    "deleteGuardian": "Supprimer",
+    "email": "Email",
+    "phone": "Téléphone",
+    "address": "Adresse",
+    "confirmTitle": "Confirmer les modifications",
+    "confirmBtn": "Confirmer",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "role": "Rôle",
+    "password": "Mot de passe",
+    "passwordChanged": "modifié"
+  },
+  "validation": {
+    "descRequired": "La description est obligatoire",
+    "descMin": "La description doit contenir au moins 20 caractères",
+    "descMax": "La description ne peut pas dépasser 2000 caractères",
+    "descInvalid": "La description semble invalide (caractères répétitifs détectés)",
+    "nameRequired": "Le nom est obligatoire",
+    "nameMin": "Le nom doit contenir au moins 2 caractères",
+    "nameMax": "Le nom ne peut pas dépasser 50 caractères",
+    "nameInvalid": "Le nom contient des caractères invalides ou répétitifs",
+    "freqRequired": "La fréquence est obligatoire",
+    "emailRequired": "Email obligatoire",
+    "emailTooLong": "Email trop long (50 caractères max)",
+    "emailInvalid": "Format d'email invalide",
+    "passwordRequired": "Mot de passe obligatoire",
+    "passwordMin": "Mot de passe trop court",
+    "emailExists": "Cette adresse email est déjà utilisée"
+  },
+  "toast": {
+    "avatarUpdated": "Photo mise à jour avec succès",
+    "avatarError": "Erreur lors de la mise à jour de la photo",
+    "parentAdded": "Responsable légal ajouté avec succès",
+    "parentUpdated": "Responsable légal modifié avec succès",
+    "parentDeleted": "Responsable légal supprimé avec succès",
+    "parentError": "Une erreur est survenue",
+    "classCreated": "Classe créée avec succès",
+    "classUpdated": "Classe modifiée avec succès",
+    "classDeleted": "Classe supprimée avec succès",
+    "userCreated": "Utilisateur créé avec succès",
+"userUpdated": "Utilisateur modifié avec succès",
+"userDeleted": "Utilisateur supprimé avec succès"
+  },
+  "severity": {
+    "critical": "Critique",
+    "high": "Grave",
+    "medium": "Moyen",
+    "low": "Faible"
   }
 }

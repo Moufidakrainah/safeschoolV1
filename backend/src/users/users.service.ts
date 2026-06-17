@@ -1,3 +1,5 @@
+import * as path from 'path';
+import * as fs from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from './user.entity';
@@ -118,7 +120,7 @@ export class UsersService {
       const profile = this.studentProfileRepository.create({
         user: saved,
         schoolClass,
-        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+        dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
       });
       const savedProfile = await this.studentProfileRepository.save(profile);
       saved.studentProfile = savedProfile;
@@ -155,6 +157,10 @@ export class UsersService {
     // ❌ Le rôle ne peut pas être modifié après la création
     // if (dto.role) user.role = dto.role as UserRole;
 
+    if (dto.password) {
+      user.password = await bcrypt.hash(dto.password, 10);
+    }
+
     const saved = await this.usersRepository.save(user);
 
     // Mettre à jour ou créer le profil élève si classe ou date de naissance fournie
@@ -166,13 +172,13 @@ export class UsersService {
       if (user.studentProfile) {
         user.studentProfile.schoolClass = schoolClass;
         if (dto.dateOfBirth !== undefined)
-          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null;
+          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
         await this.studentProfileRepository.save(user.studentProfile);
       } else {
         const profile = this.studentProfileRepository.create({
           user: saved,
           schoolClass,
-          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) as any : null,
+          dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : null,
         });
         await this.studentProfileRepository.save(profile);
       }
@@ -184,15 +190,9 @@ export class UsersService {
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
-
-    if (newPassword.length < 6)
-      throw new ForbiddenException("Le mot de passe doit faire au moins 6 caractères");
-
+    
     const hashed = await bcrypt.hash(newPassword, 10);
-    await this.usersRepository.query(
-      `UPDATE users SET password = $1 WHERE id = $2`,
-      [hashed, id],
-    );
+    await this.usersRepository.update(id, { password:hashed });
   }
 
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
@@ -234,8 +234,8 @@ export class UsersService {
   async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user?.avatar && user.avatar !== filename) {
-      const oldPath = require('path').join(process.cwd(), 'uploads', 'avatars', user.avatar);
-      try { require('fs').unlinkSync(oldPath); } catch {}
+      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', user.avatar);
+      try { fs.unlinkSync(oldPath); } catch { /* fichier déjà supprimé ou inaccessible */ }
     }
     await this.usersRepository.update(id, { avatar: filename });
     return { avatar: filename };
