@@ -7,7 +7,7 @@ export class CreateClassDto {
   @Matches(/^[3-6]eme$/, {
     message: "Le niveau doit être 3eme, 4eme, 5eme ou 6eme",
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   level: string;
 
   @IsString()
@@ -15,6 +15,6 @@ export class CreateClassDto {
   @Matches(/^[A-Z]$/, {
     message: "La section doit être une seule lettre majuscule (A, B, C...)",
   })
-  @Transform(({ value }) => value?.trim().toUpperCase())
+  @Transform(({ value }: { value?: string }) => value?.trim().toUpperCase())
   section: string;
 }

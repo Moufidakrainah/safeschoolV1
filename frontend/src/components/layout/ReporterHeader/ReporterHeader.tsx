@@ -14,6 +14,45 @@ interface ReporterHeaderProps {
   setViewSection: (s: ReporterSection) => void;
 }
 
+function NavButtons({
+  isMobile,
+  navItems,
+  viewSection,
+  setViewSection,
+  setMenuOpen,
+}: {
+  isMobile?: boolean;
+  navItems: { key: ReporterSection; label: string }[];
+  viewSection: ReporterSection;
+  setViewSection: (s: ReporterSection) => void;
+  setMenuOpen: (open: boolean) => void;
+}) {
+  return (
+    <>
+      {navItems.map((item) => (
+        <button
+          key={item.key}
+          onClick={() => {
+            setViewSection(item.key);
+            if (isMobile) setMenuOpen(false);
+          }}
+          className={
+            isMobile
+              ? "text-left text-lg font-semibold text-white"
+              : `font-bold text-sm transition-opacity ${
+                  viewSection === item.key
+                    ? "text-white underline underline-offset-4"
+                    : "text-white/80 hover:text-white"
+                }`
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </>
+  );
+}
+
 export default function ReporterHeader({
   user,
   logoutUser,
@@ -27,34 +66,6 @@ export default function ReporterHeader({
     { key: "report", label: t("reporter.nav.report") },
     { key: "quiz", label: t("reporter.nav.quiz") },
   ];
-
-  function NavButtons({ isMobile }: { isMobile?: boolean }) {
-    return (
-      <>
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => {
-              setViewSection(item.key);
-              if (isMobile) setMenuOpen(false);
-            }}
-
-            className={
-              isMobile
-                ? "text-left text-lg font-semibold text-white"
-                : `font-bold text-sm transition-opacity ${
-                    viewSection === item.key
-                      ? "text-white underline underline-offset-4"
-                      : "text-white/80 hover:text-white"
-                  }`
-            }
-          >
-            {item.label}
-          </button>
-        ))}
-      </>
-    );
-  }
 
   return (
     <header className="w-full flex flex-col">
@@ -75,7 +86,13 @@ export default function ReporterHeader({
           </SheetTrigger>
           <SheetContent side="left" className="p-4 bg-primary text-white">
             <nav className="flex flex-col gap-4">
-              <NavButtons isMobile />
+              <NavButtons
+                isMobile
+                navItems={navItems}
+                viewSection={viewSection}
+                setViewSection={setViewSection}
+                setMenuOpen={setMenuOpen}
+              />
             </nav>
           </SheetContent>
         </Sheet>
@@ -89,7 +106,12 @@ export default function ReporterHeader({
           className="h-10 md:h-14"
 		  onClick={() => setViewSection('report')}
         />
-        <NavButtons />
+        <NavButtons
+          navItems={navItems}
+          viewSection={viewSection}
+          setViewSection={setViewSection}
+          setMenuOpen={setMenuOpen}
+        />
       </nav>
     </header>
   );

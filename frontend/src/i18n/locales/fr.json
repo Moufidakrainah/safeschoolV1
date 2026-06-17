@@ -384,7 +384,7 @@
       "iconLabel": "Succès",
       "title": "Signalement transmis",
       "message": "Ton signalement a été envoyé. L'équipe de direction va le consulter dans les plus brefs délais.",
-      "notice": "",
+      "notice": "✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — il est géré directement par l'administration.",
       "back": "Retour à l'accueil"
     },
     "steps": {
@@ -534,7 +534,7 @@
       "iconLabel": "Succès",
       "title": "Signalement transmis",
       "message": "Ton signalement a été envoyé. L'équipe de direction va le consulter dans les plus brefs délais.",
-      "notice": "",
+      "notice": "✉️ Un accusé de réception vous a été envoyé. Vous n'avez pas accès au suivi du dossier — il est géré directement par l'administration.",
       "back": "Retour à l'accueil"
     },
     "submitting": "Envoi...",

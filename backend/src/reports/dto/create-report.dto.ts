@@ -11,12 +11,13 @@ import {
   Matches,
 } from "class-validator";
 import { Type } from "class-transformer";
+import { NO_NULL_BYTE } from "../../utils/validation-patterns";
 
 class PersonDto {
   @IsString()
   @MinLength(2, { message: "Le nom doit contenir au moins 2 caractères" })
   @MaxLength(50, { message: "Le nom ne peut pas dépasser 50 caractères" })
-  @Matches(/^[^\x00]*$/, {
+  @Matches(NO_NULL_BYTE, {
     message: "Le champ contient des caractères invalides",
   })
   @Matches(/^(?!(.)\1{4,})[\p{L}\s\-']+$/u, {
@@ -43,7 +44,7 @@ export class CreateReportDto {
   @MaxLength(2000, {
     message: "La description ne peut pas dépasser 2000 caractères",
   })
-  @Matches(/^[^\x00]*$/, {
+  @Matches(NO_NULL_BYTE, {
     message: "Le champ contient des caractères invalides",
   })
   @Matches(/^(?!(.)\1{9,})[\s\S]+$/u, {

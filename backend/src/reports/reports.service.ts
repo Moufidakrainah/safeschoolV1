@@ -9,6 +9,7 @@ import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
 import { LoggerService } from "../logger/logger.service";
+import { JwtUser } from "../common/interfaces/jwt-user.interface";
 
 @Injectable()
 export class ReportsService {
@@ -40,7 +41,11 @@ export class ReportsService {
         type,
         description,
         frequency,
-        (student as any).studentProfile?.schoolClass?.level ?? "",
+        (
+          student as {
+            studentProfile?: { schoolClass?: { level?: string } };
+          }
+        ).studentProfile?.schoolClass?.level ?? "",
         suspects,
       );
     const year = new Date().getFullYear();
@@ -163,7 +168,7 @@ export class ReportsService {
   async update(
     id: string,
     updates: { status?: ReportStatus; grade?: ReportGrade },
-    author?: any,
+    author?: JwtUser,
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade) report.grade = updates.grade;
@@ -186,7 +191,7 @@ export class ReportsService {
           report,
           content: `Statut mis à jour : ${label} — ${date}`,
           type: "status_change",
-          author,
+          author: author ? { id: author.id } : undefined,
         }),
       );
       if (report.student?.id && report.reporter === "victime") {
@@ -213,11 +218,16 @@ export class ReportsService {
     reportId: string,
     content: string,
     type: string,
-    author: any,
+    author: JwtUser,
     targetRole?: string,
   ): Promise<ReportNote> {
     const report = await this.findOne(reportId);
-    const note = this.notesRepository.create({ report, content, type, author });
+    const note = this.notesRepository.create({
+      report,
+      content,
+      type,
+      author: { id: author.id },
+    });
     const saved = await this.notesRepository.save(note);
     this.logger.report({
       type: "report_event",
@@ -287,7 +297,7 @@ export class ReportsService {
     });
     if (!suspect) throw new NotFoundException("Suspect introuvable");
     suspect.resolvedUser = resolvedUserId
-      ? ({ id: resolvedUserId } as any)
+      ? ({ id: resolvedUserId } as User)
       : null;
     return this.suspectsRepository.save(suspect);
   }
@@ -301,7 +311,7 @@ export class ReportsService {
     });
     if (!victim) throw new NotFoundException("Victime introuvable");
     victim.resolvedUser = resolvedUserId
-      ? ({ id: resolvedUserId } as any)
+      ? ({ id: resolvedUserId } as User)
       : null;
     return this.victimsRepository.save(victim);
   }

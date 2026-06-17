@@ -46,7 +46,7 @@ export default function StatsDashboard({ reports }: Props) {
     if (r.reporter === "victime")
       return r.student?.studentProfile?.schoolClass ?? null;
     const resolved = r.victims?.find(
-      (v: any) => v.resolvedUser?.studentProfile?.schoolClass,
+      (v) => v.resolvedUser?.studentProfile?.schoolClass,
     );
     return resolved?.resolvedUser?.studentProfile?.schoolClass ?? null;
   };
@@ -78,7 +78,7 @@ export default function StatsDashboard({ reports }: Props) {
     return API_REPORT_GRADES.map((apiGrade) => {
       const severity = severityFromApiGrade(apiGrade);
       return {
-        name: severityLabel(severity),
+        name: t(`severity.${severity}`),
         value: filtered.filter((r) => r.grade === apiGrade).length,
         color: SEVERITY_COLORS[severity],
       };
@@ -134,14 +134,20 @@ export default function StatsDashboard({ reports }: Props) {
   }, [allClasses, filtered]);
 
   const typeData = useMemo(() => {
-    const types = ["physique", "verbal", "cyber", "exclusion", "sexuel"];
-    return types
+    const TYPE_KEYS: Record<string, string> = {
+      physique: "reporter.step2.physical",
+      verbal: "reporter.step2.verbal",
+      cyber: "reporter.step2.cyber",
+      exclusion: "reporter.step2.exclusion",
+      sexuel: "reporter.step2.sexual",
+    };
+    return Object.keys(TYPE_KEYS)
       .map((tp) => ({
-        type: tp.charAt(0).toUpperCase() + tp.slice(1),
+        type: t(TYPE_KEYS[tp]),
         count: filtered.filter((r) => r.type?.toLowerCase() === tp).length,
       }))
       .filter((d) => d.count > 0);
-  }, [filtered]);
+  }, [filtered, t]);
 
   const statusData = useMemo(() => {
     const statuses = [

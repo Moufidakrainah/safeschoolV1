@@ -124,8 +124,11 @@ export default function StudentCases({
   >({});
   const reconnectKey = useReconnectKey();
 
+  // Effet de récupération de données (synchronisation avec des API externes) :
+  // le flag de chargement est un setState volontaire avant le fetch.
   useEffect(() => {
     if (!user?.id) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingReports(true);
 
     Promise.all([getAllReports(), getNotifications()])

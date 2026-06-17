@@ -7,6 +7,7 @@ import {
   MaxLength,
 } from "class-validator";
 import { Transform } from "class-transformer";
+import { NO_NULL_BYTE } from "../../utils/validation-patterns";
 
 export class UpdateParentDto {
   @IsOptional()
@@ -14,7 +15,7 @@ export class UpdateParentDto {
   @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, {
     message: "Prénom invalide (lettres et tirets, 2-20 caractères)",
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   firstName?: string;
 
   @IsOptional()
@@ -22,7 +23,7 @@ export class UpdateParentDto {
   @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, {
     message: "Nom invalide (lettres et tirets, 2-20 caractères)",
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   lastName?: string;
 
   @IsOptional()
@@ -32,7 +33,7 @@ export class UpdateParentDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[^\x00]*$/, {
+  @Matches(NO_NULL_BYTE, {
     message: "Le champ contient des caractères invalides",
   })
   @Matches(/^[0-9+\s]{0,15}$/, {
@@ -42,11 +43,11 @@ export class UpdateParentDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^[^\x00]*$/, {
+  @Matches(NO_NULL_BYTE, {
     message: "Le champ contient des caractères invalides",
   })
   @MaxLength(80, { message: "Adresse trop longue (max 80 caractères)" })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   address?: string;
 
   @IsOptional()

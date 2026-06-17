@@ -135,16 +135,22 @@ export function useQuizSocket(
 
   const myClientId = selfId ?? null;
   const selfIdRef = useRef<string | undefined>(selfId);
-  selfIdRef.current = selfId;
 
   // Maintenu synchronisé avec l'état pour que les handlers du socket (créés une seule fois) puissent lire la
   // salle/le nom actuels afin de rejoindre automatiquement après une reconnexion
   const joinedRoomRef = useRef<string | null>(null);
   const playerNameRef = useRef<string | undefined>(playerName);
-  playerNameRef.current = playerName;
   const gamePhaseRef = useRef<GamePhase>("lobby");
-  gamePhaseRef.current = gamePhase;
 
+  useEffect(() => {
+    selfIdRef.current = selfId;
+  }, [selfId]);
+  useEffect(() => {
+    playerNameRef.current = playerName;
+  }, [playerName]);
+  useEffect(() => {
+    gamePhaseRef.current = gamePhase;
+  }, [gamePhase]);
   useEffect(() => {
     joinedRoomRef.current = joinedRoom;
   }, [joinedRoom]);

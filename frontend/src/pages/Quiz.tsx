@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import RoleHeader from "@/components/layout/Header/RoleHeader";
 import { useQuizSocket } from "@/hooks/useQuizSocket";
 import QuizJoinScreen from "@/components/quiz/QuizJoinScreen";

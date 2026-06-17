@@ -128,6 +128,7 @@ export interface StaffProfile {
   id: string;
   profession: string;
   subject: string | null;
+  classes?: SchoolClass[];
 }
 
 export interface Parent {

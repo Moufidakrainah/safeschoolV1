@@ -111,6 +111,9 @@ export default function StudentForm({ user }: StudentFormProps) {
   useEffect(() => {
     const index = typeOptions.findIndex((o) => o.value === type);
     if (index >= 0) cardRefs.current[index]?.focus();
+    // typeOptions est recréé à chaque rendu mais ses `value` sont constants ; on
+    // ne dépend que de `type` pour ne déplacer le focus que sur changement de type.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
   const victimFull = victims.length >= MAX_VICTIMS;

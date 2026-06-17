@@ -15,6 +15,7 @@ import {
   updateStaffProfile,
   createParent,
   isOfflineError,
+  getApiErrorMessage,
 } from "@/services/api";
 import type { AdminUser } from "@/types";
 import { API_BASE } from "@/config";
@@ -175,7 +176,9 @@ export function useUsers(): UseUsersReturn {
   const fetchClassesList = useCallback(async () => {
     try {
       setClasses(await getClasses());
-    } catch {}
+    } catch {
+      /* liste des classes optionnelle : on ignore l'échec */
+    }
   }, []);
 
   const fetchUsers = useCallback(
@@ -214,7 +217,7 @@ export function useUsers(): UseUsersReturn {
 
   const handleAvatarUpload = useCallback(
     async (userId: string, file: File) => {
-      // ✅ Vérifier le type avant d'envoyer
+      // Vérifier le type avant d'envoyer
       const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
       if (!allowedTypes.includes(file.type)) return;
 
@@ -235,9 +238,11 @@ export function useUsers(): UseUsersReturn {
           );
           setAvatarTimestamps((prev) => ({ ...prev, [userId]: Date.now() }));
           await fetchUsers();
-          toast.success(t("toast.avatarUpdated"));
+        //   toast.success(t("toast.avatarUpdated"));
         }
-      } catch {}
+      } catch {
+        /* échec d'upload silencieux : l'UI reste sur l'avatar courant */
+      }
     },
     [fetchUsers, t],
   );
@@ -330,7 +335,7 @@ export function useUsers(): UseUsersReturn {
         editingUser ? t("toast.userUpdated") : t("toast.userCreated"),
       );
     } catch (err: unknown) {
-      const msg = (err as any)?.response?.data?.message ?? "";
+      const msg = getApiErrorMessage(err);
       if (msg === "Cet email est déjà utilisé") {
         setErrors((prev) => ({ ...prev, email: "validation.emailExists" }));
       } else {
@@ -359,8 +364,7 @@ export function useUsers(): UseUsersReturn {
       navigate("/dashboard?section=users", { replace: true });
       toast.success(t("toast.userDeleted"));
     } catch (err: unknown) {
-      const msg =
-        (err as any)?.response?.data?.message ?? (err as any)?.message ?? "";
+      const msg = getApiErrorMessage(err);
       if (msg === "USER_HAS_REPORTS") setIsBlocked(true);
       else setDeleteError(t("admin.users.deleteError"));
     } finally {
@@ -375,7 +379,7 @@ export function useUsers(): UseUsersReturn {
       firstName?: string,
       lastName?: string,
     ): string => {
-      const nameRegex = /^[a-zA-ZÀ-ÿ\-]{2,20}$/;
+      const nameRegex = /^[a-zA-ZÀ-ÿ-]{2,20}$/;
       if (field === "firstName" || field === "lastName") {
         if (!value.trim()) return "admin.users.errorRequired";
         if (!nameRegex.test(value)) return "admin.users.name";
@@ -438,14 +442,14 @@ export function useUsers(): UseUsersReturn {
       let normalized = value;
       if (field === "firstName")
         normalized = value
-          .replace(/[^a-zA-ZÀ-ÿ'\-]/g, "")
+          .replace(/[^a-zA-ZÀ-ÿ'-]/g, "")
           .split("-")
           .map(
             (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
           )
           .join("-");
       if (field === "lastName")
-        normalized = value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, "").toUpperCase();
+        normalized = value.replace(/[^a-zA-ZÀ-ÿ'-]/g, "").toUpperCase();
       setUserForm((prev) => ({ ...prev, [field]: normalized }));
       validateField(field, normalized);
     },

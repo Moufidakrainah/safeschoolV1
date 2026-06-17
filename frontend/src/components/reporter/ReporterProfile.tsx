@@ -10,7 +10,7 @@ import {
   TableCellLeft,
   TableRow,
 } from "@/components/ui/table";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { API_BASE } from "@/config";
 
 interface StaffClass {

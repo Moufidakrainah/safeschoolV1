@@ -5,7 +5,6 @@ import {
   Patch,
   Param,
   Body,
-  Query,
   Request,
   UseGuards,
   ForbiddenException,

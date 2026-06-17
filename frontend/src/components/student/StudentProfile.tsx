@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { AuthUser } from "@/types";
 import { formatName } from "@/utils/formatName";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import {
   Table,
   TableBody,
@@ -35,6 +35,9 @@ export default function StudentProfile({ user, parents }: StudentProfileProps) {
   const { t } = useTranslation();
   const { updateUser: _updateUser } = useAuth();
   const [avatar, _setAvatar] = useState<string | null>(user?.avatar ?? null);
+  // Jeton anti-cache calculé une seule fois au montage (Date.now() ne doit pas
+  // être appelé pendant le rendu).
+  const [cacheBust] = useState(() => Date.now());
 
   const calcAge = (dateOfBirth: string): number => {
     const dob = new Date(dateOfBirth);
@@ -53,7 +56,7 @@ export default function StudentProfile({ user, parents }: StudentProfileProps) {
           {avatar ? (
             <img
               className="w-56 h-56 rounded-full object-cover border-4 border-primary"
-              src={`${AVATAR_BASE}${avatar}?t=${Date.now()}`}
+              src={`${AVATAR_BASE}${avatar}?t=${cacheBust}`}
               alt={`${user?.firstName} ${user?.lastName}`}
             />
           ) : (

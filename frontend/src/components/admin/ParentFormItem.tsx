@@ -37,7 +37,7 @@ export default function ParentFormItem({
   });
 
   function validateFieldKey(field: string, value: string): string {
-    const nameRegex = /^[a-zA-ZÀ-ÿ'\-]{2,20}$/;
+    const nameRegex = /^[a-zA-ZÀ-ÿ'-]{2,20}$/;
     if (field === "firstName") {
       if (!value.trim()) return "admin.users.errorRequired";
       if (!nameRegex.test(value)) return "admin.users.name";
@@ -95,7 +95,7 @@ export default function ParentFormItem({
           <Input
             value={parent.firstName}
             onChange={(e) => {
-              const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'\-]/g, "");
+              const val = e.target.value.replace(/[^a-zA-ZÀ-ÿ'-]/g, "");
               const normalized =
                 val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
               onChange({ ...parent, firstName: normalized });
@@ -118,7 +118,7 @@ export default function ParentFormItem({
             value={parent.lastName}
             onChange={(e) => {
               const val = e.target.value
-                .replace(/[^a-zA-ZÀ-ÿ'\-]/g, "")
+                .replace(/[^a-zA-ZÀ-ÿ'-]/g, "")
                 .toUpperCase();
               onChange({ ...parent, lastName: val });
               setErrorKeys((prev) => ({

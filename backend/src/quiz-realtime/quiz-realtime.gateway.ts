@@ -9,9 +9,26 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Logger } from "@nestjs/common";
-import { Server, Socket } from "socket.io";
+import { Server, Socket, DefaultEventsMap } from "socket.io";
 import { JwtService } from "@nestjs/jwt";
 import { QuizRealtimeService } from "./quiz-realtime.service";
+
+interface QuizUser {
+  sub: string;
+  email: string;
+  role: string;
+}
+
+interface QuizSocketData {
+  user?: QuizUser;
+}
+
+type QuizSocket = Socket<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  QuizSocketData
+>;
 
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
@@ -103,7 +120,7 @@ export class QuizRealtimeGateway
     );
   }
 
-  handleConnection(client: Socket) {
+  handleConnection(client: QuizSocket) {
     const token = this.extractToken(client);
 
     if (!token) {
@@ -128,8 +145,10 @@ export class QuizRealtimeGateway
     this.logger.log(`quiz client connected: ${client.id}`);
   }
 
-  private extractToken(client: Socket): string | undefined {
-    const authToken = client.handshake.auth?.token;
+  private extractToken(client: QuizSocket): string | undefined {
+    // socket.io types `handshake.auth` as a free-form `{ [k]: any }`, so guard
+    // the token explicitly instead of trusting its type.
+    const authToken: unknown = client.handshake.auth?.token;
     if (typeof authToken === "string" && authToken.length > 0) {
       return authToken.replace(/^Bearer\s+/i, "");
     }
@@ -142,7 +161,7 @@ export class QuizRealtimeGateway
     return undefined;
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: QuizSocket) {
     this.logger.log(`quiz client disconnected: ${client.id}`);
 
     const updates = this.quizRealtimeService.markDisconnected(client.id);
@@ -169,14 +188,13 @@ export class QuizRealtimeGateway
     }
   }
 
-  private getPlayerId(client: Socket): string | undefined {
-    const user = client.data.user as { sub?: string } | undefined;
-    return user?.sub;
+  private getPlayerId(client: QuizSocket): string | undefined {
+    return client.data.user?.sub;
   }
 
   // Remet un joueur qui se reconnecte en phase avec une partie en cours : rejoue
   // la question en cours, les scores, toute révélation active et sa propre réponse
-  private sendReconnectState(client: Socket, roomId: string, playerId: string) {
+  private sendReconnectState(client: QuizSocket, roomId: string, playerId: string) {
     const snapshot = this.quizRealtimeService.getRoomSnapshot(roomId);
     if (!snapshot || snapshot.status !== "in-progress") return;
 
@@ -209,7 +227,7 @@ export class QuizRealtimeGateway
 	@SubscribeMessage('quiz:join')
 	handleJoin(
 		@MessageBody() payload: JoinRoomPayload,
-		@ConnectedSocket() client: Socket,
+		@ConnectedSocket() client: QuizSocket,
 	) {
 		if (!payload || !isNonEmptyString(payload.roomId)) {
 			return {
@@ -338,7 +356,7 @@ export class QuizRealtimeGateway
   @SubscribeMessage("quiz:leave")
   handleLeave(
     @MessageBody() payload: LeaveRoomPayload,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: QuizSocket,
   ) {
     if (!payload || !isNonEmptyString(payload.roomId)) {
       return {
@@ -400,7 +418,7 @@ export class QuizRealtimeGateway
   @SubscribeMessage("quiz:start")
   handleStart(
     @MessageBody() payload: StartGamePayload,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: QuizSocket,
   ) {
     if (!payload || !isNonEmptyString(payload.roomId)) {
       return {
@@ -444,7 +462,7 @@ export class QuizRealtimeGateway
   @SubscribeMessage("quiz:answer")
   handleAnswer(
     @MessageBody() payload: SubmitAnswerPayload,
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: QuizSocket,
   ) {
     const playerId = this.getPlayerId(client);
     if (
