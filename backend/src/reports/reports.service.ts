@@ -163,7 +163,7 @@ export class ReportsService {
   async update(
     id: string,
     updates: { status?: ReportStatus; grade?: ReportGrade },
-    author?: JwtUser,
+    author?: any,
   ): Promise<Report> {
     const report = await this.findOne(id);
     if (updates.grade) report.grade = updates.grade;
@@ -180,13 +180,12 @@ export class ReportsService {
         rejected: "Rejeté",
       };
       const label = statusLabels[updates.status] ?? updates.status;
-      // ── Créer la note avec l'auteur ──
       await this.notesRepository.save(
         this.notesRepository.create({
           report,
           content: `Statut mis à jour : ${label} — ${date}`,
           type: "status_change",
-          author: author ? { id: author.id } : undefined,
+          author,
         }),
       );
       if (report.student?.id && report.reporter === "victime") {
@@ -213,16 +212,11 @@ export class ReportsService {
     reportId: string,
     content: string,
     type: string,
-    author: JwtUser,
+    author: any,
     targetRole?: string,
   ): Promise<ReportNote> {
     const report = await this.findOne(reportId);
-    const note = this.notesRepository.create({ 
-      report, 
-      content, 
-      type, 
-      author: { id: author.id },
-    });
+    const note = this.notesRepository.create({ report, content, type, author });
     const saved = await this.notesRepository.save(note);
     this.logger.report({
       type: "report_event",
@@ -246,10 +240,9 @@ export class ReportsService {
           );
         }
       } else if (targetRole?.startsWith("suspect_")) {
+        // ✅ On cherche par s.id (id du suspect) et non par resolvedUser.id
         const suspectId = targetRole.slice("suspect_".length);
-        const suspect = report.suspects?.find(
-          (s) => s.resolvedUser?.id === userId,
-        );
+        const suspect = report.suspects?.find((s) => s.id === suspectId);
         if (suspect?.resolvedUser?.id) {
           await this.notificationsService.create(
             suspect.resolvedUser.id,
@@ -292,7 +285,7 @@ export class ReportsService {
     });
     if (!suspect) throw new NotFoundException("Suspect introuvable");
     suspect.resolvedUser = resolvedUserId
-      ? ({ id: resolvedUserId } as User)
+      ? ({ id: resolvedUserId } as any)
       : null;
     return this.suspectsRepository.save(suspect);
   }
@@ -306,7 +299,7 @@ export class ReportsService {
     });
     if (!victim) throw new NotFoundException("Victime introuvable");
     victim.resolvedUser = resolvedUserId
-      ? ({ id: resolvedUserId } as User)
+      ? ({ id: resolvedUserId } as any)
       : null;
     return this.victimsRepository.save(victim);
   }
