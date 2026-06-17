@@ -19,6 +19,7 @@ import {
 } from "@/services/api";
 import type { AdminUser } from "@/types";
 import { API_BASE } from "@/config";
+import { useAuth } from "@/context/auth-context";
 
 interface SchoolClass {
   id: string;
@@ -125,7 +126,7 @@ export interface UseUsersReturn {
 export function useUsers(): UseUsersReturn {
   const navigate = useNavigate();
   const { t } = useTranslation();
-
+  const { user } = useAuth();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -344,12 +345,23 @@ export function useUsers(): UseUsersReturn {
     }
   }, [editingUser, userForm, allUsers, fetchUsers, t]);
 
-  const handleDeleteUser = useCallback(async (id: string) => {
+  const handleDeleteUser = useCallback(
+    async (id: string) => {
+    // Empêcher la suppression de son propre compte
+	  if (id === user.id) {
+      setDeleteTarget(id);
+      setIsBlocked(true);
+      setDeleteError(t("admin.users.deleteSelf"));
+      return;
+    }
+    // Comportement normal
     const { deletable } = await checkCanDeleteUser(id);
     setDeleteTarget(id);
     setIsBlocked(!deletable);
     setDeleteError("");
-  }, []);
+    },
+    [user.id, t]
+  );
 
   const confirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
