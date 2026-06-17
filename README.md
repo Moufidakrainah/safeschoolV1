@@ -104,8 +104,16 @@ If the sample dataset has been seeded, the following accounts can be used for de
 | Email                  | Password            | Role    | Main area    |
 | ---------------------- | ------------------- | ------- | ------------ |
 | `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
+| `danya@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
+| `lina@safeschool.com`  | `ELEVEeleve123123+` | student | `/student`   |
+| `lucas@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
+| `emma@safeschool.com`  | `ELEVEeleve123123+` | student | `/student`   |
+| `kevin@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
+| `sara@safeschool.com`  | `ELEVEeleve123123+` | student | `/student`   |
+| `lotfi@safeschool.com` | `ELEVEeleve123123+` | student | `/student`   |
 | `admin@safeschool.com` | `ADMINadmin123123+` | admin   | `/dashboard` |
 | `prof@safeschool.com`  | `PROFprof123123+`   | teacher | `/reporter`  |
+| `prof2@safeschool.com` | `PROFprof123123+`   | teacher | `/reporter`  |
 
 ---
 
