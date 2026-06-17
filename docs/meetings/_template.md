@@ -1,4 +1,5 @@
 # CR — [date]
+
 - Heure : =
 - Participants : mdoan, mobougri, eguthman, quclaque
 
@@ -6,9 +7,6 @@
 
 ## Décisions
 
-
-
 ## Actions
-
 
 ## Prochaine réunion

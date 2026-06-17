@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, Request, UseGuards,  ForbiddenException, BadRequestException } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Request,
+  UseGuards,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { ReportsService } from "./reports.service";
 import { validateUUID } from "../utils/validate-uuid";
@@ -6,9 +17,9 @@ import { CreateReportDto } from "./dto/create-report.dto";
 import { UpdateReportDto } from "./dto/update-report.dto";
 import { ResolveUserDto } from "./dto/resolve-user.dto";
 import { AddNoteDto } from "./dto/add-note.dto";
-import { Request as ExpressRequest } from 'express';
-import { JwtUser } from '../common/interfaces/jwt-user.interface';
-import { ReportNote } from './report-note.entity';
+import { Request as ExpressRequest } from "express";
+import { JwtUser } from "../common/interfaces/jwt-user.interface";
+import { ReportNote } from "./report-note.entity";
 
 @Controller("reports")
 @UseGuards(AuthGuard("jwt"))
@@ -16,19 +27,31 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Post()
-  async create(@Body() dto: CreateReportDto, @Request() req: ExpressRequest & { user: JwtUser }) {
+  async create(
+    @Body() dto: CreateReportDto,
+    @Request() req: ExpressRequest & { user: JwtUser },
+  ) {
     const allowedRoles = ["student", "teacher"];
     if (!allowedRoles.includes(req.user.role))
-      throw new ForbiddenException("Only student, teacher and staff can create a report");
+      throw new ForbiddenException(
+        "Only student, teacher and staff can create a report",
+      );
     return this.reportsService.create(
-      dto.type, dto.reporter, dto.description, dto.isAnonymous,
-      req.user, dto.suspects || [], dto.victims || [], dto.frequency || "",
+      dto.type,
+      dto.reporter,
+      dto.description,
+      dto.isAnonymous,
+      req.user,
+      dto.suspects || [],
+      dto.victims || [],
+      dto.frequency || "",
     );
   }
 
   @Get()
   async findAll(@Request() req: ExpressRequest & { user: JwtUser }) {
-    if (req.user.role === "student") return this.reportsService.findByStudent(req.user.id);
+    if (req.user.role === "student")
+      return this.reportsService.findByStudent(req.user.id);
     return this.reportsService.findAll();
   }
 
@@ -38,7 +61,8 @@ export class ReportsController {
     @Body() dto: ResolveUserDto,
     @Request() req: ExpressRequest & { user: JwtUser },
   ) {
-    if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Access denied");
     return this.reportsService.resolveSuspect(suspectId, dto.resolvedUserId);
   }
 
@@ -48,24 +72,34 @@ export class ReportsController {
     @Body() dto: ResolveUserDto,
     @Request() req: ExpressRequest & { user: JwtUser },
   ) {
-    if (req.user.role !== "admin") throw new ForbiddenException("Access denied");
+    if (req.user.role !== "admin")
+      throw new ForbiddenException("Access denied");
     return this.reportsService.resolveVictim(victimId, dto.resolvedUserId);
   }
-  
+
   @Patch(":id")
-  async update(@Param("id") id: string, @Body() dto: UpdateReportDto, @Request() req: ExpressRequest & { user: JwtUser }) {
+  async update(
+    @Param("id") id: string,
+    @Body() dto: UpdateReportDto,
+    @Request() req: ExpressRequest & { user: JwtUser },
+  ) {
     validateUUID(id);
-    if (req.user.role === "student") throw new ForbiddenException("Access denied");
+    if (req.user.role === "student")
+      throw new ForbiddenException("Access denied");
     // ── Passer req.user comme auteur pour la note status_change ──
     return this.reportsService.update(id, dto, req.user);
   }
 
   @Get(":id/notes")
-  async getNotes(@Param("id") id: string, @Request() req: ExpressRequest & { user: JwtUser }) {
+  async getNotes(
+    @Param("id") id: string,
+    @Request() req: ExpressRequest & { user: JwtUser },
+  ) {
     validateUUID(id);
     if (req.user.role === "student") {
       const report = await this.reportsService.findOne(id);
-      if (report.student.id !== req.user.id) throw new ForbiddenException("Access denied");
+      if (report.student.id !== req.user.id)
+        throw new ForbiddenException("Access denied");
       const notes = await this.reportsService.getNotes(id);
       const user = req.user;
       const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
@@ -88,8 +122,17 @@ export class ReportsController {
   ) {
     validateUUID(id);
     if (dto.content && dto.content.length > 1500)
-      throw new BadRequestException("Le contenu ne peut pas dépasser 1500 caractères");
-    if (req.user.role === "student") throw new ForbiddenException("Access denied");
-    return this.reportsService.addNote(id, dto.content, dto.type || "note", req.user, dto.targetRole);
+      throw new BadRequestException(
+        "Le contenu ne peut pas dépasser 1500 caractères",
+      );
+    if (req.user.role === "student")
+      throw new ForbiddenException("Access denied");
+    return this.reportsService.addNote(
+      id,
+      dto.content,
+      dto.type || "note",
+      req.user,
+      dto.targetRole,
+    );
   }
 }

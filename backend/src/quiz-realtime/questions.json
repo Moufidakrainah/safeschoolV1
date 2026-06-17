@@ -172,9 +172,15 @@
       "de": "Welche Hauptauswirkung hat Mobbing auf Jugendliche?"
     },
     "options": {
-      "fr": ["Des conséquences graves sur la santé mentale", "Des difficultés financières"],
+      "fr": [
+        "Des conséquences graves sur la santé mentale",
+        "Des difficultés financières"
+      ],
       "en": ["Serious mental health consequences", "Financial difficulties"],
-      "de": ["Schwere Folgen für die psychische Gesundheit", "Finanzielle Schwierigkeiten"]
+      "de": [
+        "Schwere Folgen für die psychische Gesundheit",
+        "Finanzielle Schwierigkeiten"
+      ]
     },
     "correctIndex": 0,
     "score": 1
@@ -247,9 +253,18 @@
       "de": "Nimmt Mobbing mit dem Alter ab?"
     },
     "options": {
-      "fr": ["Oui, il diminue après la primaire", "Non, il reste stable de la primaire au lycée"],
-      "en": ["Yes, it decreases after primary school", "No, it stays steady from primary to high school"],
-      "de": ["Ja, es nimmt nach der Grundschule ab", "Nein, es bleibt von der Grundschule bis zur Oberstufe konstant"]
+      "fr": [
+        "Oui, il diminue après la primaire",
+        "Non, il reste stable de la primaire au lycée"
+      ],
+      "en": [
+        "Yes, it decreases after primary school",
+        "No, it stays steady from primary to high school"
+      ],
+      "de": [
+        "Ja, es nimmt nach der Grundschule ab",
+        "Nein, es bleibt von der Grundschule bis zur Oberstufe konstant"
+      ]
     },
     "correctIndex": 1,
     "score": 1
@@ -262,9 +277,15 @@
       "de": "Ist Mobbing nur körperlich?"
     },
     "options": {
-      "fr": ["Non, il peut aussi se produire en ligne", "Oui, le harcèlement est uniquement physique"],
+      "fr": [
+        "Non, il peut aussi se produire en ligne",
+        "Oui, le harcèlement est uniquement physique"
+      ],
       "en": ["No, it can also happen online", "Yes, bullying is only physical"],
-      "de": ["Nein, es kann auch online stattfinden", "Ja, Mobbing ist nur körperlich"]
+      "de": [
+        "Nein, es kann auch online stattfinden",
+        "Ja, Mobbing ist nur körperlich"
+      ]
     },
     "correctIndex": 0,
     "score": 1
@@ -277,9 +298,18 @@
       "de": "Ist Mobbing ein seltenes Phänomen?"
     },
     "options": {
-      "fr": ["Oui, seul 1 jeune sur 20 est concerné", "Non, il touche près de 2 jeunes sur 5"],
-      "en": ["Yes, only 1 in 20 young people is affected", "No, it affects nearly 2 in 5 young people"],
-      "de": ["Ja, nur 1 von 20 Jugendlichen ist betroffen", "Nein, es betrifft fast 2 von 5 Jugendlichen"]
+      "fr": [
+        "Oui, seul 1 jeune sur 20 est concerné",
+        "Non, il touche près de 2 jeunes sur 5"
+      ],
+      "en": [
+        "Yes, only 1 in 20 young people is affected",
+        "No, it affects nearly 2 in 5 young people"
+      ],
+      "de": [
+        "Ja, nur 1 von 20 Jugendlichen ist betroffen",
+        "Nein, es betrifft fast 2 von 5 Jugendlichen"
+      ]
     },
     "correctIndex": 1,
     "score": 1

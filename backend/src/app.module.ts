@@ -1,8 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { ConfigModule } from "@nestjs/config";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
 import { ReportsModule } from "./reports/reports.module";
@@ -18,10 +17,12 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,  // fenêtre de 60 secondes
-      limit: 20,   // max 20 requêtes par fenêtre
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // fenêtre de 60 secondes
+        limit: 20, // max 20 requêtes par fenêtre
+      },
+    ]),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.DB_HOST,
@@ -42,9 +43,6 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
     StaffProfilesModule,
     ParentsModule,
     QuizRealtimeModule,
-  ],
-  providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule implements NestModule {

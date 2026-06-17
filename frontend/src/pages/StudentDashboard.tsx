@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import { getStudentParents } from "@/services/api";
 import type { Parent } from "@/types";
 import StudentProfile from "@/components/student/StudentProfile";
@@ -21,8 +21,11 @@ export default function StudentDashboard() {
   const [loadingParents, setLoadingParents] = useState(false);
   const [notifRefreshKey, setNotifRefreshKey] = useState(0);
 
+  // Effet de récupération de données (synchronisation avec une API externe) :
+  // le flag de chargement est un setState volontaire avant le fetch.
   useEffect(() => {
     if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadingParents(true);
       getStudentParents(user.id)
         .then((data) => setParents(data))
@@ -57,7 +60,11 @@ export default function StudentDashboard() {
         )}
         {viewSection === "report" && <StudentForm user={user} />}
         {viewSection === "cases" && (
-          <StudentCases user={user} onNotifRefresh={handleNotifRefresh} refreshKey={notifRefreshKey} />
+          <StudentCases
+            user={user}
+            onNotifRefresh={handleNotifRefresh}
+            refreshKey={notifRefreshKey}
+          />
         )}
       </div>
     </main>

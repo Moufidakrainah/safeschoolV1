@@ -68,7 +68,7 @@ export class ScoringService {
     reason: string;
   } {
     const text = description.toLowerCase();
-    const match = (patterns: RegExp[]) => patterns.some(p => p.test(text));
+    const match = (patterns: RegExp[]) => patterns.some((p) => p.test(text));
 
     // ── Urgence : violence physique ou idées suicidaires ──────────────────
     const urgencePatterns = [
@@ -79,18 +79,18 @@ export class ScoringService {
       /plus vivre|plus envie de vivre/,
 
       // Violence physique
-      /frapp/,            // frappe, frapper, frappé, frappée, frappent
-      /cogn/,             // cogner, cogné
-      /coup[s ]|coup$/,   // coup, coups
+      /frapp/, // frappe, frapper, frappé, frappée, frappent
+      /cogn/, // cogner, cogné
+      /coup[s ]|coup$/, // coup, coups
       /battre|me bat |me batt/,
-      /bless/,            // blesser, blessé
-      /agress/,           // agresser, agression
-      /violen/,           // violence, violent
-      /attaqu/,           // attaquer, attaque
-      /pouss/,            // pousser, poussé, pousse
-      /gifle|giffl/,      // gifle, giflé
-      /étrangl/,          // étrangler
-      /crach/,            // cracher, craché
+      /bless/, // blesser, blessé
+      /agress/, // agresser, agression
+      /violen/, // violence, violent
+      /attaqu/, // attaquer, attaque
+      /pouss/, // pousser, poussé, pousse
+      /gifle|giffl/, // gifle, giflé
+      /étrangl/, // étrangler
+      /crach/, // cracher, craché
 
       // Menaces graves
       /menaç|je vais te/,
@@ -112,7 +112,7 @@ export class ScoringService {
       /tremble|trembl/,
 
       // Tristesse et isolement
-      /pleur/,            // pleurer, pleure, pleuré
+      /pleur/, // pleurer, pleure, pleuré
       /triste|tristesse/,
       /déprim|dépress/,
       /malheur/,
@@ -145,7 +145,7 @@ export class ScoringService {
       /humili/,
       /ridiculis|se fout de moi/,
       /surnom|appell.*méchant/,
-      /imit/,             // imiter, imitation
+      /imit/, // imiter, imitation
 
       // Menace verbale
       /menace verbal|crier|hurler/,
@@ -160,21 +160,29 @@ export class ScoringService {
       /personne ne me parle|plus personne/,
       /seul.*cantine|mange seul/,
       /groupe.*travail|refus.*groupe/,
-      /ignor/,            // ignorer, ignoré
+      /ignor/, // ignorer, ignoré
       /ostracis/,
     ];
 
     if (match(urgencePatterns)) {
-      return { score: 20, urgency: true,  reason: "Menace physique / idées suicidaires détectées" };
+      return {
+        score: 20,
+        urgency: true,
+        reason: "Menace physique / idées suicidaires détectées",
+      };
     }
     if (match(detressePatterns)) {
-      return { score: 10, urgency: false, reason: "Détresse émotionnelle détectée" };
+      return {
+        score: 10,
+        urgency: false,
+        reason: "Détresse émotionnelle détectée",
+      };
     }
     if (match(verbalePatterns)) {
-      return { score: 5,  urgency: false, reason: "Menace verbale détectée" };
+      return { score: 5, urgency: false, reason: "Menace verbale détectée" };
     }
     if (match(exclusionPatterns)) {
-      return { score: 3,  urgency: false, reason: "Exclusion sociale détectée" };
+      return { score: 3, urgency: false, reason: "Exclusion sociale détectée" };
     }
     return { score: 0, urgency: false, reason: "Situation banale" };
   }
@@ -216,10 +224,17 @@ Signalement : "${description}"`,
           }),
         },
       );
-      const data = await response.json();
-      const text = data.choices[0].message.content.trim();
+      const data = (await response.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      const text = data.choices?.[0]?.message?.content?.trim();
+      if (!text) return this.scoreAIFallback(description);
       const jsonMatch = text.match(/{[\s\S]*?}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text) as {
+        score?: number;
+        urgency?: boolean;
+        reason?: string;
+      };
       return {
         score: parsed.score ?? 0,
         urgency: parsed.urgency ?? false,

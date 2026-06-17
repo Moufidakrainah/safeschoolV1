@@ -1,31 +1,42 @@
-import axios from 'axios';
-import type { SuspectInput, VictimInput } from '@/types';
-import { API_BASE } from '@/config';
+import axios from "axios";
+import type { SuspectInput, VictimInput } from "@/types";
+import { API_BASE } from "@/config";
 
 /* Erreur levée quand une requête est tentée hors ligne — rejetée avant
    d'atteindre le réseau pour éviter les erreurs GET dans la console */
 export class OfflineError extends Error {
   readonly isOffline = true;
   constructor() {
-    super('OFFLINE');
-    this.name = 'OfflineError';
+    super("OFFLINE");
+    this.name = "OfflineError";
   }
 }
 
 /* Vrai si l'erreur est due à l'absence de connexion (hors ligne ou serveur injoignable) */
 export function isOfflineError(err: unknown): boolean {
   if (err instanceof OfflineError) return true;
-  return axios.isAxiosError(err) && err.code === 'ERR_NETWORK';
+  return axios.isAxiosError(err) && err.code === "ERR_NETWORK";
+}
+
+/* Extrait le message d'erreur renvoyé par l'API (corps de la réponse Axios),
+   avec repli sur le message de l'erreur, sinon chaîne vide */
+export function getApiErrorMessage(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data as { message?: string } | undefined;
+    return data?.message ?? err.message ?? "";
+  }
+  if (err instanceof Error) return err.message;
+  return "";
 }
 
 const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {
   // Hors ligne : échec immédiat, sans tenter la requête
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
     return Promise.reject(new OfflineError());
   }
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -33,21 +44,24 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
-      localStorage.removeItem('token');
-      window.location.href = '/';
+    if (
+      error.response?.status === 401 &&
+      !error.config?.url?.includes("/auth/login")
+    ) {
+      localStorage.removeItem("token");
+      window.location.href = "/";
     }
     if (error.response?.status === 429) {
       // L'erreur sera catchée dans le composant Login
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export const login = async (email: string, password: string) =>
-  (await api.post('/auth/login', { email, password })).data;
+  (await api.post("/auth/login", { email, password })).data;
 
-export const getAllReports = async () => (await api.get('/reports')).data;
+export const getAllReports = async () => (await api.get("/reports")).data;
 
 export const createReport = async (
   type: string,
@@ -57,7 +71,18 @@ export const createReport = async (
   suspects: SuspectInput[],
   victims: VictimInput[],
   frequency: string,
-) => (await api.post('/reports', { type, reporter, description, isAnonymous, suspects, victims, frequency })).data;
+) =>
+  (
+    await api.post("/reports", {
+      type,
+      reporter,
+      description,
+      isAnonymous,
+      suspects,
+      victims,
+      frequency,
+    })
+  ).data;
 
 export const updateReport = async (id: string, updates: object) =>
   (await api.patch(`/reports/${id}`, updates)).data;
@@ -68,22 +93,32 @@ export const searchUsers = async (query: string) =>
 export const getNotes = async (reportId: string) =>
   (await api.get(`/reports/${reportId}/notes`)).data;
 
-export const addNote = async (reportId: string, content: string, type = 'note', targetRole?: string) =>
-  (await api.post(`/reports/${reportId}/notes`, { content, type, targetRole })).data;
+export const addNote = async (
+  reportId: string,
+  content: string,
+  type = "note",
+  targetRole?: string,
+) =>
+  (await api.post(`/reports/${reportId}/notes`, { content, type, targetRole }))
+    .data;
 
-export const getNotifications = async () => (await api.get('/notifications')).data;
+export const getNotifications = async () =>
+  (await api.get("/notifications")).data;
 
-export const getUnreadCount = async () => (await api.get('/notifications/unread-count')).data;
+export const getUnreadCount = async () =>
+  (await api.get("/notifications/unread-count")).data;
 
 export const markNotificationRead = async (id: string) =>
   (await api.patch(`/notifications/${id}/read`)).data;
 
-export const getUserById = async (id: string) => (await api.get(`/users/${id}`)).data;
+export const getUserById = async (id: string) =>
+  (await api.get(`/users/${id}`)).data;
 
-export const getAllUsers = async (page = 1, limit = 5) => (await api.get(`/users?page=${page}&limit=${limit}`)).data;
+export const getAllUsers = async (page = 1, limit = 5) =>
+  (await api.get(`/users?page=${page}&limit=${limit}`)).data;
 
 export const createUser = async (dto: Record<string, string>) =>
-  (await api.post('/users', dto)).data;
+  (await api.post("/users", dto)).data;
 
 export const updateUser = async (id: string, dto: Record<string, string>) =>
   (await api.patch(`/users/${id}`, dto)).data;
@@ -92,7 +127,9 @@ export const deleteUser = async (id: string) => {
   try {
     return (await api.delete(`/users/${id}`)).data;
   } catch (err: unknown) {
-    const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || 'DELETE_FAILED';
+    const message =
+      (err as { response?: { data?: { message?: string } } })?.response?.data
+        ?.message || "DELETE_FAILED";
     throw new Error(message);
   }
 };
@@ -106,11 +143,10 @@ export const getStudentParents = async (userId: string) =>
 export const getStaffProfile = async (userId: string) =>
   (await api.get(`/staff-profiles/by-user/${userId}`)).data;
 
-export const getClasses = async () =>
-  (await api.get('/classes')).data;
+export const getClasses = async () => (await api.get("/classes")).data;
 
 export const createClass = async (level: string, section: string) =>
-  (await api.post('/classes', { level, section })).data;
+  (await api.post("/classes", { level, section })).data;
 
 export const updateClass = async (id: string, level: string, section: string) =>
   (await api.patch(`/classes/${id}`, { level, section })).data;
@@ -121,23 +157,51 @@ export const deleteClass = async (id: string) =>
 export const assignStudentToClass = async (userId: string, classId: string) =>
   (await api.patch(`/users/${userId}`, { classId })).data;
 
-export const resolveSuspect = async (suspectId: string, resolvedUserId: string | null) =>
-  (await api.patch(`/reports/suspects/${suspectId}/resolve`, { resolvedUserId })).data;
+export const resolveSuspect = async (
+  suspectId: string,
+  resolvedUserId: string | null,
+) =>
+  (
+    await api.patch(`/reports/suspects/${suspectId}/resolve`, {
+      resolvedUserId,
+    })
+  ).data;
 
-export const resolveVictim = async (victimId: string, resolvedUserId: string | null) =>
-  (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId })).data;
+export const resolveVictim = async (
+  victimId: string,
+  resolvedUserId: string | null,
+) =>
+  (await api.patch(`/reports/victims/${victimId}/resolve`, { resolvedUserId }))
+    .data;
 
-export const createParent = async (dto: { firstName: string; lastName: string; email: string; phone?: string; address?: string; studentIds: string[] }) =>
-  (await api.post('/parents', dto)).data;
-export const updateParent = async (id: string, dto: { firstName?: string; lastName?: string; email?: string; phone?: string; address?: string }) =>
-  (await api.patch(`/parents/${id}`, dto)).data;
+export const createParent = async (dto: {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  studentIds: string[];
+}) => (await api.post("/parents", dto)).data;
+export const updateParent = async (
+  id: string,
+  dto: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+  },
+) => (await api.patch(`/parents/${id}`, dto)).data;
 export const deleteParent = async (id: string) =>
   (await api.delete(`/parents/${id}`)).data;
 
-export const createStaffProfile = async (dto: Record<string, string | string[]>) =>
-  (await api.post('/staff-profiles', dto)).data;
+export const createStaffProfile = async (
+  dto: Record<string, string | string[]>,
+) => (await api.post("/staff-profiles", dto)).data;
 
-export const updateStaffProfile = async (id: string, dto: Record<string, string | string[]>) =>
-  (await api.patch(`/staff-profiles/${id}`, dto)).data;
+export const updateStaffProfile = async (
+  id: string,
+  dto: Record<string, string | string[]>,
+) => (await api.patch(`/staff-profiles/${id}`, dto)).data;
 
 export default api;

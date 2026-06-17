@@ -1,7 +1,7 @@
 # SafeSchool — Validation Playbook
 
 How to verify the application works end-to-end.  
-Each check has a concrete command and indicates the expected result. 
+Each check has a concrete command and indicates the expected result.
 
 ## Before you start
 
@@ -16,6 +16,7 @@ Open `https://localhost:8443`.
 ## 1. Authentication
 
 ### 1.1 Valid login
+
 Open `https://localhost:8443/login` in a browser. Enter a valid account (teacher, student, or admin).
 
 **Expected:** you are redirected to your dashboard. No error message.
@@ -23,6 +24,7 @@ Open `https://localhost:8443/login` in a browser. Enter a valid account (teacher
 ---
 
 ### 1.2 Wrong password → 401
+
 In a terminal:
 
 ```bash
@@ -32,7 +34,6 @@ curl -s -o /dev/null -w "%{http_code}" -X POST https://localhost:8443/auth/login
 ```
 
 **Expected:** `401`
-
 
 ---
 
@@ -54,6 +55,7 @@ done
 ---
 
 ### 1.4 Passwords are hashed in the database
+
 Passwords must never be stored in plain text. Run:
 
 ```bash
@@ -68,6 +70,7 @@ docker compose exec database psql -U postgres -d safeschool \
 ## 2. Access control
 
 ### 2.1 Protected route without a token → 401
+
 Any API route that requires login should reject requests with no token:
 
 ```bash
@@ -79,6 +82,7 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/reports -k
 ---
 
 ### 2.2 Protected route with a valid token → 200
+
 First log in to get a token, then use it:
 
 ```bash
@@ -98,6 +102,7 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost:8443/reports \
 ## 3. ELK monitoring
 
 ### 3.1 Logs reach Elasticsearch (end-to-end chain)
+
 Generate a login event, then verify it landed in Kibana:
 
 ```bash
@@ -118,6 +123,7 @@ Go to **Discover**, select the `safeschool-logs` data view, set the time range t
 ---
 
 ### 3.2 Kibana dashboard loads automatically
+
 The dashboard must be provisioned on a fresh install — no manual clicks required.
 
 ```bash
@@ -132,6 +138,7 @@ curl -s "http://localhost:5601/api/saved_objects/_find?type=dashboard" \
 ---
 
 ### 3.3 Index Lifecycle Management is active
+
 Open Kibana at `http://localhost:5601`.  
 Go to **Stack Management → Index Lifecycle Policies**.
 
@@ -142,6 +149,7 @@ Go to **Stack Management → Index Lifecycle Policies**.
 ## 4. Code quality
 
 ### 4.1 Frontend lint — zero errors
+
 ```bash
 cd frontend && npm run lint
 ```
@@ -151,6 +159,7 @@ cd frontend && npm run lint
 ---
 
 ### 4.2 Backend lint — zero errors
+
 ```bash
 cd backend && npm run lint
 ```
@@ -160,6 +169,7 @@ cd backend && npm run lint
 ---
 
 ### 4.3 Backend TypeScript build — compiles cleanly
+
 ```bash
 cd backend && npm run build
 ```
@@ -171,6 +181,7 @@ cd backend && npm run build
 ## 5. Functional
 
 ### 5.1 No red errors in the browser console
+
 Open DevTools (F12 → Console tab) and navigate through each page. Look for red error messages.
 
 - [ ] Login page
@@ -184,6 +195,7 @@ Open DevTools (F12 → Console tab) and navigate through each page. Look for red
 ---
 
 ### 5.2 Two simultaneous users — sessions are isolated
+
 Open two different browsers (e.g. Firefox + Chrome). Log in with two different accounts. Both perform actions at the same time.
 
 **Expected:** each user sees only their own data. No data from one session leaks into the other.
@@ -193,6 +205,7 @@ Open two different browsers (e.g. Firefox + Chrome). Log in with two different a
 ## 6. Infrastructure security
 
 ### 6.1 Elasticsearch is not reachable from outside containers
+
 ```bash
 curl -s -o /dev/null -w "%{http_code}" --connect-timeout 3 http://localhost:9200
 ```
@@ -202,6 +215,7 @@ curl -s -o /dev/null -w "%{http_code}" --connect-timeout 3 http://localhost:9200
 ---
 
 ### 6.2 HTTPS is active
+
 ```bash
 curl -s -o /dev/null -w "%{http_code}" https://localhost:8443 -k
 ```
@@ -212,24 +226,24 @@ curl -s -o /dev/null -w "%{http_code}" https://localhost:8443 -k
 
 ## Checklist
 
-| Check | Status ✅ | Date |
-|---|---|---|
-| 1.1 Valid login |  | |
-| 1.2 Wrong password → 401 |  | |
-| 1.3 Brute force → 429 |  | |
-| 1.4 Passwords hashed (bcrypt) |  | |
-| 2.1 Protected route without token → 401 |  | |
-| 2.2 Protected route with token → 200 |  | |
-| 3.1 ELK end-to-end |  | |
-| 3.2 Kibana dashboard auto-provisioned |  | |
-| 3.3 ILM policy visible |  | |
-| 4.1 Frontend lint 0 errors |  |  |
-| 4.2 Backend lint 0 errors |  | |
-| 4.3 Backend build clean |  | |
-| 5.1 No console errors |  | |
-| 5.2 Multi-user isolation |  | |
-| 6.1 Elasticsearch not exposed |  | |
-| 6.2 HTTPS active |  | |
+| Check                                   | Status ✅ | Date |
+| --------------------------------------- | --------- | ---- |
+| 1.1 Valid login                         |           |      |
+| 1.2 Wrong password → 401                |           |      |
+| 1.3 Brute force → 429                   |           |      |
+| 1.4 Passwords hashed (bcrypt)           |           |      |
+| 2.1 Protected route without token → 401 |           |      |
+| 2.2 Protected route with token → 200    |           |      |
+| 3.1 ELK end-to-end                      |           |      |
+| 3.2 Kibana dashboard auto-provisioned   |           |      |
+| 3.3 ILM policy visible                  |           |      |
+| 4.1 Frontend lint 0 errors              |           |      |
+| 4.2 Backend lint 0 errors               |           |      |
+| 4.3 Backend build clean                 |           |      |
+| 5.1 No console errors                   |           |      |
+| 5.2 Multi-user isolation                |           |      |
+| 6.1 Elasticsearch not exposed           |           |      |
+| 6.2 HTTPS active                        |           |      |
 
 ---
 

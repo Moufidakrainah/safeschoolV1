@@ -1,19 +1,24 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User, UserRole } from './user.entity';
-import { StudentProfile } from '../student-profiles/student-profile.entity';
-import * as bcrypt from 'bcrypt';
-import { Injectable, NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
-import { Report } from '../reports/report.entity';
-import { SchoolClass } from '../classes/school-class.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as path from "path";
+import * as fs from "fs";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User, UserRole } from "./user.entity";
+import { StudentProfile } from "../student-profiles/student-profile.entity";
+import * as bcrypt from "bcrypt";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from "@nestjs/common";
+import { Report } from "../reports/report.entity";
+import { SchoolClass } from "../classes/school-class.entity";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Injectable()
 export class UsersService {
-
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -28,22 +33,49 @@ export class UsersService {
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
+      select: [
+        "id",
+        "email",
+        "password",
+        "role",
+        "firstName",
+        "lastName",
+        "createdAt",
+        "avatar",
+      ],
     });
   }
 
   async findByEmailWithProfile(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'role', 'firstName', 'lastName', 'createdAt', 'avatar'],
-      relations: ['studentProfile', 'studentProfile.schoolClass', 'staffProfile'],
+      select: [
+        "id",
+        "email",
+        "password",
+        "role",
+        "firstName",
+        "lastName",
+        "createdAt",
+        "avatar",
+      ],
+      relations: [
+        "studentProfile",
+        "studentProfile.schoolClass",
+        "staffProfile",
+      ],
     });
   }
 
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { id },
-      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile", "staffProfile.classes"],
+      relations: [
+        "studentProfile",
+        "studentProfile.schoolClass",
+        "staffProfile",
+        "staffProfile.classes",
+      ],
     });
   }
 
@@ -51,7 +83,12 @@ export class UsersService {
     role?: string,
     page = 1,
     limit = 10,
-  ): Promise<{ data: User[]; total: number; page: number; totalPages: number }> {
+  ): Promise<{
+    data: User[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
     const query = this.usersRepository
       .createQueryBuilder("user")
       .leftJoinAndSelect("user.studentProfile", "studentProfile")
@@ -62,7 +99,10 @@ export class UsersService {
     if (role) query.where("user.role = :role", { role });
 
     const total = await query.getCount();
-    const data = await query.skip((page - 1) * limit).take(limit).getMany();
+    const data = await query
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     return { data, total, page, totalPages: Math.ceil(total / limit) };
   }
 
@@ -73,8 +113,12 @@ export class UsersService {
       .leftJoinAndSelect("studentProfile.schoolClass", "schoolClass")
       .leftJoinAndSelect("user.staffProfile", "staffProfile")
       .leftJoinAndSelect("staffProfile.classes", "staffClasses")
-      .where("LOWER(user.firstName) LIKE LOWER(:query)", { query: `%${query}%` })
-      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", { query: `%${query}%` })
+      .where("LOWER(user.firstName) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
+      .orWhere("LOWER(user.lastName) LIKE LOWER(:query)", {
+        query: `%${query}%`,
+      })
       .limit(100)
       .getMany();
   }
@@ -87,15 +131,23 @@ export class UsersService {
     role: UserRole = UserRole.STUDENT,
   ): Promise<User> {
     const hashed = await bcrypt.hash(password, 10);
-    const user = this.usersRepository.create({ email, password: hashed, firstName, lastName, role });
+    const user = this.usersRepository.create({
+      email,
+      password: hashed,
+      firstName,
+      lastName,
+      role,
+    });
     return this.usersRepository.save(user);
   }
 
   async createByAdmin(dto: CreateUserDto): Promise<User> {
-    const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+    const existing = await this.usersRepository.findOne({
+      where: { email: dto.email },
+    });
     if (existing) throw new ConflictException("Cet email est déjà utilisé");
 
-    if (dto.role === 'student' && dto.dateOfBirth) {
+    if (dto.role === "student" && dto.dateOfBirth) {
       const dob = new Date(dto.dateOfBirth);
       const today = new Date();
       const age = today.getFullYear() - dob.getFullYear();
@@ -113,7 +165,7 @@ export class UsersService {
     });
     const saved = await this.usersRepository.save(user);
 
-    if (dto.role === 'student') {
+    if (dto.role === "student") {
       const schoolClass = dto.classId
         ? await this.classesRepository.findOne({ where: { id: dto.classId } })
         : null;
@@ -132,7 +184,11 @@ export class UsersService {
   async updateByAdmin(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ["studentProfile", "studentProfile.schoolClass", "staffProfile"],
+      relations: [
+        "studentProfile",
+        "studentProfile.schoolClass",
+        "staffProfile",
+      ],
     });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
 
@@ -147,7 +203,9 @@ export class UsersService {
 
     // Si on change l'email, vérifier qu'il n'est pas déjà pris
     if (dto.email && dto.email !== user.email) {
-      const existing = await this.usersRepository.findOne({ where: { email: dto.email } });
+      const existing = await this.usersRepository.findOne({
+        where: { email: dto.email },
+      });
       if (existing) throw new ConflictException("Cet email est déjà utilisé");
       user.email = dto.email;
     }
@@ -165,14 +223,21 @@ export class UsersService {
 
     // Mettre à jour ou créer le profil élève si classe ou date de naissance fournie
     if (dto.classId !== undefined || dto.dateOfBirth !== undefined) {
-      const schoolClass = dto.classId !== undefined
-        ? dto.classId ? await this.classesRepository.findOne({ where: { id: dto.classId } }) : null
-        : user.studentProfile?.schoolClass ?? null;
+      const schoolClass =
+        dto.classId !== undefined
+          ? dto.classId
+            ? await this.classesRepository.findOne({
+                where: { id: dto.classId },
+              })
+            : null
+          : (user.studentProfile?.schoolClass ?? null);
 
       if (user.studentProfile) {
         user.studentProfile.schoolClass = schoolClass;
         if (dto.dateOfBirth !== undefined)
-          user.studentProfile.dateOfBirth = dto.dateOfBirth ? new Date(dto.dateOfBirth) : null;
+          user.studentProfile.dateOfBirth = dto.dateOfBirth
+            ? new Date(dto.dateOfBirth)
+            : null;
         await this.studentProfileRepository.save(user.studentProfile);
       } else {
         const profile = this.studentProfileRepository.create({
@@ -190,29 +255,28 @@ export class UsersService {
   async changePassword(id: string, newPassword: string): Promise<void> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException("Utilisateur introuvable");
-    
+
     const hashed = await bcrypt.hash(newPassword, 10);
-    await this.usersRepository.update(id, { password:hashed });
+    await this.usersRepository.update(id, { password: hashed });
   }
 
   async deleteByAdmin(id: string, currentUserId: string): Promise<void> {
     if (id === currentUserId)
-      throw new ForbiddenException('Vous ne pouvez pas supprimer votre propre compte');
+      throw new ForbiddenException(
+        "Vous ne pouvez pas supprimer votre propre compte",
+      );
 
     const user = await this.usersRepository.findOne({
       where: { id },
-      relations: ['studentProfile'],
+      relations: ["studentProfile"],
     });
-    if (!user) throw new NotFoundException('Utilisateur introuvable');
+    if (!user) throw new NotFoundException("Utilisateur introuvable");
 
     const hasReports = await this.reportRepository.count({
-      where: [
-        { student: { id } },
-        { suspects: { resolvedUser: { id } } },
-      ]
+      where: [{ student: { id } }, { suspects: { resolvedUser: { id } } }],
     });
 
-    if (hasReports > 0) throw new BadRequestException('USER_HAS_REPORTS');
+    if (hasReports > 0) throw new BadRequestException("USER_HAS_REPORTS");
 
     if (user.studentProfile) {
       await this.studentProfileRepository.remove(user.studentProfile);
@@ -223,19 +287,28 @@ export class UsersService {
 
   async canDelete(id: string): Promise<{ deletable: boolean }> {
     const hasReports = await this.reportRepository.count({
-      where: [
-        { student: { id } },
-        { suspects: { resolvedUser: { id } } },
-      ]
+      where: [{ student: { id } }, { suspects: { resolvedUser: { id } } }],
     });
     return { deletable: hasReports === 0 };
   }
 
-  async updateAvatar(id: string, filename: string): Promise<{ avatar: string }> {
+  async updateAvatar(
+    id: string,
+    filename: string,
+  ): Promise<{ avatar: string }> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (user?.avatar && user.avatar !== filename) {
-      const oldPath = path.join(process.cwd(), 'uploads', 'avatars', user.avatar);
-      try { fs.unlinkSync(oldPath); } catch { /* fichier déjà supprimé ou inaccessible */ }
+      const oldPath = path.join(
+        process.cwd(),
+        "uploads",
+        "avatars",
+        user.avatar,
+      );
+      try {
+        fs.unlinkSync(oldPath);
+      } catch {
+        /* fichier déjà supprimé ou inaccessible */
+      }
     }
     await this.usersRepository.update(id, { avatar: filename });
     return { avatar: filename };
