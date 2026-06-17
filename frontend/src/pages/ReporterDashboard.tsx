@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Contexts & hooks
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 
 // API services
 import { getStaffProfile } from "@/services/api";
@@ -41,8 +41,11 @@ export default function ReporterDashboard() {
   const [staffProfile, setStaffProfile] = useState<StaffProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
 
+  // Effet de récupération de données (synchronisation avec une API externe) :
+  // le flag de chargement est un setState volontaire avant le fetch.
   useEffect(() => {
     if (user?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoadingProfile(true);
       getStaffProfile(user.id)
         .then((data) => setStaffProfile(data))

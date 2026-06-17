@@ -2,7 +2,7 @@ import type { AdminUser } from "@/types";
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth-context";
 import {
   getAllReports,
   updateReport,
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     navigate(`/dashboard?section=${viewSection}`, { replace: true });
-  }, [viewSection]);
+  }, [viewSection, navigate]);
 
   const selectedUserId = searchParams.get("userId");
   const [activeSuspect, setActiveSuspect] = useState<string | null>(null);
@@ -185,11 +185,15 @@ export default function AdminDashboard() {
 
   const itemsPerPage = 5;
 
-  // Rechargé au montage et à chaque retour de connexion
+  // Rechargé au montage et à chaque retour de connexion uniquement. fetchUsers
+  // et fetchClassesList changent d'identité à chaque pagination/recherche et
+  // selectedUserId à chaque navigation : les inclure relancerait ce rechargement
+  // complet à contretemps, on s'en tient donc à reconnectKey.
   useEffect(() => {
     fetchReports();
     fetchClassesList();
     if (selectedUserId) fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reconnectKey]);
 
   useEffect(() => {
@@ -203,10 +207,15 @@ export default function AdminDashboard() {
         })
         .catch(() => {});
     }
-  }, [selectedUserId]);
+  }, [selectedUserId, setSelectedUser, setUserForm]);
 
+  // On (re)charge la liste à l'entrée dans l'onglet "users" et au retour de
+  // connexion. fetchUsers change d'identité à chaque pagination/recherche et
+  // searchParams à chaque changement d'URL : les inclure relancerait le fetch à
+  // contretemps, on cible donc viewSection et reconnectKey.
   useEffect(() => {
     if (viewSection === "users" && !searchParams.get("userId")) fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewSection, reconnectKey]);
 
   const fetchReports = async () => {
@@ -229,6 +238,7 @@ export default function AdminDashboard() {
       setSelected(updated.find((r: Report) => r.id === id) ?? null);
       await loadNotes(id);
     } catch {
+      /* échec ignoré : l'état de sauvegarde est géré dans finally */
     } finally {
       setSaving(false);
     }
@@ -424,7 +434,9 @@ export default function AdminDashboard() {
   const loadNotes = async (reportId: string) => {
     try {
       setNotes(await getNotes(reportId));
-    } catch {}
+    } catch {
+      /* notes non critiques : on ignore l'échec de chargement */
+    }
   };
   const goTo = (report: typeof selected) => {
     setSelected(report);
@@ -452,7 +464,9 @@ export default function AdminDashboard() {
         setConvocationMessage("");
         setConvocationDate("");
       } else setNewNote("");
-    } catch {}
+    } catch {
+      /* échec d'ajout de note ignoré côté UI */
+    }
   };
 
   const renderUserForm = (isEdit = false) => (

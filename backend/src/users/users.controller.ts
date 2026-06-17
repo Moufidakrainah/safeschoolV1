@@ -145,7 +145,7 @@ export class UsersController {
   )
   async uploadAvatar(
     @Param("id") id: string,
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
     @Request() req: ExpressRequest & { user: JwtUser },
   ) {
     validateUUID(id);

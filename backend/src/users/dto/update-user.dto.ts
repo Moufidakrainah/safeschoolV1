@@ -15,7 +15,7 @@ export class UpdateUserDto {
   @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, {
     message: "Prénom invalide (lettres et tirets, 2-20 caractères)",
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   firstName?: string;
 
   @IsOptional()
@@ -23,7 +23,7 @@ export class UpdateUserDto {
   @Matches(/^[a-zA-ZÀ-ÿ'-]{2,20}$/, {
     message: "Nom invalide (lettres et tirets, 2-20 caractères)",
   })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   lastName?: string;
 
   @IsOptional()

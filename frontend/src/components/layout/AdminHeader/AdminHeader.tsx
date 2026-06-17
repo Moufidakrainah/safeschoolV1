@@ -5,15 +5,55 @@ import type { AuthUser } from "@/types";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
+type AdminSection = "reports" | "users" | "stats" | "classes";
+type AdminNavItem = { key: AdminSection; label: string; onClick: () => void };
+
 interface AdminHeaderProps {
   user: AuthUser | null;
   logoutUser: () => void;
-  viewSection: "reports" | "users" | "stats" | "classes";
-  setViewSection: (s: "reports" | "users" | "stats" | "classes") => void;
+  viewSection: AdminSection;
+  setViewSection: (s: AdminSection) => void;
   setSelected: (r: Report | null) => void;
   setView: (v: "list" | "detail") => void;
   fetchUsers: () => void;
   onLogoClick?: () => void;
+}
+
+function NavButtons({
+  isMobile,
+  navItems,
+  viewSection,
+  setMenuOpen,
+}: {
+  isMobile?: boolean;
+  navItems: AdminNavItem[];
+  viewSection: AdminSection;
+  setMenuOpen: (open: boolean) => void;
+}) {
+  return (
+    <>
+      {navItems.map((item) => (
+        <button
+          key={item.key}
+          onClick={() => {
+            item.onClick?.();
+            if (isMobile) setMenuOpen(false);
+          }}
+          className={
+            isMobile
+              ? "text-left text-lg font-semibold text-white"
+              : `font-bold text-sm transition-opacity ${
+                  viewSection === item.key
+                    ? "text-white underline underline-offset-4"
+                    : "text-white/80 hover:text-white"
+                }`
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </>
+  );
 }
 
 export default function AdminHeader({
@@ -28,11 +68,7 @@ export default function AdminHeader({
 }: AdminHeaderProps) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const navItems: {
-    key: "reports" | "users" | "stats" | "classes";
-    label: string;
-    onClick: () => void;
-  }[] = [
+  const navItems: AdminNavItem[] = [
     {
       key: "reports",
       label: t("admin.nav.reports"),
@@ -72,33 +108,6 @@ export default function AdminHeader({
     },
   ];
 
-  function NavButtons({ isMobile }: { isMobile?: boolean }) {
-    return (
-      <>
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => {
-              item.onClick?.();
-              if (isMobile) setMenuOpen(false);
-            }}
-            className={
-              isMobile
-                ? "text-left text-lg font-semibold text-white"
-                : `font-bold text-sm transition-opacity ${
-                    viewSection === item.key
-                      ? "text-white underline underline-offset-4"
-                      : "text-white/80 hover:text-white"
-                  }`
-            }
-          >
-            {item.label}
-          </button>
-        ))}
-      </>
-    );
-  }
-
   return (
     <header className="w-full flex flex-col">
       <Header user={user} logoutUser={logoutUser} />
@@ -120,7 +129,12 @@ export default function AdminHeader({
           </SheetTrigger>
           <SheetContent side="left" className="p-4 bg-primary text-white">
             <nav className="flex flex-col gap-4">
-              <NavButtons isMobile />
+              <NavButtons
+                isMobile
+                navItems={navItems}
+                viewSection={viewSection}
+                setMenuOpen={setMenuOpen}
+              />
             </nav>
           </SheetContent>
         </Sheet>
@@ -136,7 +150,11 @@ export default function AdminHeader({
             onLogoClick ? onLogoClick() : setViewSection("reports")
           }
         />
-        <NavButtons />
+        <NavButtons
+          navItems={navItems}
+          viewSection={viewSection}
+          setMenuOpen={setMenuOpen}
+        />
       </nav>
     </header>
   );

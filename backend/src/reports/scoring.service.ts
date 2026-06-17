@@ -224,10 +224,17 @@ Signalement : "${description}"`,
           }),
         },
       );
-      const data = await response.json();
-      const text = data.choices[0].message.content.trim();
+      const data = (await response.json()) as {
+        choices?: { message?: { content?: string } }[];
+      };
+      const text = data.choices?.[0]?.message?.content?.trim();
+      if (!text) return this.scoreAIFallback(description);
       const jsonMatch = text.match(/{[\s\S]*?}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text) as {
+        score?: number;
+        urgency?: boolean;
+        reason?: string;
+      };
       return {
         score: parsed.score ?? 0,
         urgency: parsed.urgency ?? false,

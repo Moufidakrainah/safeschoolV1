@@ -1,4 +1,4 @@
-import type { AdminUser } from "@/types";
+import type { AdminUser, Parent, StaffProfile } from "@/types";
 import { formatName } from "@/utils/formatName";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -103,7 +103,7 @@ export default function AdminUserProfile({
     null,
   );
   const [showParentForm, setShowParentForm] = useState(false);
-  const [editingParent, setEditingParent] = useState<any | null>(null);
+  const [editingParent, setEditingParent] = useState<Parent | null>(null);
   const [parentForm, setParentForm] = useState({
     firstName: "",
     lastName: "",
@@ -111,8 +111,8 @@ export default function AdminUserProfile({
     phone: "",
     address: "",
   });
-  const [profileParents, setProfileParents] = useState<any[]>([]);
-  const [profileStaff, setProfileStaff] = useState<any | null>(null);
+  const [profileParents, setProfileParents] = useState<Parent[]>([]);
+  const [profileStaff, setProfileStaff] = useState<StaffProfile | null>(null);
 
   useEffect(() => {
     setShowParentForm(false);
@@ -138,7 +138,7 @@ export default function AdminUserProfile({
     } else {
       setProfileStaff(null);
     }
-  }, [selectedUser?.id, selectedUser?.staffProfile]);
+  }, [selectedUser?.id, selectedUser?.role, selectedUser?.staffProfile]);
 
   const handleAvatarChange = async (file: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -196,7 +196,7 @@ export default function AdminUserProfile({
     selectedUser.studentProfile?.schoolClass ||
     selectedUser.studentProfile?.dateOfBirth ||
     staffData?.subject ||
-    staffData?.classes?.length > 0
+    (staffData?.classes?.length ?? 0) > 0
   );
 
   return (
@@ -334,13 +334,13 @@ export default function AdminUserProfile({
                   <TableCell>{staffData.subject}</TableCell>
                 </TableRow>
               )}
-              {staffData?.classes?.length > 0 && (
+              {(staffData?.classes?.length ?? 0) > 0 && (
                 <TableRow>
                   <TableCell className="font-semibold text-muted-foreground">
                     {t("userProfile.classes")}
                   </TableCell>
                   <TableCell>
-                    {staffData.classes
+                    {(staffData?.classes ?? [])
                       .map((c: SchoolClass) => `${c.level} ${c.section}`)
                       .join(", ")}
                   </TableCell>
@@ -413,7 +413,7 @@ export default function AdminUserProfile({
             </div>
           )}
           <div className="flex flex-col gap-2">
-            {profileParents.map((p: any) => {
+            {profileParents.map((p) => {
               const { first, last } = formatName(p.firstName, p.lastName);
               return (
                 <div key={p.id} className="bg-surface rounded-lg py-2">

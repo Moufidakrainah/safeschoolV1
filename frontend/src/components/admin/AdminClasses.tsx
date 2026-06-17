@@ -7,6 +7,7 @@ import {
   deleteClass,
   getAllUsers,
   isOfflineError,
+  getApiErrorMessage,
 } from "@/services/api";
 import OfflineNotice from "@/components/OfflineNotice";
 import { useReconnectKey } from "@/hooks/useOnlineStatus";
@@ -130,7 +131,7 @@ export default function AdminClasses() {
       setEditingClass(null);
       setClassForm({ level: "", section: "" });
     } catch (err: unknown) {
-      const msg = (err as any)?.response?.data?.message ?? "";
+      const msg = getApiErrorMessage(err);
       if (msg === "CLASS_ALREADY_EXISTS") {
         toast.error(t("classes.alreadyExists"));
       } else {

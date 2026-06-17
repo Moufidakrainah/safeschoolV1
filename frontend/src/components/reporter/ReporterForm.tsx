@@ -106,6 +106,9 @@ export default function ReporterForm({ user }: ReporterFormProps) {
   useEffect(() => {
     const index = typeOptions.findIndex((o) => o.value === type);
     if (index >= 0) cardRefs.current[index]?.focus();
+    // typeOptions est recréé à chaque rendu mais ses `value` sont constants ; on
+    // ne dépend que de `type` pour ne déplacer le focus que sur changement de type.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
 
   // ── Helpers limites ──
