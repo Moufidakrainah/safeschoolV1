@@ -269,7 +269,7 @@ export default function AdminUserProfile({
             <Button onClick={() => setEditMode(true)}>
               {t("admin.users.edit")}
             </Button>
-            <label className="cursor-pointer">
+            <label className="cursor-pointer inline-flex items-center gap-1 h-8 px-4 py-2 rounded-md text-sm bg-primary text-white hover:opacity-90">
               {uploadingAvatarId === selectedUser.id
                 ? t("userProfile.uploading")
                 : t("userProfile.changePhoto")}
