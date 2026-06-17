@@ -18,6 +18,17 @@ export function isOfflineError(err: unknown): boolean {
   return axios.isAxiosError(err) && err.code === "ERR_NETWORK";
 }
 
+/* Extrait le message d'erreur renvoyé par l'API (corps de la réponse Axios),
+   avec repli sur le message de l'erreur, sinon chaîne vide */
+export function getApiErrorMessage(err: unknown): string {
+  if (axios.isAxiosError(err)) {
+    const data = err.response?.data as { message?: string } | undefined;
+    return data?.message ?? err.message ?? "";
+  }
+  if (err instanceof Error) return err.message;
+  return "";
+}
+
 const api = axios.create({ baseURL: API_BASE });
 
 api.interceptors.request.use((config) => {

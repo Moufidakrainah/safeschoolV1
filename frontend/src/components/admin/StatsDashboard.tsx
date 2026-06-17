@@ -46,7 +46,7 @@ export default function StatsDashboard({ reports }: Props) {
     if (r.reporter === "victime")
       return r.student?.studentProfile?.schoolClass ?? null;
     const resolved = r.victims?.find(
-      (v: any) => v.resolvedUser?.studentProfile?.schoolClass,
+      (v) => v.resolvedUser?.studentProfile?.schoolClass,
     );
     return resolved?.resolvedUser?.studentProfile?.schoolClass ?? null;
   };
@@ -78,7 +78,7 @@ export default function StatsDashboard({ reports }: Props) {
     return API_REPORT_GRADES.map((apiGrade) => {
       const severity = severityFromApiGrade(apiGrade);
       return {
-        name: severityLabel(severity),
+        name: t(`severity.${severity}`),
         value: filtered.filter((r) => r.grade === apiGrade).length,
         color: SEVERITY_COLORS[severity],
       };

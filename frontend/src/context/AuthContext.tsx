@@ -1,18 +1,8 @@
 import type { AuthUser } from "@/types";
 /* stocke l utilisateur connecte. Disponible partout via useAuth() */
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
 import type { ReactNode } from "react";
-
-interface AuthContextType {
-  user: AuthUser | null;
-  token: string | null;
-  loginUser: (token: string, user: AuthUser) => void;
-  logoutUser: () => void;
-  updateUser: (updates: Partial<AuthUser>) => void;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
+import { AuthContext } from "./auth-context";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -61,10 +51,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
 }

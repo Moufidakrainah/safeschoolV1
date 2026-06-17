@@ -20,5 +20,5 @@ export class ReportSuspect {
 
   @ManyToOne(() => User, { nullable: true, onDelete: "SET NULL" })
   @JoinColumn({ name: "resolvedUserId" })
-  resolvedUser: User;
+  resolvedUser: User | null;
 }

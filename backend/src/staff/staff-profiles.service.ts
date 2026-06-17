@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, In } from "typeorm";
 import { StaffProfile } from "./staff-profile.entity";
 import { SchoolClass } from "../classes/school-class.entity";
+import { User } from "../users/user.entity";
 
 @Injectable()
 export class StaffProfilesService {
@@ -20,7 +21,7 @@ export class StaffProfilesService {
     const profile = new StaffProfile();
     profile.profession = dto.profession;
     profile.subject = dto.subject ?? null;
-    profile.user = { id: dto.userId } as any;
+    profile.user = { id: dto.userId } as User;
 
     if (dto.classIds?.length) {
       profile.classes = await this.classRepo.findBy({ id: In(dto.classIds) });

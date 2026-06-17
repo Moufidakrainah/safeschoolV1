@@ -116,6 +116,7 @@ export function useReports(): UseReportsReturn {
       const data = await getAllReports();
       setReports(data);
     } catch {
+      /* échec ignoré : l'état de chargement est géré dans finally */
     } finally {
       setLoading(false);
     }
@@ -136,6 +137,7 @@ export function useReports(): UseReportsReturn {
         setView("list");
         setSelected(null);
       } catch {
+        /* échec ignoré : l'état de sauvegarde est géré dans finally */
       } finally {
         setSaving(false);
       }
@@ -148,7 +150,9 @@ export function useReports(): UseReportsReturn {
     try {
       const data = await getNotes(reportId);
       setNotes(data);
-    } catch {}
+    } catch {
+      /* notes non critiques : on ignore l'échec de chargement */
+    }
   }, []);
 
   const goTo = useCallback(
@@ -178,7 +182,9 @@ export function useReports(): UseReportsReturn {
           setConvocationMessage("");
           setConvocationDate("");
         } else setNewNote("");
-      } catch {}
+      } catch {
+        /* échec d'ajout de note ignoré côté UI */
+      }
     },
     [selected, newNote, convocationMessage, convocationDate, loadNotes],
   );

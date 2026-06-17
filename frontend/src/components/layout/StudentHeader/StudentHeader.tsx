@@ -29,6 +29,45 @@ interface StudentHeaderProps {
   onNotifRefresh?: () => void;
 }
 
+function NavButtons({
+  isMobile,
+  navItems,
+  viewSection,
+  setViewSection,
+  setMenuOpen,
+}: {
+  isMobile?: boolean;
+  navItems: { key: StudentSection; label: string }[];
+  viewSection: StudentSection;
+  setViewSection: (s: StudentSection) => void;
+  setMenuOpen: (open: boolean) => void;
+}) {
+  return (
+    <>
+      {navItems.map((item) => (
+        <button
+          key={item.key}
+          onClick={() => {
+            setViewSection(item.key);
+            if (isMobile) setMenuOpen(false);
+          }}
+          className={
+            isMobile
+              ? "text-left text-lg font-semibold text-white"
+              : `font-bold text-sm transition-opacity ${
+                  viewSection === item.key
+                    ? "text-white underline underline-offset-4"
+                    : "text-white/80 hover:text-white"
+                }`
+          }
+        >
+          {item.label}
+        </button>
+      ))}
+    </>
+  );
+}
+
 export default function StudentHeader({
   user,
   logoutUser,
@@ -70,18 +109,24 @@ export default function StudentHeader({
     }
   }, [onNotifRefresh]);
 
+  // fetchNotifs synchronise avec un système externe (API de notifications) et
+  // ne pose son state qu'après un await ; c'est l'usage légitime d'un effet, mais
+  // la règle le signale car le setState est atteignable depuis l'effet.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchNotifs();
     const interval = setInterval(fetchNotifs, 30000);
     return () => clearInterval(interval);
   }, [fetchNotifs]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (notifRefreshKey > 0) fetchNotifs();
   }, [notifRefreshKey, fetchNotifs]);
 
   // Rafraîchit les notifications dès le retour de la connexion
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (reconnectKey > 0) fetchNotifs();
   }, [reconnectKey, fetchNotifs]);
 
@@ -108,33 +153,6 @@ export default function StudentHeader({
     { key: "quiz", label: t("student.nav.quiz") },
   ];
 
-  function NavButtons({ isMobile }: { isMobile?: boolean }) {
-    return (
-      <>
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => {
-              setViewSection(item.key);
-              if (isMobile) setMenuOpen(false);
-            }}
-            className={
-              isMobile
-                ? "text-left text-lg font-semibold text-white"
-                : `font-bold text-sm transition-opacity ${
-                    viewSection === item.key
-                      ? "text-white underline underline-offset-4"
-                      : "text-white/80 hover:text-white"
-                  }`
-            }
-          >
-            {item.label}
-          </button>
-        ))}
-      </>
-    );
-  }
-
   return (
     <header className="w-full flex flex-col">
       <Header
@@ -160,7 +178,13 @@ export default function StudentHeader({
           </SheetTrigger>
           <SheetContent side="left" className="p-4 bg-primary text-white">
             <nav className="flex flex-col gap-4">
-              <NavButtons isMobile />
+              <NavButtons
+                isMobile
+                navItems={navItems}
+                viewSection={viewSection}
+                setViewSection={setViewSection}
+                setMenuOpen={setMenuOpen}
+              />
             </nav>
           </SheetContent>
         </Sheet>
@@ -174,7 +198,12 @@ export default function StudentHeader({
           className="h-10 md:h-14"
 		  onClick={() => setViewSection('report')}
         />
-        <NavButtons />
+        <NavButtons
+          navItems={navItems}
+          viewSection={viewSection}
+          setViewSection={setViewSection}
+          setMenuOpen={setMenuOpen}
+        />
       </nav>
     </header>
   );
