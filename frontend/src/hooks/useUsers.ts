@@ -348,7 +348,7 @@ export function useUsers(): UseUsersReturn {
   const handleDeleteUser = useCallback(
     async (id: string) => {
     // Empêcher la suppression de son propre compte
-	  if (id === user.id) {
+	  if (id === user?.id) {
       setDeleteTarget(id);
       setIsBlocked(true);
       setDeleteError(t("admin.users.deleteSelf"));
@@ -360,7 +360,7 @@ export function useUsers(): UseUsersReturn {
     setIsBlocked(!deletable);
     setDeleteError("");
     },
-    [user.id, t]
+    [user?.id, t]
   );
 
   const confirmDelete = useCallback(async () => {
