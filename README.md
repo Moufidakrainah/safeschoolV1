@@ -1,5 +1,3 @@
-!!!! VERIFIER QU'IL NE RESTE PAS DE TODO !!!!
-
 *This project has been created as part of the 42 curriculum by eguthman, mdoan, mobougri, quclaque.*
 
 ---
@@ -19,8 +17,6 @@
 - Installable Progressive Web App (PWA) whose static shell is cached for offline loading (backend data still requires a connection)
 - Centralized log management and monitoring via the ELK stack (Elasticsearch, Logstash, Kibana)
 
-<!- TODO équipe : relire/ajuster cette description en anglais et cette liste pour qu'elles correspondent exactement au périmètre livré -->
-
 ---
 ## Instructions
 
@@ -31,7 +27,6 @@ Docker, Docker Compose, Make, Git.
 ### Environment Setup
 
 `.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own:
-
 
 | Variable | Purpose |
 |----------|---------|
@@ -77,7 +72,6 @@ make prod-down   # Stop the production (nginx) stack
 make fclean      # Down + remove volumes, images and build cache
 ```
 
-
 ### Access URLs
 
 **Development (`make dev`):**
@@ -88,15 +82,6 @@ make fclean      # Down + remove volumes, images and build cache
 | `http://localhost:5000` | Backend API |
 | `http://localhost:5601` | Kibana (log monitoring) |
 
-**Production (`make all`)**
-
-| URL | Service |
-|-----|---------|
-| `https://localhost:8443` | Application (frontend + `/api` backend) |
-| `http://localhost:5601` | Kibana (log monitoring) |
-
-Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
-
 **Production (`make all` / `make prod`):**
 
 | URL | Service |
@@ -104,6 +89,8 @@ Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in y
 | `https://localhost:8443` | Application — frontend, API and WebSocket served by nginx over HTTPS |
 | `http://localhost:8080` | HTTP entry point (redirects to HTTPS) |
 | `http://localhost:5601` | Kibana |
+
+Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
 
 ### Demo Accounts
 
@@ -121,7 +108,6 @@ If the sample dataset has been seeded, the following accounts can be used for de
 | `emma@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
 | `kevin@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
 | `sara@safeschool.com` | `ELEVEeleve123123+` | student | `/student` |
-
 
 ---
 ## Resources
@@ -152,7 +138,6 @@ If the sample dataset has been seeded, the following accounts can be used for de
 - [Chrome DevTools](https://developer.chrome.com/docs/devtools) for runtime inspection, network debugging and UI checks
 - [Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) for quick audits on performance and general best practices
 - [Cross-browser validation notes](docs/technical/browser_support.md)
-<br><!- TODO équipe : completez en anglais la liste avec quelques sources pertinentes qui vont ont servi au cours du developpement -->
 
 ### AI Usage
 
@@ -170,7 +155,6 @@ AI tools were used during this project both **as a feature of the application** 
   - Improving technical write-ups: PR descriptions, meeting summaries, issue reports.
   - Rewriting contribution summaries and README sections in English from rough working notes, then manually reviewing and correcting them before publication.
   - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
-  <br><!- TODO équipe : completez en anglais avec vos usages réels -->
 
 ---
 ## Team Information
@@ -184,12 +168,7 @@ Every team member contributed to the code as well as to the organization of the 
 | mobougri | Technical Lead | Backend, DB, API |
 | quclaque | Technical Lead | Websockets, Backend |
 
-
-
 ### 1. Product Owner — mdoan
-
-<!- TODO mdoan : completer en anglais avec une description precise de ton role -->
-
 
 ### 2. Project Manager / Scrum Master — eguthman
 
@@ -206,8 +185,6 @@ Led project coordination for the full duration of the project, with responsibili
 
 ### 3. Technical Lead 1 — mobougri
 
-<!- TODO mobougri : completer en anglais avec une description precise de ton role -->
-
 ### 4. Technical Lead 2 — quclaque
 
 Focused on the project's real-time layer: designed and built the multiplayer quiz and the WebSocket communication behind it.
@@ -216,7 +193,6 @@ Focused on the project's real-time layer: designed and built the multiplayer qui
 - Design the WebSocket event protocol and the synchronized game lifecycle: lobby, question flow, answer reveal, scoring and leaderboard.
 - Handle the multiplayer edge cases: authentication on the socket handshake, reconnection grace period, host migration, single-room-per-account enforcement and room-capacity limits.
 - Contribute to the Progressive Web App (installable frontend with limited offline support).
-
 
 ---
 ## Project Management
@@ -243,7 +219,6 @@ To improve coordination in a team that was discovering full-stack web developmen
 
 ---
 ## Technical Stack
-
 
 ### Frontend
 
@@ -294,15 +269,13 @@ To improve coordination in a team that was discovering full-stack web developmen
 ### Technical Choices
 
 - **React** — the subject requires a modern JavaScript frontend framework, and React gave us a widely used ecosystem with solid TypeScript support and accessible documentation.
-- **NestJS** —  provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
+- **NestJS** — provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
 - **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
 - **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
 - **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
 - **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process. A base file is shared by both modes, with a dev overlay (hot reload, direct ports) and a prod overlay (compiled backend + nginx).
 - **nginx** — in production nginx serves the built frontend, terminates TLS and reverse-proxies the API, uploads and WebSocket traffic to the backend, so the whole application runs behind a single HTTPS origin instead of exposing the dev servers directly. Same-origin serving also keeps the frontend free of hard-coded backend hosts (it uses relative URLs), so it works over localhost, a LAN IP or a domain without rebuilding.
 - **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
-
-<!- TODO équipe : compléter en anglais si d'autres choix structurants méritent d'être justifiés (i18n, design system, choix du quiz comme "jeu", etc.) -->
 
 ---
 ## Database Schema
@@ -316,11 +289,11 @@ All tables use UUID primary keys and are managed through TypeORM entities.
 ### Tables and Relationships
 
 ```
-users (role: student | teacher | staff | director | admin)
+users (role: student | teacher | director | admin)
   ├── id (PK, uuid)
   ├── email (unique), password (hashed, select: false), firstName, lastName, avatar
   ├── 1—1 → student_profiles (if role = student)
-  ├── 1—1 → staff_profiles (if role = staff/teacher/director)
+  ├── 1—1 → staff_profiles (if role = teacher/director)
   └── 1—N → reports (as the reporting student)
 
 student_profiles
@@ -351,12 +324,12 @@ reports
   └── 1—N → report_victims   (cascade delete)
 
 report_suspects / report_victims
-  ├── id (PK), freeText, ...
+  ├── id (PK), freeText
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (resolvedUserId, nullable, set null on delete)
 
 report_notes
-  ├── id (PK), content, type
+  ├── id (PK), content, type (enum: note | convocation | status_change)
   ├── N—1 → reports          (cascade delete)
   └── N—1 → users            (author, nullable, set null on delete)
 
@@ -373,70 +346,60 @@ notifications
 | users | id | UUID | Primary key |
 | users | email | varchar, unique | Login identifier |
 | users | password | varchar (hashed, `select: false`) | bcrypt hash, never returned by default queries |
-| users | role | enum (`UserRole`) | student / teacher / staff / director / admin — drives permissions |
+| users | role | enum (`UserRole`) | student / teacher / director / admin — drives permissions |
 | reports | grade | enum (`ReportGrade`) | Severity grade computed from the AI scoring service |
 | reports | status | enum (`ReportStatus`) | Lifecycle state of a report (default: `NEW`) |
 | reports | aiScore / aiReason | float / text | Output of the AI severity scoring (`scoring.service.ts`) |
-| classes | level / section | varchar | e.g. "6e" / "A" — identifies a school class |
+| classes | level / section | varchar | e.g. "6eme" / "A" — identifies a school class |
 
 ---
 ## Features List
 
 | Feature | Description | Team member(s) |
 |---------|-------------|---------------|
-| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | <!-- login --> |
-| Report submission and follow-up | Students and school staff can submit harassment reports, optionally anonymously, then follow their status as the case is handled. | <!-- login --> |
-| Report review workflow | Authorized staff can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | <!-- login --> |
-| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | <!-- login --> |
-| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | <!-- login --> |
-| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | <!-- login --> |
+| Authentication | Users sign in securely and are routed to role-specific areas of the application depending on their permissions. | |
+| Report submission and follow-up | Students and school staff can submit harassment reports, optionally anonymously, then follow their status as the case is handled. | |
+| Report review workflow | Authorized staff can assess reports, add notes, update statuses and manage case follow-up from dedicated dashboards. | |
+| AI-assisted report analysis | When a report is submitted, the description is automatically analyzed to estimate severity and produce a human-readable summary shown to staff. | |
+| User and role administration | Admin users can manage accounts, update roles and maintain access control across the platform. | |
+| School organization management | Classes, students, parents and staff can be linked together to reflect the school's structure inside the application. | |
 | Real-time multiplayer quiz | Users can join a shared harassment-awareness quiz with synchronized progression and live score updates. | quclaque |
-| Notification system | The platform notifies users about report updates, quiz events and other important actions. | <!-- login --> |
-| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | <!-- login --> |
-| Internationalization | The interface is available in French, English and German through a language switcher. | <!-- login --> |
+| Notification system | The platform notifies users about report updates, quiz events and other important actions. | |
+| Design system and reusable UI | The frontend relies on reusable interface components to keep the application consistent across pages and roles. | |
+| Internationalization | The interface is available in French, English and German through a language switcher. | |
 | Progressive Web App | The frontend can be installed as a PWA and provides limited offline support. | quclaque |
-| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | <!-- login --> |
-| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | <!-- login --> |
-| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | <!-- login --> |
-| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | <!-- login --> |
-
-<!- TODO équipe : assigner les logins (un ou plusieurs par ligne), ajuster les libellés/descriptions si besoin pour coller exactement au périmètre livré -->
+| Search and filtering | Users can search, filter and sort reports or administrative data more efficiently. | |
+| Legal information pages | Privacy Policy and Terms of Service pages are accessible directly from the application. | |
+| Activity analytics | Dashboards provide visual summaries of platform activity through charts and key indicators. | |
+| Centralized logging | Application logs can be collected and inspected through the ELK stack for monitoring and troubleshooting. | |
 
 ---
 ## Modules
 
 | Module | Category | Type | Points | Description / justification | Team member(s) |
 |--------|----------|------|--------|------------------------------|---------------|
-| Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | <!-- login --> |
+| Use a framework for both frontend and backend | Web | Major | 2 | Implemented with React on the frontend and NestJS on the backend, giving both sides of the project a structured framework-based architecture. | |
 | Real-time features — WebSockets (Quiz) | Web | Major | 2 | Implemented through a Socket.io quiz module that synchronizes room state, scores and progression between connected players in real time. | quclaque |
-| ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | <!-- login --> |
-| Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | <!-- login --> |
+| ORM database (TypeORM) | Web | Minor | 1 | Implemented with TypeORM entities, repositories and relations to manage persistence against the PostgreSQL database. | |
+| Advanced search functionality | Web | Minor | 1 | Implemented with filtering, sorting and search controls on report and administration views. | |
 | Progressive Web App (PWA) | Web | Minor | 1 | Implemented with a web app manifest and service-worker-based offline support for the frontend. | quclaque |
-| 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | <!-- login --> |
-| Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | <!-- login --> |
-| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | <!-- login --> |
-| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | <!-- login --> |
-| Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | <!-- login --> |
-| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | <!-- login --> |
-| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | <!-- login --> |
-| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | <!-- login --> |
+| 10 reusable components — Custom design system | Web | Minor | 1 | Implemented through a reusable component set and shared UI rules for colors, typography and layout patterns. | |
+| Notification system | Web | Minor | 1 | Implemented as in-app notifications tied to report updates, quiz-related events and other important user actions. | |
+| Sentiment analysis on report descriptions | Artificial Intelligence | Minor | 1 | Implemented via a Groq LLM call on each report submission: the model classifies the description by severity (physical threat / emotional distress / verbal / banal), returns an urgency flag and a short explanation. The score contribution feeds the final severity grade; the explanation is displayed to staff in the report detail view. | |
+| Support 3 languages (i18n — fr/en/de) | Accessibility & i18n | Minor | 1 | Implemented with translated interface strings and a language switcher for French, English and German. | |
+| Support 3 browsers | Accessibility & i18n | Minor | 1 | Implemented by testing and adjusting the application for Chrome, Firefox and Edge. | |
+| Advanced permissions system (CRUD) | User Management | Major | 2 | Implemented with role-based access control and administrative CRUD actions adapted to each user type. | |
+| Organization system | User Management | Major | 2 | Implemented with classes, student profiles, staff profiles and parents linked together inside the same data model and admin workflows. | |
+| User activity analytics dashboard | User Management | Minor | 1 | Implemented with dashboard views and charts summarizing activity and platform data. | |
 | Implement a complete web-based game (Quiz) | Gaming & UX | Major | 2 | Implemented as a complete browser-based awareness quiz with rules, scoring, question flow and shared match state. | quclaque |
 | Remote players | Gaming & UX | Major | 2 | Implemented by allowing players on separate devices to join the same live quiz room and play together over the network. | quclaque |
 | Multiplayer game (3+ players) | Gaming & UX | Major | 2 | Implemented with quiz rooms that support more than two simultaneous players in the same match. | quclaque |
-| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | <!-- login --> |
+| Infrastructure for log management (ELK) | Devops | Major | 2 | Implemented with Elasticsearch, Logstash and Kibana connected to application logging so logs can be centralized and inspected from one stack. | |
 
-**Total: 8 Major × 2 + 9 Minor × 1 = 25 pts** (minimum required: 14 pts — the surplus beyond 14 may count as bonus, capped at +5 pts per the subject's Bonus part)
-
-<!- TODO équipe :
-  - assigner les logins par module
-  - vérifier que chaque module est démontrable intégralement à l'éval
-  - si certains modules listés ci-dessus ne sont finalement pas livrés, les retirer et recalculer le total
--->
+**Total: 8 Major x 2 + 9 Minor x 1 = 25 pts** (minimum required: 14 pts)
 
 ---
 ## Individual Contributions
-
-<!- TODO équipe (important) : le sujet est explicite — chaque membre doit pouvoir expliquer et justifier sa propre contribution à l'oral. Ne décrivez que ce que vous avez réellement fait et comprenez en profondeur. -->
 
 ### eguthman
 
@@ -451,11 +414,7 @@ notifications
 
 ### mdoan
 
-- TODO mdoan: describe concrete features, modules, responsibilities and challenges personally handled.
-
 ### mobougri
-
-- TODO mobougri: describe concrete features, modules, responsibilities and challenges personally handled.
 
 ### quclaque
 
@@ -464,7 +423,6 @@ notifications
 - Handled the hard multiplayer cases so several players on different devices can play the same match reliably: JWT authentication on the socket handshake, a reconnection grace period that restores a player's in-progress state, host migration when the host leaves, single-room-per-account enforcement and room-capacity limits.
 - Contributed to the Progressive Web App so the frontend can be installed and offers limited offline support.
 - Main challenge: this was my first time with NestJS and Socket.IO, so the hardest part was understanding the tech stack — how NestJS gateways, dependency injection and Socket.IO rooms/events fit together — and then using it to keep every client's game state synchronized in real time. I worked through it by reading the documentation, building the game flow incrementally, and testing it with several simultaneous clients.
-
 
 ---
 ## Additional Information
@@ -480,8 +438,6 @@ For deeper documentation beyond what is required here — architecture overview,
   - In **dev mode** (`make dev`) over `http://localhost`, there is no certificate to validate and `localhost` is a secure context, so the service worker registers and offline works out of the box.
 
   To get full offline support anywhere, trust the certificate on that device — see [`docs/technical/pwa.md`](docs/technical/pwa.md).
-
-<!- TODO équipe : lister les en anglais les limites connues constatées en fin de projet (ex. fonctionnalités partielles, contraintes de temps, choix assumés).  -->
 
 ### License
 
