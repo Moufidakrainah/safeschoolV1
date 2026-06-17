@@ -214,7 +214,7 @@ export function useUsers(): UseUsersReturn {
 
   const handleAvatarUpload = useCallback(
     async (userId: string, file: File) => {
-      // ✅ Vérifier le type avant d'envoyer
+      // Vérifier le type avant d'envoyer
       const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
       if (!allowedTypes.includes(file.type)) return;
 
@@ -235,7 +235,7 @@ export function useUsers(): UseUsersReturn {
           );
           setAvatarTimestamps((prev) => ({ ...prev, [userId]: Date.now() }));
           await fetchUsers();
-          toast.success(t("toast.avatarUpdated"));
+        //   toast.success(t("toast.avatarUpdated"));
         }
       } catch {}
     },
