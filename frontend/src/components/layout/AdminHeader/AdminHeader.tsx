@@ -107,6 +107,7 @@ export default function AdminHeader({
           src="/logos/safeschool-logo.png"
           alt="SafeSchool"
           className="h-10"
+		  onClick={() => setViewSection('reports')}
         />
 
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
@@ -127,6 +128,7 @@ export default function AdminHeader({
           src="/logos/safeschool-logo.png"
           alt="SafeSchool"
           className="h-10 md:h-14"
+		  onClick={() => setViewSection('reports')}
         />
         <NavButtons />
       </nav>

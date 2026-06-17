@@ -691,6 +691,12 @@ export default function AdminDashboard() {
           adminSetViewSection={setViewSection}
           adminSetSelected={(r) => setSelected(r as Report | null)}
           adminFetchUsers={fetchUsers}
+		  adminOnLogoClick={() => {
+			handleReset();
+			setViewSection('reports');
+			setSelected(null);
+			setView('list');
+		  }}
         />
         <ReportDetail
           selected={selected}
