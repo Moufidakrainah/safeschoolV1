@@ -17,19 +17,17 @@ import { QuizRealtimeModule } from "./quiz-realtime/quiz-realtime.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // fenêtre de 60 secondes
-        limit: 20, // max 20 requêtes par fenêtre
-      },
-    ]),
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
+      limit: 7,
+    }]),
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT ?? "5432", 10),
+      port: parseInt(process.env.DB_PORT!, 10),
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME || "safeschool",
+      database: process.env.DB_NAME,
       entities: [__dirname + "/**/*.entity{.ts,.js}"],
       synchronize: true,
     }),

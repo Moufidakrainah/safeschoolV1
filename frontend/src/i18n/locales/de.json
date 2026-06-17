@@ -14,7 +14,8 @@
     "error": "Falsche Anmeldeinformationen.",
     "errorRequired": "Bitte füllen Sie alle Felder aus.",
     "keepEmpty": "(leer lassen, um unverändert zu bleiben)",
-    "tooManyRequests": "Zu viele Versuche. Bitte warten Sie 1 Minute."
+    "tooManyRequests": "Zu viele Versuche. Bitte warten Sie 1 Minute.",
+    "tooManyRequestsCountdown": "Zu viele Versuche. Versuchen Sie es in {{seconds}}s erneut."
   },
   "nav": {
     "logout": "Abmelden"

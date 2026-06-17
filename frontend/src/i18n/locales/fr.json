@@ -14,7 +14,8 @@
     "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères.",
     "error": "Identifiant ou mot de passe incorrect.",
     "keepEmpty": "(laisser vide pour ne pas changer)",
-    "tooManyRequests": "Trop de tentatives. Réessayez dans 1 minute."
+    "tooManyRequests": "Trop de tentatives. Réessayez dans 1 minute.",
+    "tooManyRequestsCountdown": "Trop de tentatives. Réessayez dans {{seconds}}s."
   },
   "nav": {
     "logout": "Se déconnecter"
