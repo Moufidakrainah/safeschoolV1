@@ -9,7 +9,6 @@ import { ScoringService } from "./scoring.service";
 import { ReportNote } from "./report-note.entity";
 import { NotificationsService } from "../notifications/notifications.service";
 import { LoggerService } from "../logger/logger.service";
-import { JwtUser } from "../common/interfaces/jwt-user.interface";
 
 @Injectable()
 export class ReportsService {
@@ -41,11 +40,7 @@ export class ReportsService {
         type,
         description,
         frequency,
-        (
-          student as {
-            studentProfile?: { schoolClass?: { level?: string } };
-          }
-        ).studentProfile?.schoolClass?.level ?? "",
+        (student as any).studentProfile?.schoolClass?.level ?? "",
         suspects,
       );
     const year = new Date().getFullYear();
