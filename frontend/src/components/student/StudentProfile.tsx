@@ -35,9 +35,6 @@ export default function StudentProfile({ user, parents }: StudentProfileProps) {
   const { t } = useTranslation();
   const { updateUser: _updateUser } = useAuth();
   const [avatar, _setAvatar] = useState<string | null>(user?.avatar ?? null);
-  // Jeton anti-cache calculé une seule fois au montage (Date.now() ne doit pas
-  // être appelé pendant le rendu).
-  const [cacheBust] = useState(() => Date.now());
 
   const calcAge = (dateOfBirth: string): number => {
     const dob = new Date(dateOfBirth);
@@ -56,7 +53,7 @@ export default function StudentProfile({ user, parents }: StudentProfileProps) {
           {avatar ? (
             <img
               className="w-56 h-56 rounded-full object-cover border-4 border-primary"
-              src={`${AVATAR_BASE}${avatar}?t=${cacheBust}`}
+              src={`${AVATAR_BASE}${avatar}`}
               alt={`${user?.firstName} ${user?.lastName}`}
             />
           ) : (
