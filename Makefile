@@ -220,7 +220,7 @@ test-login-invalid-email: ## Tester login avec email mal formé (attendu: 400)
 test-login-bad-password: ## Tester login avec mauvais mot de passe (attendu: 401)
 	@curl -s -X POST http://localhost:5000/auth/login \
 		-H "Content-Type: application/json" \
-		-d '{"email":"lotfi@safeschool.com","password":"mauvaismdp"}' | python3 -m json.tool
+		-d '{"email":"lotfi@safeschool.com","password":"mauvaismdgrand"}' | python3 -m json.tool
 
 test-login-unknown-email: ## Tester login avec email inconnu (attendu: 401)
 	@curl -s -X POST http://localhost:5000/auth/login \
@@ -282,7 +282,7 @@ test-decode-token: ## Décoder le payload du token JWT de Lotfi
 		-H "Content-Type: application/json" \
 		-d '{"email":"admin@safeschool.com","password":"ADMINadmin123123+"}' | \
 		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
-	echo "$$TOKEN" | cut -d'.' -f2 | python3 decode_jwt.py
+	echo "$$TOKEN" | cut -d'.' -f2 | python3 tools/decode_jwt.py
 
 test-verify-token: ## Vérifier la signature du token avec le JWT_SECRET
 	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
@@ -290,7 +290,7 @@ test-verify-token: ## Vérifier la signature du token avec le JWT_SECRET
 		-d '{"email":"lotfi@safeschool.com","password":"ELEVEeleve123123+"}' | \
 		python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"); \
 	SECRET=$$(grep JWT_SECRET .env | cut -d'=' -f2); \
-	python3 verify_jwt.py "$$TOKEN" "$$SECRET"
+	python3 tools/verify_jwt.py "$$TOKEN" "$$SECRET"
 
 test-wrong-role: ## Tester accès GET /users avec token élève (attendu: 403)
 	@TOKEN=$$(curl -s -X POST http://localhost:5000/auth/login \
