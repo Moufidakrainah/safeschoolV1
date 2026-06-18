@@ -73,9 +73,7 @@ export default function Header({
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-    : "";
+  const roleLabel = user?.role ? t(`admin.users.roles.${user.role}`) : "";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
