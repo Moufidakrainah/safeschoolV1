@@ -208,13 +208,6 @@ export class QuizRealtimeService {
   private onQuestionRevealed?: (payload: QuestionRevealPayload) => void;
   private onPlayerExpired?: (payload: PlayerExpiredPayload) => void;
 
-  createPongMessage(payload: string | undefined, clientId: string) {
-    return {
-      message: payload || "pong",
-      clientId,
-    };
-  }
-
 	joinRoom({ roomId, playerId, socketId, playerName }: JoinRoomInput): JoinRoomResult {
 		if (roomId.length < 3 || roomId.length > 10) {
 			return {
