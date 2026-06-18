@@ -39,6 +39,7 @@ export default function ReporterProfile({
   const { t } = useTranslation();
   const { updateUser } = useAuth();
   const [avatar, setAvatar] = useState<string | null>(user?.avatar ?? null);
+  const [avatarTimestamp, setAvatarTimestamp] = useState(0);
   const [uploading, setUploading] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +58,7 @@ export default function ReporterProfile({
       const data = await res.json();
       if (data.avatar) {
         setAvatar(data.avatar);
+        setAvatarTimestamp(Date.now());
         updateUser({ avatar: data.avatar });
         toast.success(t("toast.avatarUpdated"));
       } else {
@@ -77,7 +79,7 @@ export default function ReporterProfile({
           {avatar ? (
             <img
               className="w-56 h-56 rounded-full object-cover border-4 border-primary"
-              src={`${AVATAR_BASE}${avatar}?t=${Date.now()}`}
+              src={`${AVATAR_BASE}${avatar}?t=${avatarTimestamp}`}
               alt={`${user?.firstName} ${user?.lastName}`}
             />
           ) : (
