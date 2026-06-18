@@ -31,7 +31,7 @@ Docker, Docker Compose, Make, Git.
 
 ### Environment Setup
 
-`.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own:
+`.env.example` documents every variable the stack needs without exposing real values — copy it to `.env` and fill in your own.
 
 | Variable                                                      | Purpose                                                                                                                                                                                                                         |
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -45,23 +45,20 @@ Docker, Docker Compose, Make, Git.
 | `AI_ENABLED`                                                  | Toggles the AI scoring feature on/off                                                                                                                                                                                           |
 | `LOGSTASH_HOST` / `LOGSTASH_PORT` / `LOG_LEVEL`               | Log shipping configuration for the ELK stack                                                                                                                                                                                    |
 | `ELASTIC_PASSWORD`                                            | Password for the Elasticsearch `elastic` superuser (also used to log into Kibana)                                                                                                                                               |
+| `KIBANA_SYSTEM_PASSWORD`                                      | Password for the built-in `kibana_system` user that Kibana uses to connect to Elasticsearch                                                                                                                                     |
+| `LOGSTASH_INTERNAL_PASSWORD`                                  | Password for the `logstash_internal` user that Logstash uses to authenticate to Elasticsearch                                                                                                                                   |
 
 ### Run the Project
 
 The project has two run modes, both driven by the Makefile:
 
 - **Development** (`make dev`) — hot-reload frontend (Vite) and backend (NestJS watch), no nginx. The frontend is reached directly on port `5173` and the backend on port `5000` (cross-origin).
-- **Production** (`make all` / `make prod`) — the frontend is built as static files and served by **nginx**, which also terminates TLS (HTTPS) and reverse-proxies the API, file uploads and WebSocket traffic to the backend on a single origin. Self-signed certificates are generated automatically on the first run.
+- **Production** (`make prod`) — the frontend is built as static files and served by **nginx**, which also terminates TLS (HTTPS) and reverse-proxies the API, file uploads and WebSocket traffic to the backend on a single origin. Self-signed certificates are generated automatically on the first run.
 
 ```bash
-# Clone the repository
-git clone ...
-
-# Development mode (hot reload, HTTP, no nginx)
-make dev
-
-# Production mode (nginx + HTTPS) — this is the default target
-make all          # alias of `make prod`
+git clone ...    # Clone the repository
+make dev         # Development mode (hot reload, HTTP, no nginx)
+make prod        # Production mode (nginx + HTTPS)
 
 # The database is seeded automatically on first run if it's empty.
 # To force a manual re-seed: make seed
@@ -72,22 +69,23 @@ In production the certificate is self-signed, so the browser warns on the first 
 ### Stop the Project
 
 ```bash
-make down        # Stop the development stack
-make prod-down   # Stop the production (nginx) stack
+make down        # Stop and clean up all containers (either mode)
 make fclean      # Down + remove volumes, images and build cache
 ```
 
+> Run `make help` for the full list of targets and their descriptions (per-mode stop, logs, ELK, reset, etc.).
+
 ### Access URLs
 
-**Development (`make dev`):**
+**Development:**
 
 | URL                     | Service                    |
 | ----------------------- | -------------------------- |
 | `http://localhost:5173` | Frontend (Vite dev server) |
 | `http://localhost:5000` | Backend API                |
-| `http://localhost:5601` | Kibana (log monitoring)    |
+| `http://localhost:5601` | Kibana                     |
 
-**Production (`make all` / `make prod`):**
+**Production:**
 
 | URL                      | Service                                                              |
 | ------------------------ | -------------------------------------------------------------------- |
@@ -95,11 +93,9 @@ make fclean      # Down + remove volumes, images and build cache
 | `http://localhost:8080`  | HTTP entry point (redirects to HTTPS)                                |
 | `http://localhost:5601`  | Kibana                                                               |
 
-Kibana credentials: login `elastic`, password = value of `ELASTIC_PASSWORD` in your `.env`.
-
 ### Demo Accounts
 
-If the sample dataset has been seeded, the following accounts can be used for demonstrations:
+If the sample dataset has been seeded, the following accounts can be used :
 
 | Email                  | Password            | Role    | Main area    |
 | ---------------------- | ------------------- | ------- | ------------ |
@@ -128,22 +124,26 @@ If the sample dataset has been seeded, the following accounts can be used for de
 - [Elastic (ELK) documentation](https://www.elastic.co/guide/index.html)
 - [React documentation](https://react.dev)
 - [Tailwind CSS documentation](https://tailwindcss.com/docs)
-- [Stephane Robert documentation](https://blog.stephane-robert.info/docs/)
+- [DevSecOps - Stéphane Robert](https://blog.stephane-robert.info/docs/)
+
+### Architecture & concepts
+
+- [Web application architecture (Kinsta)](https://kinsta.com/fr/blog/architecture-application-web/)
 
 ### Learning Resources
 
 - [React Beginner Course 2025 : Vite, Tailwind CSS, TypeScript](https://www.youtube.com/watch?v=siTUv1L9ymM&list=PLB_GSA94AMIyqIOyeRolfvuaxr2rA_52j&index=2)
+- [Programming with Mosh](https://www.youtube.com/@programmingwithmosh)
+- [freeCodeCamp](https://www.youtube.com/@freecodecamp)
+- [Coding in Flow](https://www.youtube.com/@codinginflow)
 
 ### Domain References
 
-- [Color contrast checker](https://www.acquia.com/fr/products/acquia-web-governance/tools/color-contrast-checker)
 - [Studies on school harassment](docs/project/resources.md)
 
 ### Testing and Validation
 
-- [Chrome DevTools](https://developer.chrome.com/docs/devtools) for runtime inspection, network debugging and UI checks
-- [Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) for quick audits on performance and general best practices
-- [Three-browser validation notes](docs/technical/browser_support.md)
+- [Chrome DevTools](https://developer.chrome.com/docs/devtools) (runtime inspection, network debugging, UI checks)
 
 ### AI Usage
 
@@ -151,13 +151,13 @@ AI tools were used during this project both **as a feature of the application** 
 
 - **In the product**: report descriptions are scored and graded by severity with AI assistance to help staff triage incoming reports faster.
 - **During the project lifecycle**:
-  - Drafting and restructuring project documentation, always reviewed and corrected before being kept.
+  - Drafting and restructuring project documentation, always reviewed and corrected.
   - Helping weigh architecture choices and understand the trade-offs between alternatives.
-  - Generating boilerplate code, always reviewed by the team and adapted to our needs.
+  - Generating boilerplate code, always reviewed and adapted to our needs.
   - Advising on how to prioritize tasks to avoid technical bottlenecks or conflicts.
   - Debugging: explaining error messages and stack traces, suggesting fixes to investigate.
   - Researching and comparing libraries before adopting one.
-  - Producing a first draft of UI translations (FR/EN/DE), reviewed and corrected by the team.
+  - Producing a first draft of UI translations (FR/EN/DE), reviewed and corrected.
   - Improving technical write-ups: PR descriptions, meeting summaries, issue reports.
   - Rewriting contribution summaries and README sections in English from rough working notes, then manually reviewing and correcting them before publication.
   - General-purpose help with linguistic questions: translation, wording, grammar and tone consistency across the FR/EN/DE interface and documentation.
@@ -183,9 +183,9 @@ This section summarizes each member's assigned role and core responsibilities. M
 
 The team used a lightweight agile workflow centered on a shared GitHub project board. Work was split into issues, tagged by feature area and targeted module, then tracked through dedicated columns and filtered views to keep priorities and tasks readable at any time.
 
-The team held recurring meetings throughout the project (most weeks, alternating solo / pair / whole-team work sessions in between — see the minutes archived in [`docs/meetings/`](docs/meetings/)). Each session reviewed progress, prioritized the backlog, clarified blockers and was used to share knowledge.
+The team held recurring meetings throughout the project (most weeks, alternating solo / pair / whole-team work sessions in between — see the minutes archived in [docs/meetings/](docs/meetings/)). Each session reviewed progress, prioritized the backlog, clarified blockers and was used to share knowledge.
 
-To improve coordination in a team that was discovering full-stack web development for the first time, project management also included documenting Git workflows, introducing pull-request best practices, monitoring board activity continuously, and recording decisions so the team could recover context between work sessions.
+To improve coordination, project management also included documenting Git workflows, introducing pull-request best practices, monitoring board activity continuously, and recording decisions so the team could recover context between work sessions.
 
 ### Tools
 
@@ -254,11 +254,11 @@ To improve coordination in a team that was discovering full-stack web developmen
 - **NestJS** — provides a clearer structure out of the box for a team project. It helped us organize backend code into modules, controllers and services instead of defining everything from scratch.
 - **PostgreSQL** — good fit because the project relies on many related entities such as users, classes, reports, notes and parents (see [Database Schema](#database-schema)). It integrates cleanly with the rest of the stack through TypeORM.
 - **TypeORM** — helped us work with the database through TypeScript entities instead of writing and maintaining all queries by hand.
-- **JWT + bcrypt** — JWT was used for authentication, while bcrypt was used to securely hash passwords before storing them.
+- **JWT + bcrypt** — JWT is used for authentication; bcrypt securely hashes passwords before storing them.
 - **Docker Compose** — the project depends on several services running together. Docker Compose made local setup more consistent by giving the team a shared environment and a simple startup process. A base file is shared by both modes, with a dev overlay (hot reload, direct ports) and a prod overlay (compiled backend + nginx).
 - **nginx** — in production nginx serves the built frontend, terminates TLS and reverse-proxies the API, uploads and WebSocket traffic to the backend, so the whole application runs behind a single HTTPS origin instead of exposing the dev servers directly. Same-origin serving also keeps the frontend free of hard-coded backend hosts (it uses relative URLs), so it works over localhost, a LAN IP or a domain without rebuilding.
-- **ELK (Elasticsearch, Logstash, Kibana)** — ELK was chosen to centralize logs from the application and infrastructure in one place, making them easier to inspect and monitor.
-- **Internationalization (i18n)** — We chose to integrate an internationalization system from the outset of the project to make the application accessible to the widest possible audience.
+- **ELK (Elasticsearch, Logstash, Kibana)** — centralizes logs from the application and infrastructure in one place, making them easier to inspect and monitor.
+- **Internationalization (i18n)** — We chose to integrate an internationalization system to make the application accessible to the widest possible audience.
   The application is currently available in French, English, and German. Thanks to the i18n library, adding a new language is now very simple: each language is centralized in a dedicated translation file, which facilitates maintenance and project development.
 - **Quiz** — To raise students' awareness of bullying, we chose to develop an interactive quiz inspired by platforms such as Kahoot. The goal was to offer a more engaging educational tool than simply providing information.
 
@@ -270,7 +270,7 @@ All tables use UUID primary keys and are managed through TypeORM entities.
 
 ### ER Diagram
 
-![Database Schema](docs/safeschool_erd.svg)
+![Database Schema](docs/safeschool-erd.svg)
 
 ### Tables and Relationships
 

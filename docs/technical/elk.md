@@ -25,7 +25,7 @@ Two one-shot setup services configure ELK on startup, then exit:
 
 1. **`elasticsearch-setup-users`** — once Elasticsearch is healthy:
    - creates the system users (`kibana_system`, `logstash_internal`) and the `logstash_writer` role
-   - creates the ILM lifecycle policy (7d hot rollover, 30d retention)
+   - creates the ILM lifecycle policy (hot → warm at 7d → delete at 30d)
    - creates the `safeschool-logs-*` index template
 2. **`elasticsearch-setup-kibana`** — once Kibana is healthy:
    - imports the Kibana data view and the "SafeSchool - Logs Overview" dashboard
@@ -81,6 +81,12 @@ Example: submitting a report can emit:
 `login_failure` events are emitted as **WARN** (brute force monitoring).
 Unhandled exceptions are emitted as **ERROR** with the `error` tag.
 
+### Logging scope — real-time quiz
+
+The WebSocket quiz logs its **connection lifecycle** (connect/disconnect — visible in Discover with `context: "QuizRealtimeGateway"`). Business/audit logging (`auth_event`, `report_event`, `scoring_event`) covers the REST flows; live gameplay state (scores, answers) is kept in-socket during a match and is **not persisted to ELK by design** — it is transient real-time state, not audit data.
+
+Game-level metrics (answer latency, players over time, reconnections…) **could** be added later by emitting structured `quiz_event` logs through the shared `LoggerService`; ELK would then store and visualize them like any other event. The current scope is a deliberate choice, not a limitation of the stack.
+
 ---
 
 ## Available tags in Discover
@@ -134,11 +140,11 @@ Wait a few seconds, then check in Discover that the document appears.
 
 Created automatically by `elk/setup/setup.sh`:
 
-- **Hot**: active index, rolls over after 7 days (or 10 GB)
-- **Warm** (after 7 days): index optimized — shrunk to 1 shard and force-merged
-- **Delete**: after 30 days
+- **Hot** (from creation): active index, no action.
+- **Warm** (after 7 days): `forcemerge` to 1 segment to save space.
+- **Delete** (after 30 days): the index is removed.
 
-Verification: Kibana → Stack Management → Index Lifecycle Policies → `safeschool-logs-policy` should be listed.
+**Live verification:** in Kibana → Dev Tools, run `GET safeschool-logs-*/_ilm/explain`. Each index shows `"managed": true`, `"policy": "safeschool-logs-policy"` and `"step": "complete"` — no ILM error. The phases are also visible in Stack Management → Index Lifecycle Policies.
 
 ---
 
@@ -150,7 +156,7 @@ Keep Kibana Discover open during test sessions:
 - Filter `type: "auth_event"`: monitor test account logins
 - Filter `type: "report_event"`: verify report traceability
 
-→ See also `docs/testing_guide.md` section 3 for ELK validation checks.
+→ See also `docs/testing-guide.md` section 3 for ELK validation checks.
 
 ## Module compliance
 
@@ -159,5 +165,5 @@ Keep Kibana Discover open during test sessions:
 | Elasticsearch — storage and indexing     | ✅     | `safeschool-logs-YYYY.MM.DD` index, index template                                          |
 | Logstash — collection and transformation | ✅     | TCP/JSON pipeline, type-based tags, normalized timestamp                                    |
 | Kibana — visualization and dashboards    | ✅     | 4-panel dashboard, auto-imported                                                            |
-| Retention and archiving policy (ILM)     | ✅     | Hot (rollover 7d) → Warm (shrink + forcemerge) → Delete 30d, created automatically          |
+| Retention and archiving policy (ILM)     | ✅     | Hot → Warm 7d (forcemerge) → Delete 30d, created automatically                              |
 | Security — authenticated access          | ✅     | xpack.security, 3 system users, Elasticsearch and Logstash restricted to the Docker network |

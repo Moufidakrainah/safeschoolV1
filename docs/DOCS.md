@@ -1,12 +1,5 @@
 # Additional Documentation
 
-This folder contains additional documentation for the project. It serves two purposes:
-
-- explaining how the project works end to end
-- showing how the team organized and delivered the work
-
-## Key Documents
-
 | Document                                                   | Purpose                                                                                                  |
 | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | [`technical/architecture.md`](./technical/architecture.md) | Best high-level entry point: system overview, main flows, frontend/backend/database/logging interactions |
@@ -30,7 +23,7 @@ README when more detail is useful.
 | PWA                                       | [`technical/pwa.md`](./technical/pwa.md)                                                                                                               |
 | Security                                  | [`technical/security.md`](./technical/security.md)                                                                                                     |
 | Design system                             | [`design/components.md`](./design/components.md), [`design/design-system.md`](./design/design-system.md)                                               |
-| Browser support                           | [`technical/browser_support.md`](./technical/browser_support.md)                                                                                       |
+| Browser support                           | [`technical/browser-support.md`](./technical/browser-support.md)                                                                                       |
 
 ## Project Method
 
@@ -39,7 +32,7 @@ These documents are useful to show how the team worked and how decisions were tr
 | Area                   | Recommended documents                                                          |
 | ---------------------- | ------------------------------------------------------------------------------ |
 | Meetings and follow-up | [`meetings/`](./meetings/)                                                     |
-| Git workflow           | [`process/git_workflow.md`](./process/git_workflow.md)                         |
+| Git workflow           | [`process/git-workflow.md`](./process/git-workflow.md)                         |
 | Collaboration rules    | [`process/collaboration-guidelines.md`](./process/collaboration-guidelines.md) |
 
 ## Reference Library
@@ -52,4 +45,4 @@ supporting references, but they are not the best first entry points for understa
 | [`technical/`](./technical/) | Technical notes, implementation details and focused deep dives                                                           |
 | [`design/`](./design/)       | Design process, mockups, visual references and UI rules (see [`design/graphic-charter.md`](./design/graphic-charter.md)) |
 | [`process/`](./process/)     | Workflow notes, conventions, migration notes and collaboration material                                                  |
-| [`vision.md`](./vision.md)   | Product framing — problem, users, core features, why this project                                                        |
+| [`project/`](./project/)     | Product vision (problem, users, why this project) and the domain reference library (school-harassment studies)           |

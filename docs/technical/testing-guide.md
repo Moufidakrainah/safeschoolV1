@@ -1,13 +1,10 @@
-# SafeSchool — Validation Playbook
-
-How to verify the application works end-to-end.  
-Each check has a concrete command and indicates the expected result.
+# Testing guide
 
 ## Before you start
 
 Run `make all` from the project root. Once the stack is up, run `make ps` to verify all services are running.
 
-`frontend`, `backend`, `database`, `elasticsearch`, `logstash`, `kibana` should show `up`.
+`frontend`, `backend`, `db`, `elasticsearch`, `logstash`, `kibana` should show up and healthy.
 
 Open `https://localhost:8443`.
 
