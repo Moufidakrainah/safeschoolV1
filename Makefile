@@ -220,7 +220,7 @@ test-login-invalid-email: ## Tester login avec email mal formé (attendu: 400)
 test-login-bad-password: ## Tester login avec mauvais mot de passe (attendu: 401)
 	@curl -s -X POST http://localhost:5000/auth/login \
 		-H "Content-Type: application/json" \
-		-d '{"email":"lotfi@safeschool.com","password":"mauvaismdgrand"}' | python3 -m json.tool
+		-d '{"email":"lotfi@safeschool.com","password":"mauvaismdpgrand"}' | python3 -m json.tool
 
 test-login-unknown-email: ## Tester login avec email inconnu (attendu: 401)
 	@curl -s -X POST http://localhost:5000/auth/login \
