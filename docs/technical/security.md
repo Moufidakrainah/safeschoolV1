@@ -135,6 +135,13 @@ By using `Authorization: Bearer <token>` (managed by the Axios interceptor), Saf
 
 ---
 
+## HTTP security headers — helmet + nginx
+
+- **Backend (API):** `helmet` sets standard security headers on every API response (`main.ts`). HSTS is intentionally disabled (`hsts: false`) so the browser doesn't force HTTPS on `localhost` after a prod run, and `crossOriginResourcePolicy` is set to `cross-origin` so uploaded avatars can be served to the frontend.
+- **Frontend (nginx):** the static site is served with `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin` (`nginx/nginx.conf`).
+
+---
+
 ## Environment Variables — credentials out of the codebase
 
 No credentials (database password, JWT_SECRET, API key) ever appear in source code.

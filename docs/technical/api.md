@@ -1,4 +1,4 @@
-# API Reference — SafeSchool
+# API Reference
 
 > Base URL: `http://localhost:5000` (dev) / `https://localhost:8443` (prod)
 > All routes except `POST /auth/login` and `POST /auth/register` require the header:

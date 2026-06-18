@@ -1,6 +1,6 @@
 # Team Collaboration Guidelines
 
-This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git_workflow.md`](./git_workflow.md). For working on multiple branches in parallel, see
+This document describes how the team organized its work across code, documentation, and project management. For Git mechanics (commands, commit format, conflict resolution), see [`git-workflow.md`](./git-workflow.md). For working on multiple branches in parallel, see
 
 ---
 
@@ -27,7 +27,7 @@ The repository uses three integration branches:
 | `frontend/main` | Frontend integration branch — used as a shared base during peak frontend development | PM                 |
 | `DOC/main`      | All project documentation (`docs/`)                                                  | Documentation Lead |
 
-Working branches are short-lived by design — one topic, merged and deleted. They follow the naming conventions in [`git_workflow.md`](./git_workflow.md):
+Working branches are short-lived by design — one topic, merged and deleted. They follow the naming conventions in [`git-workflow.md`](./git-workflow.md):
 
 | Prefix             | Use                               | Target     |
 | ------------------ | --------------------------------- | ---------- |
@@ -87,7 +87,7 @@ Reviews are done using GitHub's inline review feature: comments are left on spec
 7. Address review feedback inline, on the same branch.
 8. Merge your own PR once approved; delete the branch.
 
-Full Git command reference: [`git_workflow.md`](./git_workflow.md).
+Full Git command reference: [`git-workflow.md`](./git-workflow.md).
 
 ---
 

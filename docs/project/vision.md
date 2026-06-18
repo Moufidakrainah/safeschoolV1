@@ -1,7 +1,5 @@
 # Product Vision — SafeSchool
 
-## Problem
-
 School harassment affects a significant share of middle school students. In France, estimates place between 5% and 10% of students in a situation of repeated harassment at some point during their schooling. In many cases, incidents go unreported: victims fear retaliation, distrust the process, or simply do not know how to report.
 
 School staff face a parallel challenge. Reports that do arrive are often informal, fragmented, and difficult to prioritize. There is no structured way to record, route, or follow up on harassment cases — which means cases can stall, get lost, or be handled inconsistently.
