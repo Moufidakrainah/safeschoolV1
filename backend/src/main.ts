@@ -8,16 +8,9 @@ import { LoggerService } from "./logger/logger.service";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  // Remplace le logger interne de Nest par le nôtre : les erreurs non gérées
-  // (500) partent ainsi vers Logstash avec le niveau ERROR (tag "error").
   app.useLogger(app.get(LoggerService));
-  // En-têtes de sécurité HTTP (X-Frame-Options, nosniff, etc.).
-  // hsts: false -> sinon, après un make prod en HTTPS, le navigateur force
-  // HTTPS sur tout localhost (HSTS) et make dev (HTTP) devient inaccessible
-  // sans purge manuelle. Peu utile ici (certificat auto-signé, pas de domaine).
-  // crossOriginResourcePolicy en "cross-origin" : sinon les avatars servis
-  // par le backend seraient bloqués quand le frontend de dev (port 5173)
-  // les charge depuis une autre origine (port 5000).
+// Sécurité : HSTS désactivé pour éviter de bloquer localhost en HTTP (make dev).
+// CORP configuré en "cross-origin" pour permettre au frontend (5173) de charger les avatars du backend (5000).
   app.use(
     helmet({
       hsts: false,
@@ -32,8 +25,7 @@ async function bootstrap() {
     }),
   );
   // Origines autorisées par le CORS. En prod (nginx, même origine) le CORS
-  // n'est pas sollicité ; cette liste sert surtout au mode dev (5173 -> 5000).
-  // FRONTEND_URL peut contenir plusieurs origines séparées par des virgules.
+  // n'est pas sollicité ; cette liste sert au mode dev (5173 -> 5000).
   app.enableCors({
     origin: (process.env.FRONTEND_URL ?? "http://localhost:5173")
       .split(",")
