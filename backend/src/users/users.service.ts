@@ -212,7 +212,7 @@ export class UsersService {
 
     if (dto.firstName) user.firstName = dto.firstName;
     if (dto.lastName) user.lastName = dto.lastName;
-    // ❌ Le rôle ne peut pas être modifié après la création
+    // Le rôle ne peut pas être modifié après la création
     // if (dto.role) user.role = dto.role as UserRole;
 
     if (dto.password) {
