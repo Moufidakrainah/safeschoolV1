@@ -1,6 +1,6 @@
-# 🛡️ SafeSchool
+# SafeSchool
 
-🇬🇧 [English version](README.md)
+[English version](README.md)
 
 **Une plateforme web full-stack qui aide les établissements scolaires à signaler, suivre et traiter les situations de harcèlement, du signalement de l'élève jusqu'au suivi par l'équipe éducative.**
 
@@ -19,7 +19,7 @@ J'étais **Lead Technique Backend**, responsable de l'architecture de l'API, de 
 
 ---
 
-## ✨ Fonctionnalités principales
+## Fonctionnalités principales
 
 - **Signalement d'incidents** : les élèves déposent un signalement (victimes, suspects, description) avec validation en temps réel
 - **Gestion des dossiers** : l'équipe suit chaque signalement tout au long de son cycle de vie (`nouveau → en cours → en attente → résolu / faux signalement`), ajoute des notes et planifie des convocations
@@ -28,7 +28,7 @@ J'étais **Lead Technique Backend**, responsable de l'architecture de l'API, de 
 - **Tableaux de bord par rôle** : vues administrateur, élève et parent, tableau de statistiques
 - **Internationalisation** : français, anglais et allemand
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ flowchart LR
 
 Sept conteneurs Docker orchestrés avec Docker Compose, avec des configurations **dev** et **prod** distinctes (Dockerfiles multi-stages, fichiers de surcharge Compose).
 
-## 🔐 Points forts en sécurité
+## Points forts en sécurité
 
 - Hachage des mots de passe avec **bcrypt**, authentification sans état par **JWT**
 - Autorisations via les guards NestJS (`JwtAuthGuard`, `RolesGuard`)
@@ -53,7 +53,7 @@ Sept conteneurs Docker orchestrés avec Docker Compose, avec des configurations 
 - **Protection contre l'injection de prompt** sur l'évaluation IA (isolation du prompt système, sortie validée par liste blanche)
 - Elasticsearch sécurisé avec X-Pack, aucun port public exposé
 
-## 👩‍💻 Ma contribution (Lead Technique Backend)
+## Ma contribution (Lead Technique Backend)
 
 - Conception de l'**API NestJS** : modules, services, entités TypeORM et modèle de données PostgreSQL (MCD)
 - Mise en place de l'**authentification et des autorisations par rôle**
@@ -62,7 +62,7 @@ Sept conteneurs Docker orchestrés avec Docker Compose, avec des configurations 
 - Mise en place de l'infrastructure **Docker Compose** (dev/prod) et participation à la stack de logs ELK
 - Coordination du travail backend et revues de code via pull requests sur une branche `main` protégée
 
-## 🚀 Démarrage
+## Démarrage
 
 **Prérequis :** Docker, Docker Compose, Make
 
@@ -78,7 +78,7 @@ L'application est ensuite accessible sur `https://localhost` (certificat auto-si
 
 Les comptes de démonstration et la documentation technique complète se trouvent dans [`docs/`](docs/).
 
-## 🧰 Stack technique
+## Stack technique
 
 | Couche | Technologies |
 |---|---|
@@ -89,7 +89,7 @@ Les comptes de démonstration et la documentation technique complète se trouven
 | Infrastructure | Docker, Docker Compose, Nginx, Make |
 | Observabilité | Elasticsearch, Logstash, Kibana |
 
-## 👥 Équipe
+## Équipe
 
 Réalisé à l'**École 42 Mulhouse** par une équipe de quatre :
 [@hydnumrepandum68](https://github.com/hydnumrepandum68) ·

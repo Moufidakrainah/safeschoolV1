@@ -1,6 +1,6 @@
-# 🛡️ SafeSchool
+# SafeSchool
 
-🇫🇷 [Version française](README.fr.md)
+[Version française](README.fr.md)
 
 **A full-stack web platform that helps schools report, track and handle harassment incidents — from the student's report to the staff's follow-up.**
 
@@ -19,7 +19,7 @@ I was the **Backend Technical Lead**, responsible for the API architecture, secu
 
 ---
 
-## ✨ Key features
+## Key features
 
 - **Incident reporting** — students submit reports (victims, suspects, description) with real-time validation
 - **Case management** — staff follow each report through its lifecycle (`new → in_progress → pending → resolved / false_report`), add notes and schedule convocations
@@ -28,7 +28,7 @@ I was the **Backend Technical Lead**, responsible for the API architecture, secu
 - **Role-based dashboards** — admin, student and parent views, statistics dashboard
 - **Internationalisation** — French, English and German
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -42,7 +42,7 @@ flowchart LR
 
 Seven Docker containers orchestrated with Docker Compose, with separate **dev** and **prod** configurations (multi-stage Dockerfiles, compose override files).
 
-## 🔐 Security highlights
+## Security highlights
 
 - Password hashing with **bcrypt**, stateless auth with **JWT**
 - Authorisation with NestJS guards (`JwtAuthGuard`, `RolesGuard`)
@@ -53,7 +53,7 @@ Seven Docker containers orchestrated with Docker Compose, with separate **dev** 
 - **Prompt-injection mitigation** on the AI scoring (system prompt isolation, output validated against an allow-list)
 - Elasticsearch secured with X-Pack, no public port exposed
 
-## 👩‍💻 My contribution (Backend Technical Lead)
+## My contribution (Backend Technical Lead)
 
 - Designed the **NestJS API**: modules, services, TypeORM entities and the PostgreSQL data model (ERD)
 - Implemented **authentication and role-based authorisation**
@@ -62,7 +62,7 @@ Seven Docker containers orchestrated with Docker Compose, with separate **dev** 
 - Set up the **Docker Compose** infrastructure (dev/prod) and contributed to the ELK logging stack
 - Coordinated the backend work and code reviews through pull requests on a protected `main` branch
 
-## 🚀 Getting started
+## Getting started
 
 **Prerequisites:** Docker, Docker Compose, Make
 
@@ -78,7 +78,7 @@ The app is then available at `https://localhost` (self-signed certificate).
 
 Demo accounts and the full technical documentation are available in [`docs/`](docs/).
 
-## 🧰 Tech stack
+## Tech stack
 
 | Layer | Technologies |
 |---|---|
@@ -89,7 +89,7 @@ Demo accounts and the full technical documentation are available in [`docs/`](do
 | Infrastructure | Docker, Docker Compose, Nginx, Make |
 | Observability | Elasticsearch, Logstash, Kibana |
 
-## 👥 Team
+## Team
 
 Built at **École 42 Mulhouse** by a team of four:
 [@hydnumrepandum68](https://github.com/hydnumrepandum68) ·
